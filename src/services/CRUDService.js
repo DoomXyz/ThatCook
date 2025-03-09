@@ -1,5 +1,5 @@
 import db from '../models/index';
-import bcrypt from "bcrypt";
+import bcrypt from 'bcrypt';
 
 let saltRounds = 10;
 
@@ -36,6 +36,20 @@ let hashUserPassword = (password) => {
     })
 }
 
+let getAllUser = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let users = db.TaiKhoans.findAll({
+                raw: true,
+            });
+            resolve(users);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
 module.exports = {
     createNewUser: createNewUser,
+    getAllUser: getAllUser,
 }

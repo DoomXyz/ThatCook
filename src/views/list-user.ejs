@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List All Users</title>
+</head>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+</style>
+
+<body>
+    <table style="width:100%">
+        <tr>
+            <th>Mã tài khoản</th>
+            <th>Email</th>
+            <th>Mật khẩu</th>
+            <th>Họ tên</th>
+            <th>Giới tính</th>
+            <th>Số điện thoại</th>
+            <th>Địa chỉ</th>
+            <th>Loại tài khoản</th>
+        </tr>
+
+        <% for(let i=0;i<dataTable.length; i++) { %>
+            </tr>
+            <td>
+                <%= dataTable[i].MATK %>
+            </td>
+            <td>
+                <%= dataTable[i].Email %>
+            </td>
+            <td>
+                <%= dataTable[i].Password %>
+            </td>
+            <td>
+                <%= dataTable[i].HoTen %>
+            </td>
+            <td>
+                <%= dataTable[i].GioiTinh %>
+            </td>
+            <td>
+                <%= dataTable[i].SDT %>
+            </td>
+            <td>
+                <%= dataTable[i].DiaChi %>
+            </td>
+            <td>
+                <%= dataTable[i].MALOAITK %>
+            </td>
+            <% } %>
+
+    </table>
+</body>
+
+</html>
