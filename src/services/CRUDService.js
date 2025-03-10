@@ -1,3 +1,4 @@
+import { where } from 'sequelize';
 import db from '../models/index';
 import bcrypt from 'bcrypt';
 
@@ -49,7 +50,49 @@ let getAllUser = () => {
     })
 }
 
+let getTaiKhoanMATK = (maTK) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let user = await db.TaiKhoans.findOne({
+                where: { MATK: maTK },
+                raw: true
+            })
+            if (user) {
+                resolve(user)
+            } else {
+                resolve({})
+            }
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
+let updateUser = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let user = await db.TaiKhoans.findOne({
+                where: { MATK: data.MATK },
+            })
+            if (user) {
+                user.HoTen = data.HoTen;
+                user.SDT = data.SDT;
+                user.DiaChi = data.DiaChi;
+                await user.save();
+                let allUsers = await db.TaiKhoans.findAll();
+                resolve(allUsers);
+            } else {
+                resolve();
+            }
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
 module.exports = {
     createNewUser: createNewUser,
     getAllUser: getAllUser,
+    getTaiKhoanMATK: getTaiKhoanMATK,
+    updateUser: updateUser,
 }

@@ -13,6 +13,26 @@
         border: 1px solid black;
         border-collapse: collapse;
     }
+
+    .btn-edit {
+        outline: none;
+        border: none;
+        background: rgb(212, 212, 67);
+        height: 25px;
+        width: 60px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+
+    .btn-delete {
+        outline: none;
+        border: none;
+        background: rgb(177, 81, 81);
+        height: 25px;
+        width: 60px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
 </style>
 
 <body>
@@ -26,6 +46,7 @@
             <th>Số điện thoại</th>
             <th>Địa chỉ</th>
             <th>Loại tài khoản</th>
+            <th>Action</th>
         </tr>
 
         <% for(let i=0;i<dataTable.length; i++) { %>
@@ -53,6 +74,10 @@
             </td>
             <td>
                 <%= dataTable[i].MALOAITK %>
+            </td>
+            <td>
+                <a href="/edit-user?matk=<%= dataTable[i].MATK %>" class="btn-edit" type="button">Edit</a>
+                <a class="btn-delete" type="button">Delete</a>
             </td>
             <% } %>
 

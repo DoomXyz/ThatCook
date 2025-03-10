@@ -30,9 +30,34 @@ let userShow = async (req, res) => {
     });
 }
 
+let userEdit = async (req, res) => {
+    let maTK = req.query.matk;
+    if (maTK) {
+        let userData = await CRUDService.getTaiKhoanMATK(maTK);
+
+        return res.render('edit-user.ejs', {
+            user: userData,
+        })
+    } else {
+        return res.send("User not found");
+    }
+}
+
+let updateTodb = async (req, res) => {
+    let data = req.body;
+    let allUsers = await CRUDService.updateUser(data);
+    return res.redirect("/list-user");
+    // return res.render('list-user.ejs', {
+    //     dataTable: allUsers
+    // });
+
+}
+
 module.exports = {
     getHomePage: getHomePage,
     userRegister: userRegister,
     saveTodb: saveTodb,
     userShow: userShow,
+    userEdit: userEdit,
+    updateTodb: updateTodb,
 }

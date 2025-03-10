@@ -1,0 +1,127 @@
+<!-- register.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa</title>
+    <style>
+        .containers {
+            position: relative;
+            width: 60%;
+            /* chiều rộng container */
+            margin: 50px auto;
+            /* khoảng cách từ trên và dưới */
+            background-color: #fff;
+            /* màu nền trắng */
+            padding: 20px;
+            /* khoảng cách từ nội dung */
+            border: 1px solid #ddd;
+            /* đường viền nhẹ nhàng */
+            box-shadow: 0 0 15px rgba(91, 82, 82);
+            /* bóng nhẹ nhàng */
+            margin-top: 170px;
+
+            p {
+                font-weight: bold;
+                font-size: 24px;
+                text-align: center;
+                color: rgb(82, 74, 74);
+                margin-bottom: 30px;
+            }
+
+            form {
+                position: relative;
+
+                .btn.btn-primary {
+                    background-color: #4CAF50;
+                    /* màu nền xanh lá cây */
+                    color: #fff;
+                    /* màu chữ trắng */
+                    padding: 10px 20px;
+                    /* khoảng cách từ nội dung */
+                    border: none;
+                    /* không có đường viền */
+                    border-radius: 5px;
+                    /* góc tròn nhẹ nhàng */
+                    cursor: pointer;
+                    /* con trỏ chuột */
+                    margin-top: 10px;
+                }
+
+                .btn.btn-primary:hover {
+                    background-color: #3e8e41;
+                    /* màu nền xanh lá cây đậm hơn */
+                }
+
+                .form-row {
+                    margin-top: 10px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+
+                    .form-group {
+                        width: 48%;
+
+                        /* Chia 2 cột */
+                        &.col-md-6 {
+                            label {
+                                color: rgb(91, 82, 82);
+                                font-size: 18px;
+                            }
+
+                            .form-control {
+                                padding: 10px;
+                                /* khoảng cách từ nội dung */
+                                border: 1px solid #ccc;
+                                /* đường viền nhẹ nhàng */
+                                border-radius: 5px;
+                                /* góc tròn nhẹ nhàng */
+                                width: 100%;
+                                font-size: 18px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .register-logo {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+            }
+        }
+    </style>
+</head>
+
+<body
+    style="background: url(./backgroundimgs/flat-lay-toys-with-food-bowl-fur-brush-dogs_23-2148949620.avif); background-size: cover; background-repeat: no-repeat;">
+    <div class="containers">
+        <p>CHỈNH SỬA TÀI KHOẢN</p>
+        <form action="/put-user" method="POST">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputEmail4">Họ Tên</label>
+                    <input type="text" class="form-control" name="HoTen" value="<%= user.HoTen %>">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputEmail4">Điện thoại</label>
+                    <input type="text" class="form-control" name="SDT" value="<%= user.SDT %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputAddress">Địa chỉ</label>
+                    <input type="text" class="form-control" name="DiaChi" value="<%= user.DiaChi %>">
+                </div>
+            </div>
+    </div>
+    <input type="text" name="MATK" value="<%= user.MATK %>" hidden>
+    <button type="submit" class="btn btn-primary">Chỉnh sửa</button>
+    </form>
+    <div class="register-logo"><img src="./icon/Pet Accessories & Food.png" alt=""></div>
+    </div>
+</body>
+
+</html>
