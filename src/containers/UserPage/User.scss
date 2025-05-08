@@ -1,0 +1,743 @@
+.user-page {
+    padding-top: 60px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Đổi height thành min-height */
+}
+
+.user-container {
+    background-color: rgb(240, 227, 234);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+    /* Bỏ height: 70vh để container tự mở rộng theo nội dung */
+}
+
+.user-action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    width: 300px;
+    margin-right: 10px;
+    height: 30vh;
+}
+
+.user-action-info,
+.user-action-cart,
+.user-action-change-pw {
+    border-bottom: 1px solid rgb(184, 184, 184);
+    padding: 10px;
+    cursor: pointer;
+
+    &.active {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+    }
+
+    &:hover {
+        color: #333;
+        background-color: #e0e0e0;
+    }
+}
+
+.user-form {
+    flex: 1;
+}
+
+.user-info-form,
+.user-cart-form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    min-height: 400px;
+    /* Đặt chiều cao tối thiểu cố định */
+    display: flex;
+    /* Sử dụng flex để quản lý nội dung */
+    flex-direction: column;
+    justify-content: flex-start;
+    /* Căn nội dung từ trên xuống */
+}
+
+.user-cart-form-info {
+    background-color: rgba(253, 253, 253, 0);
+    padding: 0px;
+    border-radius: 8px;
+    width: 100%;
+    min-height: 400px;
+    /* Đặt chiều cao tối thiểu cố định */
+    display: flex;
+    /* Sử dụng flex để quản lý nội dung */
+    flex-direction: column;
+    justify-content: flex-start;
+    /* Căn nội dung từ trên xuống */
+}
+
+.user-info-form-content {
+    border-top: rgb(184, 184, 184) 2px solid;
+    display: flex;
+    flex-direction: row;
+    justify-content: center; // Căn giữa theo chiều ngang
+    align-items: center; // Căn giữa theo chiều dọc
+    gap: 15px;
+    height: 100%;
+
+    .user-content-left {
+        flex: 5; // Chiếm 7/10 không gian
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        flex-direction: column;
+
+        /* Các price-item xếp dọc */
+        /* Khoảng cách giữa các price-item */
+        .user-info-tab {
+            display: flex;
+            flex-direction: row;
+            /* label và value nằm ngang */
+            justify-content: space-between;
+            /* Căn đều hai bên hoặc tùy chỉnh */
+        }
+
+        .descreption-user {
+            display: flex;
+            font-weight: bold;
+            /* Tương tự <th> */
+            flex: 3;
+            /* Chiếm không gian tối đa bên trái */
+            justify-content: flex-start;
+            padding-right: 10px;
+        }
+
+        .value-user {
+            display: flex;
+            color: #333;
+            /* Tùy chỉnh kiểu dáng cho value */
+            flex: 7;
+            /* Chiếm không gian tối đa bên phải */
+            text-align: right;
+            /* Căn phải cho value, tùy chỉnh nếu cần */
+            justify-content: flex-end;
+        }
+
+        .value-user-input {
+            display: flex;
+            color: #333;
+            /* Tùy chỉnh kiểu dáng cho value */
+            flex: 7;
+            /* Chiếm không gian tối đa bên phải */
+            text-align: right;
+            /* Căn phải cho value, tùy chỉnh nếu cần */
+            justify-content: flex-start;
+            border: none;
+            /* Xóa viền mặc định */
+            border-bottom: 1px solid #ccc;
+            /* Thêm gạch chân */
+            background: transparent;
+            /* Nền trong suốt */
+            outline: none;
+
+            /* Xóa viền focus mặc định */
+            &:focus {
+                border-bottom: 1px solid #007bff;
+                /* Đổi màu gạch chân khi focus */
+            }
+        }
+
+        .edit-button {
+            display: flex;
+            justify-content: center;
+            margin-left: 10px;
+            padding: 5px 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #0056b3;
+            }
+        }
+
+        .change-info-button {
+            display: flex;
+            justify-content: center;
+
+            .button-submit {
+                display: flex;
+                margin-top: 20px;
+
+            }
+
+            button {
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: #0056b3;
+                }
+            }
+        }
+
+        .gender-radio-group {
+            display: flex;
+            gap: 15px;
+            /* Khoảng cách giữa các radio button */
+        }
+
+        .gender-radio {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+
+            input[type="radio"] {
+                margin-right: 5px;
+                cursor: pointer;
+            }
+        }
+
+        .gender-radio-1 {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding-right: 40px;
+
+            input[type="radio"] {
+                margin-right: 5px;
+                cursor: pointer;
+            }
+        }
+
+        .email {
+            padding-right: 40px;
+        }
+    }
+
+    .user-content-right {
+        flex: 3; // Chiếm 3/10 không gian
+        display: flex;
+        flex-direction: column;
+        justify-content: center; // Căn giữa theo chiều dọc
+        align-items: center; // Căn giữa theo chiều ngang
+        gap: 20px;
+        border-left: rgb(184, 184, 184) 2px solid;
+
+        .user-content-img-info {
+            width: 100px;
+            height: 100px;
+            background-color: #ccc;
+            border-radius: 50%;
+        }
+
+        .button-submit {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #0056b3;
+            }
+        }
+    }
+}
+
+.user-cart-form-content {
+    border-top: rgb(184, 184, 184) 2px solid;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 5px;
+
+    .order-list {
+        .order-list-object {
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(248, 163, 248, 0.692);
+            margin-bottom: 10px;
+
+            .order-list-object-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+                .order-list-descreption-left {
+                    /* Chia đều không gian */
+                    display: flex;
+                    justify-content: flex-start;
+
+                }
+
+                .order-list-descreption-right {
+                    display: flex;
+                    justify-content: flex-end;
+
+                }
+
+                .order-info-tab {
+                    display: flex;
+                    flex-direction: row;
+                    /* label và value nằm ngang */
+                    justify-content: space-between;
+
+                    /* Căn đều hai bên hoặc tùy chỉnh */
+
+                }
+
+                .value-oder {
+                    padding-left: 10px;
+                }
+
+
+            }
+
+            .order-list-object-center {
+                .order-list-object-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 25px;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+                    .order-list-object-item-left {
+                        /* Chia đều không gian */
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: left;
+                    }
+
+                    .order-list-object-item-center {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
+
+                        /* Chia đều không gian */
+                        .descreption-item {
+                            margin-bottom: 5px;
+                            display: flex;
+                            justify-content: flex-end;
+                        }
+
+                        .value-item {
+                            display: flex;
+
+                        }
+                    }
+
+                    .order-list-object-item-right {
+                        flex: 1;
+                        /* Chia đều không gian */
+                        display: flex;
+                        justify-content: flex-end;
+                    }
+
+                }
+
+                .item-info-tab {
+                    display: flex;
+                    flex-direction: row;
+                    /* label và value nằm ngang */
+                    justify-content: flex-start;
+                    margin-right: 10px;
+
+                    /* Căn đều hai bên hoặc tùy chỉnh */
+                    .value-item {
+                        padding-left: 5px;
+                    }
+
+
+                }
+
+                /* Chia đều không gian */
+                .descreption-item {
+                    margin-bottom: 5px;
+                }
+            }
+
+            .order-list-object-bot {
+                display: flex;
+                flex-direction: column;
+                /* Các price-item xếp dọc */
+                gap: 10px;
+
+                .price-item {
+                    display: flex;
+                    flex-direction: row;
+                    /* label và value nằm ngang */
+                    justify-content: space-between;
+                    /* Căn đều hai bên hoặc tùy chỉnh */
+                    align-items: center;
+                    /* Căn giữa theo chiều dọc */
+                }
+
+                /* Khoảng cách giữa các price-item */
+                .label {
+                    display: flex;
+                    font-weight: bold;
+                    /* Tương tự <th> */
+                    flex: 5;
+                    /* Chiếm không gian tối đa bên trái */
+                    justify-content: flex-end;
+                }
+
+                .value {
+                    display: flex;
+                    color: #f86e34;
+                    /* Tùy chỉnh kiểu dáng cho value */
+                    flex: 1;
+                    /* Chiếm không gian tối đa bên phải */
+                    text-align: right;
+                    /* Căn phải cho value, tùy chỉnh nếu cần */
+                    justify-content: flex-end;
+                }
+
+            }
+        }
+    }
+}
+
+.user-change-pw-form {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    /* Đặt chiều cao tối thiểu cố định */
+    display: flex;
+    /* Sử dụng flex để quản lý nội dung */
+    flex-direction: column;
+    /* Căn nội dung từ trên xuống */
+    max-width: 1200px;
+    /* Giới hạn chiều rộng form */
+    margin: 0 auto;
+    /* Căn giữa form */
+    padding: 20px;
+
+
+    .h3 {
+        margin-top: 10px;
+        font-size: 24px;
+        color: #333;
+        text-align: center;
+    }
+
+    .user-change-pw-form-content {
+        border-top: rgb(184, 184, 184) 2px solid;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    label {
+        margin-top: 10px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .user-change-pw-form-content-input {
+        input {
+            width: 50%;
+            max-width: 800px;
+            border: none;
+            border-bottom: 1px solid #ccc;
+            background: transparent;
+            outline: none;
+            font-size: 16px;
+            transition: border-bottom 0.3s ease;
+
+            &:focus {
+                border-bottom: 1px solid #007bff;
+            }
+
+            &::placeholder {
+                color: #aaa;
+            }
+        }
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+
+    .button-submit {
+        margin-top: 30px;
+
+        button {
+            width: 50%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #0056b3;
+            }
+
+            &:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+        }
+    }
+}
+
+
+
+.user-cart-form-info-top {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-top-left-radius: 10px;
+    /* Bo góc trên trái */
+    border-top-right-radius: 10px;
+
+    /* Bo góc trên phải */
+    .user-cart-form-info-left {
+        flex: 5;
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+
+        .back {
+            padding-top: 10px;
+            display: flex;
+            align-items: center;
+            /* Căn giữa theo chiều dọc */
+            gap: 5px;
+            cursor: pointer;
+            /* Khoảng cách giữa icon và text */
+        }
+
+        .back h5 {
+            margin: 0px;
+        }
+    }
+
+    .user-cart-form-info-right {
+        flex: 5;
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 10px;
+
+        .order-info-tab {
+            display: flex;
+            flex-direction: row;
+            /* label và value nằm ngang */
+            justify-content: space-between;
+            /* Căn đều hai bên hoặc tùy chỉnh */
+        }
+
+        .mdh {
+            padding-right: 5px;
+            cursor: not-allowed;
+        }
+
+        .ctmd {
+            padding-right: 10px;
+            border-right: 2px solid black;
+            cursor: not-allowed;
+        }
+
+        .tt {
+            padding-left: 10px;
+            color: orangered;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.user-cart-form-info-address {
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    cursor: not-allowed;
+    padding: 20px;
+    margin-bottom: 0px;
+    border-bottom-left-radius: 10px;
+    /* Bo góc dưới trái */
+    border-bottom-right-radius: 10px;
+
+    /* Bo góc dưới phải */
+    .user-info-tab {
+        display: flex;
+        flex-direction: row;
+        /* label và value nằm ngang */
+        justify-content: space-between;
+        /* Căn đều hai bên hoặc tùy chỉnh */
+    }
+
+    .descreption-user {
+        display: flex;
+        justify-content: flex-start;
+    }
+}
+
+.user-cart-form-info-list-item {
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    cursor: not-allowed;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 0px;
+
+    .user-cart-form-info-list-item-row {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+        .user-cart-form-info-list-item-left {
+            padding: 10px;
+            display: flex;
+            /* Chia đều không gian */
+            justify-content: space-between;
+            align-items: center;
+
+            .img-product {
+                display: flex;
+                align-items: center;
+                border: 1px solid rgb(0, 0, 0); // Debug: Viền đỏ để thấy khu vực ảnh
+            }
+        }
+
+        .user-cart-form-info-list-item-center {
+            padding-top: 10px;
+            width: 30vw;
+
+            .item-info-tab {
+                display: flex;
+                flex-direction: row;
+                /* label và value nằm ngang */
+                justify-content: flex-start;
+
+                .descreption-item {
+                    margin-bottom: 5px;
+                }
+
+                /* Căn đều hai bên hoặc tùy chỉnh */
+                .value-item {
+                    padding-left: 5px;
+                    display: flex;
+                    justify-content: right;
+                }
+            }
+
+            /* Chia đều không gian */
+
+        }
+
+        .user-cart-form-info-list-item-right {
+            padding-top: 10px;
+            width: 30vw;
+            flex-direction: column;
+            height: 100%;
+
+            .item-info-tab {
+                display: flex;
+                flex-direction: row;
+                /* label và value nằm ngang */
+                justify-content: flex-end;
+
+                .descreption-item {
+                    margin-bottom: 5px;
+                }
+
+                /* Căn đều hai bên hoặc tùy chỉnh */
+                .value-item {
+                    padding-left: 5px;
+                    display: flex;
+                    justify-content: right;
+                }
+            }
+        }
+    }
+
+
+
+    .user-cart-form-info-list-item-right {
+        flex: 1;
+        /* Chia đều không gian */
+        display: flex;
+        justify-content: flex-end;
+    }
+
+}
+
+.user-cart-form-info-table-price {
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    /* Các price-item xếp dọc */
+    gap: 10px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    border-radius: 8px;
+
+    .price-item {
+        display: flex;
+        flex-direction: row;
+        /* label và value nằm ngang */
+        justify-content: space-between;
+        /* Căn đều hai bên hoặc tùy chỉnh */
+        align-items: center;
+        /* Căn giữa theo chiều dọc */
+    }
+
+    /* Khoảng cách giữa các price-item */
+    .label {
+        display: flex;
+        font-weight: bold;
+        /* Tương tự <th> */
+        flex: 5;
+        /* Chiếm không gian tối đa bên trái */
+        justify-content: flex-end;
+    }
+
+    .value {
+        display: flex;
+        color: #333;
+        /* Tùy chỉnh kiểu dáng cho value */
+        flex: 1;
+        /* Chiếm không gian tối đa bên phải */
+        text-align: right;
+        /* Căn phải cho value, tùy chỉnh nếu cần */
+        justify-content: flex-end;
+        border-bottom: rgb(184, 184, 184) 2px solid;
+    }
+}

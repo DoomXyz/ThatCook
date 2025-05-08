@@ -1,0 +1,144 @@
+.f {
+  display: flex;
+}
+.create-product-modal {
+  .modal-dialog {
+    max-width: 700px;
+  }
+  .modal-body {
+    .modal-content {
+      border: none;
+      width: 100%;
+      p {
+        margin: 5px;
+      }
+      .modal-content-add-img {
+        p {
+          font-weight: bold;
+        }
+        .modal-content-add-img-item {
+          img {
+            max-width: 100px;
+            margin-right: 10px;
+          }
+          .delete-img {
+            position: absolute;
+            background-color: red;
+            border-radius: 25px;
+            height: 30px;
+            width: 30px;
+            color: white;
+          }
+        }
+
+        .add-img {
+          text-align: center;
+          width: 100px;
+          height: 100px;
+          background-color: aliceblue;
+          border-radius: 5px;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          label {
+            cursor: pointer;
+            height: 100px;
+            width: 100px;
+            margin-top: 3px;
+            font-size: 60px;
+          }
+        }
+      }
+      .modal-content-add-name {
+        p {
+          font-weight: bold;
+        }
+        input {
+          width: 662px;
+          padding: 5px;
+          margin-right: 10px;
+          border-radius: 5px;
+        }
+      }
+      .modal-content-add-category {
+        p {
+          font-weight: bold;
+        }
+        margin-right: 40px;
+        select {
+          border: 2px solid rgba(91, 82, 82);
+          width: 170px;
+          height: 37px;
+          border-radius: 5px;
+          padding: 5px;
+        }
+      }
+      .modal-content-add-main-price {
+        p {
+          font-weight: bold;
+        }
+
+        input {
+          width: 170px;
+          padding: 5px;
+          padding-right: 0;
+          border-radius: 5px;
+        }
+      }
+      .modal-content-add-sale {
+        p {
+          font-weight: bold;
+        }
+        input {
+          width: 160px;
+          padding: 5px;
+          padding-right: 0;
+          border-radius: 5px;
+        }
+      }
+      .modal-content-add-type-price {
+        p {
+          font-weight: bold;
+        }
+        .modal-content-add-type-price-stock-item {
+          input {
+            padding: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            margin-right: 5px;
+            width: 203.1px;
+          }
+          button {
+            width: 37px;
+            border-radius: 5px;
+            height: 37px;
+            margin-right: 5px;
+          }
+        }
+        .add-detail {
+          margin-left: 5px;
+          color: red;
+        }
+      }
+      .modal-content-add-info {
+        p {
+          font-weight: bold;
+        }
+        textarea {
+          border: 2px solid rgba(91, 82, 82);
+          width: 662px;
+          padding: 5px;
+          border-radius: 5px;
+          height: 100px;
+        }
+      }
+    }
+  }
+  .modal-footer {
+    .product-detail {
+      background-color: aliceblue;
+      height: 37px;
+      border-radius: 5px;
+      color: black;
+      padding: 5px;
+    }
+  }
+}

@@ -1,0 +1,157 @@
+.f {
+  display: flex;
+}
+
+.cen {
+  text-align: center;
+}
+.view-invoice-background {
+  background-image: url("../../assets/images/login_bg.jpg");
+  background-size: cover; /* Ensures the image covers the entire area */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents tiling */
+  min-height: 100vh; /* Ensures the background spans the full viewport height */
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Center the modal horizontally */
+  align-items: center; /* Center the modal vertically */
+  box-sizing: border-box;
+  padding: 20px; /* Optional: padding to avoid content touching edges */
+
+  .view-invoice-modal {
+    margin-top: 50px;
+    .view-invoice-modal-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 90%;
+      width: 650px;
+      background-color: white;
+
+      border: 1px solid rgb(91, 82, 82);
+      padding: 20px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin: 20px 0;
+
+      .view-invoice-modal-content-top {
+        border-bottom: 2px solid rgb(91, 82, 82);
+        text-align: center;
+        width: 100%;
+
+        .view-invoice-modal-content-top-logo {
+          margin-top: 20px;
+
+          img {
+            max-width: 300px;
+            height: auto;
+          }
+        }
+
+        .view-invoice-modal-content-top-address {
+          margin-top: 10px;
+          margin-bottom: 50px;
+          font-weight: bold;
+        }
+
+        .view-invoice-modal-content-top-time {
+          text-align: left;
+          margin-left: 10px;
+          p {
+            width: 250px;
+          }
+        }
+
+        .view-invoice-modal-content-top-invoiceid {
+          position: relative;
+
+          margin-left: 225px;
+          p {
+            width: 200px;
+          }
+        }
+
+        .view-invoice-modal-content-top-cusname {
+          margin-left: 10px;
+          text-align: left;
+          margin-bottom: 35px;
+        }
+      }
+
+      .view-invoice-modal-content-mid {
+        width: 100%;
+
+        table {
+          margin-top: 5px;
+          width: 100%;
+          text-align: center;
+          border-collapse: collapse;
+
+          thead {
+            tr {
+              border-bottom: 2px solid rgb(91, 82, 82);
+
+              th {
+                padding-bottom: 5px;
+              }
+            }
+          }
+
+          tbody {
+            border-bottom: 2px solid rgb(91, 82, 82);
+
+            .view-invoice-modal-content-mid-item {
+              td {
+                padding: 10px;
+              }
+            }
+          }
+
+          tfoot {
+            tr {
+              text-align: left;
+
+              td {
+                padding: 5px;
+              }
+            }
+
+            tr:nth-child(4) {
+              border-bottom: 2px solid rgb(91, 82, 82);
+            }
+
+            tr:nth-child(5) {
+              td {
+                padding-top: 20px;
+                padding-bottom: 0;
+              }
+            }
+          }
+        }
+      }
+
+      .bill-actions {
+        button {
+          padding: 5px;
+          border-radius: 5px;
+          margin: 5px;
+        }
+        // button:first-child {
+        //   background-color: rgb(255, 0, 0);
+        //   color: white;
+        // }
+        .pdf-btn {
+          margin-left: 32rem;
+          background-color: rgb(93, 93, 212);
+          color: white;
+        }
+        // button:nth-child(3) {
+        //   background-color: rgb(1, 187, 1);
+        //   color: white;
+        // }
+      }
+    }
+  }
+}

@@ -1,0 +1,687 @@
+.f {
+  display: flex;
+}
+
+.owner-body {
+  background-color: white;
+  .container {
+    max-width: 1450px !important;
+    .name {
+      margin-top: 15px;
+      margin-left: 520px;
+      margin-right: 333px;
+    }
+    .home-button {
+      border-radius: 10px;
+      border: 2px solid rgb(91, 82, 82);
+      margin-top: 25px;
+      width: 175px;
+      height: 40px;
+      padding: 5px;
+      background-color: white;
+      color: rgb(91, 82, 82);
+      transition: 0.3s;
+      ion-icon {
+        margin-right: 5px;
+        margin-bottom: -2px;
+      }
+    }
+    .home-button:hover {
+      background-color: rgb(91, 82, 82);
+      color: white;
+    }
+    .owner-top-content {
+      margin-top: 60px;
+      margin-left: 510px;
+      .owner-top-content-menu {
+        width: 900px;
+        margin-left: 60px;
+
+        li {
+          margin-right: 20px;
+
+          a {
+            color: black;
+            cursor: pointer; // Make the link look clickable
+            &:hover {
+              padding-bottom: 3px;
+              border-bottom: 2px solid black;
+            }
+            &.active {
+              padding-bottom: 3px;
+              border-bottom: 2px solid black;
+              font-weight: bold; // Optional: make the active tab bold
+            }
+          }
+          button {
+            background-color: rgb(1, 176, 1);
+            border-radius: 5px;
+            margin-left: 380px;
+            height: 30px;
+            width: 170px;
+            color: white;
+            ion-icon {
+              margin-bottom: -3.5px;
+              font-size: 20px;
+            }
+          }
+          button:hover {
+            font-size: 15px;
+            ion-icon {
+              font-size: 18px;
+            }
+          }
+          button:active {
+            background-color: rgb(0, 133, 0);
+          }
+        }
+        margin-bottom: 10px;
+      }
+    }
+    .add {
+      .owner-top-content-search-banner,
+      .owner-mid-content-left-search-invoice {
+        margin-right: 20px;
+        b {
+          margin-top: 7px;
+          margin-right: 10px;
+        }
+        input {
+          width: 400px;
+          padding: 5px;
+          border-radius: 5px;
+        }
+        ion-icon {
+          position: absolute;
+          margin-top: 10px;
+          left: 500px;
+        }
+      }
+      .owner-mid-content-left-image-sort {
+        label {
+          margin-top: 7px;
+          margin-right: 10px;
+        }
+        select {
+          border-radius: 5px;
+          width: 90px;
+        }
+      }
+      .owner-mid-content-left-invoice-sort {
+        label {
+          margin-top: 7px;
+          margin-right: 10px;
+        }
+        select {
+          margin-top: 5px;
+          width: 210px;
+
+          font-size: 18px;
+          border-radius: 5px;
+        }
+      }
+      .owner-mid-content-left-invoice-date {
+        margin-left: 20px;
+        display: flex;
+        align-items: center;
+        label {
+          margin-top: 5px;
+          margin-right: 10px;
+        }
+        .date-picker {
+          padding: 5px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          width: 120px;
+        }
+        button {
+          padding: 5px 10px;
+          background-color: #f0f0f0;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        .react-datepicker__navigation--previous {
+          position: absolute;
+          background-color: #f0f0f0;
+          border: none;
+          padding: 8px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #e0e0e0;
+          }
+        }
+        .react-datepicker__navigation--next {
+          position: absolute;
+          right: 0;
+          background-color: #f0f0f0;
+          border: none;
+          padding: 8px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #e0e0e0;
+          }
+        }
+        button:hover {
+          background-color: #e0e0e0;
+        }
+        .react-datepicker-wrapper {
+          display: inline-block;
+        }
+        .react-datepicker__input-container input {
+          padding: 5px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+
+        .react-datepicker__day--selected,
+        .react-datepicker__day--keyboard-selected {
+          background-color: #007bff;
+          color: white;
+        }
+
+        .react-datepicker__day:hover {
+          background-color: #f0f0f0;
+        }
+      }
+    }
+
+    .owner-mid-content {
+      width: 100%;
+      .owner-mid-content-mid-list-img {
+        table {
+          text-align: center;
+          margin-top: 25px;
+          thead {
+            tr {
+              th {
+                padding-bottom: 10px;
+              }
+            }
+          }
+          tbody {
+            .owner-mid-content-right-list-product-item {
+              img {
+                max-width: 90px;
+              }
+
+              td:nth-child(4) {
+                margin-top: 32px;
+                justify-content: center;
+                p {
+                  margin-right: 5px;
+                }
+              }
+              td:nth-child(5) {
+                justify-content: center;
+                p {
+                  margin-right: 5px;
+                }
+              }
+
+              td:nth-child(7) {
+                width: 70px;
+              }
+              td:nth-child(8) {
+                justify-content: center;
+                button {
+                  border-radius: 7px;
+                  width: 40px;
+                  height: 40px;
+                  margin-right: 10px;
+                  ion-icon {
+                    padding-top: 5px;
+                    width: 25px;
+                    height: 25px;
+                  }
+                }
+                button:last-child {
+                  background-color: rgb(255, 0, 0);
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                button:first-child {
+                  background-color: rgb(233, 233, 0);
+                  ion-icon {
+                    color: rgb(0, 0, 0);
+                  }
+                }
+                button:first-child:hover {
+                  ion-icon {
+                    width: 22px;
+                    height: 22px;
+                  }
+                }
+                button:last-child:hover {
+                  ion-icon {
+                    width: 22px;
+                    height: 22px;
+                  }
+                }
+              }
+            }
+            .owner-mid-content-right-list-invoice-item {
+              td:nth-child(5) {
+                margin-top: 16.5px;
+                justify-content: center;
+              }
+            }
+          }
+        }
+        .pages {
+          margin: 30px 0;
+          justify-content: center;
+          align-items: center;
+
+          button {
+            width: 30px;
+            height: 30px;
+            color: white;
+            background-color: rgb(113, 102, 102);
+            border: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            cursor: pointer;
+            padding: 0; // Remove default padding to ensure width is respected
+            box-sizing: border-box; // Ensure padding/border are included in width
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          button:hover {
+            background-color: rgb(91, 82, 82);
+          }
+          button:active {
+            background-color: rgb(70, 63, 63);
+          }
+          input {
+            width: 40px;
+            height: 30px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+          }
+        }
+      }
+      .owner-mid-content-mid-list-img {
+        table {
+          table-layout: fixed; // Enforce fixed column widths
+          width: 100%; // Ensure the table fits its container
+
+          thead {
+            tr {
+              th:first-child {
+                width: 5%;
+              }
+              th:nth-child(2) {
+                width: 23%;
+              }
+              th:nth-child(3) {
+                width: 10%;
+              }
+              th:nth-child(4) {
+                width: 15%;
+              }
+              th:nth-child(5) {
+                width: 12%;
+              } // Tổng tiền hàng
+              th:nth-child(6) {
+                width: 12.5%;
+              } // Tình trạng thanh toán
+              th:nth-child(7) {
+                width: 12.5%;
+              }
+              th:nth-child(8) {
+                width: 10%;
+              }
+            }
+          }
+          tbody {
+            .owner-mid-content-mid-list-img-item {
+              td {
+                height: 130px;
+              }
+              td:first-child {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                .active {
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 5px;
+                  background: rgb(0, 199, 0);
+                  ion-icon {
+                    color: white;
+                    font-size: 24px;
+                  }
+                }
+                .unactive {
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 5px;
+                  background: rgb(234, 0, 0);
+                  ion-icon {
+                    margin-top: 1px;
+                    color: white;
+                    font-size: 24px;
+                  }
+                }
+              }
+              td:nth-child(2) {
+                width: 300px;
+                img {
+                  max-width: 300px;
+                }
+              }
+              td:nth-child(5) {
+                width: 100px;
+                img {
+                  max-width: 100px;
+                }
+              }
+              td:nth-child(8) {
+                justify-content: center;
+                button {
+                  border-radius: 7px;
+                  width: 40px;
+                  height: 40px;
+                  margin-right: 10px;
+                  ion-icon {
+                    padding-top: 5px;
+                    width: 25px;
+                    height: 25px;
+                  }
+                }
+                button {
+                  background-color: rgb(255, 0, 0);
+                  ion-icon {
+                    color: white;
+                  }
+                }
+
+                button:hover {
+                  ion-icon {
+                    width: 22px;
+                    height: 22px;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      .owner-mid-content-right-list-invoice {
+        table {
+          margin-top: 20px;
+          width: 100%;
+          table-layout: fixed;
+          text-align: center;
+          thead {
+            tr {
+              th:first-child {
+                width: 10%;
+              } // Mã hóa đơn
+              th:nth-child(2) {
+                width: 15%;
+              } // Thời gian tạo
+              th:nth-child(3) {
+                width: 15%;
+              } // Tên Khách Hàng
+              th:nth-child(4) {
+                width: 10%;
+              } // Tổng số hàng
+              th:nth-child(5) {
+                width: 10%;
+              } // Tổng tiền hàng
+              th:nth-child(6) {
+                width: 15%;
+              } // Tình trạng thanh toán
+              th:nth-child(7) {
+                width: 12.5%;
+              }
+              th:nth-child(8) {
+                width: 12.5%;
+              }
+            }
+          }
+          tbody {
+            .owner-mid-content-right-list-invoice-item {
+              td:nth-child(6) {
+                margin-top: 16.5px;
+                justify-content: center;
+              }
+            }
+          }
+        }
+        .pages {
+          margin: 30px 0;
+          justify-content: center;
+          align-items: center;
+
+          button {
+            width: 30px;
+            height: 30px;
+            color: white;
+            background-color: rgb(113, 102, 102);
+            border: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            cursor: pointer;
+            padding: 0; // Remove default padding to ensure width is respected
+            box-sizing: border-box; // Ensure padding/border are included in width
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          button:hover {
+            background-color: rgb(91, 82, 82);
+          }
+          button:active {
+            background-color: rgb(70, 63, 63);
+          }
+          input {
+            width: 40px;
+            height: 30px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+          }
+        }
+      }
+      .owner-mid-content-left {
+        width: 28%;
+        .owner-mid-content-left-search-product {
+          margin-bottom: 20px;
+          p {
+            margin-right: 10px;
+            margin-bottom: 0;
+          }
+          input {
+            width: 380px;
+            height: 30px;
+            padding: 5px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+          ion-icon {
+            position: absolute;
+            margin-top: 6px;
+            left: 400px;
+          }
+        }
+        .owner-mid-content-left-product-filter {
+          margin-right: 20px;
+          select {
+            width: 180px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+        }
+        .owner-mid-content-left-product-sort {
+          select {
+            width: 180px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+        }
+      }
+      .owner-mid-content-right {
+        width: 72%;
+
+        .owner-mid-content-right-list-product {
+          table {
+            text-align: center;
+            margin-top: 25px;
+            thead {
+              tr {
+                th {
+                  padding-bottom: 10px;
+                }
+              }
+            }
+            tbody {
+              .owner-mid-content-right-list-product-item {
+                img {
+                  max-width: 90px;
+                }
+
+                td:nth-child(4) {
+                  margin-top: 32px;
+                  justify-content: center;
+                  p {
+                    margin-right: 5px;
+                  }
+                }
+                td:nth-child(5) {
+                  margin-top: 33px;
+                  justify-content: center;
+                  p {
+                    margin-right: 5px;
+                  }
+                }
+
+                td:nth-child(7) {
+                  width: 70px;
+                }
+                td:nth-child(8) {
+                  justify-content: center;
+                  button {
+                    border-radius: 7px;
+                    width: 40px;
+                    height: 40px;
+                    margin-right: 10px;
+                    ion-icon {
+                      padding-top: 5px;
+                      width: 25px;
+                      height: 25px;
+                    }
+                  }
+                  button {
+                    background-color: rgb(255, 0, 0);
+                    ion-icon {
+                      color: white;
+                    }
+                  }
+
+                  button:hover {
+                    ion-icon {
+                      width: 22px;
+                      height: 22px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+          .pages {
+            margin: 30px 0;
+            justify-content: center;
+            align-items: center;
+
+            button {
+              width: 30px;
+              height: 30px;
+              color: white;
+              background-color: rgb(113, 102, 102);
+              border: none;
+              border-radius: 5px;
+              margin: 0 5px;
+              cursor: pointer;
+              padding: 0; // Remove default padding to ensure width is respected
+              box-sizing: border-box; // Ensure padding/border are included in width
+
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            button:hover {
+              background-color: rgb(91, 82, 82);
+            }
+            button:active {
+              background-color: rgb(70, 63, 63);
+            }
+            input {
+              width: 40px;
+              height: 30px;
+              text-align: center;
+              border-radius: 5px;
+              border: 1px solid #ccc;
+              margin: 0 5px;
+            }
+          }
+        }
+        .owner-mid-content-right-list-product {
+          table {
+            table-layout: fixed; // Enforce fixed column widths
+            width: 100%; // Ensure the table fits its container
+            max-width: 900px; // Optional: Limit the maximum width of the table
+
+            thead {
+              tr {
+                th:first-child {
+                  width: 120px;
+                } // Mã sản phẩm
+                th:nth-child(2) {
+                  width: 270px;
+                } // Tên sản phẩm
+                th:nth-child(3) {
+                  width: 100px;
+                } // Hình ảnh
+                th:nth-child(4) {
+                  width: 150px;
+                } // Danh mục
+                th:nth-child(5) {
+                  width: 100px;
+                } // Giá
+                th:nth-child(6) {
+                  width: 80px;
+                } // Kho
+                th:nth-child(7) {
+                  width: 100px;
+                } // KM
+                th:nth-child(8) {
+                  width: 100px;
+                } // Chỉnh sửa
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@import "~react-datepicker/dist/react-datepicker.css";
+
+// Style cho owner-mid-content-left-invoice-date
+
+// Tùy chỉnh style của react-datepicker

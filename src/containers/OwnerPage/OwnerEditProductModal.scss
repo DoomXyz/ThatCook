@@ -1,0 +1,85 @@
+.f {
+  display: flex;
+}
+.create-product-modal {
+  .modal-dialog {
+    max-width: 700px;
+  }
+  .modal-body {
+    .modal-content {
+      border: none;
+      width: 100%;
+      p {
+        margin: 5px;
+      }
+      .modal-content-edit-img {
+        .modal-content-edit-img-item {
+          img {
+            max-width: 100px;
+            margin-right: 10px;
+          }
+          .delete-img {
+            position: absolute;
+            background-color: red;
+            border-radius: 25px;
+            height: 30px;
+            width: 30px;
+            color: white;
+          }
+        }
+
+        .edit-img {
+          width: 100px;
+          height: 100px;
+          background-color: aliceblue;
+        }
+      }
+      .modal-content-edit-name {
+        input {
+          width: 662px;
+          padding: 5px;
+          margin-right: 10px;
+          border-radius: 5px;
+        }
+      }
+      .modal-content-edit-category {
+        select {
+          width: 100px;
+
+          border-radius: 5px;
+          padding: 5px;
+        }
+      }
+      .modal-content-edit-main-price {
+        input {
+          width: 203.1px;
+          padding: 5px;
+          padding-right: 0;
+          border-radius: 5px;
+        }
+      }
+      .modal-content-edit-sale {
+        input {
+          width: 203.1px;
+          padding: 5px;
+          padding-right: 0;
+          border-radius: 5px;
+        }
+      }
+      .modal-content-edit-type-price-stock {
+        button {
+          border-radius: 5px;
+          background-color: aliceblue;
+        }
+      }
+      .modal-content-edit-info {
+        textarea {
+          width: 662px;
+          padding: 5px;
+          border-radius: 5px;
+          height: 100px;
+        }
+      }
+    }
+  }
+}

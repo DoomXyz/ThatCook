@@ -1,0 +1,103 @@
+.Toastify__toast-container {
+  z-index: 9999 !important;
+  width: 350px !important; // Tăng chiều rộng để nội dung không bị bó hẹp
+}
+
+// Cải tiến styles cho toast
+.Toastify__toast {
+  border-radius: 8px !important;
+  padding: 15px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; // Thêm bóng để nổi bật
+  font-family: "Arial", sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  background: linear-gradient(135deg, #ffffff, #f0f0f0) !important; // Gradient nhẹ cho nền
+
+  // Tùy chỉnh toast theo theme "colored"
+  &--info {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important; // Gradient cho toast info
+    color: white !important;
+  }
+
+  &--success {
+    background: linear-gradient(135deg, #28a745, #218838) !important; // Gradient cho toast success
+    color: white !important;
+  }
+
+  &--error {
+    background: linear-gradient(135deg, #ff6b6b, #ff4d4d) !important; // Gradient đỏ nhạt hơn để tương phản với icon
+    color: white !important;
+  }
+}
+
+// Cải tiến progress bar
+.Toastify__progress-bar {
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.7) !important; // Màu progress bar nhẹ
+}
+
+// Cải tiến nội dung bên trong toast
+.Toastify__toast-body {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important; // Khoảng cách giữa các phần tử
+
+  p {
+    margin: 0 !important;
+    color: white !important;
+    font-weight: 500 !important;
+  }
+}
+
+// Cải tiến styles cho button "Có"
+.toast-confirm-btn {
+  margin: 0 5px !important;
+  padding: 8px 16px !important; // Tăng padding để button lớn hơn
+  border: none !important;
+  border-radius: 5px !important; // Bo góc mềm mại hơn
+  cursor: pointer !important;
+  color: white !important;
+  background: linear-gradient(135deg, #007bff, #0056b3) !important; // Gradient cho button
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important; // Thêm bóng cho button
+  transition: all 0.3s ease !important; // Hiệu ứng mượt mà
+
+  &:hover {
+    transform: translateY(-2px) !important; // Nâng button lên khi hover
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important; // Tăng bóng khi hover
+    opacity: 0.9 !important;
+  }
+
+  &:active {
+    transform: translateY(1px) !important; // Hạ button xuống khi nhấn
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important; // Giảm bóng khi nhấn
+  }
+}
+
+// Cải tiến styles cho button "Không"
+.toast-cancel-btn {
+  margin: 0 5px !important;
+  padding: 8px 16px !important;
+  border: none !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  color: white !important;
+  background: linear-gradient(135deg, #6c757d, #5a6268) !important; // Gradient cho button
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+
+  &:hover {
+    transform: translateY(-2px) !important; // Nâng button lên khi hover
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important; // Tăng bóng khi hover
+    opacity: 0.9 !important;
+  }
+
+  &:active {
+    transform: translateY(1px) !important; // Hạ button xuống khi nhấn
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important; // Giảm bóng khi nhấn
+  }
+}

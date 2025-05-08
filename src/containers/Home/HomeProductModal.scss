@@ -1,0 +1,276 @@
+// HomeProductModal.scss
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Quicksand&display=swap");
+
+.HomeProductModal {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Quicksand", sans-serif !important;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .modal-dialog {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    font-family: "Quicksand", sans-serif;
+
+    .modal-content {
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+      .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 15px 20px;
+
+        .modal-title {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+
+          span {
+            font-size: 1.2rem;
+            color: #333;
+          }
+
+          ion-icon {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #666;
+            &:hover {
+              color: #000;
+            }
+          }
+        }
+      }
+
+      .modal-body {
+        padding: 20px;
+
+        .product-content {
+          .product-content-left {
+            width: 50%;
+            .product-content-left-big-img {
+              width: 80%;
+              padding-right: 20px;
+              img {
+                width: 100%;
+                border-radius: 5px;
+              }
+            }
+            .product-content-left-small-imgs {
+              width: 18%;
+              img {
+                margin-top: 10px;
+                width: 100%;
+                max-width: 87px;
+                border-radius: 5px;
+                cursor: pointer;
+                &:first-of-type {
+                  margin-top: 0;
+                }
+                &:hover {
+                  padding: 5px;
+                  border: 1px solid rgb(91, 82, 82);
+                }
+              }
+            }
+          }
+
+          .product-content-right {
+            width: 50%;
+            padding-left: 20px;
+
+            .product-content-right-product-name {
+              h1 {
+                font-size: 24px;
+                margin: 0 0 8px;
+                color: #333;
+              }
+              p {
+                font-size: 14px;
+                color: #666;
+              }
+            }
+
+            .product-content-right-price {
+              font-size: 26px;
+              margin: 7px 0;
+              font-weight: bold;
+              color: red;
+              sup {
+                font-size: 0.8rem;
+                top: -0.5em;
+              }
+            }
+
+            .product-content-right-choice {
+              p {
+                font-size: 18px;
+                margin: 10px 0 5px;
+              }
+              .choice {
+                span {
+                  cursor: pointer;
+                  display: inline-block;
+                  padding: 5px 6px;
+                  background-color: #f2f2f2;
+                  border-radius: 5px;
+                  border: 1px solid rgb(91, 82, 82);
+                  margin-right: 10px;
+                  margin-bottom: 10px;
+                  font-size: 18px;
+                  transition: 0.3s;
+                  &:hover {
+                    background-color: rgb(118, 106, 106);
+                    color: white;
+                  }
+
+                  &.selected {
+                    transition: 0s;
+                    background-color: rgb(
+                      71,
+                      64,
+                      64
+                    ); // Slightly darker than hover state
+                    color: white;
+                    border-color: rgb(71, 64, 64);
+                  }
+                }
+              }
+            }
+
+            .quantity {
+              p {
+                font-size: 18px;
+                margin: 10px 0 5px;
+              }
+              .quantity-control {
+                border: 1px solid #ddd;
+                max-width: 120px;
+                border-radius: 5px;
+                display: flex;
+                align-items: center;
+                gap: 0px;
+                margin: 5px 0px 15px 0;
+
+                button {
+                  width: 40px;
+                  height: 40px;
+                  border: none;
+                  background-color: #f8f9fa;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+
+                  ion-icon {
+                    font-size: 20px;
+                    color: #333;
+                  }
+
+                  &:hover {
+                    background-color: #e9ecef;
+                  }
+
+                  &:active {
+                    background-color: #dee2e6;
+                  }
+                }
+
+                .quantity-value {
+                  text-align: center;
+                  font-size: 24px;
+                  padding: 0 15px;
+                  border-radius: 5px;
+                  line-height: 40px;
+                  background-color: #fff;
+                }
+              }
+            }
+
+            .product-content-right-product-button {
+              button {
+                background: #cccccc;
+                border: none;
+                font-size: 16px;
+                padding: 5px 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+                ion-icon {
+                  margin-right: 5px;
+                  vertical-align: middle;
+                }
+                &:hover {
+                  background-color: red;
+                  color: white;
+                }
+                &:active {
+                  background-color: rgb(198, 1, 1);
+                  transition: 0s;
+                }
+              }
+              button:first-child {
+                width: 120px;
+                height: 40px;
+              }
+              button:last-child {
+                margin-left: 5px;
+                width: 45px;
+                height: 40px;
+                ion-icon {
+                  width: 25px;
+                  height: 25px;
+                }
+              }
+            }
+
+            .product-content-right-bottom {
+              h1 {
+                font-size: 18px;
+                margin: 20px 0 10px;
+              }
+              .product-content-right-bottom-content {
+                p {
+                  color: #666;
+                  font-size: 0.9rem;
+                  line-height: 1.5;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .HomeProductModal {
+    .modal-dialog {
+      width: 95%;
+      margin: 0 auto;
+      .modal-body {
+        .product-content {
+          flex-direction: column;
+          .product-content-left,
+          .product-content-right {
+            width: 100%;
+          }
+          .product-content-left-big-img {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}

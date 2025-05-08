@@ -1,0 +1,337 @@
+.admin-container {
+  width: 100%;
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.admin-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+  .admin-action-left {
+    flex: 1;
+    /* Chia đều không gian */
+    display: flex;
+    justify-content: left;
+
+    .btn-Home {
+      background-color: #28a745; // Màu xanh lá cho nút "Thêm"
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      margin-right: 5px;
+
+      &:hover {
+        background-color: #218838; // Hover tối hơn
+      }
+    }
+
+    /* Căn giữa nút */
+    .btn-addTK button {
+      background-color: #28a745; // Màu xanh lá cho nút "Thêm"
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #218838; // Hover tối hơn
+      }
+    }
+  }
+
+  .admin-action-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+
+    .btn-logoutTK button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #c82333; // Hover tối hơn
+      }
+    }
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+}
+
+.admin-search {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  gap: 20px; // Khoảng cách giữa các phần tử
+
+  .admin-search-left {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    /* Căn trái ô tìm kiếm */
+
+    .admin-search-box {
+      width: 100%;
+      max-width: 400px;
+      /* Giới hạn chiều rộng ô tìm kiếm */
+
+      .inputbox {
+        display: flex;
+        align-items: center;
+        border: 1px solid #dfe1e5;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); // Đổ bóng nhẹ
+        background-color: #fff;
+
+        input {
+          flex: 1;
+          padding: 12px;
+          border: none;
+          outline: none;
+          font-size: 14px;
+          color: #555;
+        }
+
+        .btn-search {
+          padding: 12px;
+          background-color: #007bff; // Màu xanh dương cho nút tìm kiếm
+          color: white;
+          border-radius: 0 6px 6px 0;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: #0056b3; // Hover tối hơn
+          }
+
+          cursor: pointer;
+
+          .search-icon {
+            height: 25px;
+            width: 25px;
+          }
+        }
+      }
+    }
+  }
+
+  .admin-search-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    /* Căn phải các select */
+    gap: 25 px;
+    /* Khoảng cách giữa các select */
+
+    div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      /* Khoảng cách giữa label và select */
+
+      label {
+        padding-left: 10px;
+        font-weight: 600;
+        color: #444;
+        font-size: 14px;
+      }
+
+      select {
+        padding: 10px;
+        border: 1px solid #dfe1e5;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #555;
+        background-color: #fff;
+        min-width: 150px;
+        cursor: pointer;
+
+        &:hover {
+          border-color: #007bff; // Hover viền xanh
+        }
+      }
+    }
+  }
+}
+
+.admin-list {
+  width: 100%;
+
+  .users-table {
+    width: 100%;
+    overflow-x: auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      th {
+        white-space: nowrap;
+        min-width: 80px;
+      }
+
+      td {
+        white-space: normal;
+        word-wrap: break-word;
+        min-width: 80px;
+        max-width: 300px;
+      }
+      tr {
+        td {
+          &:hover {
+            background-color: #e6e8eb; // Hover nhẹ khi di chuột qua hàng
+          }
+        }
+
+        &:nth-child(even) {
+          background-color: #c9e9e9;
+        }
+
+        // Đặt .status-act và .status-ban sau để tăng độ ưu tiên
+        // &.status-act {
+        //   // Màu xanh lá nhạt cho trạng thái ACT
+        // }
+        &.status-dis {
+          td {
+            color: red;
+          }
+
+          // Màu đỏ nhạt cho trạng thái DIS
+        }
+      }
+
+      th {
+        padding: 8px;
+        border: 1px solid #333;
+        border-bottom: 2px solid #e9ecef;
+        text-align: center;
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+        text-transform: uppercase;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 8px;
+        border: 1px solid #333;
+        color: #555;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        button {
+          padding: 6px;
+          margin: 0 4px;
+          border: none;
+          background: none;
+          cursor: pointer;
+          font-size: 16px;
+          transition: color 0.3s ease;
+
+          &.btn-edit {
+            color: #007bff;
+
+            &:hover {
+              color: #0056b3;
+            }
+          }
+
+          &.btn-lock {
+            color: #dc3545;
+
+            &:hover {
+              color: #c82333;
+            }
+          }
+        }
+
+        &:nth-child(4) {
+          text-align: center;
+        }
+
+        &:nth-child(7) {
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  .page-content {
+    margin: 30px 0;
+    font-size: 18px;
+
+    .page-content-item {
+      display: flex;
+      align-items: center;
+      position: relative;
+      justify-content: center;
+
+      input {
+        width: 10px;
+        text-align: center;
+        margin-left: 5px;
+        border: none !important;
+        background-color: transparent;
+        color: rgb(91, 85, 85);
+        font-weight: bold;
+        outline: none;
+      }
+
+      .total-pages {
+        margin-left: 5px;
+        color: rgb(91, 85, 85);
+        font-weight: bold;
+      }
+
+      button {
+        width: 30px;
+        height: 30px;
+        margin-left: 5px;
+        border-radius: 5px;
+        background-color: rgb(104, 90, 90);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+
+        &:hover:not(:disabled) {
+          background-color: rgb(62, 54, 54);
+        }
+
+        &:disabled {
+          opacity: 0.5 !important;
+          cursor: not-allowed !important;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+.f {
+  display: flex;
+}
+.cen {
+  text-align: center;
+}
+.view-invoice-modal {
+  .modal-dialog {
+    max-width: 600px;
+  }
+
+  .view-invoice-modal-content {
+    border: 1px solid rgb(91, 82, 82);
+    padding: 5px;
+    .view-invoice-modal-content-top {
+      border-bottom: 2px solid rgb(91, 82, 82);
+      text-align: center;
+      .view-invoice-modal-content-top-logo {
+        margin-top: 20px;
+      }
+      .view-invoice-modal-content-top-address {
+        margin-top: 10px;
+        margin-bottom: 50px;
+        font-weight: bold;
+      }
+      .view-invoice-modal-content-top-time {
+        margin-left: 10px;
+      }
+      .view-invoice-modal-content-top-invoiceid {
+        position: absolute;
+        right: 100px;
+      }
+      .view-invoice-modal-content-top-cusname {
+        margin-left: 10px;
+        text-align: left;
+        margin-bottom: 35px;
+      }
+    }
+    .view-invoice-modal-content-mid {
+      table {
+        margin-top: 5px;
+        width: 100%;
+        text-align: center;
+        thead {
+          tr {
+            border-bottom: 2px solid rgb(91, 82, 82);
+            th {
+              padding-bottom: 5px;
+            }
+          }
+        }
+        tbody {
+          border-bottom: 2px solid rgb(91, 82, 82);
+          .view-invoice-modal-content-mid-item {
+            td {
+              padding: 10px;
+            }
+          }
+        }
+        tfoot {
+          tr {
+            text-align: left;
+            td {
+              padding: 5px;
+            }
+          }
+          tr:nth-child(4) {
+            border-bottom: 2px solid rgb(91, 82, 82);
+          }
+          tr:nth-child(5) {
+            td {
+              padding-top: 20px;
+              padding-bottom: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.modal-footer {
+  button:first-child {
+    background-color: rgb(93, 93, 212);
+    color: white;
+    border: none;
+    padding: 7px;
+    border-radius: 5px;
+  }
+  button:last-child {
+    background-color: rgb(1, 187, 1);
+    color: white;
+    border: none;
+    padding: 7px;
+    border-radius: 5px;
+  }
+}

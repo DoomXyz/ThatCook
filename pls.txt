@@ -1,0 +1,1655 @@
+import React, { Component } from "react";
+import DatePicker from "react-datepicker";
+import { connect } from "react-redux";
+import { IonIcon } from "@ionic/react";
+import {
+  buildOutline,
+  closeCircleOutline,
+  searchOutline,
+  add,
+  trashOutline,
+  closeOutline,
+  checkmarkOutline,
+} from "ionicons/icons";
+import debounce from "lodash/debounce";
+import { ToastContainer, toast } from "react-toastify";
+import "./Owner.scss";
+import OwnerCreateProductModal from "./OwnerCreateProductModal";
+import OwnerEditProductModal from "./OwnerEditProductModal";
+import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
+import OwnerEditBannerModal from "./OwnerEditBannerModal";
+import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
+import { handleLoadProductInfoApi } from "../../services/productServices";
+import {
+  handleGetAllCodesApi,
+  handleLoadBanner,
+} from "../../services/utilitiesServices";
+import { handleLoadHoaDon } from "../../services/billService";
+import hinhtest from "../../assets/productha/hinhtest.jpg";
+import bannertest from "../../assets/bannerimgs/1.webp";
+
+class Owner extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isShowEditBannerModal: false,
+      isShowCreateBannerModal: false,
+      isShowCreateProductModal: false,
+      isShowEditProductModal: false,
+      isShowViewInvoiceModal: false,
+
+      activeSection: "products",
+      productPage: 1,
+      invoicePage: 1,
+      imagePage: 1,
+      invoiceDate: "",
+      itemsPerPageProducts: 7,
+      itemsPerPageInvoices: 10,
+      itemsPerPageImages: 10,
+      totalProductItems: 0,
+      totalInvoiceItems: 0,
+      totalImageItems: 0,
+      arrSanPham: [],
+      arrHoaDon: [],
+      arrBanner: [],
+      searchQuery: "",
+      tempSearchQuery: "",
+      sortOrder: "0",
+      filters: { selectedFilter: "ALL" },
+      filterValue: [],
+      selectedProduct: null,
+    };
+    this.handleSearchDebounced = debounce(this.performSearch, 500);
+  }
+
+  async componentDidMount() {
+    if (this.state.activeSection === "products") {
+      await this.loadAllSanPham();
+      await this.handleLoadFilterValue();
+    }
+  }
+  async componentDidUpdate(prevProps, prevState) {
+    if (prevState.activeSection !== this.state.activeSection) {
+      if (this.state.activeSection === "products") {
+        await this.loadAllSanPham();
+        if (this.state.filterValue.length === 0) {
+          await this.handleLoadFilterValue();
+        }
+      } else if (this.state.activeSection === "invoices") {
+        await this.loadAllHoaDon();
+      } else if (this.state.activeSection === "images") {
+        await this.loadAllBanner();
+      }
+    }
+  }
+  handleSectionChange = (section) => {
+    this.setState({
+      activeSection: section,
+      searchQuery: "",
+      tempSearchQuery: "",
+      sortOrder: "0",
+      invoiceDate: "",
+      productPage: 1,
+      invoicePage: 1,
+      imagePage: 1,
+    });
+  };
+  handleDateChange = (e) => {
+    this.setState({ invoiceDate: e.target.value }, () => {
+      if (this.state.activeSection === "invoices") {
+        this.loadAllHoaDon();
+      }
+    });
+  };
+
+  handleLoadFilterValue = async () => {
+    try {
+      let filterMap = await handleGetAllCodesApi("ProductType");
+      const updatedFilterMap = [...filterMap];
+      this.setState({ filterValue: updatedFilterMap });
+    } catch (e) {
+      console.log("Lỗi load filter:", e);
+    }
+  };
+
+  handleResetFilters = () => {
+    this.setState(
+      {
+        tempSearchQuery: "",
+        searchQuery: "",
+        invoiceDate: "",
+        invoicePage: 1,
+        imagePage: 1,
+        sortOrder: "0",
+        arrBanner: [], // Reset arrBanner
+      },
+      () => {
+        if (this.state.activeSection === "invoices") {
+          this.loadAllHoaDon();
+        } else if (this.state.activeSection === "images") {
+          this.loadAllBanner();
+        }
+      }
+    );
+  };
+  loadAllBanner = async () => {
+    const { imagePage, itemsPerPageImages, searchQuery, sortOrder } =
+      this.state;
+    try {
+      let response = await handleLoadBanner({
+        page: imagePage,
+        limit: itemsPerPageImages,
+        search: searchQuery,
+        sort: sortOrder,
+      });
+      if (response && response.data && response.data.errCode === 0) {
+        this.setState({
+          arrBanner: response.data.data || [],
+          totalImageItems: response.data.totalItems || 0,
+        });
+      } else {
+        toast.error("Không thể tải banner!");
+        this.setState({
+          arrBanner: [],
+          totalImageItems: 0,
+        });
+      }
+    } catch (e) {
+      toast.error("Đã xảy ra lỗi khi tải banner!");
+      this.setState({
+        arrBanner: [],
+        totalImageItems: 0,
+      });
+    }
+  };
+  loadAllSanPham = async () => {
+    const {
+      productPage,
+      itemsPerPageProducts,
+      searchQuery,
+      filters,
+      sortOrder,
+    } = this.state;
+    try {
+      let response = await handleLoadProductInfoApi({
+        page: productPage,
+        limit: itemsPerPageProducts,
+        search: searchQuery,
+        filter: filters.selectedFilter,
+        sort: sortOrder,
+      });
+      if (response && response.errCode === 0) {
+        this.setState({
+          arrSanPham: response.data,
+          totalProductItems: response.totalItems,
+        });
+      } else {
+        toast.error("Không thể tải sản phẩm!");
+      }
+    } catch (e) {
+      toast.error("Đã xảy ra lỗi khi tải sản phẩm!");
+    }
+  };
+
+  loadAllHoaDon = async () => {
+    const {
+      invoicePage,
+      itemsPerPageInvoices,
+      searchQuery,
+      sortOrder,
+      invoiceDate,
+    } = this.state;
+    try {
+      let response = await handleLoadHoaDon({
+        page: invoicePage,
+        limit: itemsPerPageInvoices,
+        search: searchQuery,
+        date: invoiceDate,
+        sort: sortOrder,
+      });
+      if (response && response.errCode === 0) {
+        this.setState({
+          arrHoaDon: response.data || [],
+          totalInvoiceItems: response.totalItems || 0,
+        });
+      } else {
+        toast.error("Không thể tải hóa đơn!");
+        this.setState({
+          arrHoaDon: [],
+          totalInvoiceItems: 0,
+        });
+      }
+    } catch (e) {
+      toast.error("Đã xảy ra lỗi khi tải hóa đơn!");
+      this.setState({
+        arrHoaDon: [],
+        totalInvoiceItems: 0,
+      });
+    }
+  };
+  performSearch = () => {
+    this.setState(
+      (prevState) => ({
+        searchQuery: prevState.tempSearchQuery,
+        productPage: 1,
+        invoicePage: 1,
+        imagePage: 1,
+      }),
+      () => {
+        if (this.state.activeSection === "products") {
+          this.loadAllSanPham();
+        } else if (this.state.activeSection === "invoices") {
+          this.loadAllHoaDon();
+        } else if (this.state.activeSection === "images") {
+          this.loadAllBanner();
+        }
+      }
+    );
+  };
+  handleSearchChange = (e) => {
+    const query = e.target.value;
+    this.setState({ tempSearchQuery: query }, () => {
+      this.handleSearchDebounced();
+    });
+  };
+
+  handleFilterProduct = (filterValue) => {
+    this.setState(
+      {
+        filters: {
+          selectedFilter: filterValue,
+          hasPromotion: filterValue === "PROMOTION",
+        },
+        productPage: 1,
+      },
+      () => this.loadAllSanPham()
+    );
+  };
+
+  handleSortProduct = (sortValue) => {
+    this.setState({ sortOrder: sortValue, productPage: 1 }, () => {
+      this.loadAllSanPham();
+    });
+  };
+
+  handleSortInvoice = (sortValue) => {
+    this.setState({ sortOrder: sortValue, invoicePage: 1 }, () => {
+      this.loadAllHoaDon();
+    });
+  };
+
+  handleProductPageChange = (page) => {
+    const totalPages = Math.ceil(
+      this.state.totalProductItems / this.state.itemsPerPageProducts
+    );
+    if (page >= 1 && page <= totalPages) {
+      this.setState({ productPage: page }, () => this.loadAllSanPham());
+    }
+  };
+
+  handleInvoicePageChange = (page) => {
+    const totalPages = Math.ceil(
+      this.state.totalInvoiceItems / this.state.itemsPerPageInvoices
+    );
+    if (page >= 1 && page <= totalPages) {
+      this.setState({ invoicePage: page }, () => {
+        this.loadAllHoaDon();
+      });
+    } else {
+      console.log("Page out of range:", page);
+    }
+  };
+
+  handleImagePageChange = (page) => {
+    const totalPages = Math.ceil(
+      this.state.totalImageItems / this.state.itemsPerPageImages
+    );
+    if (page >= 1 && page <= totalPages) {
+      this.setState({ imagePage: page }, () => this.loadAllBanner());
+    } else {
+      console.log("Page out of range:", page);
+    }
+  };
+
+  handleSortBanner = (sortValue) => {
+    this.setState({ sortOrder: sortValue, imagePage: 1 }, () => {
+      this.loadAllBanner();
+    });
+  };
+
+  handlePageInput = (e, type) => {
+    const page = parseInt(e.target.value, 10);
+    if (isNaN(page)) return;
+    if (type === "products") {
+      this.handleProductPageChange(page);
+    } else if (type === "invoices") {
+      this.handleInvoicePageChange(page);
+    } else if (type === "images") {
+      this.handleImagePageChange(page);
+    }
+  };
+
+  toggleImageStatus = (id) => {
+    this.setState((prevState) => ({
+      arrBanner: prevState.arrBanner.map((item) =>
+        item.ID === id ? { ...item, isActive: !item.isActive } : item
+      ),
+    }));
+  };
+
+  toggleCreateProductModal = () => {
+    this.setState({
+      isShowCreateProductModal: !this.state.isShowCreateProductModal,
+    });
+  };
+
+  toggleEditProductModal = (product = null) => {
+    this.setState({
+      isShowEditProductModal: !this.state.isShowEditProductModal,
+      selectedProduct: product,
+    });
+    if (product) {
+      console.log("MASANPHAM:", product.MASANPHAM);
+    }
+  };
+
+  toggleCreateBannerModal = () => {
+    this.setState({
+      isShowCreateBannerModal: !this.state.isShowCreateBannerModal,
+    });
+  };
+
+  toggleEditBannerModal = (banner = null) => {
+    this.setState((prev) => ({
+      ...prev,
+      isShowEditBannerModal: !prev.isShowEditBannerModal,
+    }));
+    if (banner) {
+      console.log("Banner ID:", banner.ID);
+    }
+  };
+
+  toggleViewInvoiceModal = (hoadon = null) => {
+    this.setState({
+      isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
+    });
+    if (hoadon) {
+      console.log("MADONHANG:", hoadon.MADONHANG);
+    }
+  };
+
+  render() {
+    const {
+      invoiceDate,
+      activeSection,
+      productPage,
+      invoicePage,
+      arrBanner,
+      imagePage,
+      itemsPerPageProducts,
+      itemsPerPageInvoices,
+      itemsPerPageImages,
+      totalProductItems,
+      totalInvoiceItems,
+      totalImageItems,
+      arrSanPham,
+      arrHoaDon,
+      tempSearchQuery,
+      filters,
+      sortOrder,
+      filterValue,
+      isShowCreateProductModal,
+      isShowEditProductModal,
+      isShowCreateBannerModal,
+      isShowEditBannerModal,
+      isShowViewInvoiceModal,
+    } = this.state;
+
+    const startIndexProducts = (productPage - 1) * itemsPerPageProducts;
+    const endIndexProducts = startIndexProducts + itemsPerPageProducts;
+    const totalProductPages = Math.ceil(
+      totalProductItems / itemsPerPageProducts
+    );
+
+    const startIndexInvoices = (invoicePage - 1) * itemsPerPageInvoices;
+    const endIndexInvoices = startIndexInvoices + itemsPerPageInvoices;
+    const totalInvoicePages = Math.ceil(
+      totalInvoiceItems / itemsPerPageInvoices
+    );
+
+    const startIndexImages = (imagePage - 1) * itemsPerPageImages;
+    const endIndexImages = startIndexImages + itemsPerPageImages;
+    const totalImagePages = Math.ceil(totalImageItems / itemsPerPageImages);
+
+    return (
+      <div className="owner-body">
+        <ToastContainer />
+        <OwnerCreateProductModal
+          isOpen={isShowCreateProductModal}
+          toggleFromModal={this.toggleCreateProductModal}
+        />
+        <OwnerEditProductModal
+          isOpen={isShowEditProductModal}
+          toggleFromModal={this.toggleEditProductModal}
+          product={this.state.selectedProduct}
+        />
+        <OwnerCreateBannerModal
+          isOpen={isShowCreateBannerModal}
+          toggleFromModal={this.toggleCreateBannerModal}
+        />
+        <OwnerEditBannerModal
+          isOpen={isShowEditBannerModal}
+          toggleFromModal={this.toggleEditBannerModal}
+        />
+        <OwnerViewInvoiceModal
+          isOpen={isShowViewInvoiceModal}
+          toggleFromModal={this.toggleViewInvoiceModal}
+        />
+
+        <div className="container">
+          <h1>Trang chủ cửa hàng</h1>
+          <div className="owner-top-content">
+            <div className="owner-top-content-menu f">
+              <li>
+                <a
+                  onClick={() => this.handleSectionChange("products")}
+                  className={activeSection === "products" ? "active" : ""}
+                >
+                  SẢN PHẨM
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => this.handleSectionChange("invoices")}
+                  className={activeSection === "invoices" ? "active" : ""}
+                >
+                  HÓA ĐƠN
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => this.handleSectionChange("images")}
+                  className={activeSection === "images" ? "active" : ""}
+                >
+                  BANNER
+                </a>
+              </li>
+              <li>
+                <button
+                  style={{
+                    display: activeSection === "products" ? "block" : "none",
+                  }}
+                  onClick={() => this.toggleCreateProductModal()}
+                >
+                  THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
+                </button>
+                <button
+                  style={{
+                    display: activeSection === "images" ? "block" : "none",
+                  }}
+                  onClick={() => this.toggleCreateBannerModal()}
+                >
+                  THÊM HÌNH ẢNH <IonIcon icon={add}></IonIcon>
+                </button>
+              </li>
+            </div>
+          </div>
+          <div className="add f">
+            <div
+              className="owner-top-content-search-banner"
+              style={{
+                display: activeSection === "images" ? "flex" : "none",
+              }}
+            >
+              <b>TÌM KIẾM: </b>
+              <input
+                type="text"
+                placeholder="Hãy nhập tên sản phẩm..."
+                value={tempSearchQuery}
+                onChange={this.handleSearchChange}
+              />
+              <IonIcon icon={searchOutline}></IonIcon>
+            </div>
+            <div
+              style={{
+                display: activeSection === "images" ? "flex" : "none",
+              }}
+              className="owner-mid-content-left-image-sort"
+            >
+              <label>Sắp xếp:</label>
+              <br />
+              <select
+                value={sortOrder}
+                onChange={(e) => this.handleSortBanner(e.target.value)}
+              >
+                <option value="0">Mới nhất</option>
+                <option value="1">Cũ nhất</option>
+              </select>
+            </div>
+          </div>
+          <div className="owner-mid-content f">
+            <div
+              className="owner-mid-content-mid-list-img"
+              style={{
+                display: activeSection === "images" ? "block" : "none",
+              }}
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Hiển thị</th>
+                    <th>Hình ảnh Banner</th>
+                    <th>Mã sản phẩm</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Hình ảnh sản phẩm</th>
+                    <th>Thời gian tạo</th>
+                    <th>Thời gian ẩn</th>
+                    <th>Xóa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {arrBanner && arrBanner.length > 0 ? (
+                    arrBanner.map((item) => (
+                      <tr
+                        key={item.ID}
+                        className="owner-mid-content-mid-list-img-item"
+                        onClick={() => this.toggleEditBannerModal(item)} // Truyền item vào toggleEditBannerModal
+                      >
+                        <td>
+                          {item.isActive ? (
+                            <button
+                              className="active"
+                              onClick={() => this.toggleImageStatus(item.ID)}
+                            >
+                              <IonIcon icon={checkmarkOutline}></IonIcon>
+                            </button>
+                          ) : (
+                            <button
+                              className="unactive"
+                              onClick={() => this.toggleImageStatus(item.ID)}
+                            >
+                              <IonIcon icon={closeOutline}></IonIcon>
+                            </button>
+                          )}
+                        </td>
+                        <td>
+                          <img src={item.HinhAnh || bannertest} alt="Banner" />
+                        </td>
+                        <td>{item.MASANPHAM || "N/A"}</td>
+                        <td>{item.TenSanPham || "N/A"}</td>
+                        <td>
+                          <img
+                            src={item.HinhAnhSanPham || hinhtest}
+                            alt="Sản phẩm"
+                          />
+                        </td>
+                        <td>
+                          {item.ThoiGianTao
+                            ? new Date(item.ThoiGianTao).toLocaleString("vi-VN")
+                            : "N/A"}
+                        </td>
+                        <td>
+                          {item.ThoiGianAn
+                            ? new Date(item.ThoiGianAn).toLocaleString("vi-VN")
+                            : "N/A"}
+                        </td>
+                        <td
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          <button>
+                            <IonIcon icon={closeCircleOutline}></IonIcon>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="8">Không tìm thấy banner nào.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              <div className="pages f">
+                <button
+                  className="first"
+                  onClick={() => this.handleImagePageChange(1)}
+                  disabled={imagePage === 1}
+                >
+                  {"<<"}
+                </button>
+                <button
+                  className="prev"
+                  onClick={() => this.handleImagePageChange(imagePage - 1)}
+                  disabled={imagePage === 1}
+                >
+                  {"<"}
+                </button>
+                <input
+                  type="text"
+                  value={imagePage}
+                  onChange={(e) => this.handlePageInput(e, "images")}
+                />
+                <span className="total-pages">/ {totalImagePages}</span>
+                <button
+                  className="next"
+                  onClick={() => this.handleImagePageChange(imagePage + 1)}
+                  disabled={
+                    imagePage === totalImagePages || totalImagePages === 0
+                  }
+                >
+                  {">"}
+                </button>
+                <button
+                  className="last"
+                  onClick={() => this.handleImagePageChange(totalImagePages)}
+                  disabled={
+                    imagePage === totalImagePages || totalImagePages === 0
+                  }
+                >
+                  {">>"}
+                </button>
+              </div>
+            </div>
+            <div className="owner-mid-content-left">
+              <div
+                className="owner-mid-content-left-search-product"
+                style={{
+                  display: activeSection === "products" ? "block" : "none",
+                }}
+              >
+                <p>Tìm kiếm:</p>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm tên sản phẩm..."
+                  value={tempSearchQuery}
+                  onChange={this.handleSearchChange}
+                />
+                <IonIcon icon={searchOutline}></IonIcon>
+              </div>
+              <div
+                className="owner-mid-content-left-search-invoice"
+                style={{
+                  display: activeSection === "invoices" ? "block" : "none",
+                }}
+              >
+                <p>Tìm kiếm:</p>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm số điện thoại nhận hàng..."
+                  value={tempSearchQuery}
+                  onChange={this.handleSearchChange}
+                />
+                <IonIcon icon={searchOutline}></IonIcon>
+              </div>
+              <div className="f">
+                <div
+                  style={{
+                    display: activeSection === "products" ? "block" : "none",
+                  }}
+                  className="owner-mid-content-left-product-filter"
+                >
+                  <label>Lọc sản phẩm:</label>
+                  <br />
+                  <select
+                    value={filters.selectedFilter}
+                    onChange={(e) => this.handleFilterProduct(e.target.value)}
+                  >
+                    <option value="ALL">Tất cả</option>
+                    <option value="PROMOTION">Khuyến mãi</option>
+                    {filterValue.map((item) => (
+                      <option key={item.Code} value={item.Code}>
+                        {item.Value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  style={{
+                    display: activeSection === "products" ? "block" : "none",
+                  }}
+                  className="owner-mid-content-left-product-sort"
+                >
+                  <label>Sắp xếp:</label>
+                  <br />
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => this.handleSortProduct(e.target.value)}
+                  >
+                    <option value="0">Mặc định</option>
+                    <option value="1">Bán chạy</option>
+                    <option value="2">Giá bán tăng dần</option>
+                    <option value="3">Giá bán giảm dần</option>
+                    <option value="4">Hàng mới về</option>
+                  </select>
+                </div>
+                <div
+                  style={{
+                    display: activeSection === "invoices" ? "block" : "none",
+                  }}
+                  className="owner-mid-content-left-invoice-date"
+                >
+                  <label>Ngày hóa đơn:</label>
+                  <DatePicker
+                    selected={invoiceDate ? new Date(invoiceDate) : null}
+                    onChange={(date) => {
+                      const formattedDate = date
+                        ? date.toISOString().split("T")[0]
+                        : "";
+                      this.setState({ invoiceDate: formattedDate }, () => {
+                        if (this.state.activeSection === "invoices") {
+                          this.loadAllHoaDon();
+                        }
+                      });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="dd/mm/yyyy"
+                    className="date-picker"
+                  />
+                  <button
+                    style={{ marginLeft: "10px" }}
+                    onClick={this.handleResetFilters}
+                  >
+                    Reset
+                  </button>
+                </div>
+                <div
+                  style={{
+                    display: activeSection === "invoices" ? "block" : "none",
+                  }}
+                  className="owner-mid-content-left-invoice-sort"
+                >
+                  <label>Sắp xếp:</label>
+                  <br />
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => this.handleSortInvoice(e.target.value)}
+                  >
+                    <option value="0">Mặc định</option>
+                    <option value="1">Mới nhất</option>
+                    <option value="2">Cũ nhất</option>
+                    <option value="3">Tổng giá trị tăng dần</option>
+                    <option value="4">Tổng giá trị giảm dần</option>
+                    <option value="5">Số lượng tăng dần</option>
+                    <option value="6">Số lượng giảm dần</option>
+                    <option value="7">Tình trạng thanh toán</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="owner-mid-content-right">
+              {/* SẢN PHẨM */}
+              <div
+                className="owner-mid-content-right-list-product"
+                style={{
+                  display: activeSection === "products" ? "block" : "none",
+                }}
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mã sản phẩm</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Hình ảnh</th>
+                      <th>Danh mục</th>
+                      <th>Giá</th>
+                      <th>Kho</th>
+                      <th>KM</th>
+                      <th>Xóa</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {arrSanPham.length > 0 ? (
+                      arrSanPham.map((item) => {
+                        const productTypeValue =
+                          filterValue.find(
+                            (filterItem) => filterItem.Code === item.ProductType
+                          )?.Value || item.ProductType;
+                        return (
+                          <tr
+                            key={item.MASANPHAM}
+                            className="owner-mid-content-right-list-product-item"
+                            onClick={() => this.toggleEditProductModal(item)}
+                          >
+                            <td>{item.MASANPHAM}</td>
+                            <td>{item.TenSanPham}</td>
+                            <td>
+                              <img
+                                src={item.HinhAnh || hinhtest}
+                                alt={item.TenSanPham}
+                              />
+                            </td>
+                            <td>{productTypeValue}</td>
+                            <td className="f">
+                              <p>
+                                {parseFloat(item.GiaBan).toLocaleString(
+                                  "vi-VN"
+                                )}
+                              </p>
+                              <p>vnđ</p>
+                            </td>
+                            <td>{item.SoLuongTon || 0}</td>
+                            <td>
+                              {item.KhuyenMai ? `${item.KhuyenMai}%` : "0"}
+                            </td>
+                            <td
+                              className="f"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button>
+                                <IonIcon icon={closeCircleOutline}></IonIcon>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="8">Không tìm thấy sản phẩm nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                <div className="pages f">
+                  <button
+                    className="first"
+                    onClick={() => this.handleProductPageChange(1)}
+                    disabled={productPage === 1}
+                  >
+                    {"<<"}
+                  </button>
+                  <button
+                    className="prev"
+                    onClick={() =>
+                      this.handleProductPageChange(productPage - 1)
+                    }
+                    disabled={productPage === 1}
+                  >
+                    {"<"}
+                  </button>
+                  <input
+                    type="text"
+                    value={productPage}
+                    onChange={(e) => this.handlePageInput(e, "products")}
+                  />
+                  <span className="total-pages">/ {totalProductPages}</span>
+                  <button
+                    className="next"
+                    onClick={() =>
+                      this.handleProductPageChange(productPage + 1)
+                    }
+                    disabled={productPage === totalProductPages}
+                  >
+                    {">"}
+                  </button>
+                  <button
+                    className="last"
+                    onClick={() =>
+                      this.handleProductPageChange(totalProductPages)
+                    }
+                    disabled={productPage === totalProductPages}
+                  >
+                    {">>"}
+                  </button>
+                </div>
+              </div>
+              {/* HÓA ĐƠN */}
+              <div
+                className="owner-mid-content-right-list-invoice"
+                style={{
+                  display: activeSection === "invoices" ? "block" : "none",
+                }}
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mã hóa đơn</th>
+                      <th>Thời gian tạo</th>
+                      <th>Tên khách hàng</th>
+                      <th>SĐT khách hàng</th>
+                      <th>SL</th>
+                      <th>Tổng tiền</th>
+                      <th>PaymentStatus</th>
+                      <th>OrderStatus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {arrHoaDon.length > 0 ? (
+                      arrHoaDon.map((item, index) => (
+                        <tr
+                          key={item.MADONHANG}
+                          className="owner-mid-content-right-list-invoice-item"
+                          // Bỏ style lọc hiển thị
+                          onClick={() => this.toggleViewInvoiceModal(item)}
+                        >
+                          <td>{item.MADONHANG}</td>
+                          <td>
+                            {item.NgayLapDonHang
+                              ? new Date(item.NgayLapDonHang).toLocaleString(
+                                  "vi-VN"
+                                )
+                              : "N/A"}
+                          </td>
+                          <td>{item.TenKhachHang || "N/A"}</td>
+                          <td>{item.SDTNhanHang || "N/A"}</td>
+                          <td>{item.quantity || 0}</td>
+                          <td className="f">
+                            <p>
+                              {item.TongTien
+                                ? parseFloat(item.TongTien).toLocaleString(
+                                    "vi-VN"
+                                  )
+                                : 0}{" "}
+                              vnđ
+                            </p>
+                          </td>
+                          <td>{item.PaymentStatus || "N/A"}</td>
+                          <td>{item.OrderStatus || "N/A"}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="8">Không tìm thấy hóa đơn nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                <div className="pages f">
+                  <button
+                    className="first"
+                    onClick={() => this.handleInvoicePageChange(1)}
+                    disabled={invoicePage === 1}
+                  >
+                    {"<<"}
+                  </button>
+                  <button
+                    className="prev"
+                    onClick={() =>
+                      this.handleInvoicePageChange(invoicePage - 1)
+                    }
+                    disabled={invoicePage === 1}
+                  >
+                    {"<"}
+                  </button>
+                  <input
+                    type="text"
+                    value={invoicePage}
+                    onChange={(e) => this.handlePageInput(e, "invoices")}
+                  />
+                  <span className="total-pages">/ {totalInvoicePages}</span>
+                  <button
+                    className="next"
+                    onClick={() =>
+                      this.handleInvoicePageChange(invoicePage + 1)
+                    }
+                    disabled={
+                      invoicePage === totalInvoicePages ||
+                      totalInvoicePages === 0
+                    }
+                  >
+                    {">"}
+                  </button>
+                  <button
+                    className="last"
+                    onClick={() =>
+                      this.handleInvoicePageChange(totalInvoicePages)
+                    }
+                    disabled={
+                      invoicePage === totalInvoicePages ||
+                      totalInvoicePages === 0
+                    }
+                  >
+                    {">>"}
+                  </button>
+                </div>
+              </div>
+              {/* BANNER */}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = (state) => ({});
+const mapDispatchToProps = {};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Owner);
+
+
+
+
+
+
+
+
+
+
+
+
+.f {
+  display: flex;
+}
+
+.owner-body {
+  background-color: white;
+  .container {
+    max-width: 1450px !important;
+    h1 {
+      text-align: center;
+    }
+    .owner-top-content {
+      margin-top: 60px;
+      margin-left: 510px;
+      .owner-top-content-menu {
+        width: 900px;
+        margin-left: 60px;
+
+        li {
+          margin-right: 20px;
+
+          a {
+            color: black;
+            cursor: pointer; // Make the link look clickable
+            &:hover {
+              padding-bottom: 3px;
+              border-bottom: 2px solid black;
+            }
+            &.active {
+              padding-bottom: 3px;
+              border-bottom: 2px solid black;
+              font-weight: bold; // Optional: make the active tab bold
+            }
+          }
+          button {
+            background-color: rgb(1, 176, 1);
+            border-radius: 5px;
+            margin-left: 380px;
+            height: 30px;
+            width: 170px;
+            color: white;
+            ion-icon {
+              margin-bottom: -3.5px;
+              font-size: 20px;
+            }
+          }
+          button:hover {
+            font-size: 15px;
+            ion-icon {
+              font-size: 18px;
+            }
+          }
+          button:active {
+            background-color: rgb(0, 133, 0);
+          }
+        }
+        margin-bottom: 10px;
+      }
+    }
+    .add {
+      .owner-top-content-search-banner {
+        margin-right: 20px;
+        b {
+          margin-top: 7px;
+          margin-right: 10px;
+        }
+        input {
+          width: 400px;
+          padding: 5px;
+          border-radius: 5px;
+        }
+        ion-icon {
+          position: absolute;
+          margin-top: 10px;
+          left: 510px;
+        }
+      }
+      .owner-mid-content-left-image-sort {
+        label {
+          margin-top: 7px;
+          margin-right: 10px;
+        }
+        select {
+          border-radius: 5px;
+          width: 90px;
+        }
+      }
+    }
+
+    .owner-mid-content {
+      width: 100%;
+      .owner-mid-content-mid-list-img {
+        table {
+          text-align: center;
+          margin-top: 25px;
+          thead {
+            tr {
+              th {
+                padding-bottom: 10px;
+              }
+            }
+          }
+          tbody {
+            .owner-mid-content-right-list-product-item {
+              img {
+                max-width: 90px;
+              }
+
+              td:nth-child(4) {
+                margin-top: 32px;
+                justify-content: center;
+                p {
+                  margin-right: 5px;
+                }
+              }
+              td:nth-child(5) {
+                margin-top: 33px;
+                justify-content: center;
+                p {
+                  margin-right: 5px;
+                }
+              }
+
+              td:nth-child(7) {
+                width: 70px;
+              }
+              td:nth-child(8) {
+                justify-content: center;
+                button {
+                  border-radius: 7px;
+                  width: 40px;
+                  height: 40px;
+                  margin-right: 10px;
+                  ion-icon {
+                    padding-top: 5px;
+                    width: 25px;
+                    height: 25px;
+                  }
+                }
+                button:last-child {
+                  background-color: rgb(255, 0, 0);
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                button:first-child {
+                  background-color: rgb(233, 233, 0);
+                  ion-icon {
+                    color: rgb(0, 0, 0);
+                  }
+                }
+                button:first-child:hover {
+                  ion-icon {
+                    width: 22px;
+                    height: 22px;
+                  }
+                }
+                button:last-child:hover {
+                  ion-icon {
+                    width: 22px;
+                    height: 22px;
+                  }
+                }
+              }
+            }
+            .owner-mid-content-right-list-invoice-item {
+              td:nth-child(5) {
+                margin-top: 16.5px;
+                justify-content: center;
+              }
+            }
+          }
+        }
+        .pages {
+          margin: 30px 0;
+          justify-content: center;
+          align-items: center;
+
+          button {
+            width: 30px;
+            height: 30px;
+            color: white;
+            background-color: rgb(113, 102, 102);
+            border: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            cursor: pointer;
+            padding: 0; // Remove default padding to ensure width is respected
+            box-sizing: border-box; // Ensure padding/border are included in width
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          button:hover {
+            background-color: rgb(91, 82, 82);
+          }
+          button:active {
+            background-color: rgb(70, 63, 63);
+          }
+          input {
+            width: 40px;
+            height: 30px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+          }
+        }
+      }
+      .owner-mid-content-mid-list-img {
+        table {
+          table-layout: fixed; // Enforce fixed column widths
+          width: 100%; // Ensure the table fits its container
+
+          thead {
+            tr {
+              th:first-child {
+                width: 5%;
+              }
+              th:nth-child(2) {
+                width: 23%;
+              }
+              th:nth-child(3) {
+                width: 10%;
+              }
+              th:nth-child(4) {
+                width: 15%;
+              }
+              th:nth-child(5) {
+                width: 12%;
+              } // Tổng tiền hàng
+              th:nth-child(6) {
+                width: 12.5%;
+              } // Tình trạng thanh toán
+              th:nth-child(7) {
+                width: 12.5%;
+              }
+              th:nth-child(8) {
+                width: 10%;
+              }
+            }
+          }
+          tbody {
+            .owner-mid-content-mid-list-img-item {
+              td {
+                height: 130px;
+              }
+              td:first-child {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                .active {
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 5px;
+                  background: rgb(0, 199, 0);
+                  ion-icon {
+                    color: white;
+                    font-size: 24px;
+                  }
+                }
+                .unactive {
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 5px;
+                  background: rgb(234, 0, 0);
+                  ion-icon {
+                    margin-top: 1px;
+                    color: white;
+                    font-size: 24px;
+                  }
+                }
+              }
+              td:nth-child(2) {
+                width: 300px;
+                img {
+                  max-width: 300px;
+                }
+              }
+              td:nth-child(5) {
+                width: 100px;
+                img {
+                  max-width: 100px;
+                }
+              }
+              td:nth-child(8) {
+                justify-content: center;
+                button {
+                  border-radius: 7px;
+                  width: 40px;
+                  height: 40px;
+                  margin-right: 10px;
+                  ion-icon {
+                    padding-top: 5px;
+                    width: 25px;
+                    height: 25px;
+                  }
+                }
+                button {
+                  background-color: rgb(255, 0, 0);
+                  ion-icon {
+                    color: white;
+                  }
+                }
+
+                button:hover {
+                  ion-icon {
+                    width: 22px;
+                    height: 22px;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      .owner-mid-content-left {
+        width: 28%;
+        .owner-mid-content-left-search-product,
+        .owner-mid-content-left-search-invoice {
+          margin-bottom: 20px;
+          p {
+            margin-right: 10px;
+            margin-bottom: 0;
+          }
+          input {
+            width: 380px;
+            height: 30px;
+            padding: 5px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+          ion-icon {
+            position: absolute;
+            margin-top: 6px;
+            left: 410px;
+          }
+        }
+        .owner-mid-content-left-product-filter {
+          margin-right: 20px;
+          select {
+            width: 180px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+        }
+        .owner-mid-content-left-product-sort {
+          select {
+            width: 180px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+        }
+        .owner-mid-content-left-invoice-date {
+          margin-right: 10px;
+          label {
+            display: block;
+          }
+          input[type="date"] {
+            width: 160px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            padding: 5px;
+            border: 1px solid #717171;
+            box-sizing: border-box;
+          }
+        }
+        .owner-mid-content-left-invoice-sort {
+          select {
+            width: 210px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+        }
+        .owner-mid-content-left-image-sort {
+          margin-right: 20px;
+          select {
+            width: 180px;
+            height: 30px;
+            font-size: 18px;
+            border-radius: 5px;
+          }
+        }
+      }
+      .owner-mid-content-right {
+        width: 72%;
+
+        .owner-mid-content-right-list-product,
+        .owner-mid-content-right-list-invoice {
+          table {
+            text-align: center;
+            margin-top: 25px;
+            thead {
+              tr {
+                th {
+                  padding-bottom: 10px;
+                }
+              }
+            }
+            tbody {
+              .owner-mid-content-right-list-product-item {
+                img {
+                  max-width: 90px;
+                }
+
+                td:nth-child(4) {
+                  margin-top: 32px;
+                  justify-content: center;
+                  p {
+                    margin-right: 5px;
+                  }
+                }
+                td:nth-child(5) {
+                  margin-top: 54px;
+                  justify-content: center;
+                  p {
+                    margin-right: 5px;
+                  }
+                }
+
+                td:nth-child(7) {
+                  width: 70px;
+                }
+                td:nth-child(8) {
+                  justify-content: center;
+                  button {
+                    border-radius: 7px;
+                    width: 40px;
+                    height: 40px;
+                    margin-right: 10px;
+                    ion-icon {
+                      padding-top: 5px;
+                      width: 25px;
+                      height: 25px;
+                    }
+                  }
+                  button {
+                    background-color: rgb(255, 0, 0);
+                    ion-icon {
+                      color: white;
+                    }
+                  }
+
+                  button:hover {
+                    ion-icon {
+                      width: 22px;
+                      height: 22px;
+                    }
+                  }
+                }
+              }
+              .owner-mid-content-right-list-invoice-item {
+                td:nth-child(5) {
+                  margin-top: 16.5px;
+                  justify-content: center;
+                }
+              }
+            }
+          }
+          .pages {
+            margin: 30px 0;
+            justify-content: center;
+            align-items: center;
+
+            button {
+              width: 30px;
+              height: 30px;
+              color: white;
+              background-color: rgb(113, 102, 102);
+              border: none;
+              border-radius: 5px;
+              margin: 0 5px;
+              cursor: pointer;
+              padding: 0; // Remove default padding to ensure width is respected
+              box-sizing: border-box; // Ensure padding/border are included in width
+
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            button:hover {
+              background-color: rgb(91, 82, 82);
+            }
+            button:active {
+              background-color: rgb(70, 63, 63);
+            }
+            input {
+              width: 40px;
+              height: 30px;
+              text-align: center;
+              border-radius: 5px;
+              border: 1px solid #ccc;
+              margin: 0 5px;
+            }
+          }
+        }
+        .owner-mid-content-right-list-product {
+          table {
+            table-layout: fixed; // Enforce fixed column widths
+            width: 100%; // Ensure the table fits its container
+            max-width: 900px; // Optional: Limit the maximum width of the table
+
+            thead {
+              tr {
+                th:first-child {
+                  width: 120px;
+                } // Mã sản phẩm
+                th:nth-child(2) {
+                  width: 270px;
+                } // Tên sản phẩm
+                th:nth-child(3) {
+                  width: 100px;
+                } // Hình ảnh
+                th:nth-child(4) {
+                  width: 150px;
+                } // Danh mục
+                th:nth-child(5) {
+                  width: 100px;
+                } // Giá
+                th:nth-child(6) {
+                  width: 80px;
+                } // Kho
+                th:nth-child(7) {
+                  width: 100px;
+                } // KM
+                th:nth-child(8) {
+                  width: 100px;
+                } // Chỉnh sửa
+              }
+            }
+          }
+        }
+        .owner-mid-content-right-list-invoice {
+          table {
+            width: 100%;
+            table-layout: fixed;
+            thead {
+              tr {
+                th:first-child {
+                  width: 10%;
+                } // Mã hóa đơn
+                th:nth-child(2) {
+                  width: 15%;
+                } // Thời gian tạo
+                th:nth-child(3) {
+                  width: 20%;
+                } // Tên Khách Hàng
+                th:nth-child(4) {
+                  width: 5%;
+                } // Tổng số hàng
+                th:nth-child(5) {
+                  width: 15%;
+                } // Tổng tiền hàng
+                th:nth-child(6) {
+                  width: 17.5%;
+                } // Tình trạng thanh toán
+                th:nth-child(7) {
+                  width: 17.5%;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@import "~react-datepicker/dist/react-datepicker.css";
+
+// Style cho owner-mid-content-left-invoice-date
+.owner-mid-content-left-invoice-date {
+  display: flex;
+  align-items: center;
+}
+
+.owner-mid-content-left-invoice-date label {
+  margin-right: 10px;
+}
+
+.owner-mid-content-left-invoice-date .date-picker {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 120px;
+}
+
+.owner-mid-content-left-invoice-date button {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.owner-mid-content-left-invoice-date button:hover {
+  background-color: #e0e0e0;
+}
+
+// Tùy chỉnh style của react-datepicker
+.react-datepicker-wrapper {
+  display: inline-block;
+}
+
+.react-datepicker__input-container input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.react-datepicker__day:hover {
+  background-color: #f0f0f0;
+}
