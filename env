@@ -1,0 +1,8 @@
+PORT = 9999
+NODE_ENV=development
+URL_REACT=http://localhost:3000
+JWT_SECRET=shikanoko
+JWT_EXPIRES_IN=1h
+JWT_EXPIRES_IN_LONG=168h
+EMAIL_USER=zerofork147@gmail.com
+EMAIL_PASS=ycho ofns vlbn edfp
