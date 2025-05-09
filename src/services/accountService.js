@@ -153,13 +153,13 @@ let validateUserEdit = async (userInfo) => {
             };
         }
     }
-    if (userInfo.email) {
-        const email = userInfo.email.trim();
-        const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+    if (userInfo.accountname) {
+        const accountName = userInfo.accountname.trim();
+        const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
+        if (!accountNameRegex.test(accountName)) {
             return {
                 errCode: 1,
-                errMessage: 'Email sai định dạng!',
+                errMessage: "Tên tài khoản sai định dạng!",
                 data: null
             };
         }
@@ -941,16 +941,16 @@ let changeAccountInfo = (userInfo) => {
                 });
                 return;
             }
-            if (userInfo.email && userInfo.email !== account.Email) {
-                let isEmailExist = await checkEmailExist(userInfo.email);
-                if (typeof isEmailExist === 'object' && isEmailExist.errCode !== 0) {
-                    resolve(isEmailExist);
+            if (userInfo.accountname && userInfo.accountname !== account.AccountName) {
+                let isAccountNameExist = await checkEmailExist(userInfo.accountname);
+                if (typeof isAccountNameExist === 'object' && isAccountNameExist.errCode !== 0) {
+                    resolve(isAccountNameExist);
                     return;
                 }
-                if (isEmailExist) {
+                if (isAccountNameExist) {
                     resolve({
                         errCode: 1,
-                        errMessage: 'Email đã tồn tại trong hệ thống!',
+                        errMessage: 'Tên tài khoản đã tồn tại trong hệ thống!',
                         data: null
                     });
                     return;
@@ -1008,8 +1008,8 @@ let changeAccountInfo = (userInfo) => {
                     isUpdated = true;
                 }
             }
-            if (userInfo.email) {
-                account.Email = userInfo.email;
+            if (userInfo.accountname) {
+                account.AccountName = userInfo.accountname;
                 isUpdated = true;
             }
             if (isUpdated) {

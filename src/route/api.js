@@ -1,5 +1,5 @@
 import express from "express";
-import userController from "../controllers/userController";
+import accountController from "../controllers/accountController";
 import productController from "../controllers/productController";
 import cartController from "../controllers/cartController";
 import invoiceController from "../controllers/invoiceController";
@@ -57,13 +57,13 @@ let initAPIRoutes = (app) => {
     router.get("/api/check-coupon", utilitiesController.handleCheckCoupon);
     router.get("/api/get-couponinfo", utilitiesController.handleGetCouponInfo);
 
-    router.post("/api/register", userController.handleRegister);
-    router.post("/api/login", userController.handleLogin);
-    router.get("/api/logout", userController.handleLogout);
-    router.get("/api/get-accountinfo", userController.handleGetAccountInfo);
-    router.get("/api/verify-token", userController.handleVerifyToken);
-    router.put("/api/edit-accountinfo", userController.handleChangeAccountInfo);
-    router.put("/api/change-password", userController.handleChangePassword);
+    router.post("/api/register", accountController.handleRegister);
+    router.post("/api/login", accountController.handleLogin);
+    router.get("/api/logout", accountController.handleLogout);
+    router.get("/api/get-accountinfo", accountController.handleGetAccountInfo);
+    router.get("/api/verify-token", accountController.handleVerifyToken);
+    router.put("/api/edit-accountinfo", accountController.handleChangeAccountInfo);
+    router.put("/api/change-password", accountController.handleChangePassword);
 
     router.get("/api/load-productinfo", productController.handleLoadProductInfo);
     router.get("/api/get-productinfo", productController.handleGetProductInfo)
@@ -81,8 +81,8 @@ let initAPIRoutes = (app) => {
 
     router.post("/api/create-invoice", invoiceController.handleCreateInvoice);
     //admin
-    router.get("/api/load-accountinfo", userController.handleLoadAccountInfo);
-    router.put("/api/change-accountstatus", userController.handleChangeAccountStatus);
+    router.get("/api/load-accountinfo", accountController.handleLoadAccountInfo);
+    router.put("/api/change-accountstatus", accountController.handleChangeAccountStatus);
     //owner
 
     //veterinarian
@@ -90,7 +90,7 @@ let initAPIRoutes = (app) => {
     //customer
 
     //not converted
-    // router.get("/api/get-thongtin-thanhtoan", userController.handleGetThongTinThanhToan);
+    // router.get("/api/get-thongtin-thanhtoan", accountController.handleGetThongTinThanhToan);
 
     // router.get("/api/get-sanpham", productController.handleGetSanPham)
     // router.get("/api/get-chitiethinhanh", productController.handleGetChiTietHinhAnh);
