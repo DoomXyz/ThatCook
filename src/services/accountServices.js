@@ -24,26 +24,11 @@ const handleLoadAccountInfoApi = (page, limit, search, filter, sort) => {
 const handleChangeAccountStatusApi = (accountid, accountstatus) => {
   return axios.put("/api/change-accountstatus", { accountid, accountstatus })
 }
+
+const handleEditAccountInfoApi = (userInfo) => {
+  return axios.put("/api/edit-accountinfo", userInfo);
+};
 //non converted
-
-
-//truyền trang, giới hạn, nội dung tìm kiếm, nội dung lọc và nội dung sắp xếp xuống backend
-const getAllTaiKhoan = ({ page, limit, search, filter, sort }) => {
-  return axios.get(`/api/get-alltaikhoan?page=${page}&limit=${limit}&search=${search || ''}&filter=${filter || 'ALL'}&sort=${sort || '0'}`);
-};
-const handleEditTaiKhoan = (userInfo) => {
-  return axios.put("/api/edit-taikhoan", userInfo);
-};
-
-//cách truyền tham số nhưng khác cái trên
-const deleteTaiKhoan = (id) => { //disabled
-  return axios.delete("/api/delete-taikhoan", {
-    data: {
-      matk: id,
-    },
-  });
-};
-
 const handleGetThongTinThanhToan = (mataikhoan) => {
   return axios.get(`/api/get-thongtin-thanhtoan?mataikhoan=${mataikhoan}`);
 };
@@ -60,10 +45,8 @@ export {
   handleGetAccountInfoApi,
   handleLoadAccountInfoApi,
   handleChangeAccountStatusApi,
+  handleEditAccountInfoApi,
 
-  getAllTaiKhoan,
-  handleEditTaiKhoan,
-  deleteTaiKhoan,
   handleGetThongTinThanhToan,
   handleChangePassword,
 };

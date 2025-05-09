@@ -1,4 +1,4 @@
-import React, { Component, use } from "react";
+import React, { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";

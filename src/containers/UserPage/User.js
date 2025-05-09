@@ -5,24 +5,12 @@ import "./User.scss"; // Import SCSS
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 import { chevronBack, pencil } from "ionicons/icons";
-import {
-  handleGetAccountInfoApi,
-  handleVerifyTokenApi,
-  handleLogoutApi,
-  handleEditTaiKhoan,
-  handleGetThongTinThanhToan,
-  handleChangePassword,
-} from "../../services/accountServices";
-import {
-  handleGetProductInfoApi,
-  handleGetProductDetailInfoApi,
-} from "../../services/productServices";
-import {
-  getUserOrders,
-  handleGetOrderDetails,
-} from "../../services/billService";
+import { handleGetAccountInfoApi, handleVerifyTokenApi, handleLogoutApi, handleEditAccountInfoApi, handleGetThongTinThanhToan, handleChangePassword, } from "../../services/accountServices";
+import { handleGetProductInfoApi, handleGetProductDetailInfoApi, } from "../../services/productServices";
+import { getUserOrders, handleGetOrderDetails, } from "../../services/billService";
 import { uploadImageToCloudinary } from "../../services/utilitiesServices"; // Thay uploadImageToGoogleDrive
 import { userLogout } from "../../store/actions";
+import { checkLoginStatus } from '../../utils/pakage';
 import { toast } from "react-toastify";
 
 class User extends Component {
@@ -34,7 +22,6 @@ class User extends Component {
       oldPassword: "", // Mật khẩu cũ
       newPassword: "", // Mật khẩu mới
       confirmPassword: "", // Xác nhận mật khẩu mới
-      errorMessage: "", // Thông báo lỗi
       editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "name", "phone", ...)
       originalValue: "",
       formData: {
@@ -43,8 +30,18 @@ class User extends Component {
         address: "Averado Bank, Rinascita",
         gender: "F",
         email: "castorice@gmail.com",
-        avatar: "https://i.imgur.com/RlCfwMn.jpeg",
+        avatar: "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg",
       },
+      isLoading: true,
+      userimage: null,
+      accounid: "",
+      accountname: "",
+      username: "",
+      phone: "",
+      address: "",
+      gender: "",
+      email: "",
+      codeGender: [],
       fileToUpload: null,
       isUploading: false,
       orders: [],
@@ -56,26 +53,30 @@ class User extends Component {
   }
 
   async componentDidMount() {
+    await this.handleIsLogin();
     if (this.props.userInfo) {
       await this.handleIsLogin();
-      const mataikhoan = this.props.userInfo.mataikhoan;
-      if (mataikhoan) {
-        const response = await getUserOrders(mataikhoan);
-        if (response && response.errCode === 0) {
-          this.setState({ orders: response.data });
-        } else {
-          toast.error("Lấy thông tin đơn hàng thất bại!");
-        }
-      }
-
-    } else {
-      this.setState({ isLoggedIn: false });
-      toast.info("Bạn cần đăng nhập để truy cập trang này!", {
-        autoClose: 2000,
-        closeOnClick: true,
-      });
-      this.props.navigate("/login");
+      setTimeout(() => {
+        //loading thông tin người dùng và lịch sử mua hàng
+      })
     }
+    //   const mataikhoan = this.props.userInfo.mataikhoan;
+    //   if (mataikhoan) {
+    //     const response = await getUserOrders(mataikhoan);
+    //     if (response && response.errCode === 0) {
+    //       this.setState({ orders: response.data });
+    //     } else {
+    //       toast.error("Lấy thông tin đơn hàng thất bại!");
+    //     }
+    //   }
+    // } else {
+    //   this.setState({ isLoggedIn: false });
+    //   toast.info("Bạn cần đăng nhập để truy cập trang này!", {
+    //     autoClose: 2000,
+    //     closeOnClick: true,
+    //   });
+    //   this.props.navigate("/login");
+    // }
   }
 
   async componentDidUpdate(prevProps, prevState) {
@@ -162,6 +163,8 @@ class User extends Component {
       }
     }
   }
+
+
   componentWillUnmount() {
     if (this.state.formData.avatar && this.state.fileToUpload) {
       URL.revokeObjectURL(this.state.formData.avatar);
@@ -170,45 +173,27 @@ class User extends Component {
 
   handleIsLogin = async () => {
     try {
-      const result = await handleVerifyTokenApi();
-      if (result && result.errCode === 0) {
-        this.setState({ isLoggedIn: true });
-      } else {
-        this.setState({ isLoggedIn: false });
-        const logoutResponse = await handleLogoutApi();
-        if (logoutResponse && logoutResponse.errCode === 0) {
-          this.props.userLogout();
-          toast.info("Phiên của bạn đã hết hạn, bạn đã được đăng xuất!", {
-            autoClose: 2000,
-            closeOnClick: true,
-          });
-          this.props.navigate("/login");
-        } else {
-          toast.error("Đăng xuất thất bại, vui lòng thử lại!", {
-            autoClose: 2000,
-            closeOnClick: true,
-          });
-          this.props.navigate("/login");
+      const { status, accountInfo } = await checkLoginStatus();
+      if (status && accountInfo) {
+        if (!this.props.userInfo) {
+          this.props.userLogin(accountInfo);
         }
+        this.setState({
+          isLoggedIn: true,
+          accountid: accountInfo.AccountID
+        });
+      } else {
+        await handleLogoutApi();
+        this.props.userLogout();
+        this.setState({
+          isLoggedIn: true,
+          accountid: accountInfo.AccountID
+        });
+        this.props.navigate("/login")
       }
     } catch (e) {
-      console.error("Lỗi khi kiểm tra token:", e);
-      this.setState({ isLoggedIn: false });
-      const logoutResponse = await handleLogoutApi();
-      if (logoutResponse && logoutResponse.errCode === 0) {
-        this.props.userLogout();
-        toast.error("Lỗi kết nối, bạn đã được đăng xuất!", {
-          autoClose: 2000,
-          closeOnClick: true,
-        });
-        this.props.navigate("/login");
-      } else {
-        toast.error("Đăng xuất thất bại, vui lòng thử lại!", {
-          autoClose: 2000,
-          closeOnClick: true,
-        });
-        this.props.navigate("/login");
-      }
+      this.props.navigate("/login");
+      console.log("Token not found!")
     }
   };
 
@@ -445,7 +430,7 @@ class User extends Component {
     // Chỉ console.log nếu có thay đổi
     if (hasChanges && error === false) {
       console.log(updateInfo);
-      let response = await handleEditTaiKhoan(updateInfo);
+      let response = await handleEditAccountInfoApi(updateInfo);
       if (response && response.errCode === 0) {
         toast.success(
           "Cập nhật thông tin thành công, hãy đăng nhập lại để tải dữ liệu mới nhất",
@@ -1088,6 +1073,7 @@ class User extends Component {
           navigate={this.props.navigate}
           cartItems={this.props.cartItems}
           userInfo={this.props.userInfo}
+          triggerCountCartItem={this.state.triggerCountCartItem}
         />
         <div className="user-container">
           <div className="user-action-form">

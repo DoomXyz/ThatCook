@@ -4,22 +4,16 @@ import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
 import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutline, } from "ionicons/icons"; //chỉ import các icon cần dùng
 import "./Admin.scss";
-import { handleLoadAccountInfoApi, handleRegisterApi, handleEditTaiKhoan, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
+import { handleLoadAccountInfoApi, handleRegisterApi, handleEditAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
 
 import Spinner from '../../components/Spinner';
 import CreateAccountModal from "./CreateAccountModal";
 import EditAccountModal from "./EditAccountModal";
 
-import { emitter } from "../../utils/emitter";
-
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from "../../store/actions";
 
 class Admin extends Component {
-  //Life cycle:
-  //1. chạy constructor để khai báo các state
-  //2. chạy render html
-  //3. chạy didmount để gắn giá trị từ backend
   constructor(props) {
     super(props);
     this.state = {
@@ -40,7 +34,6 @@ class Admin extends Component {
     };
     this.debounceTimeout = null;
   }
-  //load danh sách + kiểm tra phiên đăng nhập
   async componentDidMount() {
     await this.handleIsLogin();
     await this.handleLoadAccountInfo();
@@ -191,23 +184,40 @@ class Admin extends Component {
   };
   //sửa user qua thông tin từ modal
   handleEditAccountFromModal = async (userInfo) => {
-    console.log(userInfo)
-    // try {
-    //   let response = await handleEditTaiKhoan(user);
-    //   console.log("Response từ handleEditTaiKhoan:", response);
-    //   if (response && response.errCode !== 0) {
-    //     toast.error(response.errMessage);
-    //   } else {
-    //     await this.loadAllTaiKhoan();
-    //     this.setState({
-    //       isShowEditUserModal: false,
-    //     });
-    //     toast.success("Thay đổi thông tin thành công!");
-    //   }
-    // } catch (e) {
-    //   console.log(e);
-    //   toast.error("Đã xảy ra lỗi khi chỉnh sửa tài khoản!");
-    // }
+    this.setState({
+      isLoading: true
+    })
+    try {
+      const response = await handleEditAccountInfoApi(userInfo);
+      if (response && response.errCode === 0) {
+        toast.success("Chỉnh sửa thông tin người dùng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+        await this.handleLoadAccountInfo();
+        this.setState({
+          isShowEditAccountModal: false,
+        })
+      } else {
+        const errMessage = response?.errMessage || "Chỉnh sửa thông tin người dùng thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+      }
+    } catch (e) {
+      console.error("Edit:", e);
+      toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true
+      });
+    }
+    this.setState({
+      isLoading: false
+    })
   };
   handleChangeAccountStatus = async (userInfo) => {
     const confirmChange = () =>
@@ -562,8 +572,8 @@ class Admin extends Component {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="10" style={{ textAlign: "center" }}>
-                          Không có dữ liệu
+                        <td colSpan="12" style={{ textAlign: "center" }}>
+                          Không tìm thấy người dùng
                         </td>
                       </tr>
                     )}
