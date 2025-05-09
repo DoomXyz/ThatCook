@@ -130,7 +130,7 @@ module.exports = {
             { ProductDetailID: 84, DetailName: 'Kích thước M', Stock: 25, SoldCount: 10, ExtraPrice: 15000.00, Promotion: 0.00, CreatedAt: new Date('2024-04-05'), DetailStatus: 'AVAIL', ProductID: 'P000000041' },
             // P000000042: Dây dắt nylon Petkit (CAT)
             { ProductDetailID: 85, DetailName: 'Màu đỏ', Stock: 20, SoldCount: 8, ExtraPrice: 0.00, Promotion: 5, CreatedAt: new Date('2024-05-10'), DetailStatus: 'AVAIL', ProductID: 'P000000042' },
-            { ProductDetailID: 86, DetailName: 'Màu xanh', Stock: 15, SoldMilliong: 5, ExtraPrice: 0.00, Promotion: 0.00, CreatedAt: new Date('2024-05-10'), DetailStatus: 'AVAIL', ProductID: 'P000000042' },
+            { ProductDetailID: 86, DetailName: 'Màu xanh', Stock: 15, SoldCount: 5, ExtraPrice: 0.00, Promotion: 0.00, CreatedAt: new Date('2024-05-10'), DetailStatus: 'AVAIL', ProductID: 'P000000042' },
             // P000000043: Bàn chải lông Trixie (DOG)
             { ProductDetailID: 87, DetailName: 'Loại mềm', Stock: 25, SoldCount: 10, ExtraPrice: 0.00, Promotion: 10, CreatedAt: new Date('2024-06-15'), DetailStatus: 'AVAIL', ProductID: 'P000000043' },
             { ProductDetailID: 88, DetailName: 'Loại cứng', Stock: 20, SoldCount: 8, ExtraPrice: 10000.00, Promotion: 0.00, CreatedAt: new Date('2024-06-15'), DetailStatus: 'AVAIL', ProductID: 'P000000043' },
