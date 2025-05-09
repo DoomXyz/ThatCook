@@ -12,7 +12,7 @@ import {
   handleEditTaiKhoan,
   handleGetThongTinThanhToan,
   handleChangePassword,
-} from "../../services/userServices";
+} from "../../services/accountServices";
 import {
   handleGetProductInfoApi,
   handleGetProductDetailInfoApi,

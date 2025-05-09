@@ -5,7 +5,7 @@ import { IonIcon } from "@ionic/react"; //import thư viện icon
 import { home, keyOutline, eyeOffOutline, eyeOutline } from "ionicons/icons"; //chỉ import các icon cần dùng
 import Spinner from '../../components/Spinner';
 import './Login.scss'; //import scss
-import { handleLoginApi, handleLogoutApi } from '../../services/userServices'; //import hành động login
+import { handleLoginApi, handleLogoutApi } from '../../services/accountServices'; //import hành động login
 import { handleAddToCartApi } from "../../services/cartServices"
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout, clearCart, clearCheckOutCart } from '../../store/actions'

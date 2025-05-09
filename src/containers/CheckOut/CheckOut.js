@@ -6,7 +6,7 @@ import Spinner from '../../components/Spinner';
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 
-import { handleGetAccountInfoApi, handleLogoutApi, } from "../../services/userServices";
+import { handleGetAccountInfoApi, handleLogoutApi, } from "../../services/accountServices";
 import { handleGetCartDetailApi } from "../../services/cartServices";
 import { handleCreateInvoiceApi } from "../../services/invoiceServices"
 import { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi } from "../../services/utilitiesServices";

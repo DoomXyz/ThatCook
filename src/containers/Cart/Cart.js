@@ -6,7 +6,7 @@ import "./Cart.scss";
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 
-import { handleLogoutApi, } from "../../services/userServices";
+import { handleLogoutApi, } from "../../services/accountServices";
 import { handleGetProductDetailInfoApi } from "../../services/productServices";
 import { handleGetCartApi, handleGetCartDetailApi, handleGetDetailListApi, handleUpdateQuantityApi, handleRemoveFromCartApi, handleUpdateCartDetailApi, handleMergeCartDetailApi } from "../../services/cartServices";
 import { checkLoginStatus } from '../../utils/pakage';

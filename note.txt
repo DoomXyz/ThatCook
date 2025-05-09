@@ -7,7 +7,7 @@ import { bagAdd, searchOutline } from "ionicons/icons";
 
 import { userLogout, addToCart, clearCart } from "../../store/actions";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
-import { handleVerifyTokenApi, handleLogoutApi } from "../../services/userServices";
+import { handleVerifyTokenApi, handleLogoutApi } from "../../services/accountServices";
 import { handleGetProductInfoApi, getChiTietSanPham } from "../../services/productServices";
 import { handleAddToCartApi } from "../../services/cartServices"
 

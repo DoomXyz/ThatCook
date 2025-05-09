@@ -103,6 +103,7 @@ $blur-effect: blur(70px);
               margin-bottom: -15px;
 
               &:-webkit-autofill {
+
                 &,
                 &:hover,
                 &:focus,
@@ -114,23 +115,23 @@ $blur-effect: blur(70px);
                   transition: background-color 5000s ease-in-out 0s;
                 }
 
-                ~ label11 {
+                ~label11 {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ ion-icon {
+                ~ion-icon {
                   color: $primary-color;
                 }
               }
 
               &:not(:placeholder-shown) {
-                ~ label {
+                ~label {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ ion-icon {
+                ~ion-icon {
                   color: $primary-color;
                 }
               }
@@ -165,15 +166,17 @@ $blur-effect: blur(70px);
             }
 
             input:focus {
-              ~ label {
-                top: -5px; /* Label di chuyển lên khi focus */
+              ~label {
+                top: -5px;
+                /* Label di chuyển lên khi focus */
                 color: $primary-color;
               }
 
-              ~ ion-icon {
+              ~ion-icon {
                 color: $primary-color;
               }
             }
+
             &:hover {
               border-bottom: 2px solid #333;
 
@@ -258,6 +261,7 @@ $blur-effect: blur(70px);
               margin-bottom: -15px;
 
               &:not([type="password"]):-webkit-autofill {
+
                 &,
                 &:hover,
                 &:focus,
@@ -269,23 +273,23 @@ $blur-effect: blur(70px);
                   transition: background-color 5000s ease-in-out 0s;
                 }
 
-                ~ label {
+                ~label {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ ion-icon {
+                ~ion-icon {
                   color: $primary-color;
                 }
               }
 
               &:not(:placeholder-shown) {
-                ~ label {
+                ~label {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ ion-icon {
+                ~ion-icon {
                   color: $primary-color;
                 }
               }
@@ -320,15 +324,17 @@ $blur-effect: blur(70px);
             }
 
             input:focus {
-              ~ label {
-                top: -5px; /* Label di chuyển lên khi focus */
+              ~label {
+                top: -5px;
+                /* Label di chuyển lên khi focus */
                 color: $primary-color;
               }
 
-              ~ ion-icon {
+              ~ion-icon {
                 color: $primary-color;
               }
             }
+
             &:hover {
               border-bottom: 2px solid #333;
 
@@ -342,6 +348,7 @@ $blur-effect: blur(70px);
               }
             }
           }
+
           .error-message {
             color: red;
             font-size: 1rem;
@@ -389,6 +396,7 @@ $blur-effect: blur(70px);
       justify-content: center;
       margin-top: 15px;
       margin-bottom: -20px;
+
       a {
         margin-left: 5px;
         text-decoration: none;

@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { cart, person, informationCircleOutline, logOutOutline, } from "ionicons/icons";
 import "./HomeHeader.scss";
 import "../styles/ToastifyOverride.scss";
-import { handleLogoutApi } from "../services/userServices";
+import { handleLogoutApi } from "../services/accountServices";
 import { handleGetCartApi } from "../services/cartServices";
 import { handleGetAllCodesApi } from "../services/utilitiesServices"
 import { checkLoginStatus } from '../utils/pakage';

@@ -7,7 +7,7 @@ import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 import "./Home.scss";
 import Spinner from '../../components/Spinner';
-import { handleLogoutApi } from "../../services/userServices";
+import { handleLogoutApi } from "../../services/accountServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 import { handleLoadProductInfoApi, handleGetProductDetailInfoApi, handleGetBannerInfoApi } from "../../services/productServices";
 import { handleAddToCartApi, handleGetCartApi } from "../../services/cartServices";

@@ -4,11 +4,11 @@ import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
 import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutline, } from "ionicons/icons"; //chỉ import các icon cần dùng
 import "./Admin.scss";
-import { handleLoadAccountInfoApi, handleRegisterApi, handleEditTaiKhoan, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/userServices";
+import { handleLoadAccountInfoApi, handleRegisterApi, handleEditTaiKhoan, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
 
 import Spinner from '../../components/Spinner';
 import CreateAccountModal from "./CreateAccountModal";
-import EditAccountModal from "./AdminEditUserModal";
+import EditAccountModal from "./EditAccountModal";
 
 import { emitter } from "../../utils/emitter";
 
@@ -141,7 +141,7 @@ class Admin extends Component {
     });
   };
   //ẩn hiện modal chỉnh sửa tài khoản
-  toggleEditUserModal = () => {
+  toggleEditAccountModal = () => {
     this.setState({
       isShowEditAccountModal: !this.state.isShowEditAccountModal,
     });
@@ -154,23 +154,40 @@ class Admin extends Component {
   };
   //tạo tài khoản từ thông tin truyền từ modal về
   handleCreateAccountFromModal = async (userInfo) => {
-    console.log(userInfo)
-    // try {
-    //   const response = await handleRegisterApi(userInfo);
-    //   if (response && response.errCode === 0) {
-    //     await this.loadAllTaiKhoan();
-    //     this.setState({
-    //       isShowCreateUserModal: false,
-    //     });
-    //     emitter.emit("EVENT_CLEAR_MODAL_DATA");
-    //     toast.success("Tạo tài khoản thành công!");
-    //   } else {
-    //     toast.error(response.errMessage);
-    //   }
-    // } catch (e) {
-    //   console.log(e);
-    //   toast.error("Đã xảy ra lỗi khi tạo tài khoản!");
-    // }
+    this.setState({
+      isLoading: true
+    })
+    try {
+      const response = await handleRegisterApi(userInfo);
+      if (response && response.errCode === 0) {
+        toast.success("Tạo người dùng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+        await this.handleLoadAccountInfo();
+        this.setState({
+          isShowCreateAccountModal: false,
+        })
+      } else {
+        const errMessage = response?.errMessage || "Đăng ký tài khoản thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+      }
+    } catch (e) {
+      console.error("Register:", e);
+      toast.error("Xảy ra lỗi khi đăng ký, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true
+      });
+    }
+    this.setState({
+      isLoading: false
+    })
   };
   //sửa user qua thông tin từ modal
   handleEditAccountFromModal = async (userInfo) => {
@@ -255,7 +272,6 @@ class Admin extends Component {
     this.setState({ isLoading: false })
   };
 
-
   handleLogout = async () => {
     const confirmLogout = () =>
       new Promise((resolve) => {
@@ -311,6 +327,7 @@ class Admin extends Component {
     }
     await this.countCartItem()
   };
+
   handlePageChange = (page) => {
     this.setState({
       isLoading: true,
@@ -388,7 +405,7 @@ class Admin extends Component {
         />
         <EditAccountModal
           isOpen={isShowEditAccountModal}
-          toggleFromModal={this.toggleEditUserModal}
+          toggleFromModal={this.toggleEditAccountModal}
           selectedAccountID={selectedAccount}
           handleEditAccountFromModal={this.handleEditAccountFromModal}
         />

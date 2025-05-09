@@ -5,7 +5,7 @@ import { IonIcon } from "@ionic/react";
 import { keyOutline, home, mailOutline, eyeOffOutline, eyeOutline, call, person, maleFemaleOutline, location, } from "ionicons/icons";
 import Spinner from '../../components/Spinner';
 import "./Register.scss";
-import { handleRegisterApi } from "../../services/userServices";
+import { handleRegisterApi } from "../../services/accountServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices"
 
 class Register extends Component {
@@ -103,9 +103,7 @@ class Register extends Component {
   };
   //thực hiện đăng ký
   handleRegister = async (stateInfo) => {
-    this.setState({
-      isLoading: true
-    })
+    this.setState({ isLoading: true })
     let isValidateInput = this.checkValidateInput();
     if (isValidateInput.errCode !== 0) {
       toast.error(isValidateInput.errMessage, {

@@ -1,4 +1,4 @@
-import { handleVerifyTokenApi } from '../services/userServices';
+import { handleVerifyTokenApi } from '../services/accountServices';
 
 const checkLoginStatus = async () => {
     try {

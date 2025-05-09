@@ -2,69 +2,104 @@ import React, { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
-import {
-  mailOutline,
-  eyeOffOutline,
-  eyeOutline,
-  person,
-  call,
-  location,
-  personOutline,
-} from "ionicons/icons"; //chỉ import các icon cần dùng
+import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline } from "ionicons/icons"; //chỉ import các icon cần dùng
 import "./CreateAccountModal.scss";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { emitter } from "../../utils/emitter";
+import { handleGetAllCodesApi } from "../../services/utilitiesServices"
 
-class AdminCreateUserModal extends Component {
+class CreateAccountModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      hoten: "",
-      sdt: "",
-      diachi: "",
-      gender: "M",
-      accounttype: "C",
+      accounttype: "",
+      accountname: "",
       email: "",
       password: "",
+      username: "",
+      phone: "",
+      address: "",
+      gender: "",
       confirmPassword: "",
       isTogglePassword1: false,
       isTogglePassword2: false,
+      codeGender: [],
+      codeAccountType: [],
     };
-    this.listenToEmitter();
   }
-  //emitter xóa hết dữ liệu khi mở lại modal
-  listenToEmitter() {
-    emitter.on("EVENT_CLEAR_MODAL_DATA", () => {
+  async componentDidMount() {
+    await this.handleLoadCodeGender();
+    await this.handleLoadCodeAccountType();
+  }
+  handleLoadCodeGender = async () => {
+    try {
+      const codeGender = await handleGetAllCodesApi('Gender');
+      if (!codeGender || codeGender.length === 0) {
+        toast.error("Không thể tải danh sách giới tính!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
       this.setState({
-        hoten: "",
-        sdt: "",
-        diachi: "",
-        gender: "M",
-        accounttype: "C",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        isTogglePassword1: false,
-        isTogglePassword2: false,
+        codeGender,
+        gender: codeGender.length > 0 ? codeGender[0].Code : "",
       });
-    });
+    } catch (e) {
+      console.log("Error loading gender code:", e);
+      toast.error("Lỗi khi tải danh sách giới tính!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
   }
-  //tắt modal
-  toggle = () => {
+  handleLoadCodeAccountType = async () => {
+    try {
+      const codeAccountType = await handleGetAllCodesApi('AccountType');
+      if (!codeAccountType || codeAccountType.length === 0) {
+        toast.error("Không thể tải danh sách phân quyền!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeAccountType,
+        accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : "",
+      });
+    } catch (e) {
+      console.log("Error loading accounttype code:", e);
+      toast.error("Lỗi khi tải danh sách phân quyền!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  toggle = async () => {
+    await this.handleLoadCodeGender();
+    await this.handleLoadCodeAccountType();
+    this.setState({
+      accountname: "",
+      email: "",
+      password: "",
+      username: "",
+      phone: "",
+      address: "",
+      confirmPassword: "",
+      isTogglePassword1: false,
+      isTogglePassword2: false,
+    });
     this.props.toggleFromModal();
   };
   //ẩn hiện pass
   handleTogglePassword1 = () => {
-    this.setState({
-      isTogglePassword1: !this.state.isTogglePassword1,
-    });
+    this.setState({ isTogglePassword1: !this.state.isTogglePassword1 });
   };
-  //ẩn hiện comfirmpass
+  //ẩn hiện confirmpass
   handleTogglePassword2 = () => {
-    this.setState({
-      isTogglePassword2: !this.state.isTogglePassword2,
-    });
+    this.setState({ isTogglePassword2: !this.state.isTogglePassword2 });
   };
   //quản lý state nhập
   handleOnChangeInput = (event, type) => {
@@ -74,64 +109,70 @@ class AdminCreateUserModal extends Component {
       ...copyState,
     });
   };
-  //kiểm tra dữ liệu
   checkValidateInput = () => {
-    const { email, hoten, sdt, diachi, password, confirmPassword } = this.state;
-    if (!email) {
-      return {
-        errCode: 1,
-        errMessage: "Email không được bỏ trống!",
-      };
-    }
-    if (!hoten) {
-      return {
-        errCode: 1,
-        errMessage: "Họ tên không được bỏ trống!",
-      };
-    }
-    if (!sdt) {
-      return {
-        errCode: 1,
-        errMessage: "Số điện thoại không được bỏ trống!",
-      };
-    }
-    if (!diachi) {
-      return {
-        errCode: 1,
-        errMessage: "Địa chỉ không được bỏ trống!",
-      };
-    }
-    if (!password) {
-      return {
-        errCode: 1,
-        errMessage: "Mật khẩu không được bỏ trống!",
-      };
-    }
-    if (password !== confirmPassword) {
-      return {
-        errCode: 1,
-        errMessage: "Mật khẩu không trùng khớp!",
-      };
-    }
-    return {
-      errCode: 0,
-      errMessage: "All corret!",
-    };
+    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender } = this.state;
+    const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
+    const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;  //cần ít nhất 8 ký tự
+    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/; //chứa chữ cái, số hoặc khoảng trắng, dài từ 2-50 ký tự
+    const phoneRegex = /^[0-9]{10,11}$/; //chỉ chứa số và có độ dài từ 10-11 ký tự
+
+    if (!accountname) return { errCode: -1, errMessage: "Tên tài khoản trống!" };
+    if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: "Tên tài khoản sai định dạng!" };
+
+    if (!email) return { errCode: -1, errMessage: "Email trống!" };
+    if (!emailRegex.test(email)) return { errCode: 1, errMessage: "Email sai định dạng!" };
+
+    if (!password) return { errCode: -1, errMessage: "Mật khẩu trống!" };
+    if (!passwordRegex.test(password)) return { errCode: 1, errMessage: "Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)" };
+
+    if (!username) return { errCode: -1, errMessage: "Tên người dùng trống!" };
+    if (!userNameRegex.test(username)) return { errCode: 1, errMessage: "Tên người dùng không hợp lệ!" };
+
+    if (!phone) return { errCode: -1, errMessage: "Số điện thoại trống!" };
+    if (!phoneRegex.test(phone)) return { errCode: 1, errMessage: "Số điện thoại không hợp lệ!" };
+
+    if (!address) return { errCode: -1, errMessage: "Địa chỉ trống!" }
+
+    const validGenderCode = codeGender.map(item => item.Code);
+    if (!gender) return { errCode: -1, errMessage: "Giới tính không tồn tại!" };
+    if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: "Giới tính không hợp lệ!" };
+
+    if (password !== confirmPassword) return { errCode: 1, errMessage: "Mật khẩu không trùng khớp!" };
+
+    return { errCode: 0, errMessage: "Kiểm tra thông tin hoàn tất!" };
   };
   //gọi hàm tạo người dùng ở admin
-  handleAddNewUser = () => {
-    let isValid = this.checkValidateInput();
-    if (isValid.errCode === 0) {
-      this.props.createNewUser(this.state);
+  handleCreateAccount = () => {
+    let isValidateInput = this.checkValidateInput();
+    if (isValidateInput.errCode === 0) {
+      const { accounttype, accountname, email, password, username, phone, address, gender } = this.state
+      this.props.handleCreateAccountFromModal({
+        accounttype: accounttype,
+        accountname: accountname,
+        email: email,
+        password: password,
+        username: username,
+        phone: phone,
+        address: address,
+        gender: gender,
+      });
     } else {
-      toast.error(isValid.errMessage);
+      toast.error(isValidateInput.errMessage, {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true
+      });
     }
   };
   render() {
+    const { isOpen } = this.props;
+    const { accounttype, accountname, email, password, username, phone, address, gender,
+      confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType } = this.state;
     return (
       <Modal
-        show={this.props.isOpen}
-        onHide={this.toggle} //overdrive onHide -> this.toggle
+        show={isOpen}
+        onHide={this.toggle}
         className="create-user-modal"
         centered
         backdrop="static"
@@ -142,12 +183,47 @@ class AdminCreateUserModal extends Component {
         <Modal.Body>
           <div className="R1">
             <div className="inputbox">
+              <IonIcon icon={mailOutline}></IonIcon>
+              <input
+                type="email"
+                placeholder=""
+                value={email}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "email")
+                }
+              />
+              <label>Email</label>
+            </div>
+            <div className="selectbox">
+              <label>Phân quyền</label>
+              <select
+                value={accounttype}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "accounttype")}
+              >
+                {codeAccountType.length > 0 ? (
+                  codeAccountType.map((item) => (
+                    <option key={item.Code} value={item.Code}>
+                      {item.CodeValueVI}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Không có dữ liệu phân quyền</option>
+                )}
+              </select>
+              <IonIcon icon={peopleCircleOutline}></IonIcon>
+            </div>
+          </div>
+          <div className="R1">
+            <div className="inputbox">
               <IonIcon icon={person}></IonIcon>
               <input
                 type="text"
                 placeholder=""
-                value={this.state.hoten}
-                onChange={(event) => this.handleOnChangeInput(event, "hoten")}
+                value={username}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "username")
+                }
               />
               <label>Họ Tên</label>
             </div>
@@ -156,39 +232,36 @@ class AdminCreateUserModal extends Component {
               <input
                 type="tel"
                 placeholder=""
-                value={this.state.sdt}
-                onChange={(event) => this.handleOnChangeInput(event, "sdt")}
+                value={phone}
+                onChange={(event) => this.handleOnChangeInput(event, "phone")}
               />
               <label>Số điện thoại</label>
             </div>
           </div>
           <div className="R1">
             <div className="inputbox">
-              <IonIcon icon={mailOutline}></IonIcon>
+              <IonIcon icon={keyOutline}></IonIcon>
               <input
-                type="email"
+                type="text"
                 placeholder=""
-                value={this.state.email}
-                onChange={(event) => this.handleOnChangeInput(event, "email")}
+                value={accountname}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "accountname")
+                }
               />
-              <label>Email</label>
+              <label>Tên tài khoản</label>
             </div>
             <div className="inputbox">
-              <div
-                className="toggle-password"
-                onClick={() => this.handleTogglePassword1()}
-              /*có thể để event onclick lồng vào ionicon bên dưới, xem ví dụ ở trang register*/
-              >
+              <div className="toggle-password">
                 <IonIcon
-                  icon={
-                    this.state.isTogglePassword1 ? eyeOutline : eyeOffOutline
-                  }
+                  icon={isTogglePassword1 ? eyeOutline : eyeOffOutline}
+                  onClick={this.handleTogglePassword1}
                 ></IonIcon>
               </div>
               <input
-                type={this.state.isTogglePassword1 ? "text" : "password"}
+                type={isTogglePassword1 ? "text" : "password"}
                 placeholder=""
-                value={this.state.password}
+                value={password}
                 onChange={(event) =>
                   this.handleOnChangeInput(event, "password")
                 }
@@ -200,30 +273,33 @@ class AdminCreateUserModal extends Component {
             <div className="selectbox">
               <label>Giới tính</label>
               <select
-                value={this.state.gender}
-                onChange={(event) => this.handleOnChangeInput(event, "gender")}
+                value={gender}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "gender")}
               >
-                <option value="M">Nam</option>
-                <option value="F">Nữ</option>
-                <option value="O">Khác</option>
+                {codeGender.length > 0 ? (
+                  codeGender.map((item) => (
+                    <option key={item.Code} value={item.Code}>
+                      {item.CodeValueVI}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Không có dữ liệu giới tính</option>
+                )}
               </select>
-              <IonIcon icon={personOutline}></IonIcon>
+              <IonIcon icon={maleFemaleOutline}></IonIcon>
             </div>
             <div className="inputbox">
-              <div
-                className="toggle-password"
-                onClick={() => this.handleTogglePassword2()}
-              >
+              <div className="toggle-password">
                 <IonIcon
-                  icon={
-                    this.state.isTogglePassword2 ? eyeOutline : eyeOffOutline
-                  }
+                  icon={isTogglePassword2 ? eyeOutline : eyeOffOutline}
+                  onClick={this.handleTogglePassword2}
                 ></IonIcon>
               </div>
               <input
-                type={this.state.isTogglePassword2 ? "text" : "password"}
+                type={isTogglePassword2 ? "text" : "password"}
                 placeholder=""
-                value={this.state.confirmPassword}
+                value={confirmPassword}
                 onChange={(event) =>
                   this.handleOnChangeInput(event, "confirmPassword")
                 }
@@ -231,40 +307,27 @@ class AdminCreateUserModal extends Component {
               <label>Xác nhận mật khẩu</label>
             </div>
           </div>
-
-          <div className="address R1">
-            <div className="selectbox">
-              <label>Phân quyền</label>
-              <select
-                value={this.state.accounttype}
-                onChange={(event) =>
-                  this.handleOnChangeInput(event, "accounttype")
-                }
-              >
-                <option value="A">Admin</option>
-                <option value="O">Chủ cửa hàng</option>
-                <option value="C">Khách hàng</option>
-              </select>
-              <IonIcon icon={personOutline}></IonIcon>
-            </div>
+          <div className="R2">
             <div className="inputbox">
               <IonIcon icon={location}></IonIcon>
               <input
                 type="text"
                 placeholder=""
-                value={this.state.diachi}
-                onChange={(event) => this.handleOnChangeInput(event, "diachi")}
+                value={address}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "address")
+                }
               />
               <label>Địa chỉ</label>
             </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={this.toggle}>
-            Đóng
+          <Button variant="secondary" onClick={this.handleCreateAccount}>
+            Lưu
           </Button>
-          <Button variant="primary" onClick={this.handleAddNewUser}>
-            Tạo
+          <Button variant="primary" onClick={this.toggle}>
+            Đóng
           </Button>
         </Modal.Footer>
       </Modal>
@@ -273,10 +336,6 @@ class AdminCreateUserModal extends Component {
 }
 
 const mapStateToProps = (state) => ({});
-
 const mapDispatchToProps = {};
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(AdminCreateUserModal);
+export default connect(mapStateToProps, mapDispatchToProps)(CreateAccountModal);
