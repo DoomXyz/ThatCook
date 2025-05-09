@@ -49,9 +49,7 @@ const protectRoute = (req, res, next) => {
 };
 
 let initAPIRoutes = (app) => {
-
     router.use(protectRoute);
-    //converted
     //public
     router.get("/api/get-allcodes", utilitiesController.handleGetAllCodes);
     router.get("/api/check-coupon", utilitiesController.handleCheckCoupon);

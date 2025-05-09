@@ -55,10 +55,6 @@ module.exports = {
                 type: Sequelize.CHAR(50),
                 allowNull: false,
             },
-            Birthday: {
-                type: Sequelize.DATE,
-                allowNull: true,
-            },
             UserImage: {
                 type: Sequelize.TEXT,
                 allowNull: true,

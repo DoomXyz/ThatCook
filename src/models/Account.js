@@ -26,10 +26,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.CHAR(50),
             allowNull: false,
         },
-        Birthday: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
         UserImage: {
             type: DataTypes.TEXT,
             allowNull: true,

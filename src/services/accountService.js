@@ -182,16 +182,6 @@ let validateUserEdit = async (userInfo) => {
             data: null
         };
     }
-    if (userInfo.birthday) {
-        const birthday = new Date(userInfo.birthday);
-        if (isNaN(birthday.getTime()) || birthday > new Date()) {
-            return {
-                errCode: 1,
-                errMessage: 'Ngày sinh không hợp lệ!',
-                data: null
-            };
-        }
-    }
     if (userInfo.gender) {
         let validGender = await checkGender(userInfo.gender);
         if (typeof validGender === 'object' && validGender.errCode !== 0) {
@@ -205,6 +195,23 @@ let validateUserEdit = async (userInfo) => {
             return {
                 errCode: 1,
                 errMessage: 'Giới tính không hợp lệ!',
+                data: null
+            };
+        }
+    }
+    if (userInfo.accounttype) {
+        let validAccountType = await checkAccountType(userInfo.accounttype);
+        if (typeof validAccountType === 'object' && validAccountType.errCode !== 0) {
+            return {
+                errCode: 1,
+                errMessage: validAccountType.errMessage,
+                data: null
+            };
+        }
+        if (!validAccountType) {
+            return {
+                errCode: 1,
+                errMessage: "Quyền hạn không hợp lệ!",
                 data: null
             };
         }
@@ -448,7 +455,6 @@ let userRegister = (userInfo) => {
                 Email: userInfo.email,
                 Password: hashedPassword,
                 UserName: userInfo.username,
-                Birthday: null,
                 UserImage: null,
                 Phone: userInfo.phone,
                 Address: userInfo.address,
@@ -972,6 +978,10 @@ let changeAccountInfo = (userInfo) => {
                 }
             }
             let isUpdated = false;
+            if (userInfo.accounttype) {
+                account.AccountType = userInfo.accounttype;
+                isUpdated = true;
+            }
             if (userInfo.username) {
                 account.UserName = userInfo.username;
                 isUpdated = true;
@@ -986,10 +996,6 @@ let changeAccountInfo = (userInfo) => {
             }
             if (userInfo.address) {
                 account.Address = userInfo.address;
-                isUpdated = true;
-            }
-            if (userInfo.birthday) {
-                account.Birthday = new Date(userInfo.birthday);
                 isUpdated = true;
             }
             if ('userimage' in userInfo) {

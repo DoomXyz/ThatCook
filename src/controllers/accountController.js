@@ -122,7 +122,7 @@ let handleChangeAccountStatus = async (req, res) => {
 let handleChangeAccountInfo = async (req, res) => {
     try {
         let response = await accountService.changeAccountInfo(req.body);
-        return res.status(response.errCode === 0 ? 200 : response.errCode === 2 ? 401 : response.errCode === 3 ? 500 : 400).json(response);
+        return res.status(200).json(response);
     } catch (e) {
         console.log(e);
         return res.status(500).json({
