@@ -149,6 +149,36 @@ let checkProductType = (productType) => {
     });
 };
 
+
+let checkBannerStatus = (bannerStatus) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!bannerStatus) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu dữ liệu để kiểm tra!',
+                    data: null
+                });
+                return;
+            }
+            let exist = await db.AllCodes.findOne({
+                where: {
+                    Type: "BannerStatus",
+                    Code: bannerStatus
+                }
+            });
+            resolve(exist ? true : false);
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+                data: null
+            });
+        }
+    });
+};
+
 let checkPaymentStatus = (paymentStatus) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -386,6 +416,7 @@ module.exports = {
     checkAccountType,
     checkAccountStatus,
     checkProductType,
+    checkBannerStatus,
     checkPaymentStatus,
     checkShippingStatus,
     checkPaymentType,

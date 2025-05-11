@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.CHAR(10),
             allowNull: false,
         },
+        ProductID: {
+            type: DataTypes.CHAR(10),
+            allowNull: false,
+        },
         ProductDetailID: {
             type: DataTypes.INTEGER,
             allowNull: false,

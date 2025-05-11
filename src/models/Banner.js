@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         CreatedAt: {
             type: DataTypes.DATE,
-            allowNull: true,
+            allowNull: false,
         },
         HiddenAt: {
             type: DataTypes.DATE,
@@ -25,11 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         BannerStatus: {
             type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'BannerStatus')
-            allowNull: true,
+            allowNull: false,
         },
         ProductID: {
             type: DataTypes.CHAR(10),
-            allowNull: true,
+            allowNull: false,
         },
     }, {
         sequelize,

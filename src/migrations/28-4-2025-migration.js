@@ -528,7 +528,7 @@ module.exports = {
             },
             CreatedAt: {
                 type: Sequelize.DATE,
-                allowNull: true,
+                allowNull: false,
             },
             HiddenAt: {
                 type: Sequelize.DATE,
@@ -536,11 +536,11 @@ module.exports = {
             },
             BannerStatus: {
                 type: Sequelize.CHAR(20),
-                allowNull: true,
+                allowNull: false,
             },
             ProductID: {
                 type: Sequelize.CHAR(10),
-                allowNull: true,
+                allowNull: false,
                 references: {
                     model: 'Product',
                     key: 'ProductID',
@@ -699,6 +699,15 @@ module.exports = {
                 references: {
                     model: 'Invoice',
                     key: 'InvoiceID',
+                },
+                onDelete: 'CASCADE',
+            },
+            ProductID: {
+                type: Sequelize.CHAR(10),
+                allowNull: false,
+                references: {
+                    model: 'Product',
+                    key: 'ProductID',
                 },
                 onDelete: 'CASCADE',
             },

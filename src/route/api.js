@@ -1,5 +1,6 @@
 import express from "express";
 import accountController from "../controllers/accountController";
+import bannerController from "../controllers/bannerController"
 import productController from "../controllers/productController";
 import cartController from "../controllers/cartController";
 import invoiceController from "../controllers/invoiceController";
@@ -11,9 +12,8 @@ import billController from "../controllers/billController";
 
 const protectRoute = (req, res, next) => {
     const adminPaths = [
-        // '/api/get-alltaikhoan',
-        // '/api/setstatus-taikhoan',
-        // '/api.delete-taikhoan',
+        '/api/load-accountinfo',
+        '/api/change-accountstatus'
     ];
 
     const ownerPaths = [
@@ -63,9 +63,10 @@ let initAPIRoutes = (app) => {
     router.put("/api/edit-accountinfo", accountController.handleChangeAccountInfo);
     router.put("/api/change-password", accountController.handleChangePassword);
 
-    router.get("/api/load-productinfo", productController.handleLoadProductInfo);
+    router.get("/api/get-bannerinfo", bannerController.handleGetBannerInfo)
+
+    router.get("/api/load-sale-productinfo", productController.handleLoadSaleProductInfo);
     router.get("/api/get-productinfo", productController.handleGetProductInfo)
-    router.get("/api/get-bannerinfo", productController.handleGetBannerInfo)
     router.get("/api/get-productdetailinfo", productController.handleGetProductDetailInfo);
 
     router.post("/api/add-to-cart", cartController.handleAddToCart);
@@ -78,14 +79,16 @@ let initAPIRoutes = (app) => {
     router.put("/api/merge-cart-detail", cartController.handleMergeCartDetail);
 
     router.post("/api/create-invoice", invoiceController.handleCreateInvoice);
+    router.get("/api/get-account-invoiceinfo", invoiceController.handleGetAccountInvoiceInfo);
+    router.get("/api/get-invoicedetailinfo", invoiceController.handleGetInvoiceDetailInfo)
     //admin
     router.get("/api/load-accountinfo", accountController.handleLoadAccountInfo);
     router.put("/api/change-accountstatus", accountController.handleChangeAccountStatus);
     //owner
-
+    router.get("/api/load-productinfo", productController.handleLoadProductInfo);
+    router.get("/api/load-invoiceinfo", invoiceController.handleLoadInvoiceInfo);
+    router.get("/api/load-bannerinfo", bannerController.handleLoadBannerInfo);
     //veterinarian
-
-    //customer
 
     //not converted
     // router.get("/api/get-thongtin-thanhtoan", accountController.handleGetThongTinThanhToan);
@@ -96,12 +99,11 @@ let initAPIRoutes = (app) => {
     // router.post("/api/create-product", productController.handleCreateProduct);
     // router.put("/api/update-product", productController.handleUpdateProduct);
     // router.put("/api/xoa-sanpham", productController.handleDelSanPham);//thay đổi trạng thái sản phẩm
-    // router.get("/api/load-hoadon", billController.handleLoadHoaDon);
-    // router.get("/api/load-banner", productController.handleLoadBanner);
+
     // router.put("/api/upd-giohang", cartController.handleUpdGioHang);
     // router.delete("/api/del-giohang", cartController.handleDelGioHang);
     // router.get("/api/get-order-details", billController.handleGetOrderDetails);
-    // router.get("/api/get-user-orders", billController.handleGetUserOrders);
+
 
     return app.use("/", router);
 };

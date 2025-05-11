@@ -11,7 +11,7 @@ module.exports = {
 
             // AccountStatus
             { Type: 'AccountStatus', Code: 'ACT', CodeValueVI: 'Kích hoạt', ExtraValue: null, CodeID: 5 },
-            { Type: 'AccountStatus', Code: 'DIS', CodeValueVI: 'Bị khóa', ExtraValue: null, CodeID: 6 },
+            { Type: 'AccountStatus', Code: 'DIS', CodeValueVI: 'Đã khóa', ExtraValue: null, CodeID: 6 },
 
             // Gender
             { Type: 'Gender', Code: 'M', CodeValueVI: 'Nam', ExtraValue: null, CodeID: 7 },

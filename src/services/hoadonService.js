@@ -59,81 +59,6 @@ let getOrderDetails = (madonhang) => {
   });
 };
 
-let getUserOrders = (mataikhoan) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!mataikhoan) {
-        resolve({
-          errCode: 1,
-          errMessage: "Missing required parameters!",
-        });
-        return;
-      }
-      const allOrder = await db.DonHang.findAll({
-        where: { MAKHACHHANG: mataikhoan },
-        attributes: [
-          "MADONHANG",
-          "MAKHACHHANG",
-          "NgayLapDonHang",
-          "TenKhachHang",
-          "SDTNhanHang",
-          "DiaChiNhanHang",
-          "TongTien",
-          "OrderStatus",
-          "PaymentStatus",
-        ],
-        raw: true,
-      });
-      if (!allOrder) {
-        resolve({
-          errCode: 2,
-          errMessage: "Không tìm thấy đơn hàng!",
-        });
-        return;
-      }
-      const data = await Promise.all(
-        allOrder.map(async (order) => {
-          const chiTietDonHang = await db.ChiTietDonHang.findAll({
-            where: { MADONHANG: order.MADONHANG },
-            attributes: [
-              "MADONHANG",
-              "MASANPHAM",
-              "MACTSP",
-              "SOLUONG",
-              "DonGia",
-            ],
-            raw: true,
-          });
-          const chitietdata = chiTietDonHang.map((chitiet) => ({
-            masanpham: chitiet.MASANPHAM,
-            mactsp: chitiet.MACTSP,
-            soluong: chitiet.SoLuong,
-            dongia: chitiet.DonGia,
-          }));
-          return {
-            madonhang: order.MADONHANG,
-            tenkhachhang: order.TenKhachHang,
-            sdtnhanhang: order.SDTNhanHang,
-            diachinhanhang: order.DiaChiNhanHang,
-            ngaylapdonhang: order.NgayLapDonHang,
-            tongtien: order.TongTien,
-            orderstatus: order.OrderStatus,
-            paymentstatus: order.PaymentStatus,
-            chitietdonhang: chitietdata || [],
-          };
-        })
-      );
-      resolve({
-        errCode: 0,
-        errMessage: "Lấy thông tin đơn hàng thành công!",
-        data,
-      });
-    } catch (e) {
-      reject(e);
-    }
-  });
-};
-
 // Lấy danh sách hóa đơn
 let loadHoaDon = (page, limit, search, date, sort) => {
   return new Promise(async (resolve, reject) => {
@@ -211,7 +136,7 @@ let loadHoaDon = (page, limit, search, date, sort) => {
       let data = hoadon.map((item) => {
         const paymentStatusValue =
           item.PaymentStatusData &&
-          item.PaymentStatusData.Code === item.PaymentStatus
+            item.PaymentStatusData.Code === item.PaymentStatus
             ? item.PaymentStatusData.Value
             : item.PaymentStatus || "N/A";
 
@@ -291,6 +216,5 @@ let loadHoaDon = (page, limit, search, date, sort) => {
 
 export default {
   getOrderDetails,
-  getUserOrders,
   loadHoaDon,
 };

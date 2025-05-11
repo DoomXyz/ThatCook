@@ -631,12 +631,8 @@ let updateProduct = (productInfo) => {
 };
 
 module.exports = {
-    loadSanPham,
-    getSanPham,
-    getChiTietSanPham,
     getChiTietHinhAnh,
     getProductDetailsByMASANPHAM,
-    getAllBanner,
     loadBanner,
     createProduct,
     delSanPham,

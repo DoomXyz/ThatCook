@@ -134,16 +134,9 @@ let handleChangeAccountInfo = async (req, res) => {
 }
 let handleChangePassword = async (req, res) => {
     try {
-        let response = await accountService.changePassword(
-            req.body.accountid,
-            req.body.password,
-            req.body.newpassword
-        );
-        return res.status(
-            response.errCode === 0 ? 200 :
-                response.errCode === 2 ? 401 :
-                    response.errCode === 3 ? 500 : 400
-        ).json(response);
+        const { accountid, password, newpassword } = req.body
+        let response = await accountService.changePassword(accountid, password, newpassword);
+        return res.status(200).json(response);
     } catch (e) {
         console.log('Error in handleChangePassword: ', e);
         return res.status(500).json({
