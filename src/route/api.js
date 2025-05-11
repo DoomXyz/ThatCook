@@ -66,7 +66,7 @@ let initAPIRoutes = (app) => {
     router.get("/api/get-bannerinfo", bannerController.handleGetBannerInfo)
 
     router.get("/api/load-sale-productinfo", productController.handleLoadSaleProductInfo);
-    router.get("/api/get-productinfo", productController.handleGetProductInfo)
+    router.get("/api/get-sale-productinfo", productController.handleGetSaleProductInfo)
     router.get("/api/get-productdetailinfo", productController.handleGetProductDetailInfo);
 
     router.post("/api/add-to-cart", cartController.handleAddToCart);
@@ -88,6 +88,7 @@ let initAPIRoutes = (app) => {
     router.get("/api/load-productinfo", productController.handleLoadProductInfo);
     router.get("/api/load-invoiceinfo", invoiceController.handleLoadInvoiceInfo);
     router.get("/api/load-bannerinfo", bannerController.handleLoadBannerInfo);
+    router.get("/api/get-productinfo", productController.handleGetProductInfo)
     //veterinarian
 
     //not converted

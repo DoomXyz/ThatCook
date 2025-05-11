@@ -264,6 +264,145 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
     });
 };
 
+let getProductInfo = (productid) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!productid) {
+                resolve({
+                    errCode: -1,
+                    errMessage: "Thiếu tham số!",
+                    data: null
+                });
+                return;
+            }
+            await updateOutOfStock();
+            let data = null;
+            if (productid === "ALL") {
+                // Lấy tất cả sản phẩm
+                const products = await db.Product.findAll({
+                    attributes: [
+                        "ProductID",
+                        "ProductName",
+                        "ProductPrice",
+                        "ProductImage",
+                        "ProductType",
+                        "ProductDescription"
+                    ],
+                    raw: true
+                });
+                // Lấy dữ liệu liên quan cho từng sản phẩm
+                data = await Promise.all(products.map(async (product) => {
+                    const petType = await db.ProductPetType.findAll({
+                        where: { ProductID: product.ProductID },
+                        attributes: ["PetType"],
+                        raw: true
+                    });
+                    const detail = await db.ProductDetail.findAll({
+                        where: {
+                            ProductID: product.ProductID,
+                        },
+                        attributes: [
+                            "ProductDetailID",
+                            "DetailName",
+                            "Stock",
+                            "SoldCount",
+                            "ExtraPrice",
+                            "Promotion",
+                            "DetailStatus"
+                        ],
+                        raw: true
+                    });
+                    const image = await db.Image.findAll({
+                        where: { ProductID: product.ProductID },
+                        attributes: ["ImageID", "Image"],
+                        raw: true
+                    });
+
+                    return {
+                        ProductID: product.ProductID,
+                        ProductName: product.ProductName,
+                        ProductPrice: product.ProductPrice,
+                        ProductImage: product.ProductImage,
+                        ProductType: product.ProductType,
+                        ProductDescription: product.ProductDescription,
+                        PetTypes: petType.map(pt => pt.PetType),
+                        ProductDetails: detail,
+                        Images: image
+                    };
+                }));
+            } else {
+                // Lấy thông tin sản phẩm cụ thể
+                const product = await db.Product.findOne({
+                    where: { ProductID: productid },
+                    attributes: [
+                        "ProductID",
+                        "ProductName",
+                        "ProductPrice",
+                        "ProductImage",
+                        "ProductType",
+                        "ProductDescription"
+                    ],
+                    raw: true
+                });
+
+                if (product) {
+                    // Lấy dữ liệu liên quan
+                    const petType = await db.ProductPetType.findAll({
+                        where: { ProductID: product.ProductID },
+                        attributes: ["PetType"],
+                        raw: true
+                    });
+                    const detail = await db.ProductDetail.findAll({
+                        where: {
+                            ProductID: product.ProductID,
+                        },
+                        attributes: [
+                            "ProductDetailID",
+                            "DetailName",
+                            "Stock",
+                            "SoldCount",
+                            "ExtraPrice",
+                            "Promotion",
+                            "DetailStatus"
+                        ],
+                        raw: true
+                    });
+                    const image = await db.Image.findAll({
+                        where: { ProductID: product.ProductID },
+                        attributes: ["ImageID", "Image"],
+                        raw: true
+                    });
+
+                    data = {
+                        ProductID: product.ProductID,
+                        ProductName: product.ProductName,
+                        ProductPrice: product.ProductPrice,
+                        ProductImage: product.ProductImage,
+                        ProductType: product.ProductType,
+                        ProductDescription: product.ProductDescription,
+                        PetType: petType.map(pt => pt.PetType),
+                        ProductDetail: detail,
+                        Image: image
+                    };
+                }
+
+                resolve({
+                    errCode: data ? 0 : 2,
+                    errMessage: data ? "Lấy thông tin sản phẩm thành công!" : "Sản phẩm không tồn tại!",
+                    data: data || (productid === "ALL" ? [] : null)
+                });
+            }
+        } catch (e) {
+            console.log("Error in getProductInfo: ", e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi lấy thông tin sản phẩm: ${e.message}`,
+                data: null
+            });
+        }
+    });
+};
+
 let loadSaleProductInfo = (page, limit, search, filter, sort) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -511,7 +650,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
     });
 };
 
-let getProductInfo = (productid) => {
+let getSaleProductInfo = (productid) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!productid) {
@@ -653,7 +792,6 @@ let getProductInfo = (productid) => {
     });
 };
 
-
 let getProductDetailInfo = (productid, productdetailid) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -715,7 +853,8 @@ let getProductDetailInfo = (productid, productdetailid) => {
 
 module.exports = {
     loadProductInfo,
-    loadSaleProductInfo,
     getProductInfo,
+    loadSaleProductInfo,
+    getSaleProductInfo,
     getProductDetailInfo,
 };

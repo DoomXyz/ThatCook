@@ -42,6 +42,7 @@ module.exports = {
             AccountName: {
                 type: Sequelize.CHAR(50),
                 allowNull: false,
+                collate: 'utf8mb4_bin',
             },
             Email: {
                 type: Sequelize.CHAR(100),

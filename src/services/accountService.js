@@ -515,7 +515,11 @@ let userLogin = (userInfo) => {
                     'AccountStatus',
                     'AccountType'
                 ],
-                where: { AccountName: userAccountName },
+                where: {
+                    AccountName: {
+                        [Op.eq]: userAccountName
+                    }
+                },
                 raw: true
             });
             if (!existedAccount) {
