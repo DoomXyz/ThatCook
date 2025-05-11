@@ -24,7 +24,7 @@ const handleLoadBanner = ({ page, limit, search, sort }) => {
 };
 
 
-const uploadImageToCloudinary = async (file) => {
+const uploadImageToCloudinaryApi = async (file) => {
     console.log("Bắt đầu upload ảnh lên Cloudinary:", file.name, file.size);
 
     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`;
@@ -69,5 +69,5 @@ export {
     handleGetCouponApi,
 
     handleLoadBanner,
-    uploadImageToCloudinary
+    uploadImageToCloudinaryApi
 };

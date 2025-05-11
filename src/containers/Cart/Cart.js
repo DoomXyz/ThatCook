@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import Spinner from '../../components/Spinner';
 import "./Cart.scss";
 import Header from "../../components/HomeHeader";
@@ -534,6 +534,7 @@ class Cart extends Component {
     const paginatedCartDetailInfo = loadedCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div>
+        <ToastContainer />
         {isLoading ? <Spinner /> : (
           <div className="cart">
             <Header

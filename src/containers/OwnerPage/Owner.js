@@ -2,44 +2,23 @@ import React, { Component } from "react";
 import DatePicker from "react-datepicker";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
-import {
-  buildOutline,
-  closeCircleOutline,
-  searchOutline,
-  add,
-  trashOutline,
-  closeOutline,
-  checkmarkOutline,
-  homeOutline,
-} from "ionicons/icons";
-import debounce from "lodash/debounce";
+import { pencil, searchOutline, add, closeOutline, checkmarkOutline, homeOutline } from "ionicons/icons";
 import { ToastContainer, toast } from "react-toastify";
 import "./Owner.scss";
+import Spinner from "../../components/Spinner";
 import OwnerCreateProductModal from "./OwnerCreateProductModal";
 import OwnerEditProductModal from "./OwnerEditProductModal";
 import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
 import OwnerEditBannerModal from "./OwnerEditBannerModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
 
-import {
-  handleLoadProductInfoApi,
-  handleCreateProduct,
-  handleXoaProduct,
-  handleUpdateProduct,
-} from "../../services/productServices";
-import {
-  handleGetAllCodesApi,
-  handleLoadBanner,
-} from "../../services/utilitiesServices";
-import {
-  handleLoginApi,
-  handleLogoutApi,
-  handleVerifyTokenApi,
-} from "../../services/accountServices";
-import { handleLoadHoaDon } from "../../services/billService";
-import hinhtest from "../../assets/productha/hinhtest.jpg";
-import bannertest from "../../assets/bannerimgs/1.webp";
-import { userLogout } from "../../store/actions";
+import { handleLogoutApi } from "../../services/accountServices";
+import { handleLoadProductInfoApi, handleCreateProduct, handleUpdateProduct, } from "../../services/productServices";
+import { handleLoadBannerInfoApi } from "../../services/bannerServices"
+import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices"
+import { handleGetAllCodesApi } from "../../services/utilitiesServices";
+import { checkLoginStatus } from '../../utils/pakage';
+import { userLogin, userLogout } from "../../store/actions";
 
 class Owner extends Component {
   constructor(props) {
@@ -50,334 +29,490 @@ class Owner extends Component {
       isShowCreateProductModal: false,
       isShowEditProductModal: false,
       isShowViewInvoiceModal: false,
+      accountInfo: null,
+      isLoggedIn: false,
+      isLoading: true,
+      loadedProductTypeFilterValue: [],
+      loadedPetTypeFilterValue: [],
+      loadedPaymentStatusFilterValue: [],
+      loadedShippingStatusFilterValue: [],
+      loadedBannerStatusFilterValue: [],
+      actionPage: 1,
+      currentPage: 1,
+      tempCurrentPage: "1",
+      limitProductPerQuery: 10,
+      limitInvoicePerQuery: 10,
+      limitBannerPerQuery: 5,
+      searchValue: "",
+      dateFilterValue: "",
+      filterValue: "ALL",
+      sortValue: "0",
+      totalPages: 1,
+      loadedProductInfo: [],
+      loadedInvoiceInfo: [],
+      loadedBannerInfo: [],
 
-      activeSection: "products",
-      productPage: 1,
-      invoicePage: 1,
-      imagePage: 1,
-      invoiceDate: "",
-      itemsPerPageProducts: 7,
-      itemsPerPageInvoices: 10,
-      itemsPerPageImages: 10,
-      totalProductItems: 0,
-      totalInvoiceItems: 0,
-      totalImageItems: 0,
-      arrSanPham: [],
-      arrHoaDon: [],
-      arrBanner: [],
-      searchQuery: "",
-      tempSearchQuery: "",
-      sortOrder: "0",
-      filters: { selectedFilter: "ALL" },
-      filterValue: [],
       selectedProduct: null,
       selectedInvoice: null,
+      selectedBanner: null,
     };
-    this.handleSearchDebounced = debounce(this.performSearch, 500);
+    this.debounceTimeout = null;
   }
-
-  handleCheckSession = async () => {
-    try {
-      let response = await handleVerifyTokenApi();
-      if (response && response.errCode === 0) {
-        if (response.data.AccountType !== "O") {
-          toast.error("Bạn không có quyền truy cập trang Owner!");
-          this.props.navigate("/login");
-        }
-      } else {
-        toast.error(response.errMessage || "Phiên đăng nhập không hợp lệ!");
-        await handleLogoutApi();
-        this.props.userLogout();
-        this.props.navigate("/login");
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Lỗi xác thực phiên đăng nhập!");
-      this.props.navigate("/login");
-    }
-  };
 
   async componentDidMount() {
-    await this.handleCheckSession();
-    if (this.state.activeSection === "products") {
-      await this.loadAllSanPham();
-      await this.handleLoadFilterValue();
-    }
+    await this.handleIsLogin();
+    await this.handleLoadProductInfo();
+    await this.handleLoadProductTypeFilterValue();
+    await this.handleLoadPetTypeFilterValue();
   }
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (prevState.activeSection !== this.state.activeSection) {
-      if (this.state.activeSection === "products") {
-        await this.loadAllSanPham();
-        if (this.state.filterValue.length === 0) {
-          await this.handleLoadFilterValue();
-        }
-      } else if (this.state.activeSection === "invoices") {
-        await this.loadAllHoaDon();
-      } else if (this.state.activeSection === "images") {
-        await this.loadAllBanner();
+  async componentDidUpdate(prevState) {
+    if (prevState.actionPage !== this.state.actionPage) {
+      const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
+        loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
+        loadedBannerStatusFilterValue } = this.state
+      switch (this.state.actionPage) {
+        case 1:
+          if (actionPage === 1) {
+            this.handleLoadProductInfo();
+          }
+          if (loadedProductTypeFilterValue.length === 0) {
+            await this.handleLoadProductTypeFilterValue();
+          }
+          if (loadedPetTypeFilterValue.length === 0) {
+            await this.handleLoadPetTypeFilterValue();
+          }
+          break;
+        case 2:
+          if (actionPage === 2) {
+            this.handleLoadInvoiceInfo();
+          }
+          if (loadedPaymentStatusFilterValue.length === 0) {
+            await this.handleLoadPaymentStatusFilterValue();
+          }
+          if (loadedShippingStatusFilterValue.length === 0) {
+            await this.handleLoadShippingStatusFilterValue();
+          }
+          break;
+        case 3:
+          if (actionPage === 3) {
+            this.handleLoadBannerInfo();
+          }
+          if (loadedBannerStatusFilterValue.length === 0) {
+            await this.handleLoadBannerStatusFilterValue();
+          }
+          break;
+        default:
+          break;
       }
     }
   }
-
-  handleSectionChange = (section) => {
+  handleIsLogin = async () => {
+    try {
+      const { status, accountInfo } = await checkLoginStatus();
+      if (status && accountInfo && accountInfo.AccountType === "O") {
+        if (!this.props.userInfo) {
+          this.props.userLogin(accountInfo);
+        }
+        this.setState({
+          accountInfo,
+          isLoggedIn: true,
+        })
+      } else {
+        await handleLogoutApi();
+        this.props.userLogout();
+        this.setState({
+          accountInfo: null,
+          isLoggedIn: false,
+        })
+        this.props.navigate("/login")
+      }
+    } catch (e) {
+      this.props.navigate("/login");
+      console.log("Token not found!")
+    }
     this.setState({
-      activeSection: section,
-      searchQuery: "",
-      tempSearchQuery: "",
-      sortOrder: "0",
-      invoiceDate: "",
-      productPage: 1,
-      invoicePage: 1,
-      imagePage: 1,
-    });
+      isLoading: false
+    })
   };
-
-  handleDateChange = (e) => {
-    this.setState({ invoiceDate: e.target.value }, () => {
-      if (this.state.activeSection === "invoices") {
-        this.loadAllHoaDon();
-      }
-    });
-  };
-
-  handleLoadFilterValue = async () => {
+  handleLoadProductInfo = async () => {
+    const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue, } = this.state
     try {
-      let filterMap = await handleGetAllCodesApi("ProductType");
-      const updatedFilterMap = [...filterMap];
-      this.setState({ filterValue: updatedFilterMap });
-    } catch (e) {
-      console.log("Lỗi load filter:", e);
-    }
-  };
-
-  handleResetFilters = () => {
-    this.setState(
-      {
-        tempSearchQuery: "",
-        searchQuery: "",
-        invoiceDate: "",
-        invoicePage: 1,
-        imagePage: 1,
-        sortOrder: "0",
-        arrBanner: [],
-      },
-      () => {
-        if (this.state.activeSection === "invoices") {
-          this.loadAllHoaDon();
-        } else if (this.state.activeSection === "images") {
-          this.loadAllBanner();
-        }
-      }
-    );
-  };
-
-  loadAllBanner = async () => {
-    const { imagePage, itemsPerPageImages, searchQuery, sortOrder } =
-      this.state;
-    try {
-      let response = await handleLoadBanner({
-        page: imagePage,
-        limit: itemsPerPageImages,
-        search: searchQuery,
-        sort: sortOrder,
-      });
-      if (response && response.data && response.data.errCode === 0) {
-        this.setState({
-          arrBanner: response.data.data || [],
-          totalImageItems: response.data.totalItems || 0,
-        });
-      } else {
-        toast.error("Không thể tải banner!");
-        this.setState({
-          arrBanner: [],
-          totalImageItems: 0,
-        });
-      }
-    } catch (e) {
-      toast.error("Đã xảy ra lỗi khi tải banner!");
-      this.setState({
-        arrBanner: [],
-        totalImageItems: 0,
-      });
-    }
-  };
-
-  loadAllSanPham = async () => {
-    const {
-      productPage,
-      itemsPerPageProducts,
-      searchQuery,
-      filters,
-      sortOrder,
-    } = this.state;
-    try {
-      let response = await handleLoadProductInfoApi({
-        page: productPage,
-        limit: itemsPerPageProducts,
-        search: searchQuery,
-        filter: filters.selectedFilter,
-        sort: sortOrder,
-      });
+      const response = await handleLoadProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue)
       if (response && response.errCode === 0) {
         this.setState({
-          arrSanPham: response.data,
-          totalProductItems: response.totalItems,
-        });
-      } else {
-        toast.error("Không thể tải sản phẩm!");
+          loadedProductInfo: response.data,
+          totalPages: Math.ceil(response.totalItems / limitProductPerQuery),
+        })
       }
     } catch (e) {
-      toast.error("Đã xảy ra lỗi khi tải sản phẩm!");
+      console.log("Error loading invoiceinfo:", e);
+      toast.error("Lỗi khi load danh sách sản phẩm!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
     }
   };
-
-  loadAllHoaDon = async () => {
-    const {
-      invoicePage,
-      itemsPerPageInvoices,
-      searchQuery,
-      sortOrder,
-      invoiceDate,
-    } = this.state;
+  handleLoadProductTypeFilterValue = async () => {
     try {
-      let response = await handleLoadHoaDon({
-        page: invoicePage,
-        limit: itemsPerPageInvoices,
-        search: searchQuery,
-        date: invoiceDate,
-        sort: sortOrder,
+      const loadedFilterValue = await handleGetAllCodesApi('ProductType');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error("Không thể tải danh sách lọc!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedProductTypeFilterValue: loadedFilterValue,
       });
+    } catch (e) {
+      console.log("Error loading pettype code:", e);
+      toast.error("Lỗi khi tải danh sách lọc!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleLoadPetTypeFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetAllCodesApi('PetType');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error("Không thể tải danh sách lọc!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedPetTypeFilterValue: loadedFilterValue,
+      });
+    } catch (e) {
+      console.log("Error loading pettype code:", e);
+      toast.error("Lỗi khi tải danh sách lọc!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleLoadInvoiceInfo = async () => {
+    const { currentPage, limitInvoicePerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state
+    try {
+      const response = await handleLoadInvoiceInfoApi(currentPage, limitInvoicePerQuery, searchValue, filterValue, sortValue, dateFilterValue)
       if (response && response.errCode === 0) {
         this.setState({
-          arrHoaDon: response.data || [],
-          totalInvoiceItems: response.totalItems || 0,
-        });
-      } else {
-        toast.error("Không thể tải hóa đơn!");
-        this.setState({
-          arrHoaDon: [],
-          totalInvoiceItems: 0,
-        });
+          loadedInvoiceInfo: response.data,
+          totalPages: Math.ceil(response.totalItems / limitInvoicePerQuery),
+        })
       }
     } catch (e) {
-      toast.error("Đã xảy ra lỗi khi tải hóa đơn!");
-      this.setState({
-        arrHoaDon: [],
-        totalInvoiceItems: 0,
+      console.log("Error loading invoiceinfo:", e);
+      toast.error("Lỗi khi load danh sách đơn hàng!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
       });
     }
   };
-
-  performSearch = () => {
-    this.setState(
-      (prevState) => ({
-        searchQuery: prevState.tempSearchQuery,
-        productPage: 1,
-        invoicePage: 1,
-        imagePage: 1,
-      }),
-      () => {
-        if (this.state.activeSection === "products") {
-          this.loadAllSanPham();
-        } else if (this.state.activeSection === "invoices") {
-          this.loadAllHoaDon();
-        } else if (this.state.activeSection === "images") {
-          this.loadAllBanner();
-        }
+  handleLoadPaymentStatusFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetAllCodesApi('PaymentStatus');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error("Không thể tải danh sách lọc!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
       }
-    );
-  };
-
-  handleSearchChange = (e) => {
-    const query = e.target.value;
-    this.setState({ tempSearchQuery: query }, () => {
-      this.handleSearchDebounced();
-    });
-  };
-
-  handleFilterProduct = (filterValue) => {
-    this.setState(
-      {
-        filters: {
-          selectedFilter: filterValue,
-          hasPromotion: filterValue === "PROMOTION",
-        },
-        productPage: 1,
-      },
-      () => this.loadAllSanPham()
-    );
-  };
-
-  handleSortProduct = (sortValue) => {
-    this.setState({ sortOrder: sortValue, productPage: 1 }, () => {
-      this.loadAllSanPham();
-    });
-  };
-
-  handleSortInvoice = (sortValue) => {
-    this.setState({ sortOrder: sortValue, invoicePage: 1 }, () => {
-      this.loadAllHoaDon();
-    });
-  };
-
-  handleProductPageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.state.totalProductItems / this.state.itemsPerPageProducts
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ productPage: page }, () => this.loadAllSanPham());
-    }
-  };
-
-  handleInvoicePageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.state.totalInvoiceItems / this.state.itemsPerPageInvoices
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ invoicePage: page }, () => {
-        this.loadAllHoaDon();
+      this.setState({
+        loadedPaymentStatusFilterValue: loadedFilterValue,
       });
-    } else {
-      console.log("Page out of range:", page);
+    } catch (e) {
+      console.log("Error loading paymentstatus code:", e);
+      toast.error("Lỗi khi tải danh sách lọc!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
     }
-  };
-
-  handleImagePageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.state.totalImageItems / this.state.itemsPerPageImages
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ imagePage: page }, () => this.loadAllBanner());
-    } else {
-      console.log("Page out of range:", page);
+  }
+  handleLoadShippingStatusFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetAllCodesApi('ShippingStatus');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error("Không thể tải danh sách lọc!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedShippingStatusFilterValue: loadedFilterValue,
+      });
+    } catch (e) {
+      console.log("Error loading shippingstatus code:", e);
+      toast.error("Lỗi khi tải danh sách lọc!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
     }
-  };
-
-  handleSortBanner = (sortValue) => {
-    this.setState({ sortOrder: sortValue, imagePage: 1 }, () => {
-      this.loadAllBanner();
+  }
+  handleLoadBannerInfo = async () => {
+    const { currentPage, limitBannerPerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state
+    try {
+      const response = await handleLoadBannerInfoApi(currentPage, limitBannerPerQuery, searchValue, filterValue, sortValue, dateFilterValue)
+      if (response && response.errCode === 0) {
+        this.setState({
+          loadedBannerInfo: response.data,
+          totalPages: Math.ceil(response.totalItems / limitBannerPerQuery),
+        })
+      }
+    } catch (e) {
+      console.log("Error loading bannerinfo:", e);
+      toast.error("Lỗi khi load danh sách banner!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleLoadBannerStatusFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetAllCodesApi('BannerStatus');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error("Không thể tải danh sách lọc!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedBannerStatusFilterValue: loadedFilterValue,
+      });
+    } catch (e) {
+      console.log("Error loading bannerstatus code:", e);
+      toast.error("Lỗi khi tải danh sách lọc!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleSearchChange = (event, type) => {
+    const value = event.target.value;
+    this.setState({
+      searchValue: value,
+      currentPage: 1
+    }, () => {
+      if (this.debounceTimeout) {
+        clearTimeout(this.debounceTimeout);
+      }
+      this.debounceTimeout = setTimeout(() => {
+        switch (type) {
+          case 1: this.handleLoadProductInfo(); break;
+          case 2: this.handleLoadInvoiceInfo(); break;
+          case 3: this.handleLoadBannerInfo(); break;
+          default: break;
+        }
+      }, 500);
     });
   };
-
-  handlePageInput = (e, type) => {
-    const page = parseInt(e.target.value, 10);
-    if (isNaN(page)) return;
-    if (type === "products") {
-      this.handleProductPageChange(page);
-    } else if (type === "invoices") {
-      this.handleInvoicePageChange(page);
-    } else if (type === "images") {
-      this.handleImagePageChange(page);
+  handleFilter = (value, type) => {
+    this.setState({
+      filterValue: value,
+      currentPage: 1
+    }, () => {
+      switch (type) {
+        case 1: this.handleLoadProductInfo(); break;
+        case 2: this.handleLoadInvoiceInfo(); break;
+        case 3: this.handleLoadBannerInfo(); break;
+        default: break;
+      }
+    });
+  };
+  handleSort = (value, type) => {
+    this.setState({
+      sortValue: value,
+      currentPage: 1
+    }, () => {
+      switch (type) {
+        case 1: this.handleLoadProductInfo(); break;
+        case 2: this.handleLoadInvoiceInfo(); break;
+        case 3: this.handleLoadBannerInfo(); break;
+        default: break;
+      }
+    });
+  };
+  handlePageChange = (page, type) => {
+    this.setState({
+      isLoading: true,
+    })
+    const { totalPages } = this.state;
+    let newPage = page;
+    // Xử lý giá trị không hợp lệ
+    if (isNaN(page) || page <= 0) {
+      newPage = 1; // Nếu nhập chữ, ký tự, hoặc số không hợp lệ, về trang 1
+    } else if (page > totalPages) {
+      newPage = totalPages; // Nếu nhập số lớn hơn totalPages, đặt thành totalPages
+    }
+    this.setState({
+      isLoading: false,
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString()
+    }, () => {
+      switch (type) {
+        case 1: this.handleLoadProductInfo(); break;
+        case 2: this.handleLoadInvoiceInfo(); break;
+        case 3: this.handleLoadBannerInfo(); break;
+        default: break;
+      }
+    });
+  };
+  handlePrevPage = (type) => {
+    this.setState((prevState) => {
+      const newPage = Math.max(1, prevState.currentPage - 1);
+      return {
+        currentPage: newPage,
+        tempCurrentPage: newPage.toString()
+      };
+    }, () => {
+      switch (type) {
+        case 1: this.handleLoadProductInfo(); break;
+        case 2: this.handleLoadInvoiceInfo(); break;
+        case 3: this.handleLoadBannerInfo(); break;
+        default: break;
+      }
+    });
+  };
+  handleNextPage = (type) => {
+    this.setState((prevState) => {
+      const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
+      return {
+        currentPage: newPage,
+        tempCurrentPage: newPage.toString()
+      };
+    }, () => {
+      switch (type) {
+        case 1: this.handleLoadProductInfo(); break;
+        case 2: this.handleLoadInvoiceInfo(); break;
+        case 3: this.handleLoadBannerInfo(); break;
+        default: break;
+      }
+    });
+  };
+  handlePageInputChange = (event, type) => {
+    const value = event.target.value;
+    this.setState({ tempCurrentPage: value });
+  };
+  handlePageInputBlur = (type) => {
+    const { tempCurrentPage } = this.state;
+    const page = parseInt(tempCurrentPage, 10);
+    this.handlePageChange(page, type)
+  };
+  handlePageKeyDown = (event, type) => {
+    if (event.key === "Enter") {
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page, type);
     }
   };
-
-  toggleImageStatus = (id) => {
-    this.setState((prevState) => ({
-      arrBanner: prevState.arrBanner.map((item) =>
-        item.ID === id ? { ...item, isActive: !item.isActive } : item
-      ),
-    }));
+  handleSelectedProduct = (productid) => {
+    console.log(productid)
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+  handleSelectedInvoice = (invoiceid) => {
+    console.log(invoiceid)
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+  handleSelectedBanner = (bannerid) => {
+    console.log(bannerid)
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+  handleChangeBannerStatus = (bannerid) => {
+    console.log(bannerid)
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+  handleConfirmInvoice = (invoiceid) => {
+    console.log(invoiceid)
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+  handleDenyInvoice = (invoiceid) => {
+    console.log(invoiceid)
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+  handleResetFilter = () => {
+    this.setState({
+      currentPage: 1,
+      tempCurrentPage: "1",
+      searchValue: "",
+      dateFilterValue: "",
+      filterValue: "ALL",
+      sortValue: "0",
+    }, () => {
+      switch (this.state.actionPage) {
+        case 1: this.handleLoadProductInfo(); break;
+        case 2: this.handleLoadInvoiceInfo(); break;
+        case 3: this.handleLoadBannerInfo(); break;
+        default: break;
+      }
+    });
+  };
+  handleFormDanhSachSanPham = (e) => {
+    e.preventDefault();
+    this.setState({
+      actionPage: 1,
+      currentPage: 1,
+      tempCurrentPage: "1",
+      searchValue: "",
+      dateFilterValue: "",
+      filterValue: "ALL",
+      sortValue: "0",
+    });
+  };
+  handleFormDanhSachDonHang = (e) => {
+    e.preventDefault();
+    this.setState({
+      actionPage: 2,
+      currentPage: 1,
+      tempCurrentPage: "1",
+      searchValue: "",
+      dateFilterValue: "",
+      filterValue: "ALL",
+      sortValue: "0",
+    });
+  };
+  handleFormDanhSachBanner = (e) => {
+    e.preventDefault();
+    this.setState({
+      actionPage: 3,
+      currentPage: 1,
+      tempCurrentPage: "1",
+      searchValue: "",
+      dateFilterValue: "",
+      filterValue: "ALL",
+      sortValue: "0",
+    });
   };
 
   toggleCreateProductModal = () => {
@@ -415,18 +550,19 @@ class Owner extends Component {
   toggleViewInvoiceModal = (hoadon = null) => {
     this.setState({
       isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
-      selectedInvoice: hoadon, // Lưu hoặc reset giống selectedProduct
+      selectedInvoice: hoadon,
     });
     if (hoadon) {
       console.log("MADONHANG:", hoadon.MADONHANG);
     }
   };
+
   createNewProduct = async (productInfo) => {
     try {
       const response = await handleCreateProduct(productInfo);
       console.log(response);
       if (response && response.errCode === 0) {
-        await this.loadAllSanPham();
+        await this.handleLoadProductInfo();
         this.setState({ isShowCreateProductModal: false });
         toast.success("Tạo sản phẩm thành công!");
       } else {
@@ -451,8 +587,8 @@ class Owner extends Component {
     try {
       const response = await handleUpdateProduct(productInfo);
       if (response && response.errCode === 0) {
-        await this.loadAllSanPham(); // Tải lại danh sách sản phẩm
-        this.setState({ isShowEditProductModal: false }); // Đóng modal
+        await this.handleLoadProductInfo();
+        this.setState({ isShowEditProductModal: false });
         toast.success("Cập nhật sản phẩm thành công!");
       } else {
         const errMessage =
@@ -470,66 +606,609 @@ class Owner extends Component {
       toast.error(errMessage);
     }
   };
-  deleteSanPham = async (masanpham) => {
-    try {
-      const response = await handleXoaProduct(masanpham);
-      if (response && response.errCode === 0) {
-        toast.success("Xóa sản phẩm thành công!");
-        await this.loadAllSanPham();
-      } else {
-        toast.error(response.errMessage);
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  };
 
   render() {
-    const {
-      invoiceDate,
-      activeSection,
-      productPage,
-      invoicePage,
-      arrBanner,
-      imagePage,
-      itemsPerPageProducts,
-      itemsPerPageInvoices,
-      itemsPerPageImages,
-      totalProductItems,
-      totalInvoiceItems,
-      totalImageItems,
-      arrSanPham,
-      arrHoaDon,
-      tempSearchQuery,
-      filters,
-      sortOrder,
-      filterValue,
-      isShowCreateProductModal,
-      isShowEditProductModal,
-      isShowCreateBannerModal,
-      isShowEditBannerModal,
-      isShowViewInvoiceModal,
-    } = this.state;
-
-    const startIndexProducts = (productPage - 1) * itemsPerPageProducts;
-    const endIndexProducts = startIndexProducts + itemsPerPageProducts;
-    const totalProductPages = Math.ceil(
-      totalProductItems / itemsPerPageProducts
-    );
-
-    const startIndexInvoices = (invoicePage - 1) * itemsPerPageInvoices;
-    const endIndexInvoices = startIndexInvoices + itemsPerPageInvoices;
-    const totalInvoicePages = Math.ceil(
-      totalInvoiceItems / itemsPerPageInvoices
-    );
-
-    const startIndexImages = (imagePage - 1) * itemsPerPageImages;
-    const endIndexImages = startIndexImages + itemsPerPageImages;
-    const totalImagePages = Math.ceil(totalImageItems / itemsPerPageImages);
+    const { loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
+      loadedInvoiceInfo, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
+      loadedBannerInfo, loadedBannerStatusFilterValue, isLoading,
+      actionPage, searchValue, sortValue, filterValue, dateFilterValue, currentPage, tempCurrentPage, totalPages,
+      isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal, } = this.state
+    const renderSection = () => {
+      switch (actionPage) {
+        case 1:
+          return (
+            <div>
+              <button
+                style={{ display: actionPage === 1 ? "block" : "none" }}
+                onClick={() => this.toggleCreateProductModal()}
+              >
+                THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
+              </button>
+              <div className="owner-mid-content-left">
+                <div className="owner-mid-content-left-search-product">
+                  <p>Tìm kiếm:</p>
+                  <input
+                    type="text"
+                    placeholder="Nhập tên sản phẩm"
+                    value={searchValue}
+                    onChange={(event) => this.handleSearchChange(event, 1)}
+                  />
+                  <IonIcon icon={searchOutline}></IonIcon>
+                </div>
+                <div className="f">
+                  <div className="owner-mid-content-left-product-filter">
+                    <label>Lọc sản phẩm:</label>
+                    <br />
+                    <select
+                      value={filterValue}
+                      onChange={(event) => this.handleFilter(event.target.value, 1)}
+                    >
+                      <option value="ALL">Tất cả</option>
+                      <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
+                      {loadedProductTypeFilterValue && loadedProductTypeFilterValue.length > 0 && (
+                        <optgroup label="Loại sản phẩm">
+                          {loadedProductTypeFilterValue.map((item) => (
+                            <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {loadedPetTypeFilterValue && loadedPetTypeFilterValue.length > 0 && (
+                        <optgroup label="Sản phẩm cho thú cưng">
+                          {loadedPetTypeFilterValue.map((item) => (
+                            <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
+                  <div className="owner-mid-content-left-product-sort">
+                    <label>Sắp xếp:</label>
+                    <br />
+                    <select
+                      value={sortValue}
+                      onChange={(e) => this.handleSort(e.target.value, 1)}
+                    >
+                      <option value="0">Mặc định</option>
+                      <option value="1">Bán chạy</option>
+                      <option value="2">Giá bán tăng dần</option>
+                      <option value="3">Giá bán giảm dần</option>
+                      <option value="4">Hàng mới về</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="owner-mid-content-right">
+                <div className="owner-mid-content-right-list-product">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Mã sản phẩm</th>
+                        <th>Loại sản phẩm</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Hình ảnh</th>
+                        <th>Đơn Giá</th>
+                        <th>Tổng tồn Kho</th>
+                        <th>Tổng bán ra</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loadedProductInfo.length > 0 ? (
+                        loadedProductInfo.map((item) => {
+                          return (
+                            <tr
+                              key={item.ProductID}
+                              className="owner-mid-content-right-list-product-item"
+                            >
+                              <td>{item.ProductID}</td>
+                              <td>{loadedProductTypeFilterValue.find((filterItem) => filterItem.Code === item.ProductType)?.CodeValueVI || item.ProductType}</td>
+                              <td>{item.ProductName}</td>
+                              <td>
+                                <img
+                                  src={item.ProductImage || ""}
+                                  alt={item.ProductName}
+                                  style={{ width: "50px", height: "50px" }}
+                                />
+                              </td>
+                              <td className="f">
+                                <p>{parseFloat(item.ProductPrice).toLocaleString("vi-VN")}</p>
+                                <p>vnđ</p>
+                              </td>
+                              <td>{item.TotalStock || 0}</td>
+                              <td>{item.TotalSold || 0}</td>
+                              <td className="f" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  className="btn-edit"
+                                  onClick={() => this.handleSelectedProduct(item.ProductID)}
+                                >
+                                  <IonIcon icon={pencil}></IonIcon>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="8">Không tìm thấy sản phẩm phù hợp.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  <div className="page-content">
+                    <div className="page-content-item">
+                      <button className="first"
+                        onClick={() => this.handlePageChange(1, 1)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<<"}
+                      </button>
+                      <button className="prev"
+                        onClick={() => this.handlePrevPage(1)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<"}
+                      </button>
+                      <input
+                        type="text"
+                        value={tempCurrentPage}
+                        onChange={(event) => this.handlePageInputChange(event, 1)}
+                        onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
+                        onBlur={() => this.handlePageInputBlur(1)}
+                      />
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button className="next"
+                        onClick={() => this.handleNextPage(1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">"}
+                      </button>
+                      <button className="last"
+                        onClick={() => this.handlePageChange(totalPages, 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">>"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        case 2:
+          return (
+            <div >
+              <div
+                className="owner-mid-content-left-search-invoice"
+                style={{ display: actionPage === 2 ? "flex" : "none" }}
+              >
+                <p>Tìm kiếm:</p>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm tên hoặc số điện thoại nhận hàng..."
+                  value={searchValue}
+                  onChange={(event) => this.handleSearchChange(event, 2)}
+                />
+                <IonIcon icon={searchOutline}></IonIcon>
+              </div>
+              <div
+                style={{ display: actionPage === 2 ? "flex" : "none" }}
+                className="owner-mid-content-left-invoice-sort"
+              >
+                <div className="owner-mid-content-left-invoice-filter">
+                  <label>Lọc hóa đơn:</label>
+                  <br />
+                  <select
+                    value={filterValue}
+                    onChange={(event) => this.handleFilter(event.target.value, 2)}
+                  >
+                    <option value="ALL">Tất cả</option>
+                    {loadedPaymentStatusFilterValue && loadedPaymentStatusFilterValue.length > 0 && (
+                      <optgroup label="Tình trạng thanh toán">
+                        {loadedPaymentStatusFilterValue.map((item) => (
+                          <option key={`paymentstatus-${item.Code}`} value={`paymentstatus-${item.Code}`}>
+                            {item.CodeValueVI}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {loadedShippingStatusFilterValue && loadedShippingStatusFilterValue.length > 0 && (
+                      <optgroup label="Tình trạng giao hàng">
+                        {loadedShippingStatusFilterValue.map((item) => (
+                          <option key={`shippingstatus-${item.Code}`} value={`shippingstatus-${item.Code}`}>
+                            {item.CodeValueVI}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="Tổng thanh toán">
+                      <option value="totalpayment-0">500.000 - 1.000.000 VNĐ</option>
+                      <option value="totalpayment-1">1.000.000 - 1.500.000 VNĐ</option>
+                      <option value="totalpayment-2">1.500.000 - 2.000.000 VNĐ</option>
+                      <option value="totalpayment-3">Trên 2.000.000 VNĐ</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div className="owner-mid-content-left-invoice-sort">
+                  <label>Sắp xếp:</label>
+                  <br />
+                  <select
+                    value={sortValue}
+                    onChange={(e) => this.handleSort(e.target.value, 2)}
+                  >
+                    <option value="0">Mặc định</option>
+                    <option value="1">Mới nhất</option>
+                    <option value="2">Cũ nhất</option>
+                    <option value="3">Tổng giá trị tăng dần</option>
+                    <option value="4">Tổng giá trị giảm dần</option>
+                    <option value="5">Số lượng tăng dần</option>
+                    <option value="6">Số lượng giảm dần</option>
+                  </select>
+                </div>
+              </div>
+              <div
+                style={{ display: actionPage === 2 ? "block" : "none" }}
+                className="owner-mid-content-left-invoice-date"
+              >
+                <div className="f">
+                  <label>Ngày hóa đơn:</label>
+                  <DatePicker
+                    selected={dateFilterValue ? new Date(dateFilterValue) : null}
+                    onChange={(date) => {
+                      const formattedDate = date
+                        ? date.toISOString().split("T")[0]
+                        : "";
+                      this.setState({ dateFilterValue: formattedDate }, () => {
+                        if (this.state.actionPage === 2) {
+                          this.handleLoadInvoiceInfo();
+                        }
+                      });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="dd/mm/yyyy"
+                    className="date-picker"
+                  />
+                  <button style={{ marginLeft: "10px" }} onClick={this.handleResetFilter}>
+                    Reset
+                  </button>
+                </div>
+              </div>
+              <div className="owner-mid-content-right-list-invoice">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mã hóa đơn</th>
+                      <th>Thời gian tạo</th>
+                      <th>Người nhận hàng</th>
+                      <th>SĐT nhận hàng</th>
+                      <th>Số lượng mặt hàng</th>
+                      <th>Tổng thanh toán</th>
+                      <th>Tình trạng thanh toán</th>
+                      <th>Tình trạng giao hàng</th>
+                      <th>Đã hủy lúc</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadedInvoiceInfo.length > 0 ? (
+                      loadedInvoiceInfo.map((item) => (
+                        <tr
+                          key={item.InvoiceID}
+                          className="owner-mid-content-right-list-invoice-item"
+                          onClick={() => { this.handleSelectedInvoice(item.InvoiceID) }}
+                        >
+                          <td>{item.InvoiceID}</td>
+                          <td>
+                            {item.CreatedAt
+                              ? new Date(item.CreatedAt).toLocaleString("vi-VN")
+                              : "N/A"}
+                          </td>
+                          <td>{item.ReceiverName}</td>
+                          <td>{item.ReceiverPhone}</td>
+                          <td>{item.TotalQuantity}</td>
+                          <td className="f">
+                            <p>
+                              {parseFloat(item.TotalPayment).toLocaleString("vi-VN")} vnđ
+                            </p>
+                          </td>
+                          <td>
+                            {loadedPaymentStatusFilterValue.find(
+                              (filterItem) => filterItem.Code === item.PaymentStatus
+                            )?.CodeValueVI || item.PaymentStatus}
+                          </td>
+                          <td>
+                            {loadedShippingStatusFilterValue.find(
+                              (filterItem) => filterItem.Code === item.ShippingStatus
+                            )?.CodeValueVI || item.ShippingStatus}
+                          </td>
+                          <td>
+                            {item.CanceledAt
+                              ? new Date(item.CanceledAt).toLocaleString("vi-VN")
+                              : ""}
+                          </td>
+                          <td className="f">
+                            <button
+                              className="btn-check"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                this.handleConfirmInvoice(item.InvoiceID);
+                              }}
+                            >
+                              <IonIcon icon={checkmarkOutline}></IonIcon>
+                            </button>
+                            <button
+                              className="btn-check"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                this.handleDenyInvoice(item.InvoiceID);
+                              }}
+                            >
+                              <IonIcon icon={closeOutline}></IonIcon>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="10">Không tìm thấy hóa đơn nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                <div className="page-content">
+                  <div className="page-content-item">
+                    <button className="first"
+                      onClick={() => this.handlePageChange(1, 2)}
+                      disabled={currentPage === 1}
+                    >
+                      {"<<"}
+                    </button>
+                    <button className="prev"
+                      onClick={() => this.handlePrevPage(2)}
+                      disabled={currentPage === 1}
+                    >
+                      {"<"}
+                    </button>
+                    <input
+                      type="text"
+                      value={tempCurrentPage}
+                      onChange={(event) => this.handlePageInputChange(event, 2)}
+                      onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
+                      onBlur={() => this.handlePageInputBlur(2)}
+                    />
+                    <span className="total-pages">/ {totalPages}</span>
+                    <button className="next"
+                      onClick={() => this.handleNextPage(2)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {">"}
+                    </button>
+                    <button className="last"
+                      onClick={() => this.handlePageChange(totalPages, 2)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {">>"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        case 3:
+          return (
+            <div >
+              <button
+                style={{ display: actionPage === 3 ? "block" : "none" }}
+                onClick={() => this.toggleCreateBannerModal()}
+              >
+                THÊM BANNER <IonIcon icon={add}></IonIcon>
+              </button>
+              <div className="owner-mid-content-left">
+                <div
+                  className="owner-mid-content-left-search-banner"
+                  style={{ display: actionPage === 3 ? "flex" : "none" }}
+                >
+                  <p>Tìm kiếm:</p>
+                  <input
+                    type="text"
+                    placeholder="Nhập tên sản phẩm..."
+                    value={searchValue}
+                    onChange={(event) => this.handleSearchChange(event, 3)}
+                  />
+                  <IonIcon icon={searchOutline}></IonIcon>
+                </div>
+                <div
+                  style={{ display: actionPage === 3 ? "flex" : "none" }}
+                  className="owner-mid-content-left-banner-filter-sort f"
+                >
+                  <div className="owner-mid-content-left-banner-filter">
+                    <label>Lọc banner:</label>
+                    <br />
+                    <select
+                      value={filterValue}
+                      onChange={(event) => this.handleFilter(event.target.value, 3)}
+                    >
+                      <option value="ALL">Tất cả</option>
+                      {loadedBannerStatusFilterValue && loadedBannerStatusFilterValue.length > 0 && (
+                        <optgroup label="Trạng thái">
+                          {loadedBannerStatusFilterValue.map((item) => (
+                            <option key={`bannerstatus-${item.Code}`} value={`bannerstatus-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
+                  <div className="owner-mid-content-left-banner-sort">
+                    <label>Sắp xếp:</label>
+                    <br />
+                    <select
+                      value={sortValue}
+                      onChange={(e) => this.handleSort(e.target.value, 3)}
+                    >
+                      <option value="0">Mặc định</option>
+                      <option value="1">Mới nhất</option>
+                      <option value="2">Cũ nhất</option>
+                      <option value="3">Hết hạn gần nhất</option>
+                      <option value="4">Hết hạn trễ nhất</option>
+                    </select>
+                  </div>
+                </div>
+                <div
+                  style={{ display: actionPage === 3 ? "block" : "none" }}
+                  className="owner-mid-content-left-banner-date"
+                >
+                  <div className="f">
+                    <label>Các banner hoạt động trong ngày:</label>
+                    <DatePicker
+                      selected={dateFilterValue ? new Date(dateFilterValue) : null}
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? date.toISOString().split("T")[0]
+                          : "";
+                        this.setState({ dateFilterValue: formattedDate }, () => {
+                          if (this.state.actionPage === 3) {
+                            this.handleLoadBannerInfo();
+                          }
+                        });
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    <button style={{ marginLeft: "10px" }} onClick={this.handleResetFilter}>
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="owner-mid-content-right">
+                <div className="owner-mid-content-mid-list-img">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Hình ảnh banner</th>
+                        <th>Mã sản phẩm</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Hình ảnh sản phẩm</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian tạo</th>
+                        <th>Thời gian ẩn</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loadedBannerInfo.length > 0 ? (
+                        loadedBannerInfo.map((item) => (
+                          <tr
+                            key={item.BannerID}
+                            className="owner-mid-content-right-list-banner-item"
+                          >
+                            <td>
+                              <img
+                                src={item.BannerImage || ""}
+                                alt="Banner"
+                                style={{ width: "50px", height: "50px" }}
+                              />
+                            </td>
+                            <td>{item.ProductID}</td>
+                            <td>{item.ProductName}</td>
+                            <td>
+                              <img
+                                src={item.ProductImage || ""}
+                                alt="Sản phẩm"
+                                style={{ width: "50px", height: "50px" }}
+                              />
+                            </td>
+                            <td>
+                              {loadedBannerStatusFilterValue.find(
+                                (filterItem) => filterItem.Code === item.BannerStatus
+                              )?.CodeValueVI || item.BannerStatus}
+                            </td>
+                            <td>
+                              {item.CreatedAt
+                                ? new Date(item.CreatedAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                : "N/A"}
+                            </td>
+                            <td>
+                              {item.HiddenAt
+                                ? new Date(item.HiddenAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                : "Vô thời hạn"}
+                            </td>
+                            <td className="f" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                className="btn-edit"
+                                onClick={() => this.handleSelectedBanner(item.BannerID)}
+                              >
+                                <IonIcon icon={pencil}></IonIcon>
+                              </button>
+                              <button
+                                className="btn-toggle"
+                                onClick={() => this.handleChangeBannerStatus(item.BannerID)}
+                              >
+                                <IonIcon icon={item.BannerStatus === "SHOW" ? closeOutline : checkmarkOutline}></IonIcon>
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="9">Không tìm thấy banner nào.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  <div className="page-content">
+                    <div className="page-content-item">
+                      <button className="first"
+                        onClick={() => this.handlePageChange(1, 3)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<<"}
+                      </button>
+                      <button className="prev"
+                        onClick={() => this.handlePrevPage(3)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<"}
+                      </button>
+                      <input
+                        type="text"
+                        value={tempCurrentPage}
+                        onChange={(event) => this.handlePageInputChange(event, 3)}
+                        onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
+                        onBlur={() => this.handlePageInputBlur(3)}
+                      />
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button className="next"
+                        onClick={() => this.handleNextPage(3)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">"}
+                      </button>
+                      <button className="last"
+                        onClick={() => this.handlePageChange(totalPages, 2)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">>"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        default:
+          return null;
+      }
+    };
 
     return (
-      <div className="owner-body">
-        <ToastContainer />
+      < div className="owner-body" >
         <OwnerCreateProductModal
           isOpen={isShowCreateProductModal}
           toggleFromModal={this.toggleCreateProductModal}
@@ -554,586 +1233,47 @@ class Owner extends Component {
           toggleFromModal={this.toggleViewInvoiceModal}
           hoadon={this.state.selectedInvoice}
         />
-
-        <div className="container">
-          <div className="f">
-            <h1 className="name">Trang chủ cửa hàng</h1>
-            <button
-              className="home-button"
-              onClick={() => this.props.navigate("/home")}
-            >
-              <IonIcon icon={homeOutline}></IonIcon>
-              <b>Quay về cửa hàng</b>
-            </button>
-          </div>
-
-          <div className="owner-top-content">
-            <div className="owner-top-content-menu f">
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("products")}
-                  className={activeSection === "products" ? "active" : ""}
-                >
-                  SẢN PHẨM
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("invoices")}
-                  className={activeSection === "invoices" ? "active" : ""}
-                >
-                  HÓA ĐƠN
-                </a>
-              </li>
-              {/* <li>
-                <a
-                  onClick={() => this.handleSectionChange("images")}
-                  className={activeSection === "images" ? "active" : ""}
-                >
-                  BANNER
-                </a>
-              </li> */}
-              <li>
-                <button
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  onClick={() => this.toggleCreateProductModal()}
-                >
-                  THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
-                </button>
-                <button
-                  style={{
-                    display: activeSection === "images" ? "block" : "none",
-                  }}
-                  onClick={() => this.toggleCreateBannerModal()}
-                >
-                  THÊM HÌNH ẢNH <IonIcon icon={add}></IonIcon>
-                </button>
-              </li>
-            </div>
-          </div>
-          <div className="add f">
-            <div
-              className="owner-top-content-search-banner"
-              style={{
-                display: activeSection === "images" ? "flex" : "none",
-              }}
-            >
-              <b>TÌM KIẾM: </b>
-              <input
-                type="text"
-                placeholder="Hãy nhập tên sản phẩm..."
-                value={tempSearchQuery}
-                onChange={this.handleSearchChange}
-              />
-              <IonIcon icon={searchOutline}></IonIcon>
-            </div>
-            <div
-              style={{
-                display: activeSection === "images" ? "flex" : "none",
-              }}
-              className="owner-mid-content-left-image-sort"
-            >
-              <label>Sắp xếp:</label>
-              <br />
-              <select
-                value={sortOrder}
-                onChange={(e) => this.handleSortBanner(e.target.value)}
+        <ToastContainer />
+        {isLoading ? <Spinner /> : (
+          <div className="container">
+            <div className="f">
+              <h1 className="name">Trang chủ cửa hàng</h1>
+              <button
+                className="home-button"
+                onClick={() => this.props.navigate("/home")}
               >
-                <option value="0">Mới nhất</option>
-                <option value="1">Cũ nhất</option>
-              </select>
+                <IonIcon icon={homeOutline}></IonIcon>
+                <b>Quay về cửa hàng</b>
+              </button>
             </div>
-            <div
-              className="owner-mid-content-left-search-invoice"
-              style={{
-                display: activeSection === "invoices" ? "flex" : "none",
-              }}
-            >
-              <b>TÌM KIẾM: </b>
-              <input
-                type="text"
-                placeholder="Tìm kiếm số điện thoại nhận hàng..."
-                value={tempSearchQuery}
-                onChange={this.handleSearchChange}
-              />
-              <IonIcon icon={searchOutline}></IonIcon>
-            </div>
-            <div
-              style={{
-                display: activeSection === "invoices" ? "flex" : "none",
-              }}
-              className="owner-mid-content-left-invoice-sort"
-            >
-              <label>Sắp xếp:</label>
-              <br />
-              <select
-                value={sortOrder}
-                onChange={(e) => this.handleSortInvoice(e.target.value)}
-              >
-                <option value="0">Mặc định</option>
-                <option value="1">Mới nhất</option>
-                <option value="2">Cũ nhất</option>
-                <option value="3">Tổng giá trị tăng dần</option>
-                <option value="4">Tổng giá trị giảm dần</option>
-                <option value="5">Số lượng tăng dần</option>
-                <option value="6">Số lượng giảm dần</option>
-                <option value="7">Tình trạng thanh toán</option>
-              </select>
-            </div>
-            <div
-              style={{
-                display: activeSection === "invoices" ? "block" : "none",
-              }}
-              className="owner-mid-content-left-invoice-date"
-            >
-              <div className="f">
-                <label>Ngày hóa đơn:</label>
-                <DatePicker
-                  selected={invoiceDate ? new Date(invoiceDate) : null}
-                  onChange={(date) => {
-                    const formattedDate = date
-                      ? date.toISOString().split("T")[0]
-                      : "";
-                    this.setState({ invoiceDate: formattedDate }, () => {
-                      if (this.state.activeSection === "invoices") {
-                        this.loadAllHoaDon();
-                      }
-                    });
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="dd/mm/yyyy"
-                  className="date-picker"
-                />
-                <button
-                  style={{ marginLeft: "10px" }}
-                  onClick={this.handleResetFilters}
-                >
-                  Reset
-                </button>
+            <div className="owner-top-content">
+              <div className="owner-top-content-menu f">
+                <li>
+                  <a onClick={this.handleFormDanhSachSanPham}
+                    className={actionPage === 1 ? "active" : ""}>
+                    SẢN PHẨM
+                  </a>
+                </li>
+                <li>
+                  <a onClick={this.handleFormDanhSachDonHang}
+                    className={actionPage === 2 ? "active" : ""}
+                  >
+                    HÓA ĐƠN
+                  </a>
+                </li>
+                <li>
+                  <a onClick={this.handleFormDanhSachBanner}
+                    className={actionPage === 3 ? "active" : ""}
+                  >
+                    BANNER
+                  </a>
+                </li>
               </div>
             </div>
+            <div className="owner-mid-content f">{renderSection()}</div>
           </div>
-          <div className="owner-mid-content f">
-            <div
-              className="owner-mid-content-mid-list-img"
-              style={{
-                display: activeSection === "images" ? "block" : "none",
-              }}
-            >
-              <table>
-                <thead>
-                  <tr>
-                    <th>Hiển thị</th>
-                    <th>Hình ảnh Banner</th>
-                    <th>Mã sản phẩm</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Hình ảnh sản phẩm</th>
-                    <th>Thời gian tạo</th>
-                    <th>Thời gian ẩn</th>
-                    <th>Xóa</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {arrBanner && arrBanner.length > 0 ? (
-                    arrBanner.map((item) => (
-                      <tr
-                        key={item.ID}
-                        className="owner-mid-content-mid-list-img-item"
-                        onClick={() => this.toggleEditBannerModal(item)} // Truyền item vào toggleEditBannerModal
-                      >
-                        <td>
-                          {item.isActive ? (
-                            <button
-                              className="active"
-                              onClick={() => this.toggleImageStatus(item.ID)}
-                            >
-                              <IonIcon icon={checkmarkOutline}></IonIcon>
-                            </button>
-                          ) : (
-                            <button
-                              className="unactive"
-                              onClick={() => this.toggleImageStatus(item.ID)}
-                            >
-                              <IonIcon icon={closeOutline}></IonIcon>
-                            </button>
-                          )}
-                        </td>
-                        <td>
-                          <img src={item.HinhAnh || bannertest} alt="Banner" />
-                        </td>
-                        <td>{item.MASANPHAM || "N/A"}</td>
-                        <td>{item.TenSanPham || "N/A"}</td>
-                        <td>
-                          <img
-                            src={item.HinhAnhSanPham || hinhtest}
-                            alt="Sản phẩm"
-                          />
-                        </td>
-                        <td>
-                          {item.ThoiGianTao
-                            ? new Date(item.ThoiGianTao).toLocaleString("vi-VN")
-                            : "N/A"}
-                        </td>
-                        <td>
-                          {item.ThoiGianAn
-                            ? new Date(item.ThoiGianAn).toLocaleString("vi-VN")
-                            : "N/A"}
-                        </td>
-                        <td
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <button>
-                            <IonIcon icon={closeCircleOutline}></IonIcon>
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="8">Không tìm thấy banner nào.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              <div className="pages f">
-                <button
-                  className="first"
-                  onClick={() => this.handleImagePageChange(1)}
-                  disabled={imagePage === 1}
-                >
-                  {"<<"}
-                </button>
-                <button
-                  className="prev"
-                  onClick={() => this.handleImagePageChange(imagePage - 1)}
-                  disabled={imagePage === 1}
-                >
-                  {"<"}
-                </button>
-                <input
-                  type="text"
-                  value={imagePage}
-                  onChange={(e) => this.handlePageInput(e, "images")}
-                />
-                <span className="total-pages">/ {totalImagePages}</span>
-                <button
-                  className="next"
-                  onClick={() => this.handleImagePageChange(imagePage + 1)}
-                  disabled={
-                    imagePage === totalImagePages || totalImagePages === 0
-                  }
-                >
-                  {">"}
-                </button>
-                <button
-                  className="last"
-                  onClick={() => this.handleImagePageChange(totalImagePages)}
-                  disabled={
-                    imagePage === totalImagePages || totalImagePages === 0
-                  }
-                >
-                  {">>"}
-                </button>
-              </div>
-            </div>
-            <div
-              className="owner-mid-content-right-list-invoice"
-              style={{
-                display: activeSection === "invoices" ? "block" : "none",
-              }}
-            >
-              <table>
-                <thead>
-                  <tr>
-                    <th>Mã hóa đơn</th>
-                    <th>Thời gian tạo</th>
-                    <th>Tên khách hàng</th>
-                    <th>SĐT khách hàng</th>
-                    <th>SL</th>
-                    <th>Tổng tiền</th>
-                    <th>PaymentStatus</th>
-                    <th>OrderStatus</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {arrHoaDon.length > 0 ? (
-                    arrHoaDon.map((item, index) => (
-                      <tr
-                        key={item.MADONHANG}
-                        className="owner-mid-content-right-list-invoice-item"
-                        onClick={() => {
-                          console.log(
-                            "Opening invoice modal for MADONHANG:",
-                            item.MADONHANG
-                          ); // Thêm log giống toggleEditProductModal
-                          this.toggleViewInvoiceModal(item);
-                        }}
-                      >
-                        <td>{item.MADONHANG}</td>
-                        <td>
-                          {item.NgayLapDonHang
-                            ? new Date(item.NgayLapDonHang).toLocaleString(
-                              "vi-VN"
-                            )
-                            : "N/A"}
-                        </td>
-                        <td>{item.TenKhachHang || "N/A"}</td>
-                        <td>{item.SDTNhanHang || "N/A"}</td>
-                        <td>{item.quantity || 0}</td>
-                        <td className="f">
-                          <p>
-                            {item.TongTien
-                              ? parseFloat(item.TongTien).toLocaleString(
-                                "vi-VN"
-                              )
-                              : 0}{" "}
-                            vnđ
-                          </p>
-                        </td>
-                        <td>{item.PaymentStatus || "N/A"}</td>
-                        <td>{item.OrderStatus || "N/A"}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="8">Không tìm thấy hóa đơn nào.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              <div className="pages f">
-                <button
-                  className="first"
-                  onClick={() => this.handleInvoicePageChange(1)}
-                  disabled={invoicePage === 1}
-                >
-                  {"<<"}
-                </button>
-                <button
-                  className="prev"
-                  onClick={() => this.handleInvoicePageChange(invoicePage - 1)}
-                  disabled={invoicePage === 1}
-                >
-                  {"<"}
-                </button>
-                <input
-                  type="text"
-                  value={invoicePage}
-                  onChange={(e) => this.handlePageInput(e, "invoices")}
-                />
-                <span className="total-pages">/ {totalInvoicePages}</span>
-                <button
-                  className="next"
-                  onClick={() => this.handleInvoicePageChange(invoicePage + 1)}
-                  disabled={
-                    invoicePage === totalInvoicePages || totalInvoicePages === 0
-                  }
-                >
-                  {">"}
-                </button>
-                <button
-                  className="last"
-                  onClick={() =>
-                    this.handleInvoicePageChange(totalInvoicePages)
-                  }
-                  disabled={
-                    invoicePage === totalInvoicePages || totalInvoicePages === 0
-                  }
-                >
-                  {">>"}
-                </button>
-              </div>
-            </div>
-            <div className="owner-mid-content-left">
-              <div
-                className="owner-mid-content-left-search-product"
-                style={{
-                  display: activeSection === "products" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm tên sản phẩm..."
-                  value={tempSearchQuery}
-                  onChange={this.handleSearchChange}
-                />
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-
-              <div className="f">
-                <div
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-product-filter"
-                >
-                  <label>Lọc sản phẩm:</label>
-                  <br />
-                  <select
-                    value={filters.selectedFilter}
-                    onChange={(e) => this.handleFilterProduct(e.target.value)}
-                  >
-                    <option value="ALL">Tất cả</option>
-                    <option value="PROMOTION">Khuyến mãi</option>
-                    {filterValue.map((item) => (
-                      <option key={item.Code} value={item.Code}>
-                        {item.Value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-product-sort"
-                >
-                  <label>Sắp xếp:</label>
-                  <br />
-                  <select
-                    value={sortOrder}
-                    onChange={(e) => this.handleSortProduct(e.target.value)}
-                  >
-                    <option value="0">Mặc định</option>
-                    <option value="1">Bán chạy</option>
-                    <option value="2">Giá bán tăng dần</option>
-                    <option value="3">Giá bán giảm dần</option>
-                    <option value="4">Hàng mới về</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="owner-mid-content-right">
-              <div
-                className="owner-mid-content-right-list-product"
-                style={{
-                  display: activeSection === "products" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Mã sản phẩm</th>
-                      <th>Tên sản phẩm</th>
-                      <th>Hình ảnh</th>
-                      <th>Danh mục</th>
-                      <th>Giá</th>
-                      <th>Kho</th>
-                      <th>KM</th>
-                      <th>Xóa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {arrSanPham.length > 0 ? (
-                      arrSanPham.map((item) => {
-                        const productTypeValue =
-                          filterValue.find(
-                            (filterItem) => filterItem.Code === item.ProductType
-                          )?.Value || item.ProductType;
-                        return (
-                          <tr
-                            key={item.MASANPHAM}
-                            className="owner-mid-content-right-list-product-item"
-                            onClick={() => this.toggleEditProductModal(item)}
-                          >
-                            <td>{item.MASANPHAM}</td>
-                            <td>{item.TenSanPham}</td>
-                            <td>
-                              <img
-                                src={item.HinhAnh || hinhtest}
-                                alt={item.TenSanPham}
-                              />
-                            </td>
-                            <td>{productTypeValue}</td>
-                            <td className="f">
-                              <p>
-                                {parseFloat(item.GiaBan).toLocaleString(
-                                  "vi-VN"
-                                )}
-                              </p>
-                              <p>vnđ</p>
-                            </td>
-                            <td>{item.SoLuongTon || 0}</td>
-                            <td>
-                              {item.KhuyenMai ? `${item.KhuyenMai}%` : "0"}
-                            </td>
-                            <td
-                              className="f"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                onClick={() =>
-                                  this.deleteSanPham(item.MASANPHAM)
-                                }
-                              >
-                                <IonIcon icon={closeCircleOutline}></IonIcon>
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="8">Không tìm thấy sản phẩm nào.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleProductPageChange(1)}
-                    disabled={productPage === 1}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleProductPageChange(productPage - 1)
-                    }
-                    disabled={productPage === 1}
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={productPage}
-                    onChange={(e) => this.handlePageInput(e, "products")}
-                  />
-                  <span className="total-pages">/ {totalProductPages}</span>
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleProductPageChange(productPage + 1)
-                    }
-                    disabled={productPage === totalProductPages}
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() =>
-                      this.handleProductPageChange(totalProductPages)
-                    }
-                    disabled={productPage === totalProductPages}
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-              {/* HÓA ĐƠN */}
-
-              {/* BANNER */}
-            </div>
-          </div>
-        </div>
-      </div>
+        )}
+      </div >
     );
   }
 }
@@ -1143,6 +1283,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
+  userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
 });
 

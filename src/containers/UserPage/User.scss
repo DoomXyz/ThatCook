@@ -174,7 +174,6 @@
             .button-submit {
                 display: flex;
                 margin-top: 20px;
-
             }
 
             button {
@@ -286,13 +285,11 @@
                     /* Chia đều không gian */
                     display: flex;
                     justify-content: flex-start;
-
                 }
 
                 .order-list-descreption-right {
                     display: flex;
                     justify-content: flex-end;
-
                 }
 
                 .order-info-tab {
@@ -302,14 +299,11 @@
                     justify-content: space-between;
 
                     /* Căn đều hai bên hoặc tùy chỉnh */
-
                 }
 
                 .value-oder {
                     padding-left: 10px;
                 }
-
-
             }
 
             .order-list-object-center {
@@ -341,7 +335,6 @@
 
                         .value-item {
                             display: flex;
-
                         }
                     }
 
@@ -351,7 +344,6 @@
                         display: flex;
                         justify-content: flex-end;
                     }
-
                 }
 
                 .item-info-tab {
@@ -365,8 +357,6 @@
                     .value-item {
                         padding-left: 5px;
                     }
-
-
                 }
 
                 /* Chia đều không gian */
@@ -411,7 +401,6 @@
                     /* Căn phải cho value, tùy chỉnh nếu cần */
                     justify-content: flex-end;
                 }
-
             }
         }
     }
@@ -431,7 +420,6 @@
     margin: 0 auto;
     /* Căn giữa form */
     padding: 20px;
-
 
     .h3 {
         margin-top: 10px;
@@ -481,7 +469,6 @@
         margin-top: 10px;
     }
 
-
     .button-submit {
         margin-top: 30px;
 
@@ -507,8 +494,6 @@
         }
     }
 }
-
-
 
 .user-cart-form-info-top {
     display: flex;
@@ -570,6 +555,13 @@
             padding-left: 10px;
             color: orangered;
             cursor: not-allowed;
+
+            h5 {
+                color: inherit;
+                &.delivered {
+                    color: green;
+                }
+            }
         }
     }
 }
@@ -659,7 +651,6 @@
             }
 
             /* Chia đều không gian */
-
         }
 
         .user-cart-form-info-list-item-right {
@@ -688,15 +679,12 @@
         }
     }
 
-
-
     .user-cart-form-info-list-item-right {
         flex: 1;
         /* Chia đều không gian */
         display: flex;
         justify-content: flex-end;
     }
-
 }
 
 .user-cart-form-info-table-price {

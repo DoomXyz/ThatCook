@@ -4,14 +4,15 @@ import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
 import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutline, } from "ionicons/icons"; //chỉ import các icon cần dùng
 import "./Admin.scss";
-import { handleLoadAccountInfoApi, handleRegisterApi, handleEditAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
-
 import Spinner from '../../components/Spinner';
-import CreateAccountModal from "./CreateAccountModal";
-import EditAccountModal from "./EditAccountModal";
 
+import { handleLoadAccountInfoApi, handleRegisterApi, handleEditAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
+import { handleGetAllCodesApi } from "../../services/utilitiesServices"
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from "../../store/actions";
+
+import CreateAccountModal from "./CreateAccountModal";
+import EditAccountModal from "./EditAccountModal";
 
 class Admin extends Component {
   constructor(props) {
@@ -20,6 +21,9 @@ class Admin extends Component {
       isLoggedIn: false,
       isLoading: true,
       accountInfo: null,
+      codeGender: [],
+      codeAccountType: [],
+      codeAccountStatus: [],
       loadedAccountInfo: [],
       selectedAccount: null,
       currentPage: 1,
@@ -36,9 +40,77 @@ class Admin extends Component {
   }
   async componentDidMount() {
     await this.handleIsLogin();
+    await this.handleLoadGender();
+    await this.handleLoadAccountType();
+    await this.handleLoadAccountStatus();
     await this.handleLoadAccountInfo();
   }
-
+  handleLoadGender = async () => {
+    try {
+      const codeGender = await handleGetAllCodesApi('Gender');
+      if (!codeGender || codeGender.length === 0) {
+        toast.error("Không thể tải danh sách giới tính!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeGender,
+      });
+    } catch (e) {
+      console.log("Error loading gender code:", e);
+      toast.error("Lỗi khi tải danh sách giới tính!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleLoadAccountType = async () => {
+    try {
+      const codeAccountType = await handleGetAllCodesApi('AccountType');
+      if (!codeAccountType || codeAccountType.length === 0) {
+        toast.error("Không thể tải danh sách quyền hạn!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeAccountType,
+      });
+    } catch (e) {
+      console.log("Error loading accounttype code:", e);
+      toast.error("Lỗi khi tải danh sách quyền hạn!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleLoadAccountStatus = async () => {
+    try {
+      const codeAccountStatus = await handleGetAllCodesApi('AccountStatus');
+      if (!codeAccountStatus || codeAccountStatus.length === 0) {
+        toast.error("Không thể tải trạng thái tài khoản!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeAccountStatus,
+      });
+    } catch (e) {
+      console.log("Error loading accountstatus code:", e);
+      toast.error("Lỗi khi tải trạng thái tài khoản!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -55,6 +127,7 @@ class Admin extends Component {
         this.props.userLogout();
         this.setState({
           accountInfo: null,
+          isLoggedIn: false,
         })
         this.props.navigate("/login")
       }
@@ -315,7 +388,6 @@ class Admin extends Component {
       try {
         await handleLogoutApi();
         this.props.userLogout();
-        this.props.clearCheckOutCart();
         this.setState({
           isLoggedIn: false,
           accountInfo: null,
@@ -335,7 +407,6 @@ class Admin extends Component {
         });
       }
     }
-    await this.countCartItem()
   };
 
   handlePageChange = (page) => {
@@ -401,13 +472,27 @@ class Admin extends Component {
       this.handlePageChange(page);
     }
   };
+  getGenderValue = (code) => {
+    const gender = this.state.codeGender.find(item => item.Code === code);
+    return gender ? gender.CodeValueVI : code;
+  };
+
+  getAccountTypeValue = (code) => {
+    const accountType = this.state.codeAccountType.find(item => item.Code === code);
+    return accountType ? accountType.CodeValueVI : code;
+  };
+
+  getAccountStatusValue = (code) => {
+    const accountStatus = this.state.codeAccountStatus.find(item => item.Code === code);
+    return accountStatus ? accountStatus.CodeValueVI : code;
+  };
 
   render() {
-    const { isLoading, loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages,
+    const { isLoading, loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages, codeGender, codeAccountType, codeAccountStatus,
       isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, tempCurrentPage } = this.state;
+    console.log(codeGender, codeAccountType, codeAccountStatus)
     return (
       <div className="admin-container">
-        <ToastContainer />
         <CreateAccountModal
           isOpen={isShowCreateAccountModal}
           toggleFromModal={this.toggleCreateUserModal}
@@ -419,6 +504,7 @@ class Admin extends Component {
           selectedAccountID={selectedAccount}
           handleEditAccountFromModal={this.handleEditAccountFromModal}
         />
+        <ToastContainer />
         {isLoading ? <Spinner /> : (
           <div>
             <div className="admin-action">
@@ -546,11 +632,11 @@ class Admin extends Component {
                           <td>{item.Email}</td>
                           <td>{item.AccountName}</td>
                           <td>{item.UserName}</td>
-                          <td>{item.Gender}</td>
+                          <td>{this.getGenderValue(item.Gender)}</td>
                           <td>{item.Phone}</td>
                           <td>{item.Address}</td>
-                          <td>{item.AccountType}</td>
-                          <td>{item.AccountStatus}</td>
+                          <td>{this.getAccountTypeValue(item.AccountType)}</td>
+                          <td>{this.getAccountStatusValue(item.AccountStatus)}</td>
                           <td>
                             {new Date(item.CreatedAt).toLocaleDateString("vi-VN")}
                           </td>

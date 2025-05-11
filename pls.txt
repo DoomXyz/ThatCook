@@ -19,7 +19,7 @@ import OwnerEditProductModal from "./OwnerEditProductModal";
 import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
 import OwnerEditBannerModal from "./OwnerEditBannerModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
-import { handleLoadProductInfoApi } from "../../services/productServices";
+import { handleLoadSaleProductInfoApi } from "../../services/productServices";
 import {
   handleGetAllCodesApi,
   handleLoadBanner,
@@ -171,7 +171,7 @@ class Owner extends Component {
       sortOrder,
     } = this.state;
     try {
-      let response = await handleLoadProductInfoApi({
+      let response = await handleLoadSaleProductInfoApi({
         page: productPage,
         limit: itemsPerPageProducts,
         search: searchQuery,
@@ -423,7 +423,6 @@ class Owner extends Component {
 
     return (
       <div className="owner-body">
-        <ToastContainer />
         <OwnerCreateProductModal
           isOpen={isShowCreateProductModal}
           toggleFromModal={this.toggleCreateProductModal}

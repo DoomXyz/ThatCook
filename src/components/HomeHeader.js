@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { cart, person, informationCircleOutline, logOutOutline, } from "ionicons/icons";
 import "./HomeHeader.scss";
 import "../styles/ToastifyOverride.scss";
-import { handleLogoutApi } from "../services/accountServices";
+import { handleGetAccountInfoApi, handleLogoutApi } from "../services/accountServices";
 import { handleGetCartApi } from "../services/cartServices";
 import { handleGetAllCodesApi } from "../services/utilitiesServices"
 import { checkLoginStatus } from '../utils/pakage';
@@ -44,6 +44,9 @@ class HomeHeader extends Component {
     if (prevProps.triggerCountCartItem !== this.props.triggerCountCartItem) {
       await this.countCartItem();
     }
+    if (prevProps.triggerLoadInformation !== this.props.triggerLoadInformation) {
+      await this.handleLoadInformation();
+    }
   }
 
   handleIsLogin = async () => {
@@ -73,12 +76,14 @@ class HomeHeader extends Component {
   handleLoadInformation = async () => {
     const { isLoggedIn, accountInfo } = this.state
     if (isLoggedIn) {
-      const loadedUserImage = accountInfo.UserImage ? accountInfo.UserImage : defUserImage
-      const loadedUserName = accountInfo.UserName ? accountInfo.UserName : "Người dùng";
-      this.setState({
-        userImage: loadedUserImage,
-        userName: loadedUserName
-      })
+      const response = await handleGetAccountInfoApi(accountInfo.AccountID)
+      if (response && response.errCode === 0) {
+        const accountInfo = response.data
+        this.setState({
+          userImage: accountInfo.UserImage || defUserImage,
+          userName: accountInfo.UserName,
+        })
+      }
     }
   }
 
@@ -215,7 +220,6 @@ class HomeHeader extends Component {
     const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codePetType } = this.state;
     return (
       <div className="body-container">
-        <ToastContainer />
         <div className="header-container">
           <div className="header-top">
             <div

@@ -12,7 +12,7 @@ import {
 } from "../../services/productServices";
 import {
   handleGetAllCodesApi,
-  uploadImageToCloudinary,
+  uploadImageToCloudinaryApi,
 } from "../../services/utilitiesServices";
 
 class OwnerEditProductModal extends Component {
@@ -357,7 +357,7 @@ class OwnerEditProductModal extends Component {
       for (let img of hinhAnh) {
         if (img.file) {
           try {
-            const response = await uploadImageToCloudinary(img.file);
+            const response = await uploadImageToCloudinaryApi(img.file);
             if (response.errCode === 0) {
               uploadedImages.push({
                 public_id: response.data.public_id,

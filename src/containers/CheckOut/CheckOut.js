@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "./CheckOut.scss";
 import Spinner from '../../components/Spinner';
 import Header from "../../components/HomeHeader";
@@ -11,7 +11,7 @@ import { handleGetCartDetailApi } from "../../services/cartServices";
 import { handleCreateInvoiceApi } from "../../services/invoiceServices"
 import { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi } from "../../services/utilitiesServices";
 import { checkLoginStatus } from '../../utils/pakage';
-import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogout, } from "../../store/actions";
+import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout, } from "../../store/actions";
 
 import cart from "../../assets/icons/shopping-cart.png";
 import card from "../../assets/icons/cheque.png";
@@ -561,7 +561,7 @@ class CheckOut extends Component {
 
   render() {
     const { isLoading, receiverName, receiverPhone, receiverAddress, tempCouponCode, codePaymentType, codeShippingMethod, selectedPaymentType, selectedShippingMethod,
-      loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced, } = this.state
+      discountAmout, loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced, } = this.state
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
     const endIndex = startIndex + limitProductPerQuery;
@@ -574,6 +574,7 @@ class CheckOut extends Component {
           userInfo={this.props.userInfo}
           triggerCountCartItem={this.state.triggerCountCartItem}
         />
+        <ToastContainer />
         {isLoading ? <Spinner /> : (
           <div>
             <div className="container-checkout">
@@ -899,6 +900,19 @@ class CheckOut extends Component {
                             </div>
                           </td>
                         </tr>
+                        {discountAmout > 0 ? (
+                          <tr>
+                            <td colSpan="6">Số tiền giảm</td>
+                            <td>
+                              <div className="f">
+                                <>
+                                  <p>-{parseFloat(discountAmout)}</p>
+                                  <sup>đ</sup>
+                                </>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : ""}
                         <tr>
                           <td colSpan="6" style={{ fontWeight: "bold" }}>
                             TỔNG THANH TOÁN
@@ -939,7 +953,6 @@ class CheckOut extends Component {
           </div>
         )}
         <Footer />
-
       </div>
     );
   }
@@ -954,6 +967,7 @@ const mapDispatchToProps = (dispatch) => ({
   clearCart: () => dispatch(clearCart()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
   saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
+  userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
 });
 

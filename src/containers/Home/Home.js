@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
 import { searchOutline, cart } from "ionicons/icons";
@@ -9,7 +9,8 @@ import "./Home.scss";
 import Spinner from '../../components/Spinner';
 import { handleLogoutApi } from "../../services/accountServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
-import { handleLoadProductInfoApi, handleGetProductDetailInfoApi, handleGetBannerInfoApi } from "../../services/productServices";
+import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi } from "../../services/productServices";
+import { handleGetBannerInfoApi } from "../../services/bannerServices"
 import { handleAddToCartApi, handleGetCartApi } from "../../services/cartServices";
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout, addToCart, clearCart, saveCartForCheckOut } from "../../store/actions";
@@ -101,7 +102,7 @@ class Home extends Component {
   handleLoadProductInfo = async () => {
     const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state
     try {
-      const response = await handleLoadProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue)
+      const response = await handleLoadSaleProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue)
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
@@ -401,6 +402,8 @@ class Home extends Component {
           userInfo={this.props.userInfo}
           triggerCountCartItem={this.state.triggerCountCartItem}
         />
+        <ToastContainer />
+
         {isLoading ? <Spinner /> : (
           <div>
             <div className="home-banner">

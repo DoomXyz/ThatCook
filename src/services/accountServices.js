@@ -33,8 +33,8 @@ const handleGetThongTinThanhToan = (mataikhoan) => {
   return axios.get(`/api/get-thongtin-thanhtoan?mataikhoan=${mataikhoan}`);
 };
 
-const handleChangePassword = (mataikhoan, password, newpassword) => {
-  return axios.put("/api/change-password", { mataikhoan, password, newpassword })
+const handleChangePasswordApi = (accountid, password, newpassword) => {
+  return axios.put("/api/change-password", { accountid, password, newpassword })
 }
 
 export {
@@ -46,7 +46,7 @@ export {
   handleLoadAccountInfoApi,
   handleChangeAccountStatusApi,
   handleEditAccountInfoApi,
+  handleChangePasswordApi,
 
   handleGetThongTinThanhToan,
-  handleChangePassword,
 };

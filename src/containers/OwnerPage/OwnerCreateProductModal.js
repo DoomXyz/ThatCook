@@ -8,7 +8,7 @@ import "./OwnerCreateProductModal.scss";
 import OwnerEditDetailModal from "./OwnerEditDetailModal";
 import {
   handleGetAllCodesApi,
-  uploadImageToCloudinary,
+  uploadImageToCloudinaryApi,
 } from "../../services/utilitiesServices";
 
 class OwnerCreateProductModal extends Component {
@@ -299,7 +299,7 @@ class OwnerCreateProductModal extends Component {
       const failedImages = [];
       for (let img of hinhAnh) {
         try {
-          const response = await uploadImageToCloudinary(img.file);
+          const response = await uploadImageToCloudinaryApi(img.file);
           if (response.errCode === 0) {
             uploadedImages.push({
               public_id: response.data.public_id,
