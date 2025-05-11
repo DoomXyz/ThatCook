@@ -545,7 +545,7 @@ module.exports = {
                     model: 'Product',
                     key: 'ProductID',
                 },
-                onDelete: 'SET NULL',
+                onDelete: 'CASCADE',
             },
         });
 
