@@ -437,21 +437,27 @@ class Owner extends Component {
     //   if (response && response.errCode === 0) {
     //     await this.handleLoadProductInfo();
     //     this.setState({ isShowEditProductModal: false });
-    //     toast.success("Cập nhật sản phẩm thành công!");
+    //     toast.success("Product updated successfully!", {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true,
+    //     });
     //   } else {
-    //     const errMessage =
-    //       response && response.errMessage
-    //         ? response.errMessage
-    //         : "Lỗi không xác định từ server!";
-    //     toast.error(errMessage);
+    //     const errMessage = response?.errMessage || "Unknown server error!";
+    //     toast.error(errMessage, {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true,
+    //     });
     //   }
     // } catch (e) {
-    //   console.error("Lỗi chi tiết khi gọi API:", e);
-    //   const errMessage =
-    //     e.response && e.response.data && e.response.data.errMessage
-    //       ? e.response.data.errMessage
-    //       : e.message || "Lỗi kết nối hoặc server không phản hồi!";
-    //   toast.error(errMessage);
+    //   console.error("Error updating product:", e);
+    //   const errMessage = e.response?.data?.errMessage || e.message || "Connection or server error!";
+    //   toast.error(errMessage, {
+    //     position: "top-right",
+    //     autoClose: 500,
+    //     closeOnClick: true,
+    //   });
     // }
   };
   handleSelectedInvoice = (invoiceid) => {
@@ -600,8 +606,6 @@ class Owner extends Component {
       toast.error(errMessage);
     }
   };
-
-
 
   render() {
     const { loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
@@ -1214,7 +1218,7 @@ class Owner extends Component {
         <EditProductModal
           isOpen={isShowEditProductModal}
           toggleFromModal={this.toggleEditProductModal}
-          product={selectedProduct}
+          selectedProductID={selectedProduct}
           handleEditProductFromModal={this.handleEditProductFromModal}
         />
         <OwnerCreateBannerModal

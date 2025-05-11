@@ -5,12 +5,16 @@ const handleLoadProductInfoApi = (page, limit, search, filter, sort) => {
     return axios.get(`/api/load-productinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
+const handleGetProductInfoApi = (productid) => {
+    return axios.get(`/api/get-productinfo?productid=${productid}`);
+}
+
 const handleLoadSaleProductInfoApi = (page, limit, search, filter, sort) => {
     return axios.get(`/api/load-sale-productinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
-const handleGetProductInfoApi = (productid) => {
-    return axios.get(`/api/get-productinfo?productid=${productid}`);
+const handleGetSaleProductInfoApi = (productid) => {
+    return axios.get(`/api/get-sale-productinfo?productid=${productid}`);
 }
 
 const handleGetProductDetailInfoApi = (productid, productdetailid) => {
@@ -35,8 +39,9 @@ const handleUpdateProduct = (productInfo) => {
 
 export {
     handleLoadProductInfoApi,
-    handleLoadSaleProductInfoApi,
     handleGetProductInfoApi,
+    handleLoadSaleProductInfoApi,
+    handleGetSaleProductInfoApi,
     handleGetProductDetailInfoApi,
 
     handleGetProductDetailsByMASANPHAM,

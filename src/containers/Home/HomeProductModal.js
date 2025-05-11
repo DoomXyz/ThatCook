@@ -6,7 +6,7 @@ import "./HomeProductModal.scss";
 import { toast } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
 import { addToCart } from "../../store/actions";
-import { handleGetProductInfoApi } from "../../services/productServices";
+import { handleGetSaleProductInfoApi } from "../../services/productServices";
 
 class HomeProductModal extends Component {
   constructor(props) {
@@ -47,7 +47,7 @@ class HomeProductModal extends Component {
 
   loadProductDetails = async (productid) => {
     try {
-      const response = await handleGetProductInfoApi(productid);
+      const response = await handleGetSaleProductInfoApi(productid);
       if (response && response.errCode === 0) {
         const loadedInfo = response.data;
         const loadedProductImage = loadedInfo.Image;
