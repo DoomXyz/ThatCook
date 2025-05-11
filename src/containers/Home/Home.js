@@ -19,7 +19,8 @@ import HomeProductModal from "./HomeProductModal";
 
 import cat from "../../assets/icons/cat.png";
 import dog from "../../assets/icons/golden-retriever.png";
-import defBannerImage from "../../assets/bannerimgs/defaultbanner.jpg";
+
+const defBannerImage = "https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/defaultbanner_p9kvda.webp";
 
 class Home extends Component {
   constructor(props) {
