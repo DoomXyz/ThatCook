@@ -111,9 +111,7 @@ class Register extends Component {
         autoClose: 500,
         closeOnClick: true
       });
-      this.setState({
-        isLoading: false
-      })
+      this.setState({ isLoading: false });
       return;
     }
     try {

@@ -280,11 +280,13 @@ class CheckOut extends Component {
   }
 
   handleApplyCouponCode = async () => {
-    const { tempCouponCode, couponCode } = this.state
+    const { tempCouponCode, couponCode, totalPriceAfterPromo, selectedShippingMethod, codeShippingMethod } = this.state
+    const shipValue = parseFloat(codeShippingMethod.find(method => method.Code === selectedShippingMethod).ExtraValue)
+    let finalPrice = totalPriceAfterPromo + shipValue
     if (tempCouponCode !== couponCode) {
       try {
         const response = await handleGetCouponApi(tempCouponCode);
-        if (response && response.data.errCode === 0) {
+        if (response && response.data.errCode === 0 && parseFloat(finalPrice) > parseFloat(response.data.data.MinOrderValue)) {
           this.setState({ isLoading: true });
           toast.success("Áp dụng mã giảm giá thành công!", {
             position: "top-right",
@@ -293,7 +295,7 @@ class CheckOut extends Component {
           });
           this.setState({ couponCode: tempCouponCode, isLoading: false })
         } else {
-          toast.error(response.data.errMessage, {
+          toast.error("Áp dụng mã giảm giá thất bại", {
             position: "top-right",
             autoClose: 500,
             closeOnClick: true
