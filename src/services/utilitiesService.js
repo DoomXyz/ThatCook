@@ -336,7 +336,7 @@ let checkCoupon = (couponcode, price) => {
                 })
                 return;
             }
-            if (price < parseFloat(couponInfo.MinOrderValue)) {
+            if (parseFloat(price) < parseFloat(couponInfo.MinOrderValue)) {
                 resolve({
                     errCode: 2,
                     errMessage: "Không thể áp dụng mã giảm giá!",

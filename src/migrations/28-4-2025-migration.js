@@ -627,7 +627,7 @@ module.exports = {
                 allowNull: false,
             },
             DiscountAmount: {
-                type: Sequelize.DECIMAL(5, 2),
+                type: Sequelize.DECIMAL(10, 2),
                 allowNull: true,
             },
             TotalPayment: {

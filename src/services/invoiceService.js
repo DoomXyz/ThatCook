@@ -364,6 +364,7 @@ let getAccountInvoiceInfo = (accountid) => {
                     "PaymentStatus",
                     "ShippingStatus",
                 ],
+                order: [['CreatedAt', 'DESC']],
                 raw: true,
             });
             if (data) {
