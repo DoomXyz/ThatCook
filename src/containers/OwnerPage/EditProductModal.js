@@ -5,21 +5,27 @@ import { IonIcon } from "@ionic/react";
 import { trashOutline, saveOutline } from "ionicons/icons";
 import { toast } from "react-toastify";
 import OwnerEditDetailModal from "./OwnerEditDetailModal";
-import "./OwnerEditProductModal.scss";
-import {
-  handleGetProductDetailsByMASANPHAM,
-  handleUpdateProduct,
-} from "../../services/productServices";
-import {
-  handleGetAllCodesApi,
-  uploadImageToCloudinaryApi,
-} from "../../services/utilitiesServices";
+import "./EditProductModal.scss";
+import { handleGetProductDetailsByMASANPHAM, handleUpdateProduct } from "../../services/productServices";
+import { handleGetAllCodesApi, uploadImageToCloudinaryApi, } from "../../services/utilitiesServices";
 
-class OwnerEditProductModal extends Component {
+class EditProductModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isShowEditDetailModal: false,
+      loadedProductInfo: null,
+      loadedProductDetailInfo: null,
+      selectedProductID: null,
+      codePetType: [],
+      codeProductType: [],
+      productname: "",
+      producttype: "",
+      pettype: [],
+      productprice: "",
+      productimage: "",
+      productdescription: "",
+
       masanpham: "",
       tenSanPham: "",
       productType: "",
@@ -592,4 +598,4 @@ class OwnerEditProductModal extends Component {
   }
 }
 
-export default OwnerEditProductModal;
+export default EditProductModal;

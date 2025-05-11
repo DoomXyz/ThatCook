@@ -7,7 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "./Owner.scss";
 import Spinner from "../../components/Spinner";
 import OwnerCreateProductModal from "./OwnerCreateProductModal";
-import OwnerEditProductModal from "./OwnerEditProductModal";
+import EditProductModal from "./EditProductModal";
 import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
 import OwnerEditBannerModal from "./OwnerEditBannerModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
@@ -420,11 +420,39 @@ class Owner extends Component {
     }
   };
   handleSelectedProduct = (productid) => {
-    console.log(productid)
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
+    this.setState({
+      selectedProduct: productid,
+      isShowEditProductModal: true,
+    });
+  };
+  toggleEditProductModal = () => {
+    this.setState({
+      isShowEditProductModal: !this.state.isShowEditProductModal,
+    });
+  };
+  handleEditProductFromModal = async (productInfo) => {
+    console.log(productInfo)
+    // try {
+    //   const response = await handleUpdateProduct(productInfo);
+    //   if (response && response.errCode === 0) {
+    //     await this.handleLoadProductInfo();
+    //     this.setState({ isShowEditProductModal: false });
+    //     toast.success("Cập nhật sản phẩm thành công!");
+    //   } else {
+    //     const errMessage =
+    //       response && response.errMessage
+    //         ? response.errMessage
+    //         : "Lỗi không xác định từ server!";
+    //     toast.error(errMessage);
+    //   }
+    // } catch (e) {
+    //   console.error("Lỗi chi tiết khi gọi API:", e);
+    //   const errMessage =
+    //     e.response && e.response.data && e.response.data.errMessage
+    //       ? e.response.data.errMessage
+    //       : e.message || "Lỗi kết nối hoặc server không phản hồi!";
+    //   toast.error(errMessage);
+    // }
   };
   handleSelectedInvoice = (invoiceid) => {
     console.log(invoiceid)
@@ -521,16 +549,6 @@ class Owner extends Component {
     });
   };
 
-  toggleEditProductModal = (product = null) => {
-    this.setState({
-      isShowEditProductModal: !this.state.isShowEditProductModal,
-      selectedProduct: product,
-    });
-    if (product) {
-      console.log("MASANPHAM:", product.MASANPHAM);
-    }
-  };
-
   toggleCreateBannerModal = () => {
     this.setState({
       isShowCreateBannerModal: !this.state.isShowCreateBannerModal,
@@ -583,36 +601,15 @@ class Owner extends Component {
     }
   };
 
-  handleSaveProduct = async (productInfo) => {
-    try {
-      const response = await handleUpdateProduct(productInfo);
-      if (response && response.errCode === 0) {
-        await this.handleLoadProductInfo();
-        this.setState({ isShowEditProductModal: false });
-        toast.success("Cập nhật sản phẩm thành công!");
-      } else {
-        const errMessage =
-          response && response.errMessage
-            ? response.errMessage
-            : "Lỗi không xác định từ server!";
-        toast.error(errMessage);
-      }
-    } catch (e) {
-      console.error("Lỗi chi tiết khi gọi API:", e);
-      const errMessage =
-        e.response && e.response.data && e.response.data.errMessage
-          ? e.response.data.errMessage
-          : e.message || "Lỗi kết nối hoặc server không phản hồi!";
-      toast.error(errMessage);
-    }
-  };
+
 
   render() {
     const { loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
       loadedInvoiceInfo, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
       loadedBannerInfo, loadedBannerStatusFilterValue, isLoading,
       actionPage, searchValue, sortValue, filterValue, dateFilterValue, currentPage, tempCurrentPage, totalPages,
-      isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal, } = this.state
+      isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal,
+      selectedProduct } = this.state
     const renderSection = () => {
       switch (actionPage) {
         case 1:
@@ -1214,11 +1211,11 @@ class Owner extends Component {
           toggleFromModal={this.toggleCreateProductModal}
           createNewProduct={this.createNewProduct}
         />
-        <OwnerEditProductModal
+        <EditProductModal
           isOpen={isShowEditProductModal}
           toggleFromModal={this.toggleEditProductModal}
-          product={this.state.selectedProduct}
-          handleSaveProduct={this.handleSaveProduct}
+          product={selectedProduct}
+          handleEditProductFromModal={this.handleEditProductFromModal}
         />
         <OwnerCreateBannerModal
           isOpen={isShowCreateBannerModal}
