@@ -2,9 +2,12 @@ import React, { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
+
 import { keyOutline, home, mailOutline, eyeOffOutline, eyeOutline, call, person, maleFemaleOutline, location, } from "ionicons/icons";
-import Spinner from '../../components/Spinner';
+
 import "./Register.scss";
+import Spinner from '../../components/Spinner';
+
 import { handleRegisterApi } from "../../services/accountServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices"
 

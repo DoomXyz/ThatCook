@@ -1,14 +1,16 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
-import Spinner from '../../components/Spinner';
+
 import "./Cart.scss";
+import Spinner from '../../components/Spinner';
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 
 import { handleLogoutApi, } from "../../services/accountServices";
 import { handleGetProductDetailInfoApi } from "../../services/productServices";
 import { handleGetCartApi, handleGetCartDetailApi, handleGetDetailListApi, handleUpdateQuantityApi, handleRemoveFromCartApi, handleUpdateCartDetailApi, handleMergeCartDetailApi } from "../../services/cartServices";
+
 import { checkLoginStatus } from '../../utils/pakage';
 import { updateItemQuantity, removeFromCart, updateCartDetail, mergeCartDetail, saveCartForCheckOut, clearCheckOutCart, userLogout } from "../../store/actions";
 

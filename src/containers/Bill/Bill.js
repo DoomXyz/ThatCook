@@ -6,7 +6,7 @@ import { handleGetOrderDetails } from "../../services/billService";
 import logo from "../../assets/images/logo1.png";
 import Header from "../../components/HomeHeader";
 import {
-  handleGetProductInfoApi,
+  handleGetSaleProductInfoApi,
   handleGetProductDetailInfoApi,
 } from "../../services/productServices";
 import { jsPDF } from "jspdf";
@@ -73,7 +73,7 @@ class BillClass extends Component {
         const detailNames = {};
 
         for (const item of orderDetails.orderInfo) {
-          const productResponse = await handleGetProductInfoApi(item.masanpham);
+          const productResponse = await handleGetSaleProductInfoApi(item.masanpham);
           if (productResponse && productResponse.errCode === 0) {
             productNames[item.masanpham] = productResponse.data.TenSanPham;
           } else {

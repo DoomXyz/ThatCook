@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
+import { connect } from "react-redux";
+
 import "./CheckOut.scss";
 import Spinner from "../../components/Spinner";
 import Header from "../../components/HomeHeader";
@@ -11,20 +12,11 @@ import {
   handleLogoutApi,
 } from "../../services/accountServices";
 import { handleGetCartDetailApi } from "../../services/cartServices";
-import { handleCreateInvoiceApi } from "../../services/invoiceServices";
-import {
-  handleGetAllCodesApi,
-  handleCheckCouponApi,
-  handleGetCouponApi,
-} from "../../services/utilitiesServices";
-import { checkLoginStatus } from "../../utils/pakage";
-import {
-  clearCart,
-  clearCheckOutCart,
-  saveCartForCheckOut,
-  userLogin,
-  userLogout,
-} from "../../store/actions";
+import { handleCreateInvoiceApi } from "../../services/invoiceServices"
+import { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi } from "../../services/utilitiesServices";
+
+import { checkLoginStatus } from '../../utils/pakage';
+import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout, } from "../../store/actions";
 
 import cart from "../../assets/icons/shopping-cart.png";
 import card from "../../assets/icons/cheque.png";

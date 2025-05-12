@@ -1,6 +1,5 @@
 import axios from "axios";
 
-//converted
 const handleGetAllCodesApi = async (type) => {
     try {
         const response = await axios.get(`/api/get-allcodes?type=${type}`);
@@ -17,12 +16,6 @@ const handleCheckCouponApi = async (couponcode, price) => {
 const handleGetCouponApi = async (couponcode) => {
     return axios.get(`/api/get-couponinfo?couponcode=${couponcode}`)
 }
-
-//non converted
-const handleLoadBanner = ({ page, limit, search, sort }) => {
-    return axios.get(`/api/load-banner?page=${page}&limit=${limit}&search=${search || ''}&sort=${sort || '0'}`);
-};
-
 
 const uploadImageToCloudinaryApi = async (file) => {
     console.log("Bắt đầu upload ảnh lên Cloudinary:", file.name, file.size);
@@ -67,7 +60,5 @@ export {
     handleGetAllCodesApi,
     handleCheckCouponApi,
     handleGetCouponApi,
-
-    handleLoadBanner,
     uploadImageToCloudinaryApi
 };

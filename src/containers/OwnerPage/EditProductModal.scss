@@ -1,6 +1,7 @@
 .f {
   display: flex;
 }
+
 .create-product-modal {
   .modal-dialog {
     max-width: 700px;
@@ -12,11 +13,18 @@
       p {
         margin: 5px;
       }
-      .modal-content-edit-img {
-        .modal-content-edit-img-item {
+      .modal-content-add-img {
+        .f {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+        .modal-content-add-img-item {
+          position: relative;
           img {
             max-width: 100px;
             margin-right: 10px;
+            cursor: grab; /* Gợi ý kéo thả */
           }
           .delete-img {
             position: absolute;
@@ -25,13 +33,24 @@
             height: 30px;
             width: 30px;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
           }
         }
-
-        .edit-img {
+        .add-img {
           width: 100px;
           height: 100px;
           background-color: aliceblue;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          .add-img-label {
+            font-size: 2rem;
+            cursor: pointer;
+          }
         }
       }
       .modal-content-edit-name {
@@ -42,15 +61,14 @@
           border-radius: 5px;
         }
       }
-      .modal-content-edit-category {
+      .modal-content-add-category {
         select {
           width: 100px;
-
           border-radius: 5px;
           padding: 5px;
         }
       }
-      .modal-content-edit-main-price {
+      .modal-content-add-main-price {
         input {
           width: 203.1px;
           padding: 5px;
@@ -58,21 +76,62 @@
           border-radius: 5px;
         }
       }
-      .modal-content-edit-sale {
-        input {
-          width: 203.1px;
-          padding: 5px;
-          padding-right: 0;
-          border-radius: 5px;
+      .modal-content-add-type-price {
+        .product-detail-table {
+          margin-top: 1rem;
+          .table {
+            width: 100%;
+            border-collapse: collapse;
+            th,
+            td {
+              border: 1px solid #ccc;
+              padding: 0.5rem;
+              text-align: left;
+            }
+            th {
+              background: #f8f8f8;
+            }
+            input,
+            select {
+              width: 100%;
+              padding: 0.3rem;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+            }
+            .edit-detail,
+            .save-detail {
+              padding: 0.3rem 0.6rem;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+            }
+            .edit-detail {
+              background: #007bff;
+              color: white;
+            }
+            .save-detail {
+              background: #28a745;
+              color: white;
+            }
+            .add-detail-btn {
+              background: #007bff;
+              color: white;
+              border: none;
+              padding: 0.5rem 1rem;
+              cursor: pointer;
+              border-radius: 5px;
+            }
+            .add-detail-btn.cancel {
+              background: #dc3545;
+            }
+          }
+        }
+        .add-detail {
+          display: block;
+          margin-top: 0.5rem;
         }
       }
-      .modal-content-edit-type-price-stock {
-        button {
-          border-radius: 5px;
-          background-color: aliceblue;
-        }
-      }
-      .modal-content-edit-info {
+      .modal-content-add-info {
         textarea {
           width: 662px;
           padding: 5px;

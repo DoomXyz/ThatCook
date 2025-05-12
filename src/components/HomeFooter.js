@@ -1,11 +1,12 @@
 import React, { Component } from "react";
-import { IonIcon } from "@ionic/react"; //import thư viện icon
-import { call } from "ionicons/icons";
+
 import "./HomeFooter.scss";
+
 import fb from "../assets/icons/social-fb.png";
 import tiktok from "../assets/icons/social-media.png";
 import insta from "../assets/icons/play.png";
 import phone from "../assets/icons/phone-call.png";
+
 class Footer extends Component {
   render() {
     return (

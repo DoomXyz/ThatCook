@@ -8,7 +8,7 @@ import { bagAdd, searchOutline } from "ionicons/icons";
 import { userLogout, addToCart, clearCart } from "../../store/actions";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 import { handleVerifyTokenApi, handleLogoutApi } from "../../services/accountServices";
-import { handleGetProductInfoApi, getChiTietSanPham } from "../../services/productServices";
+import { handleGetSaleProductInfoApi, getChiTietSanPham } from "../../services/productServices";
 import { handleAddToCartApi } from "../../services/cartServices"
 
 import "./Home.scss";
@@ -129,7 +129,7 @@ class Home extends Component {
   loadAllSanPham = async () => {
     const { currentPage, itemsPerPage, searchQuery, filters, sortOrder } = this.state;
     try {
-      let response = await handleGetProductInfoApi({
+      let response = await handleGetSaleProductInfoApi({
         page: currentPage,
         limit: itemsPerPage,
         search: searchQuery,
