@@ -34,10 +34,6 @@ import EditProductModal from "./EditProductModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
 import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
 import EditBannerModal from "./EditBannerModal";
-<<<<<<< HEAD
-
-=======
->>>>>>> 22154bb710598715c32305c21c28ac49830a2d59
 
 class Owner extends Component {
   constructor(props) {
@@ -625,61 +621,6 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-<<<<<<< HEAD
-    this.setState({ isLoading: false })
-  };
-  handleSelectedBanner = (bannerid) => {
-    this.setState({
-      selectedBanner: bannerid,
-      isShowEditBannerModal: true,
-    });
-  };
-  toggleEditBannerModal = () => {
-    this.setState({
-      isShowCreateProductModal: !this.state.isShowCreateProductModal,
-    });
-  };
-  handleEditBannerFromModal = async (bannerInfo) => {
-    console.log(bannerInfo)
-    // this.setState({ isLoading: true })
-    // try {
-    //   const response = await handleChangeProductInfoApi(productInfo);
-    //   if (response && response.errCode === 0) {
-    //     toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //     await this.handleLoadProductInfo();
-    //     this.setState({
-    //       isShowEditProductModal: false,
-    //     })
-    //   } else {
-    //     const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
-    //     toast.error(errMessage, {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.error("Edit:", e);
-    //   toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
-    //     position: "top-right",
-    //     autoClose: 500,
-    //     closeOnClick: true
-    //   });
-    // }
-    // this.setState({ isLoading: false })
-  };
-  handleSelectedInvoice = (invoiceid) => {
-    console.log(invoiceid)
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
-  };
-=======
     this.setState({ isLoading: false });
   };
   handleSelectedBanner = (bannerid) => {
@@ -733,7 +674,6 @@ class Owner extends Component {
     //   isShowHomeProductModal: true,
     // });
   };
->>>>>>> 22154bb710598715c32305c21c28ac49830a2d59
 
   handleChangeBannerStatus = (bannerid) => {
     console.log(bannerid);
@@ -837,14 +777,6 @@ class Owner extends Component {
   };
 
   render() {
-<<<<<<< HEAD
-    const { loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
-      loadedInvoiceInfo, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
-      loadedBannerInfo, loadedBannerStatusFilterValue, isLoading,
-      actionPage, searchValue, sortValue, filterValue, dateFilterValue, currentPage, tempCurrentPage, totalPages,
-      isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal,
-      selectedProduct, selectedBanner } = this.state
-=======
     const {
       loadedProductInfo,
       loadedProductTypeFilterValue,
@@ -871,7 +803,6 @@ class Owner extends Component {
       selectedProduct,
       selectedBanner,
     } = this.state;
->>>>>>> 22154bb710598715c32305c21c28ac49830a2d59
     const renderSection = () => {
       switch (actionPage) {
         case 1:
