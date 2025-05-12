@@ -92,6 +92,8 @@ let initAPIRoutes = (app) => {
 
     router.get("/api/load-bannerinfo", bannerController.handleLoadBannerInfo);
     router.get("/api/get-bannerinfo", bannerController.handleGetBannerInfo);
+    router.post("/api/create-banner", bannerController.handleCreateBanner);
+    router.put("/api/change-bannerinfo", bannerController.handleChangeBannerInfo);
 
     router.get("/api/load-invoiceinfo", invoiceController.handleLoadInvoiceInfo);
     //veterinarian

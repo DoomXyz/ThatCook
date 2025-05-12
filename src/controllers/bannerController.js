@@ -48,8 +48,38 @@ let handleGetBannerInfo = async (req, res) => {
     }
 };
 
+let handleCreateBanner = async (req, res) => {
+    try {
+        let response = await bannerService.createBanner(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: 'Lỗi từ server: ' + e.message,
+            data: null
+        });
+    }
+}
+
+let handleChangeBannerInfo = async (req, res) => {
+    try {
+        let response = await bannerService.changeBannerInfo(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: 'Lỗi từ server: ' + e.message,
+            data: null
+        });
+    }
+}
+
 module.exports = {
     handleGetSaleBannerInfo,
     handleLoadBannerInfo,
     handleGetBannerInfo,
+    handleCreateBanner,
+    handleChangeBannerInfo,
 }

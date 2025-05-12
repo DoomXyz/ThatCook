@@ -2,6 +2,58 @@ import db from "../models/index";
 import { Op } from "sequelize";
 import { checkBannerStatus } from "./utilitiesService";
 
+let validateBannerInput = async (bannerInfo) => {
+    if (!bannerInfo.BannerImage || !bannerInfo.BannerImage.trim()) {
+        return {
+            errCode: 1,
+            errMessage: "Hình ảnh banner không được để trống!",
+            data: null,
+        };
+    }
+    if (!bannerInfo.BannerStatus) {
+        return {
+            errCode: 1,
+            errMessage: "Trạng thái banner không được để trống!",
+            data: null,
+        };
+    } else {
+        const validBannerStatus = await checkBannerStatus(bannerInfo.BannerStatus);
+        if (!validBannerStatus) {
+            return {
+                errCode: 1,
+                errMessage: `Trạng thái banner ${bannerInfo.BannerStatus} không hợp lệ!`,
+                data: null,
+            };
+        }
+    }
+    if (!bannerInfo.ProductID) {
+        return {
+            errCode: 1,
+            errMessage: "Mã sản phẩm không được để trống!",
+            data: null,
+        };
+    } else {
+        const product = await db.Product.findOne({
+            where: { ProductID: bannerInfo.ProductID },
+        });
+        if (!product) {
+            return {
+                errCode: 1,
+                errMessage: `Sản phẩm ${bannerInfo.ProductID} không tồn tại!`,
+                data: null,
+            };
+        }
+    }
+    if (bannerInfo.HiddenAt && isNaN(new Date(bannerInfo.HiddenAt).getTime())) {
+        return {
+            errCode: 1,
+            errMessage: "Ngày ẩn không hợp lệ!",
+            data: null,
+        };
+    }
+    return null;
+};
+
 let updateHideBanner = () => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -314,8 +366,120 @@ let getBannerInfo = (bannerid) => {
     });
 };
 
+let createBanner = (bannerInfo) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!bannerInfo) {
+                resolve({
+                    errCode: -1,
+                    errMessage: "Thiếu tham số!",
+                    data: null,
+                });
+                return;
+            }
+
+            let isValidateInput = await validateBannerInput(bannerInfo);
+            if (isValidateInput) {
+                resolve(isValidateInput);
+                return;
+            }
+            const banner = await db.Banner.create({
+                BannerImage: bannerInfo.BannerImage.trim(),
+                CreatedAt: new Date(),
+                HiddenAt: bannerInfo.HiddenAt ? new Date(bannerInfo.HiddenAt) : null,
+                BannerStatus: bannerInfo.BannerStatus,
+                ProductID: bannerInfo.ProductID,
+            });
+            resolve({
+                errCode: 0,
+                errMessage: "Tạo banner thành công!",
+                data: null,
+            });
+        } catch (e) {
+            console.log("Error in createBanner: ", e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi tạo banner: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
+let changeBannerInfo = (bannerInfo) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!bannerInfo || !bannerInfo.BannerID) {
+                resolve({
+                    errCode: -1,
+                    errMessage: "Thiếu tham số!",
+                    data: null,
+                });
+                return;
+            }
+            let isValidateInput = await validateBannerInput(bannerInfo);
+            if (isValidateInput) {
+                resolve(isValidateInput);
+                return;
+            }
+            let banner = await db.Banner.findOne({
+                where: { BannerID: bannerInfo.BannerID },
+                raw: false,
+            });
+            if (!banner) {
+                resolve({
+                    errCode: 2,
+                    errMessage: "Banner không tồn tại!",
+                    data: null,
+                });
+                return;
+            }
+            let isUpdated = false;
+            if (bannerInfo.BannerImage && bannerInfo.BannerImage !== banner.BannerImage) {
+                banner.BannerImage = bannerInfo.BannerImage.trim();
+                isUpdated = true;
+            }
+            if (bannerInfo.BannerStatus && bannerInfo.BannerStatus !== banner.BannerStatus) {
+                banner.BannerStatus = bannerInfo.BannerStatus;
+                isUpdated = true;
+            }
+            if (bannerInfo.ProductID && bannerInfo.ProductID !== banner.ProductID) {
+                banner.ProductID = bannerInfo.ProductID;
+                isUpdated = true;
+            }
+            if (bannerInfo.HiddenAt !== undefined) {
+                banner.HiddenAt = bannerInfo.HiddenAt ? new Date(bannerInfo.HiddenAt) : null;
+                isUpdated = true;
+            }
+            if (isUpdated) {
+                await banner.save();
+                resolve({
+                    errCode: 0,
+                    errMessage: "Cập nhật thông tin banner thành công!",
+                    data: null,
+                });
+            } else {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Không có thông tin nào để cập nhật!",
+                    data: null,
+                });
+            }
+        } catch (e) {
+            console.log("Error in changeBannerInfo: ", e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi cập nhật banner: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
 module.exports = {
     getBannerSaleInfo,
     loadBannerInfo,
     getBannerInfo,
+    createBanner,
+    changeBannerInfo,
 };

@@ -113,8 +113,7 @@ let handleLoadFilteredProductInfo = async (req, res) => {
     try {
         const filterProductType = req.query.filterProductType || "ALL";
         const filterPetType = req.query.filterPetType ? JSON.parse(req.query.filterPetType) : ["ALL"];
-        const search = req.query.search || "";
-        let response = await productService.loadFilteredProductInfo(filterProductType, filterPetType, search);
+        let response = await productService.loadFilteredProductInfo(filterProductType, filterPetType);
         return res.status(200).json(response);
     } catch (e) {
         console.log("Error in handleLoadFilteredProductInfo: ", e);

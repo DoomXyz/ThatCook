@@ -1079,7 +1079,6 @@ let getProductDetailInfo = (productid, productdetailid) => {
 
 let createProduct = (productInfo) => {
     return new Promise(async (resolve, reject) => {
-        const transaction = await db.sequelize.transaction();
         try {
             if (!productInfo) {
                 resolve({
@@ -1115,7 +1114,7 @@ let createProduct = (productInfo) => {
                 ProductPrice: parseFloat(productInfo.ProductPrice),
                 ProductImage: productInfo.ProductImage || null,
                 ProductDescription: productInfo.ProductDescription.trim(),
-            }, { transaction });
+            });
             const createdAt = new Date();
             for (const detail of productInfo.ProductDetail) {
                 await db.ProductDetail.create({
@@ -1127,13 +1126,13 @@ let createProduct = (productInfo) => {
                     CreatedAt: createdAt,
                     DetailStatus: detail.DetailStatus,
                     ProductID: productId,
-                }, { transaction });
+                });
             }
             for (const petType of productInfo.PetType) {
                 await db.ProductPetType.create({
                     ProductID: productId,
                     PetType: petType,
-                }, { transaction });
+                });
             }
             if (productInfo.Image && productInfo.Image.length > 0) {
                 for (const image of productInfo.Image) {
@@ -1141,10 +1140,9 @@ let createProduct = (productInfo) => {
                         Image: image.Image,
                         ProductID: productId,
                         AppointmentID: null,
-                    }, { transaction });
+                    });
                 }
             }
-            await transaction.commit();
             resolve({
                 errCode: 0,
                 errMessage: "Tạo sản phẩm thành công!",
@@ -1152,7 +1150,6 @@ let createProduct = (productInfo) => {
             });
         } catch (e) {
             console.log(e);
-            await transaction.rollback();
             resolve({
                 errCode: 3,
                 errMessage: "Lỗi khi tạo sản phẩm: " + e.message,
@@ -1164,10 +1161,8 @@ let createProduct = (productInfo) => {
 
 let changeProductInfo = (productInfo) => {
     return new Promise(async (resolve, reject) => {
-        const transaction = await db.sequelize.transaction();
         try {
             if (!productInfo || !productInfo.ProductID) {
-                await transaction.rollback();
                 resolve({
                     errCode: -1,
                     errMessage: "Thiếu tham số ProductID!",
@@ -1177,7 +1172,6 @@ let changeProductInfo = (productInfo) => {
             }
             let isValidateInput = await validateProductInput(productInfo);
             if (isValidateInput) {
-                await transaction.rollback();
                 resolve(isValidateInput);
                 return;
             }
@@ -1186,7 +1180,6 @@ let changeProductInfo = (productInfo) => {
                 raw: false,
             });
             if (!product) {
-                await transaction.rollback();
                 resolve({
                     errCode: 2,
                     errMessage: "Sản phẩm không tồn tại!",
@@ -1197,7 +1190,6 @@ let changeProductInfo = (productInfo) => {
             if (productInfo.ProductName && productInfo.ProductName !== product.ProductName) {
                 let isProductNameExist = await checkProductNameExist(productInfo.ProductName, productInfo.ProductID);
                 if (isProductNameExist) {
-                    await transaction.rollback();
                     resolve({
                         errCode: 1,
                         errMessage: "Tên sản phẩm đã tồn tại trong hệ thống!",
@@ -1243,7 +1235,6 @@ let changeProductInfo = (productInfo) => {
                             existingDetail.ExtraPrice = parseFloat(detail.ExtraPrice);
                             existingDetail.Promotion = parseFloat(detail.Promotion);
                             existingDetail.DetailStatus = detail.DetailStatus;
-                            await existingDetail.save({ transaction });
                             isUpdated = true;
                         }
                     } else {
@@ -1257,33 +1248,27 @@ let changeProductInfo = (productInfo) => {
                                 CreatedAt: createdAt,
                                 DetailStatus: detail.DetailStatus,
                                 ProductID: productInfo.ProductID,
-                            },
-                            { transaction }
-                        );
+                            });
                         isUpdated = true;
                     }
                 }
             }
             if (productInfo.PetType) {
                 await db.ProductPetType.destroy({
-                    where: { ProductID: productInfo.ProductID },
-                    transaction,
+                    where: { ProductID: productInfo.ProductID }
                 });
                 for (const petType of productInfo.PetType) {
                     await db.ProductPetType.create(
                         {
                             ProductID: productInfo.ProductID,
                             PetType: petType,
-                        },
-                        { transaction }
-                    );
+                        });
                 }
                 isUpdated = true;
             }
             if (productInfo.Image !== undefined) {
                 await db.Image.destroy({
-                    where: { ProductID: productInfo.ProductID },
-                    transaction,
+                    where: { ProductID: productInfo.ProductID }
                 });
                 if (productInfo.Image && productInfo.Image.length > 0) {
                     for (const image of productInfo.Image) {
@@ -1292,23 +1277,18 @@ let changeProductInfo = (productInfo) => {
                                 Image: image.Image,
                                 ProductID: productInfo.ProductID,
                                 AppointmentID: null,
-                            },
-                            { transaction }
-                        );
+                            });
                     }
                 }
                 isUpdated = true;
             }
             if (isUpdated) {
-                await product.save({ transaction });
-                await transaction.commit();
                 resolve({
                     errCode: 0,
                     errMessage: "Cập nhật thông tin sản phẩm thành công!",
                     data: null,
                 });
             } else {
-                await transaction.rollback();
                 resolve({
                     errCode: 1,
                     errMessage: "Không có thông tin nào để cập nhật!",
@@ -1317,7 +1297,6 @@ let changeProductInfo = (productInfo) => {
             }
         } catch (e) {
             console.log(e);
-            await transaction.rollback();
             resolve({
                 errCode: 3,
                 errMessage: "Lỗi khi cập nhật sản phẩm: " + e.message,
@@ -1327,24 +1306,34 @@ let changeProductInfo = (productInfo) => {
     });
 };
 
-let loadFilteredProductInfo = (filterProductType, filterPetType, search) => {
+let loadFilteredProductInfo = (filterProductType, filterPetType) => {
     return new Promise(async (resolve, reject) => {
         try {
+            if (filterPetType && !Array.isArray(filterPetType)) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "filterPetType phải là mảng!",
+                    data: null,
+                });
+                return;
+            }
             if (filterProductType && filterProductType !== "ALL") {
                 const validProductType = await checkProductType(filterProductType);
                 if (!validProductType) {
+                    console.log(`Invalid ProductType: ${filterProductType}`);
                     resolve({
                         errCode: 1,
-                        errMessage: "Loại sản phẩm không hợp lệ!",
+                        errMessage: `Loại sản phẩm ${filterProductType} không hợp lệ!`,
                         data: null,
                     });
                     return;
                 }
             }
-            if (filterPetType && Array.isArray(filterPetType) && filterPetType.length > 0 && filterPetType[0] !== "ALL") {
+            if (filterPetType && filterPetType.length > 0 && filterPetType[0] !== "ALL") {
                 for (const petType of filterPetType) {
                     const validPetType = await checkPetType(petType);
                     if (!validPetType) {
+                        console.log(`Invalid PetType: ${petType}`);
                         resolve({
                             errCode: 1,
                             errMessage: `Loại thú cưng ${petType} không hợp lệ!`,
@@ -1356,9 +1345,6 @@ let loadFilteredProductInfo = (filterProductType, filterPetType, search) => {
             }
             await updateOutOfStock();
             let where = {};
-            if (search) {
-                where[Op.or] = [{ ProductName: { [Op.like]: `%${search}%` } }];
-            }
             if (filterProductType && filterProductType !== "ALL") {
                 where.ProductType = filterProductType;
             }
@@ -1375,7 +1361,6 @@ let loadFilteredProductInfo = (filterProductType, filterPetType, search) => {
                     return products.map((p) => p.ProductID);
                 });
                 const petTypeProductIdArrays = await Promise.all(petTypePromises);
-
                 // Tìm giao của các ProductID (sản phẩm phải có tất cả PetType)
                 petTypeProductIds = petTypeProductIdArrays.reduce((commonIds, ids) => {
                     return commonIds.filter((id) => ids.includes(id));
@@ -1410,7 +1395,6 @@ let loadFilteredProductInfo = (filterProductType, filterPetType, search) => {
         }
     });
 };
-
 
 module.exports = {
     loadProductInfo,
