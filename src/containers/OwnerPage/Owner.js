@@ -777,12 +777,32 @@ class Owner extends Component {
   };
 
   render() {
-    const { loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
-      loadedInvoiceInfo, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
-      loadedBannerInfo, loadedBannerStatusFilterValue, isLoading,
-      actionPage, searchValue, sortValue, filterValue, dateFilterValue, currentPage, tempCurrentPage, totalPages,
-      isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal,
-      selectedProduct, selectedBanner } = this.state
+    const {
+      loadedProductInfo,
+      loadedProductTypeFilterValue,
+      loadedPetTypeFilterValue,
+      loadedInvoiceInfo,
+      loadedPaymentStatusFilterValue,
+      loadedShippingStatusFilterValue,
+      loadedBannerInfo,
+      loadedBannerStatusFilterValue,
+      isLoading,
+      actionPage,
+      searchValue,
+      sortValue,
+      filterValue,
+      dateFilterValue,
+      currentPage,
+      tempCurrentPage,
+      totalPages,
+      isShowCreateProductModal,
+      isShowEditProductModal,
+      isShowCreateBannerModal,
+      isShowEditBannerModal,
+      isShowViewInvoiceModal,
+      selectedProduct,
+      selectedBanner,
+    } = this.state;
     const renderSection = () => {
       switch (actionPage) {
         case 1:
