@@ -811,193 +811,200 @@ class Owner extends Component {
               <button
                 style={{ display: actionPage === 1 ? "block" : "none" }}
                 onClick={() => this.toggleCreateProductModal()}
+                className="add-product"
               >
                 THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
               </button>
-              <div className="owner-mid-content-left">
-                <div className="owner-mid-content-left-search-product">
-                  <p>Tìm kiếm:</p>
-                  <input
-                    type="text"
-                    placeholder="Nhập tên sản phẩm"
-                    value={searchValue}
-                    onChange={(event) => this.handleSearchChange(event, 1)}
-                  />
-                  <IonIcon icon={searchOutline}></IonIcon>
-                </div>
-                <div className="f">
-                  <div className="owner-mid-content-left-product-filter">
-                    <label>Lọc sản phẩm:</label>
-                    <br />
-                    <select
-                      value={filterValue}
-                      onChange={(event) =>
-                        this.handleFilter(event.target.value, 1)
-                      }
-                    >
-                      <option value="ALL">Tất cả</option>
-                      <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
-                      {loadedProductTypeFilterValue &&
-                        loadedProductTypeFilterValue.length > 0 && (
-                          <optgroup label="Loại sản phẩm">
-                            {loadedProductTypeFilterValue.map((item) => (
-                              <option
-                                key={`producttype-${item.Code}`}
-                                value={`producttype-${item.Code}`}
-                              >
-                                {item.CodeValueVI}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
-                      {loadedPetTypeFilterValue &&
-                        loadedPetTypeFilterValue.length > 0 && (
-                          <optgroup label="Sản phẩm cho thú cưng">
-                            {loadedPetTypeFilterValue.map((item) => (
-                              <option
-                                key={`pettype-${item.Code}`}
-                                value={`pettype-${item.Code}`}
-                              >
-                                {item.CodeValueVI}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
-                    </select>
+              <div className="f">
+                <div className="owner-mid-content-left">
+                  <div className="owner-mid-content-left-search-product">
+                    <p>Tìm kiếm:</p>
+                    <input
+                      type="text"
+                      placeholder="Nhập tên sản phẩm"
+                      value={searchValue}
+                      onChange={(event) => this.handleSearchChange(event, 1)}
+                    />
+                    <IonIcon icon={searchOutline}></IonIcon>
                   </div>
-                  <div className="owner-mid-content-left-product-sort">
-                    <label>Sắp xếp:</label>
-                    <br />
-                    <select
-                      value={sortValue}
-                      onChange={(e) => this.handleSort(e.target.value, 1)}
-                    >
-                      <option value="0">Mặc định</option>
-                      <option value="1">Bán chạy</option>
-                      <option value="2">Giá bán tăng dần</option>
-                      <option value="3">Giá bán giảm dần</option>
-                      <option value="4">Hàng mới về</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="owner-mid-content-right">
-                <div className="owner-mid-content-right-list-product">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Mã sản phẩm</th>
-                        <th>Loại sản phẩm</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Hình ảnh</th>
-                        <th>Đơn Giá</th>
-                        <th>Tổng tồn Kho</th>
-                        <th>Tổng bán ra</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loadedProductInfo.length > 0 ? (
-                        loadedProductInfo.map((item) => {
-                          return (
-                            <tr
-                              key={item.ProductID}
-                              className="owner-mid-content-right-list-product-item"
-                            >
-                              <td>{item.ProductID}</td>
-                              <td>
-                                {loadedProductTypeFilterValue.find(
-                                  (filterItem) =>
-                                    filterItem.Code === item.ProductType
-                                )?.CodeValueVI || item.ProductType}
-                              </td>
-                              <td>{item.ProductName}</td>
-                              <td>
-                                <img
-                                  src={item.ProductImage || ""}
-                                  alt={item.ProductName}
-                                  style={{ width: "50px", height: "50px" }}
-                                />
-                              </td>
-                              <td className="f">
-                                <p>
-                                  {parseFloat(item.ProductPrice).toLocaleString(
-                                    "vi-VN"
-                                  )}
-                                </p>
-                                <p>vnđ</p>
-                              </td>
-                              <td>{item.TotalStock || 0}</td>
-                              <td>{item.TotalSold || 0}</td>
-                              <td
-                                className="f"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  className="btn-edit"
-                                  onClick={() =>
-                                    this.handleSelectedProduct(item.ProductID)
-                                  }
+                  <div className="f">
+                    <div className="owner-mid-content-left-product-filter">
+                      <label>Lọc sản phẩm:</label>
+                      <br />
+                      <select
+                        value={filterValue}
+                        onChange={(event) =>
+                          this.handleFilter(event.target.value, 1)
+                        }
+                      >
+                        <option value="ALL">Tất cả</option>
+                        <option value="PROMOTION">
+                          Sản phẩm có khuyến mãi
+                        </option>
+                        {loadedProductTypeFilterValue &&
+                          loadedProductTypeFilterValue.length > 0 && (
+                            <optgroup label="Loại sản phẩm">
+                              {loadedProductTypeFilterValue.map((item) => (
+                                <option
+                                  key={`producttype-${item.Code}`}
+                                  value={`producttype-${item.Code}`}
                                 >
-                                  <IonIcon icon={pencil}></IonIcon>
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan="8">Không tìm thấy sản phẩm phù hợp.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                  {totalPages > 1 && (
-                    <div className="page-content">
-                      <div className="page-content-item">
-                        <button
-                          className="first"
-                          onClick={() => this.handlePageChange(1, 1)}
-                          disabled={currentPage === 1}
-                        >
-                          {"<<"}
-                        </button>
-                        <button
-                          className="prev"
-                          onClick={() => this.handlePrevPage(1)}
-                          disabled={currentPage === 1}
-                        >
-                          {"<"}
-                        </button>
-                        <input
-                          type="text"
-                          value={tempCurrentPage}
-                          onChange={(event) =>
-                            this.handlePageInputChange(event, 1)
-                          }
-                          onKeyDown={(event) =>
-                            this.handlePageKeyDown(event, 1)
-                          }
-                          onBlur={() => this.handlePageInputBlur(1)}
-                        />
-                        <span className="total-pages">/ {totalPages}</span>
-                        <button
-                          className="next"
-                          onClick={() => this.handleNextPage(1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {">"}
-                        </button>
-                        <button
-                          className="last"
-                          onClick={() => this.handlePageChange(totalPages, 1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {">>"}
-                        </button>
-                      </div>
+                                  {item.CodeValueVI}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        {loadedPetTypeFilterValue &&
+                          loadedPetTypeFilterValue.length > 0 && (
+                            <optgroup label="Sản phẩm cho thú cưng">
+                              {loadedPetTypeFilterValue.map((item) => (
+                                <option
+                                  key={`pettype-${item.Code}`}
+                                  value={`pettype-${item.Code}`}
+                                >
+                                  {item.CodeValueVI}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                      </select>
                     </div>
-                  )}
+                    <div className="owner-mid-content-left-product-sort">
+                      <label>Sắp xếp:</label>
+                      <br />
+                      <select
+                        value={sortValue}
+                        onChange={(e) => this.handleSort(e.target.value, 1)}
+                      >
+                        <option value="0">Mặc định</option>
+                        <option value="1">Bán chạy</option>
+                        <option value="2">Giá bán tăng dần</option>
+                        <option value="3">Giá bán giảm dần</option>
+                        <option value="4">Hàng mới về</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="owner-mid-content-right">
+                  <div className="owner-mid-content-right-list-product">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Mã sản phẩm</th>
+                          <th>Loại sản phẩm</th>
+                          <th>Tên sản phẩm</th>
+                          <th>Hình ảnh</th>
+                          <th>Đơn Giá</th>
+                          <th>Tổng tồn Kho</th>
+                          <th>Tổng bán ra</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loadedProductInfo.length > 0 ? (
+                          loadedProductInfo.map((item) => {
+                            return (
+                              <tr
+                                key={item.ProductID}
+                                className="owner-mid-content-right-list-product-item"
+                              >
+                                <td>{item.ProductID}</td>
+                                <td>
+                                  {loadedProductTypeFilterValue.find(
+                                    (filterItem) =>
+                                      filterItem.Code === item.ProductType
+                                  )?.CodeValueVI || item.ProductType}
+                                </td>
+                                <td>{item.ProductName}</td>
+                                <td>
+                                  <img
+                                    src={item.ProductImage || ""}
+                                    alt={item.ProductName}
+                                    style={{ width: "50px", height: "50px" }}
+                                  />
+                                </td>
+                                <td className="f">
+                                  <p>
+                                    {parseFloat(
+                                      item.ProductPrice
+                                    ).toLocaleString("vi-VN")}
+                                  </p>
+                                  <p>vnđ</p>
+                                </td>
+                                <td>{item.TotalStock || 0}</td>
+                                <td>{item.TotalSold || 0}</td>
+                                <td
+                                  className="f"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    className="btn-edit"
+                                    onClick={() =>
+                                      this.handleSelectedProduct(item.ProductID)
+                                    }
+                                  >
+                                    <IonIcon icon={pencil}></IonIcon>
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan="8">
+                              Không tìm thấy sản phẩm phù hợp.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                    {totalPages > 1 && (
+                      <div className="page-content">
+                        <div className="page-content-item">
+                          <button
+                            className="first"
+                            onClick={() => this.handlePageChange(1, 1)}
+                            disabled={currentPage === 1}
+                          >
+                            {"<<"}
+                          </button>
+                          <button
+                            className="prev"
+                            onClick={() => this.handlePrevPage(1)}
+                            disabled={currentPage === 1}
+                          >
+                            {"<"}
+                          </button>
+                          <input
+                            type="text"
+                            value={tempCurrentPage}
+                            onChange={(event) =>
+                              this.handlePageInputChange(event, 1)
+                            }
+                            onKeyDown={(event) =>
+                              this.handlePageKeyDown(event, 1)
+                            }
+                            onBlur={() => this.handlePageInputBlur(1)}
+                          />
+                          <span className="total-pages">/ {totalPages}</span>
+                          <button
+                            className="next"
+                            onClick={() => this.handleNextPage(1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            {">"}
+                          </button>
+                          <button
+                            className="last"
+                            onClick={() => this.handlePageChange(totalPages, 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            {">>"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1005,96 +1012,99 @@ class Owner extends Component {
         case 2:
           return (
             <div>
-              <div
-                className="owner-mid-content-left-search-invoice"
-                style={{ display: actionPage === 2 ? "flex" : "none" }}
-              >
-                <p>Tìm kiếm:</p>
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm tên hoặc số điện thoại nhận hàng..."
-                  value={searchValue}
-                  onChange={(event) => this.handleSearchChange(event, 2)}
-                />
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-              <div
-                style={{ display: actionPage === 2 ? "flex" : "none" }}
-                className="owner-mid-content-left-invoice-sort"
-              >
-                <div className="owner-mid-content-left-invoice-filter">
-                  <label>Lọc hóa đơn:</label>
-                  <br />
-                  <select
-                    value={filterValue}
-                    onChange={(event) =>
-                      this.handleFilter(event.target.value, 2)
-                    }
-                  >
-                    <option value="ALL">Tất cả</option>
-                    {loadedPaymentStatusFilterValue &&
-                      loadedPaymentStatusFilterValue.length > 0 && (
-                        <optgroup label="Tình trạng thanh toán">
-                          {loadedPaymentStatusFilterValue.map((item) => (
-                            <option
-                              key={`paymentstatus-${item.Code}`}
-                              value={`paymentstatus-${item.Code}`}
-                            >
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    {loadedShippingStatusFilterValue &&
-                      loadedShippingStatusFilterValue.length > 0 && (
-                        <optgroup label="Tình trạng giao hàng">
-                          {loadedShippingStatusFilterValue.map((item) => (
-                            <option
-                              key={`shippingstatus-${item.Code}`}
-                              value={`shippingstatus-${item.Code}`}
-                            >
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    <optgroup label="Tổng thanh toán">
-                      <option value="totalpayment-0">
-                        500.000 - 1.000.000 VNĐ
-                      </option>
-                      <option value="totalpayment-1">
-                        1.000.000 - 1.500.000 VNĐ
-                      </option>
-                      <option value="totalpayment-2">
-                        1.500.000 - 2.000.000 VNĐ
-                      </option>
-                      <option value="totalpayment-3">Trên 2.000.000 VNĐ</option>
-                    </optgroup>
-                  </select>
+              <div className="f">
+                <div
+                  className="owner-mid-content-left-search-invoice"
+                  style={{ display: actionPage === 2 ? "flex" : "none" }}
+                >
+                  <p>Tìm kiếm:</p>
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm tên hoặc số điện thoại nhận hàng..."
+                    value={searchValue}
+                    onChange={(event) => this.handleSearchChange(event, 2)}
+                  />
+                  <IonIcon icon={searchOutline}></IonIcon>
                 </div>
-                <div className="owner-mid-content-left-invoice-sort">
-                  <label>Sắp xếp:</label>
-                  <br />
-                  <select
-                    value={sortValue}
-                    onChange={(e) => this.handleSort(e.target.value, 2)}
-                  >
-                    <option value="0">Mặc định</option>
-                    <option value="1">Mới nhất</option>
-                    <option value="2">Cũ nhất</option>
-                    <option value="3">Tổng giá trị tăng dần</option>
-                    <option value="4">Tổng giá trị giảm dần</option>
-                    <option value="5">Số lượng tăng dần</option>
-                    <option value="6">Số lượng giảm dần</option>
-                  </select>
+                <div
+                  style={{ display: actionPage === 2 ? "flex" : "none" }}
+                  className="owner-mid-content-left-invoice-sort-filter"
+                >
+                  <div className="owner-mid-content-left-invoice-filter">
+                    <label>Lọc hóa đơn:</label>
+                    <br />
+                    <select
+                      value={filterValue}
+                      onChange={(event) =>
+                        this.handleFilter(event.target.value, 2)
+                      }
+                    >
+                      <option value="ALL">Tất cả</option>
+                      {loadedPaymentStatusFilterValue &&
+                        loadedPaymentStatusFilterValue.length > 0 && (
+                          <optgroup label="Tình trạng thanh toán">
+                            {loadedPaymentStatusFilterValue.map((item) => (
+                              <option
+                                key={`paymentstatus-${item.Code}`}
+                                value={`paymentstatus-${item.Code}`}
+                              >
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                      {loadedShippingStatusFilterValue &&
+                        loadedShippingStatusFilterValue.length > 0 && (
+                          <optgroup label="Tình trạng giao hàng">
+                            {loadedShippingStatusFilterValue.map((item) => (
+                              <option
+                                key={`shippingstatus-${item.Code}`}
+                                value={`shippingstatus-${item.Code}`}
+                              >
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                      <optgroup label="Tổng thanh toán">
+                        <option value="totalpayment-0">
+                          500.000 - 1.000.000 VNĐ
+                        </option>
+                        <option value="totalpayment-1">
+                          1.000.000 - 1.500.000 VNĐ
+                        </option>
+                        <option value="totalpayment-2">
+                          1.500.000 - 2.000.000 VNĐ
+                        </option>
+                        <option value="totalpayment-3">
+                          Trên 2.000.000 VNĐ
+                        </option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div className="owner-mid-content-left-invoice-sort">
+                    <label>Sắp xếp:</label>
+                    <br />
+                    <select
+                      value={sortValue}
+                      onChange={(e) => this.handleSort(e.target.value, 2)}
+                    >
+                      <option value="0">Mặc định</option>
+                      <option value="1">Mới nhất</option>
+                      <option value="2">Cũ nhất</option>
+                      <option value="3">Tổng giá trị tăng dần</option>
+                      <option value="4">Tổng giá trị giảm dần</option>
+                      <option value="5">Số lượng tăng dần</option>
+                      <option value="6">Số lượng giảm dần</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div
-                style={{ display: actionPage === 2 ? "block" : "none" }}
-                className="owner-mid-content-left-invoice-date"
-              >
-                <div className="f">
+                <div
+                  style={{ display: actionPage === 2 ? "block" : "none" }}
+                  className="owner-mid-content-left-invoice-date"
+                >
                   <label>Ngày hóa đơn:</label>
+                  <br />
                   <DatePicker
                     selected={
                       dateFilterValue ? new Date(dateFilterValue) : null
@@ -1179,8 +1189,8 @@ class Owner extends Component {
                           <td>
                             {item.CanceledAt
                               ? new Date(item.CanceledAt).toLocaleString(
-                                "vi-VN"
-                              )
+                                  "vi-VN"
+                                )
                               : ""}
                           </td>
                           <td className="f">
@@ -1265,12 +1275,13 @@ class Owner extends Component {
               <button
                 style={{ display: actionPage === 3 ? "block" : "none" }}
                 onClick={() => this.toggleCreateBannerModal()}
+                className="add-banner"
               >
                 THÊM BANNER <IonIcon icon={add}></IonIcon>
               </button>
-              <div className="owner-mid-content-left">
+              <div className="f">
                 <div
-                  className="owner-mid-content-left-search-banner"
+                  className="owner-mid-content-search-banner"
                   style={{ display: actionPage === 3 ? "flex" : "none" }}
                 >
                   <p>Tìm kiếm:</p>
@@ -1284,9 +1295,9 @@ class Owner extends Component {
                 </div>
                 <div
                   style={{ display: actionPage === 3 ? "flex" : "none" }}
-                  className="owner-mid-content-left-banner-filter-sort f"
+                  className="owner-mid-content-banner-filter-sort f"
                 >
-                  <div className="owner-mid-content-left-banner-filter">
+                  <div className="owner-mid-content-banner-filter">
                     <label>Lọc banner:</label>
                     <br />
                     <select
@@ -1311,7 +1322,7 @@ class Owner extends Component {
                         )}
                     </select>
                   </div>
-                  <div className="owner-mid-content-left-banner-sort">
+                  <div className="owner-mid-content-banner-sort">
                     <label>Sắp xếp:</label>
                     <br />
                     <select
@@ -1328,191 +1339,184 @@ class Owner extends Component {
                 </div>
                 <div
                   style={{ display: actionPage === 3 ? "block" : "none" }}
-                  className="owner-mid-content-left-banner-date"
+                  className="owner-mid-content-banner-date"
                 >
-                  <div className="f">
-                    <label>Các banner hoạt động trong ngày:</label>
-                    <DatePicker
-                      selected={
-                        dateFilterValue ? new Date(dateFilterValue) : null
-                      }
-                      onChange={(date) => {
-                        const formattedDate = date
-                          ? date.toISOString().split("T")[0]
-                          : "";
-                        this.setState(
-                          { dateFilterValue: formattedDate },
-                          () => {
-                            if (this.state.actionPage === 3) {
-                              this.handleLoadBannerInfo();
-                            }
-                          }
-                        );
-                      }}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="dd/mm/yyyy"
-                      className="date-picker"
-                    />
-                    <button
-                      style={{ marginLeft: "10px" }}
-                      onClick={this.handleResetFilter}
-                    >
-                      Reset
-                    </button>
-                  </div>
+                  <label>Banner hoạt động trong ngày:</label>
+                  <br />
+                  <DatePicker
+                    selected={
+                      dateFilterValue ? new Date(dateFilterValue) : null
+                    }
+                    onChange={(date) => {
+                      const formattedDate = date
+                        ? date.toISOString().split("T")[0]
+                        : "";
+                      this.setState({ dateFilterValue: formattedDate }, () => {
+                        if (this.state.actionPage === 3) {
+                          this.handleLoadBannerInfo();
+                        }
+                      });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="dd/mm/yyyy"
+                    className="date-picker"
+                  />
+                  <button
+                    style={{ marginLeft: "10px" }}
+                    onClick={this.handleResetFilter}
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
-              <div className="owner-mid-content-right">
-                <div className="owner-mid-content-mid-list-img">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Hình ảnh banner</th>
-                        <th>Mã sản phẩm</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Hình ảnh sản phẩm</th>
-                        <th>Trạng thái</th>
-                        <th>Thời gian tạo</th>
-                        <th>Thời gian ẩn</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loadedBannerInfo.length > 0 ? (
-                        loadedBannerInfo.map((item) => (
-                          <tr
-                            key={item.BannerID}
-                            className="owner-mid-content-right-list-banner-item"
+
+              <div className="owner-mid-content-mid-list-img">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Hình ảnh banner</th>
+                      <th>Mã sản phẩm</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Hình ảnh sản phẩm</th>
+                      <th>Trạng thái</th>
+                      <th>Thời gian tạo</th>
+                      <th>Thời gian ẩn</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadedBannerInfo.length > 0 ? (
+                      loadedBannerInfo.map((item) => (
+                        <tr
+                          key={item.BannerID}
+                          className="owner-mid-content-right-list-banner-item"
+                        >
+                          <td>
+                            <img
+                              src={item.BannerImage || ""}
+                              alt="Banner"
+                              style={{ width: "50px", height: "50px" }}
+                            />
+                          </td>
+                          <td>{item.ProductID}</td>
+                          <td>{item.ProductName}</td>
+                          <td>
+                            <img
+                              src={item.ProductImage || ""}
+                              alt="Sản phẩm"
+                              style={{ width: "50px", height: "50px" }}
+                            />
+                          </td>
+                          <td>
+                            {loadedBannerStatusFilterValue.find(
+                              (filterItem) =>
+                                filterItem.Code === item.BannerStatus
+                            )?.CodeValueVI || item.BannerStatus}
+                          </td>
+                          <td>
+                            {item.CreatedAt
+                              ? new Date(item.CreatedAt).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "N/A"}
+                          </td>
+                          <td>
+                            {item.HiddenAt
+                              ? new Date(item.HiddenAt).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "Vô thời hạn"}
+                          </td>
+                          <td
+                            className="f"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <td>
-                              <img
-                                src={item.BannerImage || ""}
-                                alt="Banner"
-                                style={{ width: "50px", height: "50px" }}
-                              />
-                            </td>
-                            <td>{item.ProductID}</td>
-                            <td>{item.ProductName}</td>
-                            <td>
-                              <img
-                                src={item.ProductImage || ""}
-                                alt="Sản phẩm"
-                                style={{ width: "50px", height: "50px" }}
-                              />
-                            </td>
-                            <td>
-                              {loadedBannerStatusFilterValue.find(
-                                (filterItem) =>
-                                  filterItem.Code === item.BannerStatus
-                              )?.CodeValueVI || item.BannerStatus}
-                            </td>
-                            <td>
-                              {item.CreatedAt
-                                ? new Date(item.CreatedAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
-                                : "N/A"}
-                            </td>
-                            <td>
-                              {item.HiddenAt
-                                ? new Date(item.HiddenAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
-                                : "Vô thời hạn"}
-                            </td>
-                            <td
-                              className="f"
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              className="btn-edit"
+                              onClick={() =>
+                                this.handleSelectedBanner(item.BannerID)
+                              }
                             >
-                              <button
-                                className="btn-edit"
-                                onClick={() =>
-                                  this.handleSelectedBanner(item.BannerID)
+                              <IonIcon icon={pencil}></IonIcon>
+                            </button>
+                            <button
+                              className="btn-toggle"
+                              onClick={() =>
+                                this.handleChangeBannerStatus(item.BannerID)
+                              }
+                            >
+                              <IonIcon
+                                icon={
+                                  item.BannerStatus === "SHOW"
+                                    ? closeOutline
+                                    : checkmarkOutline
                                 }
-                              >
-                                <IonIcon icon={pencil}></IonIcon>
-                              </button>
-                              <button
-                                className="btn-toggle"
-                                onClick={() =>
-                                  this.handleChangeBannerStatus(item.BannerID)
-                                }
-                              >
-                                <IonIcon
-                                  icon={
-                                    item.BannerStatus === "SHOW"
-                                      ? closeOutline
-                                      : checkmarkOutline
-                                  }
-                                ></IonIcon>
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="9">Không tìm thấy banner nào.</td>
+                              ></IonIcon>
+                            </button>
+                          </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                  {totalPages > 1 && (
-                    <div className="page-content">
-                      <div className="page-content-item">
-                        <button
-                          className="first"
-                          onClick={() => this.handlePageChange(1, 3)}
-                          disabled={currentPage === 1}
-                        >
-                          {"<<"}
-                        </button>
-                        <button
-                          className="prev"
-                          onClick={() => this.handlePrevPage(3)}
-                          disabled={currentPage === 1}
-                        >
-                          {"<"}
-                        </button>
-                        <input
-                          type="text"
-                          value={tempCurrentPage}
-                          onChange={(event) =>
-                            this.handlePageInputChange(event, 3)
-                          }
-                          onKeyDown={(event) =>
-                            this.handlePageKeyDown(event, 3)
-                          }
-                          onBlur={() => this.handlePageInputBlur(3)}
-                        />
-                        <span className="total-pages">/ {totalPages}</span>
-                        <button
-                          className="next"
-                          onClick={() => this.handleNextPage(3)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {">"}
-                        </button>
-                        <button
-                          className="last"
-                          onClick={() => this.handlePageChange(totalPages, 2)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {">>"}
-                        </button>
-                      </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="9">Không tìm thấy banner nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                {totalPages > 1 && (
+                  <div className="page-content">
+                    <div className="page-content-item">
+                      <button
+                        className="first"
+                        onClick={() => this.handlePageChange(1, 3)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<<"}
+                      </button>
+                      <button
+                        className="prev"
+                        onClick={() => this.handlePrevPage(3)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<"}
+                      </button>
+                      <input
+                        type="text"
+                        value={tempCurrentPage}
+                        onChange={(event) =>
+                          this.handlePageInputChange(event, 3)
+                        }
+                        onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
+                        onBlur={() => this.handlePageInputBlur(3)}
+                      />
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button
+                        className="next"
+                        onClick={() => this.handleNextPage(3)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">"}
+                      </button>
+                      <button
+                        className="last"
+                        onClick={() => this.handlePageChange(totalPages, 2)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">>"}
+                      </button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           );
