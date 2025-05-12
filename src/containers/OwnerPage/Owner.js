@@ -13,7 +13,7 @@ import OwnerEditBannerModal from "./OwnerEditBannerModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
 
 import { handleLogoutApi } from "../../services/accountServices";
-import { handleLoadProductInfoApi, handleCreateProduct, handleUpdateProduct, } from "../../services/productServices";
+import { handleLoadProductInfoApi, handleEditProductInfoApi, handleCreateProductApi } from "../../services/productServices";
 import { handleLoadBannerInfoApi } from "../../services/bannerServices"
 import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices"
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
@@ -425,40 +425,81 @@ class Owner extends Component {
       isShowEditProductModal: true,
     });
   };
+  toggleCreateProductModal = () => {
+    this.setState({
+      isShowCreateProductModal: !this.state.isShowCreateProductModal,
+    });
+  };
   toggleEditProductModal = () => {
     this.setState({
       isShowEditProductModal: !this.state.isShowEditProductModal,
     });
   };
-  handleEditProductFromModal = async (productInfo) => {
+  handleCreateProductFromModal = async (productInfo) => {
     console.log(productInfo)
+    // this.setState({isLoading: true})
     // try {
-    //   const response = await handleUpdateProduct(productInfo);
+    //   const response = await handleCreateProductApi(productInfo);
     //   if (response && response.errCode === 0) {
-    //     await this.handleLoadProductInfo();
-    //     this.setState({ isShowEditProductModal: false });
-    //     toast.success("Product updated successfully!", {
+    //     toast.success("Thêm sản phẩm mới thành công!", {
     //       position: "top-right",
     //       autoClose: 500,
-    //       closeOnClick: true,
+    //       closeOnClick: true
     //     });
+    //     await this.handleLoadProductInfo();
+    //     this.setState({
+    //       isShowCreateProductModal: false,
+    //     })
     //   } else {
-    //     const errMessage = response?.errMessage || "Unknown server error!";
+    //     const errMessage = response?.errMessage || "Thêm sản phẩm mới thất bại!";
     //     toast.error(errMessage, {
     //       position: "top-right",
     //       autoClose: 500,
-    //       closeOnClick: true,
+    //       closeOnClick: true
     //     });
     //   }
     // } catch (e) {
-    //   console.error("Error updating product:", e);
-    //   const errMessage = e.response?.data?.errMessage || e.message || "Connection or server error!";
-    //   toast.error(errMessage, {
+    //   console.error("Create Product:", e);
+    //   toast.error("Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!", {
     //     position: "top-right",
     //     autoClose: 500,
-    //     closeOnClick: true,
+    //     closeOnClick: true
     //   });
     // }
+    // this.setState({isLoading: false})
+  };
+  handleEditProductFromModal = async (productInfo) => {
+    console.log(productInfo)
+    // this.setState({ isLoading: true })
+    // try {
+    //   const response = await handleEditProductInfoApi(productInfo);
+    //   if (response && response.errCode === 0) {
+    //     toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true
+    //     });
+    //     await this.handleLoadProductInfo();
+    //     this.setState({
+    //       isShowEditProductModal: false,
+    //     })
+    //   } else {
+    //     const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
+    //     toast.error(errMessage, {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true
+    //     });
+    //   }
+    // } catch (e) {
+    //   console.error("Edit:", e);
+    //   toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
+    //     position: "top-right",
+    //     autoClose: 500,
+    //     closeOnClick: true
+    //   });
+    // }
+    // this.setState({ isLoading: false })
   };
   handleSelectedInvoice = (invoiceid) => {
     console.log(invoiceid)
@@ -549,12 +590,6 @@ class Owner extends Component {
     });
   };
 
-  toggleCreateProductModal = () => {
-    this.setState({
-      isShowCreateProductModal: !this.state.isShowCreateProductModal,
-    });
-  };
-
   toggleCreateBannerModal = () => {
     this.setState({
       isShowCreateBannerModal: !this.state.isShowCreateBannerModal,
@@ -578,32 +613,6 @@ class Owner extends Component {
     });
     if (hoadon) {
       console.log("MADONHANG:", hoadon.MADONHANG);
-    }
-  };
-
-  createNewProduct = async (productInfo) => {
-    try {
-      const response = await handleCreateProduct(productInfo);
-      console.log(response);
-      if (response && response.errCode === 0) {
-        await this.handleLoadProductInfo();
-        this.setState({ isShowCreateProductModal: false });
-        toast.success("Tạo sản phẩm thành công!");
-      } else {
-        const errMessage =
-          response && response.errMessage
-            ? response.errMessage
-            : "Lỗi không xác định từ server!";
-        toast.error(errMessage);
-      }
-    } catch (e) {
-      console.error("Lỗi chi tiết khi gọi API:", e);
-      console.error("Phản hồi lỗi từ server (nếu có):", e.response);
-      const errMessage =
-        e.response && e.response && e.response.errMessage
-          ? e.response.errMessage
-          : e.message || "Lỗi kết nối hoặc server không phản hồi!";
-      toast.error(errMessage);
     }
   };
 
@@ -739,42 +748,44 @@ class Owner extends Component {
                       )}
                     </tbody>
                   </table>
-                  <div className="page-content">
-                    <div className="page-content-item">
-                      <button className="first"
-                        onClick={() => this.handlePageChange(1, 1)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<<"}
-                      </button>
-                      <button className="prev"
-                        onClick={() => this.handlePrevPage(1)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<"}
-                      </button>
-                      <input
-                        type="text"
-                        value={tempCurrentPage}
-                        onChange={(event) => this.handlePageInputChange(event, 1)}
-                        onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
-                        onBlur={() => this.handlePageInputBlur(1)}
-                      />
-                      <span className="total-pages">/ {totalPages}</span>
-                      <button className="next"
-                        onClick={() => this.handleNextPage(1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        {">"}
-                      </button>
-                      <button className="last"
-                        onClick={() => this.handlePageChange(totalPages, 1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        {">>"}
-                      </button>
+                  {totalPages > 1 && (
+                    <div className="page-content">
+                      <div className="page-content-item">
+                        <button className="first"
+                          onClick={() => this.handlePageChange(1, 1)}
+                          disabled={currentPage === 1}
+                        >
+                          {"<<"}
+                        </button>
+                        <button className="prev"
+                          onClick={() => this.handlePrevPage(1)}
+                          disabled={currentPage === 1}
+                        >
+                          {"<"}
+                        </button>
+                        <input
+                          type="text"
+                          value={tempCurrentPage}
+                          onChange={(event) => this.handlePageInputChange(event, 1)}
+                          onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
+                          onBlur={() => this.handlePageInputBlur(1)}
+                        />
+                        <span className="total-pages">/ {totalPages}</span>
+                        <button className="next"
+                          onClick={() => this.handleNextPage(1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {">"}
+                        </button>
+                        <button className="last"
+                          onClick={() => this.handlePageChange(totalPages, 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {">>"}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -959,42 +970,44 @@ class Owner extends Component {
                     )}
                   </tbody>
                 </table>
-                <div className="page-content">
-                  <div className="page-content-item">
-                    <button className="first"
-                      onClick={() => this.handlePageChange(1, 2)}
-                      disabled={currentPage === 1}
-                    >
-                      {"<<"}
-                    </button>
-                    <button className="prev"
-                      onClick={() => this.handlePrevPage(2)}
-                      disabled={currentPage === 1}
-                    >
-                      {"<"}
-                    </button>
-                    <input
-                      type="text"
-                      value={tempCurrentPage}
-                      onChange={(event) => this.handlePageInputChange(event, 2)}
-                      onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
-                      onBlur={() => this.handlePageInputBlur(2)}
-                    />
-                    <span className="total-pages">/ {totalPages}</span>
-                    <button className="next"
-                      onClick={() => this.handleNextPage(2)}
-                      disabled={currentPage === totalPages}
-                    >
-                      {">"}
-                    </button>
-                    <button className="last"
-                      onClick={() => this.handlePageChange(totalPages, 2)}
-                      disabled={currentPage === totalPages}
-                    >
-                      {">>"}
-                    </button>
+                {totalPages > 1 && (
+                  <div className="page-content">
+                    <div className="page-content-item">
+                      <button className="first"
+                        onClick={() => this.handlePageChange(1, 2)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<<"}
+                      </button>
+                      <button className="prev"
+                        onClick={() => this.handlePrevPage(2)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<"}
+                      </button>
+                      <input
+                        type="text"
+                        value={tempCurrentPage}
+                        onChange={(event) => this.handlePageInputChange(event, 2)}
+                        onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
+                        onBlur={() => this.handlePageInputBlur(2)}
+                      />
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button className="next"
+                        onClick={() => this.handleNextPage(2)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">"}
+                      </button>
+                      <button className="last"
+                        onClick={() => this.handlePageChange(totalPages, 2)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">>"}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           );
@@ -1163,42 +1176,44 @@ class Owner extends Component {
                       )}
                     </tbody>
                   </table>
-                  <div className="page-content">
-                    <div className="page-content-item">
-                      <button className="first"
-                        onClick={() => this.handlePageChange(1, 3)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<<"}
-                      </button>
-                      <button className="prev"
-                        onClick={() => this.handlePrevPage(3)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<"}
-                      </button>
-                      <input
-                        type="text"
-                        value={tempCurrentPage}
-                        onChange={(event) => this.handlePageInputChange(event, 3)}
-                        onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
-                        onBlur={() => this.handlePageInputBlur(3)}
-                      />
-                      <span className="total-pages">/ {totalPages}</span>
-                      <button className="next"
-                        onClick={() => this.handleNextPage(3)}
-                        disabled={currentPage === totalPages}
-                      >
-                        {">"}
-                      </button>
-                      <button className="last"
-                        onClick={() => this.handlePageChange(totalPages, 2)}
-                        disabled={currentPage === totalPages}
-                      >
-                        {">>"}
-                      </button>
+                  {totalPages > 1 && (
+                    <div className="page-content">
+                      <div className="page-content-item">
+                        <button className="first"
+                          onClick={() => this.handlePageChange(1, 3)}
+                          disabled={currentPage === 1}
+                        >
+                          {"<<"}
+                        </button>
+                        <button className="prev"
+                          onClick={() => this.handlePrevPage(3)}
+                          disabled={currentPage === 1}
+                        >
+                          {"<"}
+                        </button>
+                        <input
+                          type="text"
+                          value={tempCurrentPage}
+                          onChange={(event) => this.handlePageInputChange(event, 3)}
+                          onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
+                          onBlur={() => this.handlePageInputBlur(3)}
+                        />
+                        <span className="total-pages">/ {totalPages}</span>
+                        <button className="next"
+                          onClick={() => this.handleNextPage(3)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {">"}
+                        </button>
+                        <button className="last"
+                          onClick={() => this.handlePageChange(totalPages, 2)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {">>"}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1213,7 +1228,7 @@ class Owner extends Component {
         <OwnerCreateProductModal
           isOpen={isShowCreateProductModal}
           toggleFromModal={this.toggleCreateProductModal}
-          createNewProduct={this.createNewProduct}
+          handleCreateProductFromModal={this.handleCreateProductFromModal}
         />
         <EditProductModal
           isOpen={isShowEditProductModal}

@@ -20,6 +20,11 @@ const handleGetSaleProductInfoApi = (productid) => {
 const handleGetProductDetailInfoApi = (productid, productdetailid) => {
     return axios.get(`/api/get-productdetailinfo?productid=${productid}&productdetailid=${productdetailid}`);
 };
+
+const handleEditProductInfoApi = (productInfo) => {
+    return axios.put("/api/edit-productinfo", productInfo);
+}
+
 //non converted
 const handleGetProductDetailsByMASANPHAM = (masanpham) => {
     return axios.get(`/api/get-product-details-by-masanpham?masanpham=${masanpham}`);
@@ -29,23 +34,14 @@ const handleCreateProduct = (productInfo) => {
     return axios.post("/api/create-product", productInfo);
 };
 
-const handleXoaProduct = (masanpham) => {
-    return axios.put("/api/xoa-sanpham", { masanpham })
-}
-
-const handleUpdateProduct = (productInfo) => {
-    return axios.put("/api/update-product", productInfo);
-}
-
 export {
     handleLoadProductInfoApi,
     handleGetProductInfoApi,
     handleLoadSaleProductInfoApi,
     handleGetSaleProductInfoApi,
     handleGetProductDetailInfoApi,
+    handleEditProductInfoApi,
 
     handleGetProductDetailsByMASANPHAM,
     handleCreateProduct,
-    handleUpdateProduct,
-    handleXoaProduct,
 };

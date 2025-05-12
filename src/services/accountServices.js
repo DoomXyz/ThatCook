@@ -28,14 +28,14 @@ const handleChangeAccountStatusApi = (accountid, accountstatus) => {
 const handleEditAccountInfoApi = (userInfo) => {
   return axios.put("/api/edit-accountinfo", userInfo);
 };
-//non converted
-const handleGetThongTinThanhToan = (mataikhoan) => {
-  return axios.get(`/api/get-thongtin-thanhtoan?mataikhoan=${mataikhoan}`);
-};
 
 const handleChangePasswordApi = (accountid, password, newpassword) => {
   return axios.put("/api/change-password", { accountid, password, newpassword })
 }
+//non converted
+const handleGetThongTinThanhToan = (mataikhoan) => {
+  return axios.get(`/api/get-thongtin-thanhtoan?mataikhoan=${mataikhoan}`);
+};
 
 export {
   handleRegisterApi,

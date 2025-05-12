@@ -26,18 +26,16 @@ class EditProductModal extends Component {
       productimage: "",
       productdescription: "",
       isUploading: false,
-      allImages: [], // [{ ImageID: number, Image: string, file: File | null }]
-      editingField: null, // Chỉ số dòng đang chỉnh sửa
-      isAddingDetail: false, // Trạng thái thêm dòng mới
+      allImages: [],
+      editingField: null,
+      isAddingDetail: false,
     };
   }
 
   async componentDidMount() {
-    await Promise.all([
-      this.handleLoadCodeProductType(),
-      this.handleLoadCodePetType(),
-      this.handleLoadCodeDetailStatus(),
-    ]);
+    await this.handleLoadCodeProductType();
+    await this.handleLoadCodePetType();
+    await this.handleLoadCodeDetailStatus();
     const { selectedProductID } = this.props;
     if (selectedProductID) {
       await this.loadProductInfo(selectedProductID);
@@ -47,14 +45,13 @@ class EditProductModal extends Component {
   async componentDidUpdate(prevProps) {
     const { selectedProductID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
-      await Promise.all([
-        this.handleLoadCodeProductType(),
-        this.handleLoadCodePetType(),
-        this.handleLoadCodeDetailStatus(),
-      ]);
+      await this.handleLoadCodeProductType();
+      await this.handleLoadCodePetType();
+      await this.handleLoadCodeDetailStatus();
       this.setState({
         loadedProductInfo: null,
         loadedProductDetailInfo: null,
+        selectedProductID: null,
         productname: "",
         producttype: "",
         pettype: [],
@@ -209,11 +206,9 @@ class EditProductModal extends Component {
   };
 
   toggle = async () => {
-    await Promise.all([
-      this.handleLoadCodeProductType(),
-      this.handleLoadCodePetType(),
-      this.handleLoadCodeDetailStatus(),
-    ]);
+    await this.handleLoadCodeProductType();
+    await this.handleLoadCodePetType();
+    await this.handleLoadCodeDetailStatus();
     this.resetState();
     this.props.toggleFromModal();
   };
@@ -341,7 +336,7 @@ class EditProductModal extends Component {
   checkValidateDetail = (index) => {
     const item = this.state.loadedProductDetailInfo[index];
     if (!item.DetailName) return { errCode: -1, errMessage: `Tên chi tiết tại dòng ${index + 1} không được để trống!` };
-    const regex = /^[A-Za-zÀ-ỹ0-9\s]{1,50}$/;
+    const regex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
     if (!regex.test(item.DetailName.trim())) return { errCode: -1, errMessage: `Tên chi tiết tại dòng ${index + 1} không hợp lệ!` };
     if (item.Stock === "" || item.Stock === undefined) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} không được để trống!` };
     if (isNaN(item.Stock) || parseInt(item.Stock) < 0) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!` };
@@ -356,11 +351,11 @@ class EditProductModal extends Component {
     return { errCode: 0, errMessage: "Kiểm tra thành công!" };
   };
 
-  checkValidateInput = () => {
+  checkValidateProduct = () => {
     const { productname, producttype, productprice, allImages, productdescription, pettype, loadedProductDetailInfo } = this.state;
 
     if (!productname) return { errCode: -1, errMessage: "Tên sản phẩm không được để trống!" };
-    const nameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,100}$/;
+    const nameRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
     if (!nameRegex.test(productname.trim())) return { errCode: -1, errMessage: "Tên sản phẩm không hợp lệ!" };
 
     if (!producttype) return { errCode: -1, errMessage: "Vui lòng chọn loại sản phẩm!" };
@@ -386,7 +381,7 @@ class EditProductModal extends Component {
   };
 
   handleSaveProduct = async () => {
-    const validation = this.checkValidateInput();
+    const validation = this.checkValidateProduct();
     if (validation.errCode !== 0) {
       toast.error(validation.errMessage, {
         position: "top-right",
@@ -400,7 +395,7 @@ class EditProductModal extends Component {
       new Promise((resolve) => {
         toast(
           <div>
-            <p>Bạn có chắc muốn lưu sản phẩm này không?</p>
+            <p>Xác nhận lưu thông tin sản phẩm?</p>
             <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
               Có
             </button>
@@ -408,7 +403,7 @@ class EditProductModal extends Component {
               Không
             </button>
           </div>,
-          { autoClose: 3000, closeOnClick: false }
+          { position: "top-center", autoClose: 1000, closeOnClick: false }
         );
       });
 
@@ -427,7 +422,6 @@ class EditProductModal extends Component {
     this.setState({ isUploading: true });
     try {
       const { allImages, productname, producttype, pettype, productprice, productdescription, selectedProductID, loadedProductDetailInfo } = this.state;
-
       const uploadedImages = [];
       const failedImages = [];
       for (let img of allImages) {
@@ -489,9 +483,7 @@ class EditProductModal extends Component {
         })),
         Image: uploadedImages.slice(1),
       };
-
       await this.props.handleEditProductFromModal(productInfo);
-      this.toggle();
     } catch (e) {
       toast.error("Lỗi khi lưu sản phẩm!", {
         position: "top-right",
@@ -505,7 +497,8 @@ class EditProductModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } = this.state;
+    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType,
+      pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } = this.state;
 
     return (
       <Modal
@@ -516,12 +509,12 @@ class EditProductModal extends Component {
         className="create-product-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Chỉnh sửa sản phẩm</Modal.Title>
+          <Modal.Title>Chỉnh sửa thông tin sản phẩm</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="modal-content">
             <div className="modal-content-add-img">
-              <p>Hình ảnh sản phẩm:</p>
+              <p>Hình ảnh sản phẩm (tối thiếu 1):</p>
               <div className="f">
                 {allImages.map((img, index) => (
                   <div key={img.ImageID} className="modal-content-add-img-item f">
@@ -590,12 +583,12 @@ class EditProductModal extends Component {
                 </div>
               </div>
               <div className="modal-content-add-main-price">
-                <p>Giá bán:</p>
+                <p>Giá cơ bản:</p>
                 <div className="f">
                   <input
                     type="number"
                     placeholder="Nhập giá"
-                    value={productprice}
+                    value={parseFloat(productprice)}
                     onChange={(e) => this.handleInputChange(e, "productprice")}
                   />
                   <p>vnđ</p>
@@ -609,11 +602,11 @@ class EditProductModal extends Component {
                   <thead>
                     <tr>
                       <th>Tên chi tiết</th>
-                      <th>Số lượng tồn</th>
-                      <th>Giá thêm</th>
+                      <th>Số lượng tồn kho</th>
+                      <th>Giá thêm (vnđ)</th>
                       <th>Khuyến mãi (%)</th>
                       <th>Trạng thái</th>
-                      <th>Hành động</th>
+                      <th>Chỉnh sửa</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -650,7 +643,7 @@ class EditProductModal extends Component {
                                 onChange={(e) => this.handleDetailChange(index, "ExtraPrice", e.target.value)}
                               />
                             ) : (
-                              item.ExtraPrice
+                              parseFloat(item.ExtraPrice)
                             )}
                           </td>
                           <td>
@@ -661,7 +654,7 @@ class EditProductModal extends Component {
                                 onChange={(e) => this.handleDetailChange(index, "Promotion", e.target.value)}
                               />
                             ) : (
-                              item.Promotion
+                              parseFloat(item.Promotion)
                             )}
                           </td>
                           <td>
@@ -677,7 +670,7 @@ class EditProductModal extends Component {
                                 ))}
                               </select>
                             ) : (
-                              item.DetailStatus === "AVAIL" ? "Còn hàng" : "Hết hàng"
+                              codeDetailStatus.find((status) => status.Code === item.DetailStatus)?.CodeValueVI || "Không xác định"
                             )}
                           </td>
                           <td>
@@ -719,16 +712,11 @@ class EditProductModal extends Component {
                   </tbody>
                 </table>
               </div>
-              {loadedProductDetailInfo && loadedProductDetailInfo.length > 0 ? (
-                <b className="add-detail">{loadedProductDetailInfo.length} chi tiết đã được thêm</b>
-              ) : (
-                <b className="add-detail">Chưa có chi tiết</b>
-              )}
             </div>
             <div className="modal-content-add-info">
-              <p>Thêm thông tin sản phẩm:</p>
+              <p>Mô tả sản phẩm:</p>
               <textarea
-                placeholder="Nhập thông tin sản phẩm"
+                placeholder="Nhập mô tả sản phẩm"
                 value={productdescription}
                 onChange={(e) => this.handleInputChange(e, "productdescription")}
               />
@@ -736,7 +724,7 @@ class EditProductModal extends Component {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={this.handleSaveProduct}>
+          <Button variant="secondary" onClick={this.handleSaveProduct}>
             Lưu
           </Button>
         </Modal.Footer>
