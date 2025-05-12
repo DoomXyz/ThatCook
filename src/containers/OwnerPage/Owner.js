@@ -4,18 +4,29 @@ import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
 import DatePicker from "react-datepicker";
 
-import { pencil, searchOutline, add, closeOutline, checkmarkOutline, homeOutline } from "ionicons/icons";
+import {
+  pencil,
+  searchOutline,
+  add,
+  closeOutline,
+  checkmarkOutline,
+  homeOutline,
+} from "ionicons/icons";
 
 import "./Owner.scss";
 import Spinner from "../../components/Spinner";
 
 import { handleLogoutApi } from "../../services/accountServices";
-import { handleLoadProductInfoApi, handleChangeProductInfoApi, handleCreateProductApi } from "../../services/productServices";
-import { handleLoadBannerInfoApi } from "../../services/bannerServices"
-import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices"
+import {
+  handleLoadProductInfoApi,
+  handleChangeProductInfoApi,
+  handleCreateProductApi,
+} from "../../services/productServices";
+import { handleLoadBannerInfoApi } from "../../services/bannerServices";
+import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 
-import { checkLoginStatus } from '../../utils/pakage';
+import { checkLoginStatus } from "../../utils/pakage";
 import { userLogin, userLogout } from "../../store/actions";
 
 import CreateProductModal from "./CreateProductModal";
@@ -23,7 +34,10 @@ import EditProductModal from "./EditProductModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
 import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
 import EditBannerModal from "./EditBannerModal";
+<<<<<<< HEAD
 
+=======
+>>>>>>> 22154bb710598715c32305c21c28ac49830a2d59
 
 class Owner extends Component {
   constructor(props) {
@@ -71,9 +85,14 @@ class Owner extends Component {
   }
   async componentDidUpdate(prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
-        loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
-        loadedBannerStatusFilterValue } = this.state
+      const {
+        actionPage,
+        loadedProductTypeFilterValue,
+        loadedPetTypeFilterValue,
+        loadedPaymentStatusFilterValue,
+        loadedShippingStatusFilterValue,
+        loadedBannerStatusFilterValue,
+      } = this.state;
       switch (this.state.actionPage) {
         case 1:
           if (actionPage === 1) {
@@ -120,33 +139,45 @@ class Owner extends Component {
         this.setState({
           accountInfo,
           isLoggedIn: true,
-        })
+        });
       } else {
         await handleLogoutApi();
         this.props.userLogout();
         this.setState({
           accountInfo: null,
           isLoggedIn: false,
-        })
-        this.props.navigate("/login")
+        });
+        this.props.navigate("/login");
       }
     } catch (e) {
       this.props.navigate("/login");
-      console.log("Token not found!")
+      console.log("Token not found!");
     }
     this.setState({
-      isLoading: false
-    })
+      isLoading: false,
+    });
   };
   handleLoadProductInfo = async () => {
-    const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue, } = this.state
+    const {
+      currentPage,
+      limitProductPerQuery,
+      searchValue,
+      filterValue,
+      sortValue,
+    } = this.state;
     try {
-      const response = await handleLoadProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue)
+      const response = await handleLoadProductInfoApi(
+        currentPage,
+        limitProductPerQuery,
+        searchValue,
+        filterValue,
+        sortValue
+      );
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
           totalPages: Math.ceil(response.totalItems / limitProductPerQuery),
-        })
+        });
       }
     } catch (e) {
       console.log("Error loading invoiceinfo:", e);
@@ -159,7 +190,7 @@ class Owner extends Component {
   };
   handleLoadProductTypeFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi('ProductType');
+      const loadedFilterValue = await handleGetAllCodesApi("ProductType");
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error("Không thể tải danh sách lọc!", {
           position: "top-right",
@@ -178,10 +209,10 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadPetTypeFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi('PetType');
+      const loadedFilterValue = await handleGetAllCodesApi("PetType");
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error("Không thể tải danh sách lọc!", {
           position: "top-right",
@@ -200,16 +231,30 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadInvoiceInfo = async () => {
-    const { currentPage, limitInvoicePerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state
+    const {
+      currentPage,
+      limitInvoicePerQuery,
+      searchValue,
+      filterValue,
+      sortValue,
+      dateFilterValue,
+    } = this.state;
     try {
-      const response = await handleLoadInvoiceInfoApi(currentPage, limitInvoicePerQuery, searchValue, filterValue, sortValue, dateFilterValue)
+      const response = await handleLoadInvoiceInfoApi(
+        currentPage,
+        limitInvoicePerQuery,
+        searchValue,
+        filterValue,
+        sortValue,
+        dateFilterValue
+      );
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
           totalPages: Math.ceil(response.totalItems / limitInvoicePerQuery),
-        })
+        });
       }
     } catch (e) {
       console.log("Error loading invoiceinfo:", e);
@@ -222,7 +267,7 @@ class Owner extends Component {
   };
   handleLoadPaymentStatusFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi('PaymentStatus');
+      const loadedFilterValue = await handleGetAllCodesApi("PaymentStatus");
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error("Không thể tải danh sách lọc!", {
           position: "top-right",
@@ -241,10 +286,10 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadShippingStatusFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi('ShippingStatus');
+      const loadedFilterValue = await handleGetAllCodesApi("ShippingStatus");
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error("Không thể tải danh sách lọc!", {
           position: "top-right",
@@ -263,16 +308,30 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadBannerInfo = async () => {
-    const { currentPage, limitBannerPerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state
+    const {
+      currentPage,
+      limitBannerPerQuery,
+      searchValue,
+      filterValue,
+      sortValue,
+      dateFilterValue,
+    } = this.state;
     try {
-      const response = await handleLoadBannerInfoApi(currentPage, limitBannerPerQuery, searchValue, filterValue, sortValue, dateFilterValue)
+      const response = await handleLoadBannerInfoApi(
+        currentPage,
+        limitBannerPerQuery,
+        searchValue,
+        filterValue,
+        sortValue,
+        dateFilterValue
+      );
       if (response && response.errCode === 0) {
         this.setState({
           loadedBannerInfo: response.data,
           totalPages: Math.ceil(response.totalItems / limitBannerPerQuery),
-        })
+        });
       }
     } catch (e) {
       console.log("Error loading bannerinfo:", e);
@@ -282,10 +341,10 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadBannerStatusFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi('BannerStatus');
+      const loadedFilterValue = await handleGetAllCodesApi("BannerStatus");
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error("Không thể tải danh sách lọc!", {
           position: "top-right",
@@ -304,56 +363,86 @@ class Owner extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleSearchChange = (event, type) => {
     const value = event.target.value;
-    this.setState({
-      searchValue: value,
-      currentPage: 1
-    }, () => {
-      if (this.debounceTimeout) {
-        clearTimeout(this.debounceTimeout);
-      }
-      this.debounceTimeout = setTimeout(() => {
-        switch (type) {
-          case 1: this.handleLoadProductInfo(); break;
-          case 2: this.handleLoadInvoiceInfo(); break;
-          case 3: this.handleLoadBannerInfo(); break;
-          default: break;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+      },
+      () => {
+        if (this.debounceTimeout) {
+          clearTimeout(this.debounceTimeout);
         }
-      }, 500);
-    });
+        this.debounceTimeout = setTimeout(() => {
+          switch (type) {
+            case 1:
+              this.handleLoadProductInfo();
+              break;
+            case 2:
+              this.handleLoadInvoiceInfo();
+              break;
+            case 3:
+              this.handleLoadBannerInfo();
+              break;
+            default:
+              break;
+          }
+        }, 500);
+      }
+    );
   };
   handleFilter = (value, type) => {
-    this.setState({
-      filterValue: value,
-      currentPage: 1
-    }, () => {
-      switch (type) {
-        case 1: this.handleLoadProductInfo(); break;
-        case 2: this.handleLoadInvoiceInfo(); break;
-        case 3: this.handleLoadBannerInfo(); break;
-        default: break;
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
       }
-    });
+    );
   };
   handleSort = (value, type) => {
-    this.setState({
-      sortValue: value,
-      currentPage: 1
-    }, () => {
-      switch (type) {
-        case 1: this.handleLoadProductInfo(); break;
-        case 2: this.handleLoadInvoiceInfo(); break;
-        case 3: this.handleLoadBannerInfo(); break;
-        default: break;
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
       }
-    });
+    );
   };
   handlePageChange = (page, type) => {
     this.setState({
       isLoading: true,
-    })
+    });
     const { totalPages } = this.state;
     let newPage = page;
     // Xử lý giá trị không hợp lệ
@@ -362,50 +451,83 @@ class Owner extends Component {
     } else if (page > totalPages) {
       newPage = totalPages; // Nếu nhập số lớn hơn totalPages, đặt thành totalPages
     }
-    this.setState({
-      isLoading: false,
-      currentPage: newPage,
-      tempCurrentPage: newPage.toString()
-    }, () => {
-      switch (type) {
-        case 1: this.handleLoadProductInfo(); break;
-        case 2: this.handleLoadInvoiceInfo(); break;
-        case 3: this.handleLoadBannerInfo(); break;
-        default: break;
+    this.setState(
+      {
+        isLoading: false,
+        currentPage: newPage,
+        tempCurrentPage: newPage.toString(),
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
       }
-    });
+    );
   };
   handlePrevPage = (type) => {
-    this.setState((prevState) => {
-      const newPage = Math.max(1, prevState.currentPage - 1);
-      return {
-        currentPage: newPage,
-        tempCurrentPage: newPage.toString()
-      };
-    }, () => {
-      switch (type) {
-        case 1: this.handleLoadProductInfo(); break;
-        case 2: this.handleLoadInvoiceInfo(); break;
-        case 3: this.handleLoadBannerInfo(); break;
-        default: break;
+    this.setState(
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
       }
-    });
+    );
   };
   handleNextPage = (type) => {
-    this.setState((prevState) => {
-      const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
-      return {
-        currentPage: newPage,
-        tempCurrentPage: newPage.toString()
-      };
-    }, () => {
-      switch (type) {
-        case 1: this.handleLoadProductInfo(); break;
-        case 2: this.handleLoadInvoiceInfo(); break;
-        case 3: this.handleLoadBannerInfo(); break;
-        default: break;
+    this.setState(
+      (prevState) => {
+        const newPage = Math.min(
+          prevState.totalPages,
+          prevState.currentPage + 1
+        );
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
       }
-    });
+    );
   };
   handlePageInputChange = (event, type) => {
     const value = event.target.value;
@@ -414,7 +536,7 @@ class Owner extends Component {
   handlePageInputBlur = (type) => {
     const { tempCurrentPage } = this.state;
     const page = parseInt(tempCurrentPage, 10);
-    this.handlePageChange(page, type)
+    this.handlePageChange(page, type);
   };
   handlePageKeyDown = (event, type) => {
     if (event.key === "Enter") {
@@ -440,25 +562,26 @@ class Owner extends Component {
     });
   };
   handleCreateProductFromModal = async (productInfo) => {
-    this.setState({ isLoading: true })
+    this.setState({ isLoading: true });
     try {
       const response = await handleCreateProductApi(productInfo);
       if (response && response.errCode === 0) {
         toast.success("Thêm sản phẩm mới thành công!", {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
         await this.handleLoadProductInfo();
         this.setState({
           isShowCreateProductModal: false,
-        })
+        });
       } else {
-        const errMessage = response?.errMessage || "Thêm sản phẩm mới thất bại!";
+        const errMessage =
+          response?.errMessage || "Thêm sản phẩm mới thất bại!";
         toast.error(errMessage, {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
       }
     } catch (e) {
@@ -466,31 +589,32 @@ class Owner extends Component {
       toast.error("Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!", {
         position: "top-right",
         autoClose: 500,
-        closeOnClick: true
+        closeOnClick: true,
       });
     }
-    this.setState({ isLoading: false })
+    this.setState({ isLoading: false });
   };
   handleEditProductFromModal = async (productInfo) => {
-    this.setState({ isLoading: true })
+    this.setState({ isLoading: true });
     try {
       const response = await handleChangeProductInfoApi(productInfo);
       if (response && response.errCode === 0) {
         toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
         await this.handleLoadProductInfo();
         this.setState({
           isShowEditProductModal: false,
-        })
+        });
       } else {
-        const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
+        const errMessage =
+          response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
         toast.error(errMessage, {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
       }
     } catch (e) {
@@ -498,9 +622,10 @@ class Owner extends Component {
       toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
         position: "top-right",
         autoClose: 500,
-        closeOnClick: true
+        closeOnClick: true,
       });
     }
+<<<<<<< HEAD
     this.setState({ isLoading: false })
   };
   handleSelectedBanner = (bannerid) => {
@@ -554,44 +679,109 @@ class Owner extends Component {
     //   isShowHomeProductModal: true,
     // });
   };
+=======
+    this.setState({ isLoading: false });
+  };
+  handleSelectedBanner = (bannerid) => {
+    this.setState({
+      selectedBanner: bannerid,
+      isShowEditBannerModal: true,
+    });
+  };
+  toggleEditBannerModal = () => {
+    this.setState({
+      isShowCreateProductModal: !this.state.isShowCreateProductModal,
+    });
+  };
+  handleEditBannerFromModal = async (bannerInfo) => {
+    console.log(bannerInfo);
+    // this.setState({ isLoading: true })
+    // try {
+    //   const response = await handleChangeProductInfoApi(productInfo);
+    //   if (response && response.errCode === 0) {
+    //     toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true
+    //     });
+    //     await this.handleLoadProductInfo();
+    //     this.setState({
+    //       isShowEditProductModal: false,
+    //     })
+    //   } else {
+    //     const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
+    //     toast.error(errMessage, {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true
+    //     });
+    //   }
+    // } catch (e) {
+    //   console.error("Edit:", e);
+    //   toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
+    //     position: "top-right",
+    //     autoClose: 500,
+    //     closeOnClick: true
+    //   });
+    // }
+    // this.setState({ isLoading: false })
+  };
+  handleSelectedInvoice = (invoiceid) => {
+    console.log(invoiceid);
+    // this.setState({
+    //   selectedProduct: productid,
+    //   isShowHomeProductModal: true,
+    // });
+  };
+>>>>>>> 22154bb710598715c32305c21c28ac49830a2d59
 
   handleChangeBannerStatus = (bannerid) => {
-    console.log(bannerid)
+    console.log(bannerid);
     // this.setState({
     //   selectedProduct: productid,
     //   isShowHomeProductModal: true,
     // });
   };
   handleConfirmInvoice = (invoiceid) => {
-    console.log(invoiceid)
+    console.log(invoiceid);
     // this.setState({
     //   selectedProduct: productid,
     //   isShowHomeProductModal: true,
     // });
   };
   handleDenyInvoice = (invoiceid) => {
-    console.log(invoiceid)
+    console.log(invoiceid);
     // this.setState({
     //   selectedProduct: productid,
     //   isShowHomeProductModal: true,
     // });
   };
   handleResetFilter = () => {
-    this.setState({
-      currentPage: 1,
-      tempCurrentPage: "1",
-      searchValue: "",
-      dateFilterValue: "",
-      filterValue: "ALL",
-      sortValue: "0",
-    }, () => {
-      switch (this.state.actionPage) {
-        case 1: this.handleLoadProductInfo(); break;
-        case 2: this.handleLoadInvoiceInfo(); break;
-        case 3: this.handleLoadBannerInfo(); break;
-        default: break;
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: "1",
+        searchValue: "",
+        dateFilterValue: "",
+        filterValue: "ALL",
+        sortValue: "0",
+      },
+      () => {
+        switch (this.state.actionPage) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
       }
-    });
+    );
   };
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
@@ -647,12 +837,41 @@ class Owner extends Component {
   };
 
   render() {
+<<<<<<< HEAD
     const { loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue,
       loadedInvoiceInfo, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue,
       loadedBannerInfo, loadedBannerStatusFilterValue, isLoading,
       actionPage, searchValue, sortValue, filterValue, dateFilterValue, currentPage, tempCurrentPage, totalPages,
       isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal,
       selectedProduct, selectedBanner } = this.state
+=======
+    const {
+      loadedProductInfo,
+      loadedProductTypeFilterValue,
+      loadedPetTypeFilterValue,
+      loadedInvoiceInfo,
+      loadedPaymentStatusFilterValue,
+      loadedShippingStatusFilterValue,
+      loadedBannerInfo,
+      loadedBannerStatusFilterValue,
+      isLoading,
+      actionPage,
+      searchValue,
+      sortValue,
+      filterValue,
+      dateFilterValue,
+      currentPage,
+      tempCurrentPage,
+      totalPages,
+      isShowCreateProductModal,
+      isShowEditProductModal,
+      isShowCreateBannerModal,
+      isShowEditBannerModal,
+      isShowViewInvoiceModal,
+      selectedProduct,
+      selectedBanner,
+    } = this.state;
+>>>>>>> 22154bb710598715c32305c21c28ac49830a2d59
     const renderSection = () => {
       switch (actionPage) {
         case 1:
@@ -681,28 +900,38 @@ class Owner extends Component {
                     <br />
                     <select
                       value={filterValue}
-                      onChange={(event) => this.handleFilter(event.target.value, 1)}
+                      onChange={(event) =>
+                        this.handleFilter(event.target.value, 1)
+                      }
                     >
                       <option value="ALL">Tất cả</option>
                       <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
-                      {loadedProductTypeFilterValue && loadedProductTypeFilterValue.length > 0 && (
-                        <optgroup label="Loại sản phẩm">
-                          {loadedProductTypeFilterValue.map((item) => (
-                            <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      {loadedPetTypeFilterValue && loadedPetTypeFilterValue.length > 0 && (
-                        <optgroup label="Sản phẩm cho thú cưng">
-                          {loadedPetTypeFilterValue.map((item) => (
-                            <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
+                      {loadedProductTypeFilterValue &&
+                        loadedProductTypeFilterValue.length > 0 && (
+                          <optgroup label="Loại sản phẩm">
+                            {loadedProductTypeFilterValue.map((item) => (
+                              <option
+                                key={`producttype-${item.Code}`}
+                                value={`producttype-${item.Code}`}
+                              >
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                      {loadedPetTypeFilterValue &&
+                        loadedPetTypeFilterValue.length > 0 && (
+                          <optgroup label="Sản phẩm cho thú cưng">
+                            {loadedPetTypeFilterValue.map((item) => (
+                              <option
+                                key={`pettype-${item.Code}`}
+                                value={`pettype-${item.Code}`}
+                              >
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                     </select>
                   </div>
                   <div className="owner-mid-content-left-product-sort">
@@ -745,7 +974,12 @@ class Owner extends Component {
                               className="owner-mid-content-right-list-product-item"
                             >
                               <td>{item.ProductID}</td>
-                              <td>{loadedProductTypeFilterValue.find((filterItem) => filterItem.Code === item.ProductType)?.CodeValueVI || item.ProductType}</td>
+                              <td>
+                                {loadedProductTypeFilterValue.find(
+                                  (filterItem) =>
+                                    filterItem.Code === item.ProductType
+                                )?.CodeValueVI || item.ProductType}
+                              </td>
                               <td>{item.ProductName}</td>
                               <td>
                                 <img
@@ -755,15 +989,24 @@ class Owner extends Component {
                                 />
                               </td>
                               <td className="f">
-                                <p>{parseFloat(item.ProductPrice).toLocaleString("vi-VN")}</p>
+                                <p>
+                                  {parseFloat(item.ProductPrice).toLocaleString(
+                                    "vi-VN"
+                                  )}
+                                </p>
                                 <p>vnđ</p>
                               </td>
                               <td>{item.TotalStock || 0}</td>
                               <td>{item.TotalSold || 0}</td>
-                              <td className="f" onClick={(e) => e.stopPropagation()}>
+                              <td
+                                className="f"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <button
                                   className="btn-edit"
-                                  onClick={() => this.handleSelectedProduct(item.ProductID)}
+                                  onClick={() =>
+                                    this.handleSelectedProduct(item.ProductID)
+                                  }
                                 >
                                   <IonIcon icon={pencil}></IonIcon>
                                 </button>
@@ -781,13 +1024,15 @@ class Owner extends Component {
                   {totalPages > 1 && (
                     <div className="page-content">
                       <div className="page-content-item">
-                        <button className="first"
+                        <button
+                          className="first"
                           onClick={() => this.handlePageChange(1, 1)}
                           disabled={currentPage === 1}
                         >
                           {"<<"}
                         </button>
-                        <button className="prev"
+                        <button
+                          className="prev"
                           onClick={() => this.handlePrevPage(1)}
                           disabled={currentPage === 1}
                         >
@@ -796,18 +1041,24 @@ class Owner extends Component {
                         <input
                           type="text"
                           value={tempCurrentPage}
-                          onChange={(event) => this.handlePageInputChange(event, 1)}
-                          onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
+                          onChange={(event) =>
+                            this.handlePageInputChange(event, 1)
+                          }
+                          onKeyDown={(event) =>
+                            this.handlePageKeyDown(event, 1)
+                          }
                           onBlur={() => this.handlePageInputBlur(1)}
                         />
                         <span className="total-pages">/ {totalPages}</span>
-                        <button className="next"
+                        <button
+                          className="next"
                           onClick={() => this.handleNextPage(1)}
                           disabled={currentPage === totalPages}
                         >
                           {">"}
                         </button>
-                        <button className="last"
+                        <button
+                          className="last"
                           onClick={() => this.handlePageChange(totalPages, 1)}
                           disabled={currentPage === totalPages}
                         >
@@ -822,7 +1073,7 @@ class Owner extends Component {
           );
         case 2:
           return (
-            <div >
+            <div>
               <div
                 className="owner-mid-content-left-search-invoice"
                 style={{ display: actionPage === 2 ? "flex" : "none" }}
@@ -845,31 +1096,47 @@ class Owner extends Component {
                   <br />
                   <select
                     value={filterValue}
-                    onChange={(event) => this.handleFilter(event.target.value, 2)}
+                    onChange={(event) =>
+                      this.handleFilter(event.target.value, 2)
+                    }
                   >
                     <option value="ALL">Tất cả</option>
-                    {loadedPaymentStatusFilterValue && loadedPaymentStatusFilterValue.length > 0 && (
-                      <optgroup label="Tình trạng thanh toán">
-                        {loadedPaymentStatusFilterValue.map((item) => (
-                          <option key={`paymentstatus-${item.Code}`} value={`paymentstatus-${item.Code}`}>
-                            {item.CodeValueVI}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    {loadedShippingStatusFilterValue && loadedShippingStatusFilterValue.length > 0 && (
-                      <optgroup label="Tình trạng giao hàng">
-                        {loadedShippingStatusFilterValue.map((item) => (
-                          <option key={`shippingstatus-${item.Code}`} value={`shippingstatus-${item.Code}`}>
-                            {item.CodeValueVI}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
+                    {loadedPaymentStatusFilterValue &&
+                      loadedPaymentStatusFilterValue.length > 0 && (
+                        <optgroup label="Tình trạng thanh toán">
+                          {loadedPaymentStatusFilterValue.map((item) => (
+                            <option
+                              key={`paymentstatus-${item.Code}`}
+                              value={`paymentstatus-${item.Code}`}
+                            >
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    {loadedShippingStatusFilterValue &&
+                      loadedShippingStatusFilterValue.length > 0 && (
+                        <optgroup label="Tình trạng giao hàng">
+                          {loadedShippingStatusFilterValue.map((item) => (
+                            <option
+                              key={`shippingstatus-${item.Code}`}
+                              value={`shippingstatus-${item.Code}`}
+                            >
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     <optgroup label="Tổng thanh toán">
-                      <option value="totalpayment-0">500.000 - 1.000.000 VNĐ</option>
-                      <option value="totalpayment-1">1.000.000 - 1.500.000 VNĐ</option>
-                      <option value="totalpayment-2">1.500.000 - 2.000.000 VNĐ</option>
+                      <option value="totalpayment-0">
+                        500.000 - 1.000.000 VNĐ
+                      </option>
+                      <option value="totalpayment-1">
+                        1.000.000 - 1.500.000 VNĐ
+                      </option>
+                      <option value="totalpayment-2">
+                        1.500.000 - 2.000.000 VNĐ
+                      </option>
                       <option value="totalpayment-3">Trên 2.000.000 VNĐ</option>
                     </optgroup>
                   </select>
@@ -898,7 +1165,9 @@ class Owner extends Component {
                 <div className="f">
                   <label>Ngày hóa đơn:</label>
                   <DatePicker
-                    selected={dateFilterValue ? new Date(dateFilterValue) : null}
+                    selected={
+                      dateFilterValue ? new Date(dateFilterValue) : null
+                    }
                     onChange={(date) => {
                       const formattedDate = date
                         ? date.toISOString().split("T")[0]
@@ -913,7 +1182,10 @@ class Owner extends Component {
                     placeholderText="dd/mm/yyyy"
                     className="date-picker"
                   />
-                  <button style={{ marginLeft: "10px" }} onClick={this.handleResetFilter}>
+                  <button
+                    style={{ marginLeft: "10px" }}
+                    onClick={this.handleResetFilter}
+                  >
                     Reset
                   </button>
                 </div>
@@ -940,7 +1212,9 @@ class Owner extends Component {
                         <tr
                           key={item.InvoiceID}
                           className="owner-mid-content-right-list-invoice-item"
-                          onClick={() => { this.handleSelectedInvoice(item.InvoiceID) }}
+                          onClick={() => {
+                            this.handleSelectedInvoice(item.InvoiceID);
+                          }}
                         >
                           <td>{item.InvoiceID}</td>
                           <td>
@@ -953,22 +1227,29 @@ class Owner extends Component {
                           <td>{item.TotalQuantity}</td>
                           <td className="f">
                             <p>
-                              {parseFloat(item.TotalPayment).toLocaleString("vi-VN")} vnđ
+                              {parseFloat(item.TotalPayment).toLocaleString(
+                                "vi-VN"
+                              )}{" "}
+                              vnđ
                             </p>
                           </td>
                           <td>
                             {loadedPaymentStatusFilterValue.find(
-                              (filterItem) => filterItem.Code === item.PaymentStatus
+                              (filterItem) =>
+                                filterItem.Code === item.PaymentStatus
                             )?.CodeValueVI || item.PaymentStatus}
                           </td>
                           <td>
                             {loadedShippingStatusFilterValue.find(
-                              (filterItem) => filterItem.Code === item.ShippingStatus
+                              (filterItem) =>
+                                filterItem.Code === item.ShippingStatus
                             )?.CodeValueVI || item.ShippingStatus}
                           </td>
                           <td>
                             {item.CanceledAt
-                              ? new Date(item.CanceledAt).toLocaleString("vi-VN")
+                              ? new Date(item.CanceledAt).toLocaleString(
+                                  "vi-VN"
+                                )
                               : ""}
                           </td>
                           <td className="f">
@@ -1003,13 +1284,15 @@ class Owner extends Component {
                 {totalPages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
-                      <button className="first"
+                      <button
+                        className="first"
                         onClick={() => this.handlePageChange(1, 2)}
                         disabled={currentPage === 1}
                       >
                         {"<<"}
                       </button>
-                      <button className="prev"
+                      <button
+                        className="prev"
                         onClick={() => this.handlePrevPage(2)}
                         disabled={currentPage === 1}
                       >
@@ -1018,18 +1301,22 @@ class Owner extends Component {
                       <input
                         type="text"
                         value={tempCurrentPage}
-                        onChange={(event) => this.handlePageInputChange(event, 2)}
+                        onChange={(event) =>
+                          this.handlePageInputChange(event, 2)
+                        }
                         onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
                         onBlur={() => this.handlePageInputBlur(2)}
                       />
                       <span className="total-pages">/ {totalPages}</span>
-                      <button className="next"
+                      <button
+                        className="next"
                         onClick={() => this.handleNextPage(2)}
                         disabled={currentPage === totalPages}
                       >
                         {">"}
                       </button>
-                      <button className="last"
+                      <button
+                        className="last"
                         onClick={() => this.handlePageChange(totalPages, 2)}
                         disabled={currentPage === totalPages}
                       >
@@ -1043,7 +1330,7 @@ class Owner extends Component {
           );
         case 3:
           return (
-            <div >
+            <div>
               <button
                 style={{ display: actionPage === 3 ? "block" : "none" }}
                 onClick={() => this.toggleCreateBannerModal()}
@@ -1073,18 +1360,24 @@ class Owner extends Component {
                     <br />
                     <select
                       value={filterValue}
-                      onChange={(event) => this.handleFilter(event.target.value, 3)}
+                      onChange={(event) =>
+                        this.handleFilter(event.target.value, 3)
+                      }
                     >
                       <option value="ALL">Tất cả</option>
-                      {loadedBannerStatusFilterValue && loadedBannerStatusFilterValue.length > 0 && (
-                        <optgroup label="Trạng thái">
-                          {loadedBannerStatusFilterValue.map((item) => (
-                            <option key={`bannerstatus-${item.Code}`} value={`bannerstatus-${item.Code}`}>
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
+                      {loadedBannerStatusFilterValue &&
+                        loadedBannerStatusFilterValue.length > 0 && (
+                          <optgroup label="Trạng thái">
+                            {loadedBannerStatusFilterValue.map((item) => (
+                              <option
+                                key={`bannerstatus-${item.Code}`}
+                                value={`bannerstatus-${item.Code}`}
+                              >
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                     </select>
                   </div>
                   <div className="owner-mid-content-left-banner-sort">
@@ -1109,22 +1402,30 @@ class Owner extends Component {
                   <div className="f">
                     <label>Các banner hoạt động trong ngày:</label>
                     <DatePicker
-                      selected={dateFilterValue ? new Date(dateFilterValue) : null}
+                      selected={
+                        dateFilterValue ? new Date(dateFilterValue) : null
+                      }
                       onChange={(date) => {
                         const formattedDate = date
                           ? date.toISOString().split("T")[0]
                           : "";
-                        this.setState({ dateFilterValue: formattedDate }, () => {
-                          if (this.state.actionPage === 3) {
-                            this.handleLoadBannerInfo();
+                        this.setState(
+                          { dateFilterValue: formattedDate },
+                          () => {
+                            if (this.state.actionPage === 3) {
+                              this.handleLoadBannerInfo();
+                            }
                           }
-                        });
+                        );
                       }}
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
                     />
-                    <button style={{ marginLeft: "10px" }} onClick={this.handleResetFilter}>
+                    <button
+                      style={{ marginLeft: "10px" }}
+                      onClick={this.handleResetFilter}
+                    >
                       Reset
                     </button>
                   </div>
@@ -1170,31 +1471,59 @@ class Owner extends Component {
                             </td>
                             <td>
                               {loadedBannerStatusFilterValue.find(
-                                (filterItem) => filterItem.Code === item.BannerStatus
+                                (filterItem) =>
+                                  filterItem.Code === item.BannerStatus
                               )?.CodeValueVI || item.BannerStatus}
                             </td>
                             <td>
                               {item.CreatedAt
-                                ? new Date(item.CreatedAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                ? new Date(item.CreatedAt).toLocaleString(
+                                    "vi-VN",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    }
+                                  )
                                 : "N/A"}
                             </td>
                             <td>
                               {item.HiddenAt
-                                ? new Date(item.HiddenAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                ? new Date(item.HiddenAt).toLocaleString(
+                                    "vi-VN",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    }
+                                  )
                                 : "Vô thời hạn"}
                             </td>
-                            <td className="f" onClick={(e) => e.stopPropagation()}>
+                            <td
+                              className="f"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <button
                                 className="btn-edit"
-                                onClick={() => this.handleSelectedBanner(item.BannerID)}
+                                onClick={() =>
+                                  this.handleSelectedBanner(item.BannerID)
+                                }
                               >
                                 <IonIcon icon={pencil}></IonIcon>
                               </button>
                               <button
                                 className="btn-toggle"
-                                onClick={() => this.handleChangeBannerStatus(item.BannerID)}
+                                onClick={() =>
+                                  this.handleChangeBannerStatus(item.BannerID)
+                                }
                               >
-                                <IonIcon icon={item.BannerStatus === "SHOW" ? closeOutline : checkmarkOutline}></IonIcon>
+                                <IonIcon
+                                  icon={
+                                    item.BannerStatus === "SHOW"
+                                      ? closeOutline
+                                      : checkmarkOutline
+                                  }
+                                ></IonIcon>
                               </button>
                             </td>
                           </tr>
@@ -1209,13 +1538,15 @@ class Owner extends Component {
                   {totalPages > 1 && (
                     <div className="page-content">
                       <div className="page-content-item">
-                        <button className="first"
+                        <button
+                          className="first"
                           onClick={() => this.handlePageChange(1, 3)}
                           disabled={currentPage === 1}
                         >
                           {"<<"}
                         </button>
-                        <button className="prev"
+                        <button
+                          className="prev"
                           onClick={() => this.handlePrevPage(3)}
                           disabled={currentPage === 1}
                         >
@@ -1224,18 +1555,24 @@ class Owner extends Component {
                         <input
                           type="text"
                           value={tempCurrentPage}
-                          onChange={(event) => this.handlePageInputChange(event, 3)}
-                          onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
+                          onChange={(event) =>
+                            this.handlePageInputChange(event, 3)
+                          }
+                          onKeyDown={(event) =>
+                            this.handlePageKeyDown(event, 3)
+                          }
                           onBlur={() => this.handlePageInputBlur(3)}
                         />
                         <span className="total-pages">/ {totalPages}</span>
-                        <button className="next"
+                        <button
+                          className="next"
                           onClick={() => this.handleNextPage(3)}
                           disabled={currentPage === totalPages}
                         >
                           {">"}
                         </button>
-                        <button className="last"
+                        <button
+                          className="last"
                           onClick={() => this.handlePageChange(totalPages, 2)}
                           disabled={currentPage === totalPages}
                         >
@@ -1254,7 +1591,7 @@ class Owner extends Component {
     };
 
     return (
-      < div className="owner-body" >
+      <div className="owner-body">
         <CreateProductModal
           isOpen={isShowCreateProductModal}
           toggleFromModal={this.toggleCreateProductModal}
@@ -1282,7 +1619,9 @@ class Owner extends Component {
           hoadon={this.state.selectedInvoice}
         />
         <ToastContainer />
-        {isLoading ? <Spinner /> : (
+        {isLoading ? (
+          <Spinner />
+        ) : (
           <div className="container">
             <div className="f">
               <h1 className="name">Trang chủ cửa hàng</h1>
@@ -1297,20 +1636,24 @@ class Owner extends Component {
             <div className="owner-top-content">
               <div className="owner-top-content-menu f">
                 <li>
-                  <a onClick={this.handleFormDanhSachSanPham}
-                    className={actionPage === 1 ? "active" : ""}>
+                  <a
+                    onClick={this.handleFormDanhSachSanPham}
+                    className={actionPage === 1 ? "active" : ""}
+                  >
                     SẢN PHẨM
                   </a>
                 </li>
                 <li>
-                  <a onClick={this.handleFormDanhSachDonHang}
+                  <a
+                    onClick={this.handleFormDanhSachDonHang}
                     className={actionPage === 2 ? "active" : ""}
                   >
                     HÓA ĐƠN
                   </a>
                 </li>
                 <li>
-                  <a onClick={this.handleFormDanhSachBanner}
+                  <a
+                    onClick={this.handleFormDanhSachBanner}
                     className={actionPage === 3 ? "active" : ""}
                   >
                     BANNER
@@ -1321,7 +1664,7 @@ class Owner extends Component {
             <div className="owner-mid-content f">{renderSection()}</div>
           </div>
         )}
-      </div >
+      </div>
     );
   }
 }

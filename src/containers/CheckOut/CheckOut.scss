@@ -126,6 +126,31 @@ body {
               margin-right: -15px;
             }
           }
+          .delivery-content-left-input-top-item-none-logged:nth-child(4) {
+            input {
+              border: none;
+              width: 230px;
+              height: 25px;
+              border-bottom: 2px solid rgb(91, 82, 82);
+              padding-left: 5px;
+              margin-right: 17px;
+              background-color: transparent;
+              outline: none;
+            }
+            button {
+              border-radius: 0.3rem;
+              margin-top: -0.7rem;
+              padding: 0.3rem;
+              background-color: white;
+              cursor: pointer;
+              transition: 0.3s;
+
+              &:hover {
+                background-color: rgb(91, 82, 82);
+                color: white;
+              }
+            }
+          }
         }
         .delivery-content-left-input-top,
         .delivery-content-left-input-bottom {
@@ -417,6 +442,26 @@ body {
             }
           }
           tr:nth-child(4) {
+            td:last-child {
+              padding-left: 12px;
+              p {
+                margin: 0;
+              }
+              sup {
+                margin-top: 7px;
+                margin-left: -7.5px;
+              }
+            }
+          }
+          .total {
+            td:last-child {
+              padding-right: 1rem;
+              p {
+                margin: 0;
+              }
+            }
+          }
+          .discount {
             td:last-child {
               padding-left: 12px;
               p {

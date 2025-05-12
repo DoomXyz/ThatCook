@@ -33,6 +33,7 @@
     .owner-top-content {
       margin-top: 60px;
       margin-left: 510px;
+      margin-bottom: 3rem;
       .owner-top-content-menu {
         width: 900px;
         margin-left: 60px;
@@ -78,118 +79,93 @@
         margin-bottom: 10px;
       }
     }
-    .add {
-      .owner-top-content-search-banner,
-      .owner-mid-content-left-search-invoice {
-        margin-right: 20px;
-        b {
-          margin-top: 7px;
-          margin-right: 10px;
+
+    .owner-mid-content {
+      width: 100%;
+      .owner-mid-content-search-banner {
+        p {
+          margin: 0;
+          margin-right: 0.8rem;
+          margin-top: 0.5rem;
         }
         input {
-          width: 400px;
-          padding: 5px;
+          width: 25rem;
+          padding: 0.3rem;
           border-radius: 5px;
+          height: 2.5rem;
         }
         ion-icon {
           position: absolute;
           margin-top: 10px;
-          left: 500px;
+          left: 32rem;
         }
       }
-      .owner-mid-content-left-image-sort {
-        label {
-          margin-top: 7px;
-          margin-right: 10px;
+      .owner-mid-content-left-search-invoice {
+        p {
+          margin: 0;
+          margin-right: 0.8rem;
+          margin-top: 0.5rem;
         }
-        select {
+        input {
+          width: 25rem;
+          padding: 0.3rem;
           border-radius: 5px;
-          width: 90px;
+          height: 2.5rem;
+        }
+        ion-icon {
+          position: absolute;
+          margin-top: 10px;
+          left: 32rem;
         }
       }
-      .owner-mid-content-left-invoice-sort {
-        label {
-          margin-top: 7px;
-          margin-right: 10px;
+      .owner-mid-content-left-invoice-sort-filter {
+        .owner-mid-content-left-invoice-filter {
+          margin-left: 1rem;
+          margin-top: -0.5rem;
+          select {
+            border-radius: 0.5rem;
+          }
         }
-        select {
-          margin-top: 5px;
-          width: 210px;
-
-          font-size: 18px;
-          border-radius: 5px;
+        .owner-mid-content-left-invoice-sort {
+          border-radius: 0.2rem;
+          margin-left: 1rem;
+          margin-top: -0.5rem;
+          select {
+            border-radius: 0.5rem;
+          }
+        }
+      }
+      .owner-mid-content-banner-filter-sort {
+        .owner-mid-content-banner-filter {
+          margin-left: 1rem;
+          margin-top: -0.5rem;
+          select {
+            border-radius: 0.5rem;
+          }
+        }
+        .owner-mid-content-banner-sort {
+          border-radius: 0.2rem;
+          margin-left: 1rem;
+          margin-top: -0.5rem;
+          select {
+            border-radius: 0.5rem;
+          }
         }
       }
       .owner-mid-content-left-invoice-date {
-        margin-left: 20px;
-        display: flex;
-        align-items: center;
+        margin-left: 1rem;
+        margin-top: 1rem;
         label {
-          margin-top: 5px;
-          margin-right: 10px;
-        }
-        .date-picker {
-          padding: 5px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          width: 120px;
-        }
-        button {
-          padding: 5px 10px;
-          background-color: #f0f0f0;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-        .react-datepicker__navigation--previous {
-          position: absolute;
-          background-color: #f0f0f0;
-          border: none;
-          padding: 8px;
-          cursor: pointer;
-
-          &:hover {
-            background-color: #e0e0e0;
-          }
-        }
-        .react-datepicker__navigation--next {
-          position: absolute;
-          right: 0;
-          background-color: #f0f0f0;
-          border: none;
-          padding: 8px;
-          cursor: pointer;
-
-          &:hover {
-            background-color: #e0e0e0;
-          }
-        }
-        button:hover {
-          background-color: #e0e0e0;
-        }
-        .react-datepicker-wrapper {
-          display: inline-block;
-        }
-        .react-datepicker__input-container input {
-          padding: 5px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        }
-
-        .react-datepicker__day--selected,
-        .react-datepicker__day--keyboard-selected {
-          background-color: #007bff;
-          color: white;
-        }
-
-        .react-datepicker__day:hover {
-          background-color: #f0f0f0;
+          margin-right: 0.5rem;
         }
       }
-    }
-
-    .owner-mid-content {
-      width: 100%;
+      .owner-mid-content-banner-date {
+        margin-left: 1rem;
+        margin-top: 1rem;
+        label {
+          margin-right: 0.5rem;
+        }
+      }
       .owner-mid-content-mid-list-img {
         table {
           text-align: center;
@@ -202,67 +178,6 @@
             }
           }
           tbody {
-            .owner-mid-content-right-list-product-item {
-              img {
-                max-width: 90px;
-              }
-
-              td:nth-child(4) {
-                margin-top: 32px;
-                justify-content: center;
-                p {
-                  margin-right: 5px;
-                }
-              }
-              td:nth-child(5) {
-                justify-content: center;
-                p {
-                  margin-right: 5px;
-                }
-              }
-
-              td:nth-child(7) {
-                width: 70px;
-              }
-              td:nth-child(8) {
-                justify-content: center;
-                button {
-                  border-radius: 7px;
-                  width: 40px;
-                  height: 40px;
-                  margin-right: 10px;
-                  ion-icon {
-                    padding-top: 5px;
-                    width: 25px;
-                    height: 25px;
-                  }
-                }
-                button:last-child {
-                  background-color: rgb(255, 0, 0);
-                  ion-icon {
-                    color: white;
-                  }
-                }
-                button:first-child {
-                  background-color: rgb(233, 233, 0);
-                  ion-icon {
-                    color: rgb(0, 0, 0);
-                  }
-                }
-                button:first-child:hover {
-                  ion-icon {
-                    width: 22px;
-                    height: 22px;
-                  }
-                }
-                button:last-child:hover {
-                  ion-icon {
-                    width: 22px;
-                    height: 22px;
-                  }
-                }
-              }
-            }
             .owner-mid-content-right-list-invoice-item {
               td:nth-child(5) {
                 margin-top: 16.5px;
@@ -437,31 +352,34 @@
           thead {
             tr {
               th:first-child {
-                width: 10%;
+                width: 7%;
               } // Mã hóa đơn
               th:nth-child(2) {
-                width: 15%;
+                width: 12%;
               } // Thời gian tạo
               th:nth-child(3) {
-                width: 15%;
+                width: 10%;
               } // Tên Khách Hàng
               th:nth-child(4) {
                 width: 10%;
               } // Tổng số hàng
               th:nth-child(5) {
-                width: 10%;
+                width: 11%;
               } // Tổng tiền hàng
               th:nth-child(6) {
-                width: 15%;
+                width: 10%;
               } // Tình trạng thanh toán
               th:nth-child(7) {
-                width: 12.5%;
+                width: 12%;
               }
               th:nth-child(8) {
-                width: 12.5%;
+                width: 12%;
               }
               th:nth-child(9) {
-                width: 12.5%;
+                width: 6%;
+              }
+              th:nth-child(10) {
+                width: 5%;
               }
             }
           }
@@ -524,6 +442,17 @@
           }
         }
       }
+      .add-product,
+      .add-banner {
+        top: 7.6rem;
+        right: 5.4rem;
+        position: absolute;
+        padding: 0.2rem;
+        border-radius: 0.4rem;
+        background-color: rgb(0, 227, 0);
+        color: white;
+        font-weight: bold;
+      }
       .owner-mid-content-left {
         width: 28%;
         .owner-mid-content-left-search-product {
@@ -565,7 +494,7 @@
       }
       .owner-mid-content-right {
         width: 72%;
-
+        margin-top: -2.2rem;
         .owner-mid-content-right-list-product {
           table {
             text-align: center;
@@ -591,7 +520,7 @@
                   }
                 }
                 td:nth-child(5) {
-                  margin-top: 33px;
+                  margin-top: 1rem;
                   justify-content: center;
                   p {
                     margin-right: 5px;
@@ -604,6 +533,8 @@
                 td:nth-child(8) {
                   justify-content: center;
                   button {
+                    margin: 0;
+                    margin-top: 1rem;
                     border-radius: 7px;
                     width: 40px;
                     height: 40px;
@@ -612,12 +543,6 @@
                       padding-top: 5px;
                       width: 25px;
                       height: 25px;
-                    }
-                  }
-                  button {
-                    background-color: rgb(255, 0, 0);
-                    ion-icon {
-                      color: white;
                     }
                   }
 
@@ -685,33 +610,32 @@
           table {
             table-layout: fixed; // Enforce fixed column widths
             width: 100%; // Ensure the table fits its container
-            max-width: 900px; // Optional: Limit the maximum width of the table
 
             thead {
               tr {
                 th:first-child {
-                  width: 120px;
+                  width: 10%;
                 } // Mã sản phẩm
                 th:nth-child(2) {
-                  width: 270px;
+                  width: 14%;
                 } // Tên sản phẩm
                 th:nth-child(3) {
-                  width: 100px;
+                  width: 20%;
                 } // Hình ảnh
                 th:nth-child(4) {
-                  width: 150px;
+                  width: 15%;
                 } // Danh mục
                 th:nth-child(5) {
-                  width: 100px;
+                  width: 9%;
                 } // Giá
                 th:nth-child(6) {
-                  width: 80px;
+                  width: 12%;
                 } // Kho
                 th:nth-child(7) {
-                  width: 100px;
+                  width: auto;
                 } // KM
                 th:nth-child(8) {
-                  width: 100px;
+                  width: auto;
                 } // Chỉnh sửa
               }
             }
