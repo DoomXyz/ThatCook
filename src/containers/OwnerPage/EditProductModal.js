@@ -2,89 +2,83 @@ import React, { Component } from "react";
 import { toast } from "react-toastify";
 import { IonIcon } from "@ionic/react";
 import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
-import DatePicker from "react-datepicker";
-import Select from "react-select";
+
 import { trashOutline } from "ionicons/icons";
-import "./EditBannerModal.scss";
-import { handleLoadFilteredProductInfoApi } from "../../services/productServices";
-import { handleGetBannerInfoApi } from "../../services/bannerServices";
+
+import "./EditProductModal.scss";
+import Button from "react-bootstrap/Button";
+
+import { handleGetProductInfoApi } from "../../services/productServices";
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from "../../services/utilitiesServices";
 
-class EditBannerModal extends Component {
+class EditProductModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadedBannerInfo: null,
-      selectedBannerID: null,
-      codeBannerStatus: [],
-      codeProductType: [],
+      loadedProductInfo: null,
+      loadedProductDetailInfo: null,
+      selectedProductID: null,
       codePetType: [],
-      bannerimage: "",
-      createdat: null,
-      hiddenat: null,
-      bannerstatus: "",
-      productid: "",
+      codeProductType: [],
+      codeDetailStatus: [],
       productname: "",
-      producttype: "ALL",
+      producttype: "",
       pettype: [],
+      imagelist: [],
+      productprice: "",
+      productimage: "",
+      productdescription: "",
       isUploading: false,
-      imageFile: null,
-      imagePreview: null,
-      searchValue: "",
-      loadedProductInfo: [],
+      allImages: [],
+      editingField: null,
+      isAddingDetail: false,
     };
-    this.debounceTimeout = null;
   }
 
   async componentDidMount() {
     await Promise.all([
       this.handleLoadCodeProductType(),
       this.handleLoadCodePetType(),
-      this.handleLoadCodeBannerStatus(),
+      this.handleLoadCodeDetailStatus()
     ]);
-    const { selectedBannerID } = this.props;
-    if (selectedBannerID) {
-      await this.handleLoadBannerInfo(selectedBannerID);
+    const { selectedProductID } = this.props;
+    if (selectedProductID) {
+      await this.handleLoadProductInfo(selectedProductID);
     }
   }
 
   async componentDidUpdate(prevProps) {
-    const { selectedBannerID, isOpen } = this.props;
+    const { selectedProductID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
       this.resetState();
-      if (selectedBannerID) {
-        await this.handleLoadBannerInfo(selectedBannerID);
+      if (selectedProductID) {
+        await this.handleLoadProductInfo(selectedProductID);
       }
     }
   }
 
   componentWillUnmount() {
-    if (this.state.imagePreview && this.state.imageFile) {
-      URL.revokeObjectURL(this.state.imagePreview);
-    }
-    if (this.debounceTimeout) {
-      clearTimeout(this.debounceTimeout);
-    }
+    this.state.allImages.forEach((img) => {
+      if (img.Image && img.file) URL.revokeObjectURL(img.Image);
+    });
   }
 
   resetState = () => {
     this.setState({
-      loadedBannerInfo: null,
-      selectedBannerID: null,
-      bannerimage: "",
-      createdat: null,
-      hiddenat: null,
-      bannerstatus: this.state.codeBannerStatus.length > 0 ? this.state.codeBannerStatus[0].Code : "",
-      productid: "",
+      loadedProductInfo: null,
+      loadedProductDetailInfo: null,
+      selectedProductID: null,
       productname: "",
-      producttype: "ALL",
+      producttype: "",
       pettype: [],
+      imagelist: [],
+      productprice: "",
+      productimage: "",
+      productdescription: "",
       isUploading: false,
-      imageFile: null,
-      imagePreview: null,
-      searchValue: "",
-      loadedProductInfo: [],
+      allImages: [],
+      editingField: null,
+      isAddingDetail: false,
     });
   };
 
@@ -100,7 +94,7 @@ class EditBannerModal extends Component {
       }
       this.setState({
         codeProductType,
-        producttype: "ALL",
+        producttype: codeProductType.length > 0 ? codeProductType[0].Code : "",
       });
     } catch (e) {
       console.error("Error loading product type code:", e);
@@ -133,23 +127,20 @@ class EditBannerModal extends Component {
     }
   };
 
-  handleLoadCodeBannerStatus = async () => {
+  handleLoadCodeDetailStatus = async () => {
     try {
-      const codeBannerStatus = await handleGetAllCodesApi("BannerStatus");
-      if (!codeBannerStatus || codeBannerStatus.length === 0) {
-        toast.error("Không thể tải danh sách trạng thái banner!", {
+      const codeDetailStatus = await handleGetAllCodesApi("DetailStatus");
+      if (!codeDetailStatus || codeDetailStatus.length === 0) {
+        toast.error("Không thể tải danh sách trạng thái chi tiết!", {
           position: "top-right",
           autoClose: 500,
           closeOnClick: true,
         });
       }
-      this.setState({
-        codeBannerStatus,
-        bannerstatus: codeBannerStatus.length > 0 ? codeBannerStatus[0].Code : "",
-      });
+      this.setState({ codeDetailStatus });
     } catch (e) {
-      console.error("Error loading banner status code:", e);
-      toast.error("Lỗi khi tải danh sách trạng thái banner!", {
+      console.error("Error loading detail status code:", e);
+      toast.error("Lỗi khi tải danh sách trạng thái chi tiết!", {
         position: "top-right",
         autoClose: 500,
         closeOnClick: true,
@@ -157,36 +148,44 @@ class EditBannerModal extends Component {
     }
   };
 
-  handleLoadBannerInfo = async (bannerid) => {
+  handleLoadProductInfo = async (productid) => {
     try {
-      const response = await handleGetBannerInfoApi(bannerid);
+      const response = await handleGetProductInfoApi(productid);
       if (response && response.errCode === 0) {
-        const banner = response.data;
+        const productInfo = response.data;
+        const allImages = [
+          { ImageID: Date.now(), Image: productInfo.ProductImage, file: null },
+          ...(productInfo.Image || []).map((img) => ({
+            ImageID: img.ImageID,
+            Image: img.Image,
+            file: null,
+          })),
+        ];
         this.setState({
-          loadedBannerInfo: banner,
-          selectedBannerID: banner.BannerID,
-          bannerimage: banner.BannerImage,
-          createdat: banner.CreatedAt ? new Date(banner.CreatedAt) : null,
-          hiddenat: banner.HiddenAt ? new Date(banner.HiddenAt) : null,
-          bannerstatus: banner.BannerStatus,
-          productid: banner.ProductID,
-          productname: banner.ProductName || "",
-          producttype: banner.ProductType || "ALL",
-          pettype: banner.PetTypes || [],
-          imagePreview: banner.BannerImage,
-        }, () => this.handleLoadFilteredProductInfo());
+          loadedProductInfo: productInfo,
+          selectedProductID: productInfo.ProductID,
+          loadedProductDetailInfo: productInfo.ProductDetail || [],
+          productname: productInfo.ProductName,
+          producttype: productInfo.ProductType,
+          pettype: productInfo.PetType || [],
+          imagelist: productInfo.Image || [],
+          productprice: productInfo.ProductPrice,
+          productimage: productInfo.ProductImage,
+          productdescription: productInfo.ProductDescription,
+          allImages,
+        });
       } else {
         this.resetState();
-        toast.error("Tải thông tin banner thất bại!", {
+        toast.error("Tải sản phẩm thất bại!", {
           position: "top-right",
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error loading banner info:", e);
+      console.error("Error loading product:", e);
       this.resetState();
-      toast.error("Lỗi khi tải thông tin banner!", {
+      toast.error("Lỗi khi tải sản phẩm!", {
         position: "top-right",
         autoClose: 500,
         closeOnClick: true,
@@ -194,43 +193,17 @@ class EditBannerModal extends Component {
     }
   };
 
-  handleLoadFilteredProductInfo = async (searchQuery = "") => {
-    try {
-      const { producttype, pettype } = this.state;
-      const response = await handleLoadFilteredProductInfoApi(
-        producttype,
-        pettype.length > 0 ? pettype : ["ALL"],
-        searchQuery
-      );
-      if (response && response.errCode === 0) {
-        this.setState({ loadedProductInfo: response.data });
-      } else {
-        toast.error("Tải danh sách sản phẩm thất bại!", {
-          position: "top-right",
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error("Error loading products:", e);
-      toast.error("Lỗi khi tải danh sách sản phẩm!", {
-        position: "top-right",
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  toggle = async () => {
+    this.resetState();
+    this.props.toggleFromModal();
   };
 
   handleInputChange = (e, field) => {
     this.setState({ [field]: e.target.value });
   };
 
-  handleSelectChange = (e, field) => {
-    this.setState({ [field]: e.target.value }, () => {
-      if (field === "producttype") {
-        this.handleLoadFilteredProductInfo(this.state.searchValue);
-      }
-    });
+  handleSelectChange = (e) => {
+    this.setState({ producttype: e.target.value });
   };
 
   handlePetTypeChange = (e) => {
@@ -241,30 +214,20 @@ class EditBannerModal extends Component {
         ? [...prevState.pettype, petType]
         : prevState.pettype.filter((type) => type !== petType);
       return { pettype: updatedPetTypes };
-    }, () => this.handleLoadFilteredProductInfo(this.state.searchValue));
-  };
-
-  handleProductChange = (selectedOption) => {
-    this.setState({
-      productid: selectedOption ? selectedOption.value : "",
-      productname: selectedOption ? selectedOption.label : "",
-    });
-  };
-
-  handleSearchChange = (inputValue) => {
-    this.setState({ searchValue: inputValue }, () => {
-      if (this.debounceTimeout) {
-        clearTimeout(this.debounceTimeout);
-      }
-      this.debounceTimeout = setTimeout(() => {
-        this.handleLoadFilteredProductInfo(this.state.searchValue);
-      }, 500);
     });
   };
 
   handleAddImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (this.state.allImages.length >= 5) {
+      toast.error("Tối đa 5 hình ảnh!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
     if (file.size > 20 * 1024 * 1024) {
       toast.error("Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!", {
         position: "top-right",
@@ -282,40 +245,128 @@ class EditBannerModal extends Component {
       return;
     }
     const preview = URL.createObjectURL(file);
-    this.setState({
-      imageFile: file,
-      imagePreview: preview,
-      bannerimage: null,
+    this.setState((prevState) => ({
+      allImages: [...prevState.allImages, { ImageID: Date.now(), Image: preview, file }],
+    }));
+  };
+
+  handleRemoveImage = (imageID) => {
+    this.setState((prevState) => ({
+      allImages: prevState.allImages.filter((img) => img.ImageID !== imageID),
+    }));
+  };
+
+  handleDetailChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newDetails = [...prevState.loadedProductDetailInfo];
+      newDetails[index] = { ...newDetails[index], [field]: value };
+      if (field === "Stock") {
+        newDetails[index].DetailStatus = parseInt(value) > 0 ? newDetails[index].DetailStatus : "OUT";
+      }
+      return { loadedProductDetailInfo: newDetails };
     });
   };
 
-  handleRemoveImage = () => {
-    this.setState({
-      imageFile: null,
-      imagePreview: null,
-      bannerimage: null,
+  handleEditDetail = (index) => {
+    this.setState({ editingField: index, isAddingDetail: false });
+  };
+
+  handleSaveDetail = (index) => {
+    const validation = this.checkValidateDetail(index);
+    if (validation.errCode !== 0) {
+      toast.error(validation.errMessage, {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+    this.setState({ editingField: null, isAddingDetail: false });
+  };
+
+  handleAddDetail = () => {
+    this.setState((prevState) => ({
+      loadedProductDetailInfo: [
+        ...prevState.loadedProductDetailInfo,
+        {
+          ProductDetailID: Date.now(),
+          DetailName: "",
+          Stock: "0",
+          ExtraPrice: "0",
+          Promotion: "0",
+          DetailStatus: "OUT",
+        },
+      ],
+      editingField: prevState.loadedProductDetailInfo.length,
+      isAddingDetail: true,
+    }));
+  };
+
+  handleCancelDetail = () => {
+    this.setState((prevState) => {
+      if (prevState.isAddingDetail && prevState.editingField === prevState.loadedProductDetailInfo.length - 1) {
+        return {
+          loadedProductDetailInfo: prevState.loadedProductDetailInfo.slice(0, -1),
+          editingField: null,
+          isAddingDetail: false,
+        };
+      }
+      return {
+        editingField: null,
+        isAddingDetail: false,
+      };
     });
   };
 
-  checkValidateInput = () => {
-    const { bannerimage, imageFile, createdat, bannerstatus, productid } = this.state;
-    if (!bannerimage && !imageFile) {
-      return { errCode: -1, errMessage: "Vui lòng thêm hình ảnh banner!" };
+  checkValidateDetail = (index) => {
+    const item = this.state.loadedProductDetailInfo[index];
+    if (!item.DetailName) return { errCode: -1, errMessage: `Tên chi tiết tại dòng ${index + 1} không được để trống!` };
+    const regex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
+    if (!regex.test(item.DetailName.trim())) return { errCode: -1, errMessage: `Tên chi tiết tại dòng ${index + 1} không hợp lệ!` };
+    if (item.Stock === "" || item.Stock === undefined) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} không được để trống!` };
+    if (isNaN(item.Stock) || parseInt(item.Stock) < 0) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!` };
+    if (parseInt(item.Stock) === 0 && item.DetailStatus === "AVAIL") return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} bằng 0, không thể chọn trạng thái Còn hàng!` };
+    if (item.ExtraPrice !== "" && item.ExtraPrice !== undefined && (isNaN(item.ExtraPrice) || parseFloat(item.ExtraPrice) < 0)) {
+      return { errCode: -1, errMessage: `Giá thêm tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!` };
     }
-    if (!createdat) {
-      return { errCode: -1, errMessage: "Ngày tạo không được để trống!" };
+    if (item.Promotion !== "" && item.Promotion !== undefined && (isNaN(item.Promotion) || parseFloat(item.Promotion) < 0 || parseFloat(item.Promotion) > 100)) {
+      return { errCode: -1, errMessage: `Khuyến mãi tại dòng ${index + 1} phải từ 0 đến 100%!` };
     }
-    if (!bannerstatus) {
-      return { errCode: -1, errMessage: "Trạng thái banner không được để trống!" };
-    }
-    if (!productid) {
-      return { errCode: -1, errMessage: "Vui lòng chọn sản phẩm!" };
-    }
+    if (!item.DetailStatus) return { errCode: -1, errMessage: `Trạng thái chi tiết tại dòng ${index + 1} không được để trống!` };
     return { errCode: 0, errMessage: "Kiểm tra thành công!" };
   };
 
-  handleSaveBanner = async () => {
-    const validation = this.checkValidateInput();
+  checkValidateProduct = () => {
+    const { productname, producttype, productprice, allImages, productdescription, pettype, loadedProductDetailInfo } = this.state;
+
+    if (!productname) return { errCode: -1, errMessage: "Tên sản phẩm không được để trống!" };
+    const nameRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
+    if (!nameRegex.test(productname.trim())) return { errCode: -1, errMessage: "Tên sản phẩm không hợp lệ!" };
+
+    if (!producttype) return { errCode: -1, errMessage: "Vui lòng chọn loại sản phẩm!" };
+
+    if (!productprice) return { errCode: -1, errMessage: "Giá bán không được để trống!" };
+    if (isNaN(productprice) || parseFloat(productprice) <= 0) return { errCode: -1, errMessage: "Giá bán phải lớn hơn 0!" };
+
+    if (!productdescription) return { errCode: -1, errMessage: "Mô tả sản phẩm không được để trống!" };
+
+    if (allImages.length === 0) return { errCode: -1, errMessage: "Vui lòng thêm ít nhất 1 hình ảnh!" };
+    if (allImages.length > 5) return { errCode: -1, errMessage: "Tối đa 5 hình ảnh!" };
+
+    if (pettype.length === 0) return { errCode: -1, errMessage: "Vui lòng chọn ít nhất một loại thú cưng!" };
+
+    if (!loadedProductDetailInfo || loadedProductDetailInfo.length === 0) return { errCode: -1, errMessage: "Vui lòng thêm ít nhất một chi tiết sản phẩm!" };
+
+    for (let i = 0; i < loadedProductDetailInfo.length; i++) {
+      const validation = this.checkValidateDetail(i);
+      if (validation.errCode !== 0) return validation;
+    }
+
+    return { errCode: 0, errMessage: "Kiểm tra thành công!" };
+  };
+
+  handleSaveProduct = async () => {
+    const validation = this.checkValidateProduct();
     if (validation.errCode !== 0) {
       toast.error(validation.errMessage, {
         position: "top-right",
@@ -329,7 +380,7 @@ class EditBannerModal extends Component {
       new Promise((resolve) => {
         toast(
           <div>
-            <p>Xác nhận lưu thông tin banner?</p>
+            <p>Xác nhận lưu thông tin sản phẩm?</p>
             <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
               Có
             </button>
@@ -355,51 +406,71 @@ class EditBannerModal extends Component {
 
     this.setState({ isUploading: true });
     try {
-      let bannerImage = this.state.bannerimage;
-      if (this.state.imageFile) {
-        const response = await uploadImageToCloudinaryApi(this.state.imageFile);
-        if (response.errCode === 0) {
-          bannerImage = response.data.secure_url;
+      const { allImages, productname, producttype, pettype, productprice, productdescription, selectedProductID, loadedProductDetailInfo } = this.state;
+      const uploadedImages = [];
+      const failedImages = [];
+      for (let img of allImages) {
+        if (img.file) {
+          try {
+            const response = await uploadImageToCloudinaryApi(img.file);
+            if (response.errCode === 0) {
+              uploadedImages.push({
+                ImageID: img.ImageID,
+                Image: response.data.secure_url,
+              });
+            } else {
+              failedImages.push(img.file.name);
+            }
+          } catch (e) {
+            failedImages.push(img.file.name);
+          }
         } else {
-          toast.error("Tải ảnh banner thất bại!", {
-            position: "top-right",
-            autoClose: 500,
-            closeOnClick: true,
+          uploadedImages.push({
+            ImageID: img.ImageID,
+            Image: img.Image,
           });
-          return;
         }
       }
 
-      const bannerInfo = {
-        BannerID: this.state.selectedBannerID,
-        BannerImage: bannerImage,
-        CreatedAt: this.state.createdat ? this.state.createdat.toISOString().split("T")[0] : null,
-        HiddenAt: this.state.hiddenat ? this.state.hiddenat.toISOString().split("T")[0] : null,
-        BannerStatus: this.state.bannerstatus,
-        ProductID: this.state.productid,
-      };
-
-      const response = this.state.selectedBannerID
-        ? await this.props.handleEditBannerFromModal(bannerInfo)
-        : await this.props.handleCreateBannerFromModal(bannerInfo);
-
-      if (response && response.errCode === 0) {
-        toast.success(this.state.selectedBannerID ? "Cập nhật banner thành công!" : "Tạo banner thành công!", {
-          position: "top-right",
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        this.toggle();
-      } else {
-        toast.error(response?.errMessage || "Lỗi khi lưu banner!", {
+      if (failedImages.length > 0) {
+        toast.error(`Không thể tải lên các ảnh: ${failedImages.join(", ")}`, {
           position: "top-right",
           autoClose: 500,
           closeOnClick: true,
         });
       }
+
+      if (uploadedImages.length === 0) {
+        toast.error("Vui lòng thêm ít nhất 1 hình ảnh!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        return;
+      }
+
+      const productInfo = {
+        ProductID: selectedProductID,
+        ProductName: productname,
+        ProductPrice: parseFloat(productprice).toFixed(2),
+        ProductImage: uploadedImages[0].Image,
+        ProductType: producttype,
+        ProductDescription: productdescription,
+        PetType: pettype,
+        ProductDetail: loadedProductDetailInfo.map((item) => ({
+          ProductDetailID: item.ProductDetailID,
+          DetailName: item.DetailName,
+          Stock: parseInt(item.Stock),
+          SoldCount: item.SoldCount || 0,
+          ExtraPrice: item.ExtraPrice ? parseFloat(item.ExtraPrice).toFixed(2) : "0.00",
+          Promotion: item.Promotion ? parseFloat(item.Promotion).toFixed(2) : "0.00",
+          DetailStatus: item.DetailStatus,
+        })),
+        Image: uploadedImages.slice(1),
+      };
+      await this.props.handleEditProductFromModal(productInfo);
     } catch (e) {
-      console.error("Error saving banner:", e);
-      toast.error("Lỗi khi lưu banner!", {
+      toast.error("Lỗi khi lưu sản phẩm!", {
         position: "top-right",
         autoClose: 500,
         closeOnClick: true,
@@ -409,38 +480,10 @@ class EditBannerModal extends Component {
     }
   };
 
-  toggle = () => {
-    this.props.toggleFromModal();
-  };
-
   render() {
-    const {
-      isOpen,
-      selectedBannerID,
-      codeBannerStatus,
-      codeProductType,
-      codePetType,
-      loadedProductInfo,
-      bannerimage,
-      createdat,
-      hiddenat,
-      bannerstatus,
-      productid,
-      productname,
-      producttype,
-      pettype,
-      isUploading,
-      imageFile,
-      imagePreview,
-      searchValue,
-    } = this.state;
-
-    const productOptions = loadedProductInfo && loadedProductInfo.length > 0
-      ? loadedProductInfo.map(product => ({
-        value: product.ProductID,
-        label: product.ProductName,
-      }))
-      : [];
+    const { isOpen } = this.props;
+    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType,
+      pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } = this.state;
 
     return (
       <Modal
@@ -448,25 +491,28 @@ class EditBannerModal extends Component {
         onHide={this.toggle}
         centered
         backdrop="static"
-        className="edit-banner-modal"
+        className="create-product-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>{selectedBannerID ? "Chỉnh sửa Banner" : "Tạo Banner Mới"}</Modal.Title>
+          <Modal.Title>Chỉnh sửa thông tin sản phẩm</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="modal-content">
-            <div className="modal-content-edit-img">
-              <p>Hình ảnh banner:</p>
+            <div className="modal-content-add-img">
+              <p>Hình ảnh sản phẩm (tối thiếu 1):</p>
               <div className="f">
-                {imagePreview && (
-                  <div className="modal-content-edit-img-item f">
-                    <img src={imagePreview} alt="Banner" />
-                    <button className="delete-img" onClick={this.handleRemoveImage}>
+                {allImages.map((img, index) => (
+                  <div key={img.ImageID} className="modal-content-add-img-item f">
+                    <img src={img.Image} alt={`Hình ảnh ${index === 0 ? "chính" : "phụ"}`} />
+                    <button
+                      className="delete-img"
+                      onClick={() => this.handleRemoveImage(img.ImageID)}
+                    >
                       <IonIcon icon={trashOutline}></IonIcon>
                     </button>
                   </div>
-                )}
-                {!imagePreview && (
+                ))}
+                {allImages.length < 5 && (
                   <div className="add-img">
                     <input
                       type="file"
@@ -482,53 +528,31 @@ class EditBannerModal extends Component {
                 )}
               </div>
             </div>
-            <div className="modal-content-edit-date">
-              <p>Ngày tạo:</p>
-              <DatePicker
-                selected={createdat}
-                onChange={(date) => this.setState({ createdat: date })}
-                dateFormat="dd/MM/yyyy"
-                placeholderText="dd/mm/yyyy"
-                className="date-picker"
+            <div className="modal-content-add-name">
+              <p>Tên sản phẩm:</p>
+              <input
+                type="text"
+                placeholder="Nhập tên sản phẩm"
+                value={productname}
+                onChange={(e) => this.handleInputChange(e, "productname")}
               />
             </div>
-            <div className="modal-content-edit-date">
-              <p>Ngày ẩn:</p>
-              <DatePicker
-                selected={hiddenat}
-                onChange={(date) => this.setState({ hiddenat: date })}
-                dateFormat="dd/MM/yyyy"
-                placeholderText="dd/mm/yyyy"
-                className="date-picker"
-              />
-            </div>
-            <div className="modal-content-edit-status">
-              <p>Trạng thái:</p>
-              <select
-                value={bannerstatus}
-                onChange={(e) => this.handleSelectChange(e, "bannerstatus")}
-              >
-                {codeBannerStatus.map((status) => (
-                  <option key={status.Code} value={status.Code}>
-                    {status.CodeValueVI}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="modal-content-edit-filter">
-              <p>Lọc sản phẩm:</p>
-              <div className="f">
+            <div className="f">
+              <div className="modal-content-add-category">
+                <p>Loại sản phẩm:</p>
                 <select
                   value={producttype}
-                  onChange={(e) => this.handleSelectChange(e, "producttype")}
+                  onChange={this.handleSelectChange}
                 >
-                  <option value="ALL">Tất cả loại sản phẩm</option>
                   {codeProductType.map((type) => (
                     <option key={type.Code} value={type.Code}>
                       {type.CodeValueVI}
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="modal-content-add-pettype">
+                <p>Loại thú cưng:</p>
                 <div className="pettype-checkboxes">
                   {codePetType.map((type) => (
                     <label key={type.Code} className="pettype-checkbox">
@@ -543,27 +567,149 @@ class EditBannerModal extends Component {
                   ))}
                 </div>
               </div>
+              <div className="modal-content-add-main-price">
+                <p>Giá cơ bản:</p>
+                <div className="f">
+                  <input
+                    type="number"
+                    placeholder="Nhập giá"
+                    value={isNaN(parseFloat(productprice)) ? "" : parseFloat(productprice)}
+                    onChange={(e) => this.handleInputChange(e, "productprice")}
+                  />
+                  <p>vnđ</p>
+                </div>
+              </div>
             </div>
-            <div className="modal-content-edit-source">
-              <p>Sản phẩm:</p>
-              <Select
-                options={productOptions}
-                onInputChange={this.handleSearchChange}
-                onChange={this.handleProductChange}
-                value={productOptions.find(option => option.value === productid) || null}
-                placeholder="Chọn hoặc tìm kiếm sản phẩm"
-                isClearable
-                className="product-select"
-                classNamePrefix="select"
+            <div className="modal-content-add-type-price">
+              <p>Chi tiết sản phẩm (tối thiểu 1):</p>
+              <div className="product-detail-table">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Tên chi tiết</th>
+                      <th>Số lượng tồn kho</th>
+                      <th>Giá thêm (vnđ)</th>
+                      <th>Khuyến mãi (%)</th>
+                      <th>Trạng thái</th>
+                      <th>Chỉnh sửa</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadedProductDetailInfo && loadedProductDetailInfo.length > 0 ? (
+                      loadedProductDetailInfo.map((item, index) => (
+                        <tr key={item.ProductDetailID}>
+                          <td>
+                            {editingField === index ? (
+                              <input
+                                type="text"
+                                value={item.DetailName}
+                                onChange={(e) => this.handleDetailChange(index, "DetailName", e.target.value)}
+                              />
+                            ) : (
+                              item.DetailName
+                            )}
+                          </td>
+                          <td>
+                            {editingField === index ? (
+                              <input
+                                type="number"
+                                value={item.Stock}
+                                onChange={(e) => this.handleDetailChange(index, "Stock", e.target.value)}
+                              />
+                            ) : (
+                              item.Stock
+                            )}
+                          </td>
+                          <td>
+                            {editingField === index ? (
+                              <input
+                                type="number"
+                                value={item.ExtraPrice ?? ""}
+                                onChange={(e) => this.handleDetailChange(index, "ExtraPrice", e.target.value)}
+                              />
+                            ) : (
+                              parseFloat(item.ExtraPrice) || 0
+                            )}
+                          </td>
+                          <td>
+                            {editingField === index ? (
+                              <input
+                                type="number"
+                                value={item.Promotion ?? ""}
+                                onChange={(e) => this.handleDetailChange(index, "Promotion", e.target.value)}
+                              />
+                            ) : (
+                              parseFloat(item.Promotion) || 0
+                            )}
+                          </td>
+                          <td>
+                            {editingField === index ? (
+                              <select
+                                value={item.DetailStatus}
+                                onChange={(e) => this.handleDetailChange(index, "DetailStatus", e.target.value)}
+                              >
+                                {codeDetailStatus.map((status) => (
+                                  <option key={status.Code} value={status.Code}>
+                                    {status.CodeValueVI}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              codeDetailStatus.find((status) => status.Code === item.DetailStatus)?.CodeValueVI || "Không xác định"
+                            )}
+                          </td>
+                          <td>
+                            {editingField === index ? (
+                              <button
+                                className="save-detail"
+                                onClick={() => this.handleSaveDetail(index)}
+                              >
+                                Lưu
+                              </button>
+                            ) : (
+                              <button
+                                className="edit-detail"
+                                onClick={() => this.handleEditDetail(index)}
+                              >
+                                Sửa
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: "center" }}>
+                          Chưa có chi tiết sản phẩm
+                        </td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: "center" }}>
+                        <button
+                          className={`add-detail-btn ${isAddingDetail ? "cancel" : ""}`}
+                          onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}
+                        >
+                          {isAddingDetail ? "Hủy" : "Thêm"}
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="modal-content-add-info">
+              <p>Mô tả sản phẩm:</p>
+              <textarea
+                placeholder="Nhập mô tả sản phẩm"
+                value={productdescription}
+                onChange={(e) => this.handleInputChange(e, "productdescription")}
               />
             </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={this.toggle}>
-            Đóng
-          </Button>
-          <Button variant="primary" onClick={this.handleSaveBanner}>
+          <Button variant="secondary" onClick={this.handleSaveProduct}>
             Lưu
           </Button>
         </Modal.Footer>
@@ -572,4 +718,4 @@ class EditBannerModal extends Component {
   }
 }
 
-export default EditBannerModal;
+export default EditProductModal;
