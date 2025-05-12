@@ -1,13 +1,17 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
+import { toast } from "react-toastify";
 import { IonIcon } from "@ionic/react";
-import { ToastContainer, toast } from "react-toastify";
+
 import { cart, person, informationCircleOutline, logOutOutline, } from "ionicons/icons";
+
 import "./HomeHeader.scss";
 import "../styles/ToastifyOverride.scss";
+
 import { handleGetAccountInfoApi, handleLogoutApi } from "../services/accountServices";
 import { handleGetCartApi } from "../services/cartServices";
 import { handleGetAllCodesApi } from "../services/utilitiesServices"
+
 import { checkLoginStatus } from '../utils/pakage';
 import { userLogin, userLogout, clearCheckOutCart } from "../store/actions/";
 

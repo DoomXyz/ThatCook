@@ -1,17 +1,21 @@
 import React, { Component } from "react";
+import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
+
 import { eyeOutline, eyeOffOutline, chevronBack, pencil } from "ionicons/icons";
+
 import "./User.scss";
 import Spinner from '../../components/Spinner';
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
-import { handleGetAccountInfoApi, handleLogoutApi, handleEditAccountInfoApi, handleChangePasswordApi } from "../../services/accountServices";
+
+import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from "../../services/accountServices";
 import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi } from "../../services/invoiceServices"
 import { uploadImageToCloudinaryApi, handleGetAllCodesApi } from "../../services/utilitiesServices";
+
 import { userLogin, userLogout } from "../../store/actions";
 import { checkLoginStatus } from '../../utils/pakage';
-import { ToastContainer, toast } from "react-toastify";
 
 class User extends Component {
   constructor(props) {
@@ -450,7 +454,7 @@ class User extends Component {
       return;
     }
     if (hasChanges) {
-      let response = await handleEditAccountInfoApi(updateInfo);
+      let response = await handleChangeAccountInfoApi(updateInfo);
       if (response && response.errCode === 0) {
         toast.success(
           "Cập nhật thông tin thành công!", {

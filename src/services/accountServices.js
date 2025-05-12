@@ -25,8 +25,8 @@ const handleChangeAccountStatusApi = (accountid, accountstatus) => {
   return axios.put("/api/change-accountstatus", { accountid, accountstatus })
 }
 
-const handleEditAccountInfoApi = (userInfo) => {
-  return axios.put("/api/edit-accountinfo", userInfo);
+const handleChangeAccountInfoApi = (userInfo) => {
+  return axios.put("/api/change-accountinfo", userInfo);
 };
 
 const handleChangePasswordApi = (accountid, password, newpassword) => {
@@ -45,7 +45,7 @@ export {
   handleGetAccountInfoApi,
   handleLoadAccountInfoApi,
   handleChangeAccountStatusApi,
-  handleEditAccountInfoApi,
+  handleChangeAccountInfoApi,
   handleChangePasswordApi,
 
   handleGetThongTinThanhToan,

@@ -1,6 +1,5 @@
 import axios from "../axios";
 
-//converted
 const handleAddToCartApi = (accountid, cartInfo) => {
     return axios.post("/api/add-to-cart", { accountid, cartInfo });
 }

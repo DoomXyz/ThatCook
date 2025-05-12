@@ -2,16 +2,20 @@ import React, { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
+
 import { searchOutline, cart } from "ionicons/icons";
-import Header from "../../components/HomeHeader";
-import Footer from "../../components/HomeFooter";
+
 import "./Home.scss";
 import Spinner from '../../components/Spinner';
+import Header from "../../components/HomeHeader";
+import Footer from "../../components/HomeFooter";
+
 import { handleLogoutApi } from "../../services/accountServices";
-import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi } from "../../services/productServices";
 import { handleGetBannerInfoApi } from "../../services/bannerServices"
 import { handleAddToCartApi, handleGetCartApi } from "../../services/cartServices";
+import { handleGetAllCodesApi } from "../../services/utilitiesServices";
+
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout, addToCart, clearCart, saveCartForCheckOut } from "../../store/actions";
 

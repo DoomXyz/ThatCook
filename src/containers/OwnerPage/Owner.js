@@ -1,24 +1,29 @@
 import React, { Component } from "react";
-import DatePicker from "react-datepicker";
+import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
+import DatePicker from "react-datepicker";
+
 import { pencil, searchOutline, add, closeOutline, checkmarkOutline, homeOutline } from "ionicons/icons";
-import { ToastContainer, toast } from "react-toastify";
+
 import "./Owner.scss";
 import Spinner from "../../components/Spinner";
-import OwnerCreateProductModal from "./OwnerCreateProductModal";
-import EditProductModal from "./EditProductModal";
-import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
-import OwnerEditBannerModal from "./OwnerEditBannerModal";
-import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
 
 import { handleLogoutApi } from "../../services/accountServices";
-import { handleLoadProductInfoApi, handleEditProductInfoApi, handleCreateProductApi } from "../../services/productServices";
+import { handleLoadProductInfoApi, handleChangeProductInfoApi, handleCreateProductApi } from "../../services/productServices";
 import { handleLoadBannerInfoApi } from "../../services/bannerServices"
 import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices"
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
+
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from "../../store/actions";
+
+import CreateProductModal from "./CreateProductModal";
+import EditProductModal from "./EditProductModal";
+import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
+import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
+import OwnerEditBannerModal from "./OwnerEditBannerModal";
+
 
 class Owner extends Component {
   constructor(props) {
@@ -436,70 +441,68 @@ class Owner extends Component {
     });
   };
   handleCreateProductFromModal = async (productInfo) => {
-    console.log(productInfo)
-    // this.setState({isLoading: true})
-    // try {
-    //   const response = await handleCreateProductApi(productInfo);
-    //   if (response && response.errCode === 0) {
-    //     toast.success("Thêm sản phẩm mới thành công!", {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //     await this.handleLoadProductInfo();
-    //     this.setState({
-    //       isShowCreateProductModal: false,
-    //     })
-    //   } else {
-    //     const errMessage = response?.errMessage || "Thêm sản phẩm mới thất bại!";
-    //     toast.error(errMessage, {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.error("Create Product:", e);
-    //   toast.error("Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!", {
-    //     position: "top-right",
-    //     autoClose: 500,
-    //     closeOnClick: true
-    //   });
-    // }
-    // this.setState({isLoading: false})
+    this.setState({ isLoading: true })
+    try {
+      const response = await handleCreateProductApi(productInfo);
+      if (response && response.errCode === 0) {
+        toast.success("Thêm sản phẩm mới thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+        await this.handleLoadProductInfo();
+        this.setState({
+          isShowCreateProductModal: false,
+        })
+      } else {
+        const errMessage = response?.errMessage || "Thêm sản phẩm mới thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+      }
+    } catch (e) {
+      console.error("Create Product:", e);
+      toast.error("Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true
+      });
+    }
+    this.setState({ isLoading: false })
   };
   handleEditProductFromModal = async (productInfo) => {
-    console.log(productInfo)
-    // this.setState({ isLoading: true })
-    // try {
-    //   const response = await handleEditProductInfoApi(productInfo);
-    //   if (response && response.errCode === 0) {
-    //     toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //     await this.handleLoadProductInfo();
-    //     this.setState({
-    //       isShowEditProductModal: false,
-    //     })
-    //   } else {
-    //     const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
-    //     toast.error(errMessage, {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.error("Edit:", e);
-    //   toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
-    //     position: "top-right",
-    //     autoClose: 500,
-    //     closeOnClick: true
-    //   });
-    // }
-    // this.setState({ isLoading: false })
+    this.setState({ isLoading: true })
+    try {
+      const response = await handleChangeProductInfoApi(productInfo);
+      if (response && response.errCode === 0) {
+        toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+        await this.handleLoadProductInfo();
+        this.setState({
+          isShowEditProductModal: false,
+        })
+      } else {
+        const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+      }
+    } catch (e) {
+      console.error("Edit:", e);
+      toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true
+      });
+    }
+    this.setState({ isLoading: false })
   };
   handleSelectedInvoice = (invoiceid) => {
     console.log(invoiceid)
@@ -1225,7 +1228,7 @@ class Owner extends Component {
 
     return (
       < div className="owner-body" >
-        <OwnerCreateProductModal
+        <CreateProductModal
           isOpen={isShowCreateProductModal}
           toggleFromModal={this.toggleCreateProductModal}
           handleCreateProductFromModal={this.handleCreateProductFromModal}

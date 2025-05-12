@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import { toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
+
 import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline } from "ionicons/icons"; //chỉ import các icon cần dùng
+
 import "./EditAccountModal.scss";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";

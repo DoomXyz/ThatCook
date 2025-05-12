@@ -1,10 +1,13 @@
 import React, { Component } from "react";
+import { toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
+
 import { cartOutline, add, remove } from "ionicons/icons";
+
 import "./HomeProductModal.scss";
-import { toast } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
+
 import { addToCart } from "../../store/actions";
 import { handleGetSaleProductInfoApi } from "../../services/productServices";
 

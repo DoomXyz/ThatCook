@@ -1,60 +1,40 @@
 import React, { Component } from "react";
 import { toast } from "react-toastify";
 import { IonIcon } from "@ionic/react";
-import Modal from "react-bootstrap/Modal";
 
 import { trashOutline } from "ionicons/icons";
 
-import "./EditProductModal.scss";
+import "./CreateProductModal.scss";
+import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-import { handleGetProductInfoApi } from "../../services/productServices";
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from "../../services/utilitiesServices";
 
-class EditProductModal extends Component {
+class CreateProductModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadedProductInfo: null,
-      loadedProductDetailInfo: null,
-      selectedProductID: null,
       codePetType: [],
       codeProductType: [],
       codeDetailStatus: [],
       productname: "",
       producttype: "",
       pettype: [],
-      imagelist: [],
       productprice: "",
-      productimage: "",
       productdescription: "",
-      isUploading: false,
       allImages: [],
+      loadedProductDetailInfo: [],
+      isUploading: false,
       editingField: null,
       isAddingDetail: false,
     };
   }
-
   async componentDidMount() {
     await Promise.all([
       this.handleLoadCodeProductType(),
       this.handleLoadCodePetType(),
-      this.handleLoadCodeDetailStatus()
+      this.handleLoadCodeDetailStatus(),
     ]);
-    const { selectedProductID } = this.props;
-    if (selectedProductID) {
-      await this.loadProductInfo(selectedProductID);
-    }
-  }
-
-  async componentDidUpdate(prevProps) {
-    const { selectedProductID, isOpen } = this.props;
-    if (isOpen && !prevProps.isOpen) {
-      this.resetState();
-      if (selectedProductID) {
-        await this.loadProductInfo(selectedProductID);
-      }
-    }
   }
 
   componentWillUnmount() {
@@ -62,25 +42,6 @@ class EditProductModal extends Component {
       if (img.Image && img.file) URL.revokeObjectURL(img.Image);
     });
   }
-
-  resetState = () => {
-    this.setState({
-      loadedProductInfo: null,
-      loadedProductDetailInfo: null,
-      selectedProductID: null,
-      productname: "",
-      producttype: "",
-      pettype: [],
-      imagelist: [],
-      productprice: "",
-      productimage: "",
-      productdescription: "",
-      isUploading: false,
-      allImages: [],
-      editingField: null,
-      isAddingDetail: false,
-    });
-  };
 
   handleLoadCodeProductType = async () => {
     try {
@@ -148,55 +109,26 @@ class EditProductModal extends Component {
     }
   };
 
-  loadProductInfo = async (productid) => {
-    try {
-      const response = await handleGetProductInfoApi(productid);
-      if (response && response.errCode === 0) {
-        const productInfo = response.data;
-        const allImages = [
-          { ImageID: Date.now(), Image: productInfo.ProductImage, file: null },
-          ...(productInfo.Image || []).map((img) => ({
-            ImageID: img.ImageID,
-            Image: img.Image,
-            file: null,
-          })),
-        ];
-        this.setState({
-          loadedProductInfo: productInfo,
-          selectedProductID: productInfo.ProductID,
-          loadedProductDetailInfo: productInfo.ProductDetail || [],
-          productname: productInfo.ProductName,
-          producttype: productInfo.ProductType,
-          pettype: productInfo.PetType || [],
-          imagelist: productInfo.Image || [],
-          productprice: productInfo.ProductPrice,
-          productimage: productInfo.ProductImage,
-          productdescription: productInfo.ProductDescription,
-          allImages,
-        });
-      } else {
-        this.resetState();
-        toast.error("Tải sản phẩm thất bại!", {
-          position: "top-right",
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error("Error loading product:", e);
-      this.resetState();
-      toast.error("Lỗi khi tải sản phẩm!", {
-        position: "top-right",
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
-  toggle = async () => {
+  toggle = () => {
     this.resetState();
     this.props.toggleFromModal();
   };
+
+  resetState = () => {
+    this.setState({
+      productname: "",
+      producttype: this.state.codeProductType.length > 0 ? this.state.codeProductType[0].Code : "",
+      pettype: [],
+      productprice: "",
+      productdescription: "",
+      allImages: [],
+      loadedProductDetailInfo: [],
+      isUploading: false,
+      editingField: null,
+      isAddingDetail: false,
+    });
+  };
+
 
   handleInputChange = (e, field) => {
     this.setState({ [field]: e.target.value });
@@ -250,6 +182,7 @@ class EditProductModal extends Component {
     }));
   };
 
+
   handleRemoveImage = (imageID) => {
     this.setState((prevState) => ({
       allImages: prevState.allImages.filter((img) => img.ImageID !== imageID),
@@ -268,7 +201,7 @@ class EditProductModal extends Component {
   };
 
   handleEditDetail = (index) => {
-    this.setState({ editingField: index, isAddingDetail: false });
+    this.setState({ editingField: index, isAddingDetail: true });
   };
 
   handleSaveDetail = (index) => {
@@ -406,7 +339,7 @@ class EditProductModal extends Component {
 
     this.setState({ isUploading: true });
     try {
-      const { allImages, productname, producttype, pettype, productprice, productdescription, selectedProductID, loadedProductDetailInfo } = this.state;
+      const { allImages, productname, producttype, pettype, productprice, productdescription, loadedProductDetailInfo } = this.state;
       const uploadedImages = [];
       const failedImages = [];
       for (let img of allImages) {
@@ -424,11 +357,6 @@ class EditProductModal extends Component {
           } catch (e) {
             failedImages.push(img.file.name);
           }
-        } else {
-          uploadedImages.push({
-            ImageID: img.ImageID,
-            Image: img.Image,
-          });
         }
       }
 
@@ -450,7 +378,6 @@ class EditProductModal extends Component {
       }
 
       const productInfo = {
-        ProductID: selectedProductID,
         ProductName: productname,
         ProductPrice: parseFloat(productprice).toFixed(2),
         ProductImage: uploadedImages[0].Image,
@@ -461,14 +388,16 @@ class EditProductModal extends Component {
           ProductDetailID: item.ProductDetailID,
           DetailName: item.DetailName,
           Stock: parseInt(item.Stock),
-          SoldCount: item.SoldCount || 0,
+          SoldCount: 0,
           ExtraPrice: item.ExtraPrice ? parseFloat(item.ExtraPrice).toFixed(2) : "0.00",
           Promotion: item.Promotion ? parseFloat(item.Promotion).toFixed(2) : "0.00",
           DetailStatus: item.DetailStatus,
         })),
         Image: uploadedImages.slice(1),
       };
-      await this.props.handleEditProductFromModal(productInfo);
+
+      await this.props.handleCreateProductFromModal(productInfo);
+      this.resetState();
     } catch (e) {
       toast.error("Lỗi khi lưu sản phẩm!", {
         position: "top-right",
@@ -482,8 +411,20 @@ class EditProductModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType,
-      pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } = this.state;
+    const {
+      productname,
+      producttype,
+      productprice,
+      productdescription,
+      allImages,
+      codeProductType,
+      codePetType,
+      pettype,
+      loadedProductDetailInfo,
+      editingField,
+      codeDetailStatus,
+      isAddingDetail,
+    } = this.state;
 
     return (
       <Modal
@@ -494,12 +435,12 @@ class EditProductModal extends Component {
         className="create-product-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Chỉnh sửa thông tin sản phẩm</Modal.Title>
+          <Modal.Title>Thêm sản phẩm mới</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="modal-content">
             <div className="modal-content-add-img">
-              <p>Hình ảnh sản phẩm (tối thiếu 1):</p>
+              <p>Hình ảnh sản phẩm (tối thiểu 1):</p>
               <div className="f">
                 {allImages.map((img, index) => (
                   <div key={img.ImageID} className="modal-content-add-img-item f">
@@ -718,4 +659,4 @@ class EditProductModal extends Component {
   }
 }
 
-export default EditProductModal;
+export default CreateProductModal;

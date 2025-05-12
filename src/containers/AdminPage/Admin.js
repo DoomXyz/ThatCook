@@ -2,12 +2,15 @@ import React, { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
+
 import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutline, } from "ionicons/icons"; //chỉ import các icon cần dùng
+
 import "./Admin.scss";
 import Spinner from '../../components/Spinner';
 
-import { handleLoadAccountInfoApi, handleRegisterApi, handleEditAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
+import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from "../../services/accountServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices"
+
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from "../../store/actions";
 
@@ -261,7 +264,7 @@ class Admin extends Component {
       isLoading: true
     })
     try {
-      const response = await handleEditAccountInfoApi(userInfo);
+      const response = await handleChangeAccountInfoApi(userInfo);
       if (response && response.errCode === 0) {
         toast.success("Chỉnh sửa thông tin người dùng thành công!", {
           position: "top-right",
