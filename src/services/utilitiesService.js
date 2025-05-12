@@ -149,6 +149,63 @@ let checkProductType = (productType) => {
     });
 };
 
+let checkPetType = (petType) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!petType) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu dữ liệu để kiểm tra!',
+                    data: null
+                });
+                return;
+            }
+            let exist = await db.AllCodes.findOne({
+                where: {
+                    Type: "PetType",
+                    Code: petType
+                }
+            });
+            resolve(exist ? true : false);
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+                data: null
+            });
+        }
+    });
+};
+
+let checkDetailStatus = (detailStatus) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!detailStatus) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu dữ liệu để kiểm tra!',
+                    data: null
+                });
+                return;
+            }
+            let exist = await db.AllCodes.findOne({
+                where: {
+                    Type: "DetailStatus",
+                    Code: detailStatus
+                }
+            });
+            resolve(exist ? true : false);
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+                data: null
+            });
+        }
+    });
+};
 
 let checkBannerStatus = (bannerStatus) => {
     return new Promise(async (resolve, reject) => {
@@ -416,6 +473,8 @@ module.exports = {
     checkAccountType,
     checkAccountStatus,
     checkProductType,
+    checkPetType,
+    checkDetailStatus,
     checkBannerStatus,
     checkPaymentStatus,
     checkShippingStatus,

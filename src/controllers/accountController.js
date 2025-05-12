@@ -1,4 +1,3 @@
-import { response } from "express";
 import accountService from "../services/accountService";
 import { createJWT, verifyJWT } from '../middleware/jwtController';
 

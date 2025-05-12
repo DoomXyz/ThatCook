@@ -42,22 +42,34 @@ npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
 nếu chạy xong 2 lệnh trên vẫn ko ổn thì chạy lên dưới rồi chạy lại lên 4 và 5
 npx sequelize-cli db:migrate:undo:all
-chạy trong sql của xampp
-UPDATE chitiethinhanh 
-SET hinhanh = ELT(
-    FLOOR(1 + RAND() * 8),
-    'assets/productha/hinhtest.jpg',
-    'assets/productha/hinhtest1.jpg',
-    'assets/productha/hinhtest3.jpg',
-    'assets/productha/hinhtest4.jpg',
-    'assets/productha/hinhtest5.jpg',
-    'assets/productha/hinhtest6.jpg',
-    'assets/productha/hinhtest7.jpg',
-    'assets/productha/hinhtest8.jpg'
-);
 ---------------Danh sách mã lỗi (errCode)-----------------
 -1 ~ 400 = Tham số rỗng hoặc không hợp lệ (ví dụ: thiếu userInfo, accountname, password, accountid, token, userGender, userAccountType, page, limit).
 0 ~ 200 = Xử lí yêu cầu thành công
 1 ~ 400 = Định dạng sai (tên tài khoản, email, mật khẩu, số điện thoại, giới tính, loại tài khoản), trùng tên tài khoản/email/số điện thoại, mã không tồn tại (gender, accounttype), tham số filter/sort không hợp lệ, tạo mã tài khoản thất bại.
 2 ~ 401 = Tài khoản không tồn tại, sai mật khẩu, tài khoản bị khóa, vượt quá số lần đăng nhập, token không hợp lệ, token hết hạn, token bị vô hiệu hóa.
 3 ~ 500 = Lỗi cơ sở dữ liệu, lỗi mã hóa JWT, lỗi xác minh token, ngoại lệ không xử lý được, khóa bí mật JWT không được cấu hình.
+----------------Set dữ liệu hình ảnh---------------------
+bảng banner:
+UPDATE Banner 
+SET BannerImage = ELT(
+    FLOOR(1 + RAND() * 3),
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/2_wa9qke.jpg',
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/defaultbanner_p9kvda.webp',
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/1_hto4q9.jpg'
+);
+bảng Product:
+UPDATE Product 
+SET ProductImage = ELT(
+    FLOOR(1 + RAND() * 3),
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558124/byc7mrjoarwcgyrtea0r.jpg',
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558125/ls9e3xebscd1bmaneny8.jpg',
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558126/fsbxdr20pi2pjxebxrht.jpg'
+);
+bảng Image
+UPDATE Image
+SET Image = ELT(
+    FLOOR(1 + RAND() * 3),
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558124/byc7mrjoarwcgyrtea0r.jpg',
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558125/ls9e3xebscd1bmaneny8.jpg',
+    'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558126/fsbxdr20pi2pjxebxrht.jpg'
+);

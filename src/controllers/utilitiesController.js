@@ -1,4 +1,3 @@
-import { response } from "express";
 import utilitiesService from "../services/utilitiesService";
 
 let handleGetAllCodes = async (req, res) => {

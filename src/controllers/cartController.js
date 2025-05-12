@@ -1,6 +1,4 @@
-import { response } from "express";
 import cartService from "../services/cartService";
-//converted
 let handleAddToCart = async (req, res) => {
     try {
         let response = await cartService.addToCart(req.body.accountid, req.body.cartInfo);
@@ -116,32 +114,7 @@ let handleMergeCartDetail = async (req, res) => {
         });
     }
 };
-//non converted
-let handleUpdGioHang = async (req, res) => {
-    try {
-        let response = await giohangService.updGioHang(req.body.mataikhoan, req.body.giohangInfo);
-        return res.status(200).json(response);
-    } catch (e) {
-        console.log("Get error: ", e);
-        return res.status(500).json({
-            errCode: -1,
-            errMessage: "Error From Server",
-        });
-    }
-}
 
-let handleDelGioHang = async (req, res) => {
-    try {
-        let response = await giohangService.delGioHang(req.body.mataikhoan);
-        return res.status(200).json(response);
-    } catch (e) {
-        console.log("Get error: ", e);
-        return res.status(500).json({
-            errCode: -1,
-            errMessage: "Error From Server",
-        });
-    }
-}
 module.exports = {
     handleAddToCart,
     handleGetCart,
@@ -151,7 +124,4 @@ module.exports = {
     handleRemoveFromCart,
     handleUpdateCartDetail,
     handleMergeCartDetail,
-
-    handleUpdGioHang,
-    handleDelGioHang,
 }

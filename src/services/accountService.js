@@ -1,7 +1,6 @@
-import { response } from "express";
 import db from "../models/index";
 import bcrypt from "bcrypt";
-import { InvalidConnectionError, where, Op } from "sequelize";
+import { Op } from "sequelize";
 import { checkGender, checkAccountType, checkAccountStatus } from "./utilitiesService";
 import { verifyJWT } from '../middleware/jwtController';
 //bcrypt
@@ -394,7 +393,7 @@ let firstNavigate = (accountType) => {
 let userRegister = (userInfo) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!userInfo || Object.keys(userInfo).length === 0) {
+            if (!userInfo) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu thông tin người dùng!',

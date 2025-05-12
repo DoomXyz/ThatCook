@@ -8,20 +8,19 @@ import utilitiesController from "../controllers/utilitiesController"
 import { checkAdminJWT, checkOwnerJWT, checkCustomerJWT, checkVeterinarianJWT } from "../middleware/jwtController";
 let router = express.Router();
 
-import billController from "../controllers/billController";
-
 const protectRoute = (req, res, next) => {
     const adminPaths = [
-        '/api/load-accountinfo',
-        '/api/change-accountstatus'
+        "/api/load-accountinfo",
+        "/api/change-accountstatus",
     ];
 
     const ownerPaths = [
-        // '/api/create-product',
-        // '/api/update-product',
-        // '/api/xoa-sanpham',
-        // '/api/load-hoadon',
-        // '/api/load-banner'
+        "/api/load-productinfo",
+        "/api/get-productinfo",
+        "/api/create-product",
+        "/api/change-productinfo",
+        "/api/load-invoiceinfo",
+        "/api/load-bannerinfo",
     ];
 
     const customerPaths = [
@@ -60,7 +59,7 @@ let initAPIRoutes = (app) => {
     router.get("/api/logout", accountController.handleLogout);
     router.get("/api/get-accountinfo", accountController.handleGetAccountInfo);
     router.get("/api/verify-token", accountController.handleVerifyToken);
-    router.put("/api/edit-accountinfo", accountController.handleChangeAccountInfo);
+    router.put("/api/change-accountinfo", accountController.handleChangeAccountInfo);
     router.put("/api/change-password", accountController.handleChangePassword);
 
     router.get("/api/get-bannerinfo", bannerController.handleGetBannerInfo)
@@ -86,26 +85,16 @@ let initAPIRoutes = (app) => {
     router.put("/api/change-accountstatus", accountController.handleChangeAccountStatus);
     //owner
     router.get("/api/load-productinfo", productController.handleLoadProductInfo);
+    router.get("/api/get-productinfo", productController.handleGetProductInfo);
+    router.post("/api/create-product", productController.handleCreateProduct);
+    router.put("/api/change-productinfo", productController.handleChangeProductInfo);
+
     router.get("/api/load-invoiceinfo", invoiceController.handleLoadInvoiceInfo);
     router.get("/api/load-bannerinfo", bannerController.handleLoadBannerInfo);
-    router.get("/api/get-productinfo", productController.handleGetProductInfo)
     //veterinarian
 
     //not converted
-    // router.get("/api/get-thongtin-thanhtoan", accountController.handleGetThongTinThanhToan);
-
-    // router.get("/api/get-sanpham", productController.handleGetSanPham)
-    // router.get("/api/get-chitiethinhanh", productController.handleGetChiTietHinhAnh);
-    // router.get("/api/get-product-details-by-masanpham", productController.handleGetProductDetailsByMASANPHAM);
-    // router.post("/api/create-product", productController.handleCreateProduct);
-    // router.put("/api/update-product", productController.handleUpdateProduct);
-    // router.put("/api/xoa-sanpham", productController.handleDelSanPham);//thay đổi trạng thái sản phẩm
-
-    // router.put("/api/upd-giohang", cartController.handleUpdGioHang);
-    // router.delete("/api/del-giohang", cartController.handleDelGioHang);
     // router.get("/api/get-order-details", billController.handleGetOrderDetails);
-
-
     return app.use("/", router);
 };
 

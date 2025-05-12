@@ -1,4 +1,3 @@
-import { or } from "sequelize";
 import invoiceService from "../services/invoiceService";
 
 let handleCreateInvoice = async (req, res) => {
@@ -46,6 +45,7 @@ let handleGetInvoiceDetailInfo = async (req, res) => {
         });
     }
 }
+
 let handleLoadInvoiceInfo = async (req, res) => {
     try {
         const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);

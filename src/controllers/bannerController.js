@@ -1,4 +1,3 @@
-import { response } from "express";
 import bannerService from "../services/bannerService";
 
 let handleGetBannerInfo = async (req, res) => {

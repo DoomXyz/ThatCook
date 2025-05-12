@@ -1,6 +1,232 @@
 import db from "../models/index";
-import { and, Op } from "sequelize";
-import { checkProductType } from "./utilitiesService";
+import { Op } from "sequelize";
+import { checkProductType, checkPetType, checkDetailStatus } from "./utilitiesService";
+
+let validateProductInput = async (productInfo) => {
+    if (productInfo.ProductName) {
+        const productName = productInfo.ProductName.trim();
+        const productNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,100}$/;
+        if (!productNameRegex.test(productName)) {
+            return {
+                errCode: 1,
+                errMessage: "Tên sản phẩm không hợp lệ!",
+                data: null,
+            };
+        }
+    }
+    if (productInfo.ProductType) {
+        const validProductType = await checkProductType(productInfo.ProductType);
+        if (!validProductType) {
+            return {
+                errCode: 1,
+                errMessage: "Loại sản phẩm không hợp lệ!",
+                data: null,
+            };
+        }
+    }
+    if (productInfo.ProductPrice) {
+        const price = parseFloat(productInfo.ProductPrice);
+        if (isNaN(price) || price <= 0) {
+            return {
+                errCode: 1,
+                errMessage: "Giá sản phẩm phải lớn hơn 0!",
+                data: null,
+            };
+        }
+    }
+    if (productInfo.ProductDescription && !productInfo.ProductDescription.trim()) {
+        return {
+            errCode: 1,
+            errMessage: "Mô tả sản phẩm không hợp lệ!",
+            data: null,
+        };
+    }
+    if (productInfo.PetType) {
+        if (!Array.isArray(productInfo.PetType) || productInfo.PetType.length === 0) {
+            return {
+                errCode: -1,
+                errMessage: "Vui lòng chọn ít nhất một loại thú cưng!",
+                data: null,
+            };
+        }
+        for (const petType of productInfo.PetType) {
+            const validPetType = await checkPetType(petType);
+            if (!validPetType) {
+                return {
+                    errCode: 1,
+                    errMessage: `Loại thú cưng ${petType} không hợp lệ!`,
+                    data: null,
+                };
+            }
+        }
+    }
+    if (productInfo.ProductDetail) {
+        if (!Array.isArray(productInfo.ProductDetail) || productInfo.ProductDetail.length === 0) {
+            return {
+                errCode: -1,
+                errMessage: "Vui lòng thêm ít nhất một chi tiết sản phẩm!",
+                data: null,
+            };
+        }
+    } else {
+        for (let i = 0; i < productInfo.ProductDetail.length; i++) {
+            const detail = productInfo.ProductDetail[i];
+            if (!detail.DetailName) {
+                return {
+                    errCode: -1,
+                    errMessage: `Tên chi tiết tại dòng ${i + 1} không được để trống!`,
+                    data: null,
+                };
+            } else {
+                const detailNameRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
+                if (!detailNameRegex.test(detail.DetailName.trim())) {
+                    return {
+                        errCode: 1,
+                        errMessage: `Tên chi tiết tại dòng ${i + 1} không hợp lệ!`,
+                        data: null,
+                    };
+                }
+            }
+            if (detail.Stock === undefined || detail.Stock === "") {
+                return {
+                    errCode: -1,
+                    errMessage: `Số lượng tồn tại dòng ${i + 1} không được để trống!`,
+                    data: null,
+                };
+            } else if (isNaN(detail.Stock) || parseInt(detail.Stock) < 0) {
+                return {
+                    errCode: 1,
+                    errMessage: `Số lượng tồn tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!`,
+                    data: null,
+                };
+            }
+            if (detail.ExtraPrice === undefined || detail.ExtraPrice === "") {
+                return {
+                    errCode: -1,
+                    errMessage: `Giá thêm tại dòng ${i + 1} không được để trống!`,
+                    data: null,
+                };
+            } else if (isNaN(detail.ExtraPrice) || parseFloat(detail.ExtraPrice) < 0) {
+                return {
+                    errCode: 1,
+                    errMessage: `Giá thêm tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!`,
+                    data: null,
+                };
+            }
+            if (detail.Promotion === undefined || detail.Promotion === "") {
+                return {
+                    errCode: -1,
+                    errMessage: `Khuyến mãi tại dòng ${i + 1} không được để trống!`,
+                    data: null,
+                };
+            } else if (isNaN(detail.Promotion) || parseFloat(detail.Promotion) < 0 || parseFloat(detail.Promotion) > 100) {
+                return {
+                    errCode: 1,
+                    errMessage: `Khuyến mãi tại dòng ${i + 1} phải từ 0 đến 100%!`,
+                    data: null,
+                };
+            }
+            if (!detail.DetailStatus) {
+                return {
+                    errCode: -1,
+                    errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không được để trống!`,
+                    data: null,
+                };
+            } else {
+                const validDetailStatus = await checkDetailStatus(detail.DetailStatus);
+                if (!validDetailStatus) {
+                    return {
+                        errCode: 1,
+                        errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không hợp lệ!`,
+                        data: null,
+                    };
+                }
+            }
+            if (parseInt(detail.Stock) === 0 && detail.DetailStatus === "AVAIL") {
+                return {
+                    errCode: 1,
+                    errMessage: `Số lượng tồn tại dòng ${i + 1} bằng 0, không thể chọn trạng thái Còn hàng!`,
+                    data: null,
+                };
+            }
+        }
+    }
+    if (productInfo.Image && !Array.isArray(productInfo.Image)) {
+        return {
+            errCode: 1,
+            errMessage: "Danh sách ảnh phụ phải là một mảng!",
+            data: null,
+        };
+    }
+    return null;
+};
+
+let checkProductNameExist = (productName) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!productName) {
+                resolve({
+                    errCode: -1,
+                    errMessage: "Thiếu tên sản phẩm để kiểm tra!",
+                    data: null,
+                });
+                return;
+            }
+            let where = { ProductName: productName };
+            if (excludeProductId) {
+                where.ProductID = { [Op.ne]: excludeProductId };
+            }
+            let exist = await db.Product.findOne({ where });
+            resolve(exist ? true : false);
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: "Lỗi khi kiểm tra tên sản phẩm: " + e.message,
+                data: null,
+            });
+        }
+    });
+};
+
+let generateProductID = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const prefix = "P"; // Prefix cho Product
+            const timestamp = Date.now().toString();
+            const timestampDigits = timestamp.slice(-9); // Lấy 9 chữ số cuối
+            let productId = `${prefix}${timestampDigits}`;
+            let existingProduct = await db.Product.findOne({
+                where: { ProductID: productId },
+            });
+            let attempts = 0;
+            while (existingProduct && attempts < 5) {
+                const newTimestamp = Date.now().toString();
+                const newTimestampDigits = newTimestamp.slice(-9);
+                productId = `${prefix}${newTimestampDigits}`;
+                attempts++;
+                existingProduct = await db.Product.findOne({
+                    where: { ProductID: productId },
+                });
+            }
+            if (attempts >= 5) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Tạo mã sản phẩm thất bại!",
+                    data: null,
+                });
+            }
+            resolve(productId);
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: "Lỗi khi tạo mã sản phẩm: " + e.message,
+                data: null,
+            });
+        }
+    });
+};
 
 let updateOutOfStock = (productid) => {
     return new Promise(async (resolve, reject) => {
@@ -851,10 +1077,262 @@ let getProductDetailInfo = (productid, productdetailid) => {
     });
 };
 
+let createProduct = (productInfo) => {
+    return new Promise(async (resolve, reject) => {
+        const transaction = await db.sequelize.transaction();
+        try {
+            if (!productInfo) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu thông tin sản phẩm!',
+                    data: null
+                });
+                return;
+            }
+            let isValidateInput = await validateProductInput(productInfo);
+            if (isValidateInput) {
+                resolve(isValidateInput);
+                return;
+            }
+            let isProductNameExist = await checkProductNameExist(productInfo.ProductName);
+            if (isProductNameExist) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Tên sản phẩm đã tồn tại trong hệ thống!",
+                    data: null,
+                });
+                return;
+            }
+            const productId = await generateProductID();
+            if (typeof productId === "object" && productId.errCode) {
+                resolve(productId);
+                return;
+            }
+            await db.Product.create({
+                ProductID: productId,
+                ProductType: productInfo.ProductType,
+                ProductName: productInfo.ProductName.trim(),
+                ProductPrice: parseFloat(productInfo.ProductPrice),
+                ProductImage: productInfo.ProductImage || null,
+                ProductDescription: productInfo.ProductDescription.trim(),
+            }, { transaction });
+            const createdAt = new Date();
+            for (const detail of productInfo.ProductDetail) {
+                await db.ProductDetail.create({
+                    DetailName: detail.DetailName.trim(),
+                    Stock: parseInt(detail.Stock),
+                    SoldCount: detail.SoldCount || 0,
+                    ExtraPrice: parseFloat(detail.ExtraPrice),
+                    Promotion: parseFloat(detail.Promotion),
+                    CreatedAt: createdAt,
+                    DetailStatus: detail.DetailStatus,
+                    ProductID: productId,
+                }, { transaction });
+            }
+            for (const petType of productInfo.PetType) {
+                await db.ProductPetType.create({
+                    ProductID: productId,
+                    PetType: petType,
+                }, { transaction });
+            }
+            if (productInfo.Image && productInfo.Image.length > 0) {
+                for (const image of productInfo.Image) {
+                    await db.Image.create({
+                        Image: image.Image,
+                        ProductID: productId,
+                        AppointmentID: null,
+                    }, { transaction });
+                }
+            }
+            await transaction.commit();
+            resolve({
+                errCode: 0,
+                errMessage: "Tạo sản phẩm thành công!",
+                data: null,
+            });
+        } catch (e) {
+            console.log(e);
+            await transaction.rollback();
+            resolve({
+                errCode: 3,
+                errMessage: "Lỗi khi tạo sản phẩm: " + e.message,
+                data: null,
+            });
+        }
+    });
+};
+
+let changeProductInfo = (productInfo) => {
+    return new Promise(async (resolve, reject) => {
+        const transaction = await db.sequelize.transaction();
+        try {
+            if (!productInfo || !productInfo.ProductID) {
+                await transaction.rollback();
+                resolve({
+                    errCode: -1,
+                    errMessage: "Thiếu tham số ProductID!",
+                    data: null,
+                });
+                return;
+            }
+            let isValidateInput = await validateProductInput(productInfo);
+            if (isValidateInput) {
+                await transaction.rollback();
+                resolve(isValidateInput);
+                return;
+            }
+            let product = await db.Product.findOne({
+                where: { ProductID: productInfo.ProductID },
+                raw: false,
+            });
+            if (!product) {
+                await transaction.rollback();
+                resolve({
+                    errCode: 2,
+                    errMessage: "Sản phẩm không tồn tại!",
+                    data: null,
+                });
+                return;
+            }
+            if (productInfo.ProductName && productInfo.ProductName !== product.ProductName) {
+                let isProductNameExist = await checkProductNameExist(productInfo.ProductName, productInfo.ProductID);
+                if (isProductNameExist) {
+                    await transaction.rollback();
+                    resolve({
+                        errCode: 1,
+                        errMessage: "Tên sản phẩm đã tồn tại trong hệ thống!",
+                        data: null,
+                    });
+                    return;
+                }
+            }
+            let isUpdated = false;
+            if (productInfo.ProductName) {
+                product.ProductName = productInfo.ProductName.trim();
+                isUpdated = true;
+            }
+            if (productInfo.ProductType) {
+                product.ProductType = productInfo.ProductType;
+                isUpdated = true;
+            }
+            if (productInfo.ProductPrice) {
+                product.ProductPrice = parseFloat(productInfo.ProductPrice);
+                isUpdated = true;
+            }
+            if (productInfo.ProductImage !== undefined) {
+                product.ProductImage = productInfo.ProductImage || null;
+                isUpdated = true;
+            }
+            if (productInfo.ProductDescription) {
+                product.ProductDescription = productInfo.ProductDescription.trim();
+                isUpdated = true;
+            }
+            if (productInfo.ProductDetail) {
+                const createdAt = new Date();
+                for (const detail of productInfo.ProductDetail) {
+                    if (detail.ProductDetailID) {
+                        // Cập nhật chi tiết hiện có
+                        let existingDetail = await db.ProductDetail.findOne({
+                            where: { ProductDetailID: detail.ProductDetailID, ProductID: productInfo.ProductID },
+                            raw: false,
+                        });
+                        if (existingDetail) {
+                            existingDetail.DetailName = detail.DetailName.trim();
+                            existingDetail.Stock = parseInt(detail.Stock);
+                            existingDetail.SoldCount = detail.SoldCount || existingDetail.SoldCount;
+                            existingDetail.ExtraPrice = parseFloat(detail.ExtraPrice);
+                            existingDetail.Promotion = parseFloat(detail.Promotion);
+                            existingDetail.DetailStatus = detail.DetailStatus;
+                            await existingDetail.save({ transaction });
+                            isUpdated = true;
+                        }
+                    } else {
+                        await db.ProductDetail.create(
+                            {
+                                DetailName: detail.DetailName.trim(),
+                                Stock: parseInt(detail.Stock),
+                                SoldCount: detail.SoldCount || 0,
+                                ExtraPrice: parseFloat(detail.ExtraPrice),
+                                Promotion: parseFloat(detail.Promotion),
+                                CreatedAt: createdAt,
+                                DetailStatus: detail.DetailStatus,
+                                ProductID: productInfo.ProductID,
+                            },
+                            { transaction }
+                        );
+                        isUpdated = true;
+                    }
+                }
+            }
+            if (productInfo.PetType) {
+                await db.ProductPetType.destroy({
+                    where: { ProductID: productInfo.ProductID },
+                    transaction,
+                });
+                for (const petType of productInfo.PetType) {
+                    await db.ProductPetType.create(
+                        {
+                            ProductID: productInfo.ProductID,
+                            PetType: petType,
+                        },
+                        { transaction }
+                    );
+                }
+                isUpdated = true;
+            }
+            if (productInfo.Image !== undefined) {
+                await db.Image.destroy({
+                    where: { ProductID: productInfo.ProductID },
+                    transaction,
+                });
+                if (productInfo.Image && productInfo.Image.length > 0) {
+                    for (const image of productInfo.Image) {
+                        await db.Image.create(
+                            {
+                                Image: image.Image,
+                                ProductID: productInfo.ProductID,
+                                AppointmentID: null,
+                            },
+                            { transaction }
+                        );
+                    }
+                }
+                isUpdated = true;
+            }
+            if (isUpdated) {
+                await product.save({ transaction });
+                await transaction.commit();
+                resolve({
+                    errCode: 0,
+                    errMessage: "Cập nhật thông tin sản phẩm thành công!",
+                    data: null,
+                });
+            } else {
+                await transaction.rollback();
+                resolve({
+                    errCode: 1,
+                    errMessage: "Không có thông tin nào để cập nhật!",
+                    data: null,
+                });
+            }
+        } catch (e) {
+            console.log(e);
+            await transaction.rollback();
+            resolve({
+                errCode: 3,
+                errMessage: "Lỗi khi cập nhật sản phẩm: " + e.message,
+                data: null,
+            });
+        }
+    });
+};
+
 module.exports = {
     loadProductInfo,
     getProductInfo,
     loadSaleProductInfo,
     getSaleProductInfo,
     getProductDetailInfo,
+    createProduct,
+    changeProductInfo,
 };
