@@ -38,24 +38,28 @@ class EditBannerModal extends Component {
   }
 
   async componentDidMount() {
-    await Promise.all([
-      this.handleLoadCodeProductType(),
-      this.handleLoadCodePetType(),
-      this.handleLoadCodeBannerStatus(),
-    ]);
+    // await Promise.all([
+    //   this.handleLoadCodeProductType(),
+    //   this.handleLoadCodePetType(),
+    //   this.handleLoadCodeBannerStatus(),
+    // ]);
     const { selectedBannerID } = this.props;
-    if (selectedBannerID) {
-      await this.handleLoadBannerInfo(selectedBannerID);
-    }
+    // if (selectedBannerID) {
+    //   await this.handleLoadBannerInfo(selectedBannerID);
+    // }
+    setTimeout(() => {
+      console.log(selectedBannerID)
+    }, 10)
   }
 
   async componentDidUpdate(prevProps) {
     const { selectedBannerID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
       this.resetState();
-      if (selectedBannerID) {
-        await this.handleLoadBannerInfo(selectedBannerID);
-      }
+      // if (selectedBannerID) {
+      //   await this.handleLoadBannerInfo(selectedBannerID);
+      // }
+      console.log("reset: ", selectedBannerID)
     }
   }
 
@@ -108,8 +112,6 @@ class EditBannerModal extends Component {
     }
   };
 
-
-
   handleLoadCodePetType = async () => {
     try {
       const codePetType = await handleGetAllCodesApi("PetType");
@@ -130,8 +132,6 @@ class EditBannerModal extends Component {
       });
     }
   };
-
-
 
   handleLoadCodeBannerStatus = async () => {
     try {

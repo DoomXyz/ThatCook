@@ -631,7 +631,7 @@ class Owner extends Component {
   };
   toggleEditBannerModal = () => {
     this.setState({
-      isShowCreateProductModal: !this.state.isShowCreateProductModal,
+      isShowEditBannerModal: !this.state.isShowEditBannerModal,
     });
   };
   handleEditBannerFromModal = async (bannerInfo) => {
