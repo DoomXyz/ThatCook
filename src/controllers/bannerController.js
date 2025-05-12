@@ -1,11 +1,11 @@
 import bannerService from "../services/bannerService";
 
-let handleGetBannerInfo = async (req, res) => {
+let handleGetSaleBannerInfo = async (req, res) => {
     try {
-        let response = await bannerService.getBannerInfo(req.query.productid);
+        let response = await bannerService.getBannerSaleInfo(req.query.productid);
         return res.status(200).json(response);
     } catch (e) {
-        console.log("Error in handleGetProductInfo: ", e);
+        console.log("Error in handleGetSaleBannerInfo: ", e);
         return res.status(500).json({
             errCode: 3,
             errMessage: `Lỗi từ server: ${e.message}`,
@@ -34,7 +34,22 @@ let handleLoadBannerInfo = async (req, res) => {
     }
 };
 
+let handleGetBannerInfo = async (req, res) => {
+    try {
+        let response = await bannerService.getBannerInfo(req.query.bannerid);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log("Error in handleGetBannerInfo: ", e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: `Lỗi từ server: ${e.message}`,
+            data: null
+        });
+    }
+};
+
 module.exports = {
-    handleGetBannerInfo,
+    handleGetSaleBannerInfo,
     handleLoadBannerInfo,
+    handleGetBannerInfo,
 }

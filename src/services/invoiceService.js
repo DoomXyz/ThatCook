@@ -186,7 +186,6 @@ let generateInvoiceID = () => {
 let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
     discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid) => {
     return new Promise(async (resolve, reject) => {
-        const transaction = await db.sequelize.transaction();
         try {
             if (!receivername || !receiverphone || !receiveraddress || !cartItems || !totalquantity || !totalprice
                 || !totalpayment || !paymentstatus || !shippingstatus || !paymenttype || !shippingmethod) {
@@ -301,7 +300,7 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
                 PaymentType: paymenttype,
                 ShippingMethod: shippingmethod,
                 CouponID: couponid,
-            }, { transaction });
+            });
             for (let item of cartItems) {
                 await db.InvoiceDetail.create({
                     InvoiceID,
@@ -309,7 +308,7 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
                     ProductDetailID: item.productdetailid,
                     ItemPrice: item.itemprice,
                     ItemQuantity: item.itemquantity
-                }, { transaction });
+                });
                 const detail = await db.ProductDetail.findOne({
                     where: { ProductDetailID: item.productdetailid }
                 })
@@ -317,14 +316,13 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
                     Stock: detail.Stock - item.itemquantity
                 }, {
                     where: { ProductDetailID: item.productdetailid }
-                }, { transaction });
+                });
             }
             if (accountid) {
                 await db.CartItem.destroy({
                     where: { AccountID: accountid }
-                }, { transaction });
+                });
             }
-            await transaction.commit();
             resolve({
                 errCode: 0,
                 errMessage: "Tạo đơn hàng thành công!",
@@ -332,7 +330,6 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
             })
         } catch (e) {
             console.log(e);
-            await transaction.rollback();
             resolve({
                 errCode: 3,
                 errMessage: 'Lỗi khi tạo đơn hàng: ' + e,

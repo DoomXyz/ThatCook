@@ -109,6 +109,23 @@ let handleChangeProductInfo = async (req, res) => {
     }
 }
 
+let handleLoadFilteredProductInfo = async (req, res) => {
+    try {
+        const filterProductType = req.query.filterProductType || "ALL";
+        const filterPetType = req.query.filterPetType ? JSON.parse(req.query.filterPetType) : ["ALL"];
+        const search = req.query.search || "";
+        let response = await productService.loadFilteredProductInfo(filterProductType, filterPetType, search);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log("Error in handleLoadFilteredProductInfo: ", e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: "Lỗi từ server: " + e.message,
+            data: null,
+        });
+    }
+};
+
 module.exports = {
     handleLoadProductInfo,
     handleGetProductInfo,
@@ -117,4 +134,5 @@ module.exports = {
     handleGetProductDetailInfo,
     handleCreateProduct,
     handleChangeProductInfo,
+    handleLoadFilteredProductInfo,
 }

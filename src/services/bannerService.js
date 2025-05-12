@@ -33,7 +33,7 @@ let updateHideBanner = () => {
     });
 }
 
-let getBannerInfo = (productid) => {
+let getBannerSaleInfo = (productid) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!productid) {
@@ -248,7 +248,74 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
     });
 };
 
+let getBannerInfo = (bannerid) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!bannerid) {
+                resolve({
+                    errCode: -1,
+                    errMessage: "Thiếu tham số!",
+                    data: null,
+                });
+                return;
+            }
+            const banner = await db.Banner.findOne({
+                where: { BannerID: bannerid },
+                raw: true,
+            });
+            if (!banner) {
+                resolve({
+                    errCode: 2,
+                    errMessage: "Banner không tồn tại!",
+                    data: null,
+                });
+                return;
+            }
+            let product = null;
+            if (banner.ProductID) {
+                product = await db.Product.findOne({
+                    where: { ProductID: banner.ProductID },
+                    attributes: ["ProductName", "ProductType"],
+                    raw: true,
+                });
+            }
+            let petTypes = null;
+            if (banner.ProductID) {
+                petTypes = await db.ProductPetType.findAll({
+                    where: { ProductID: banner.ProductID },
+                    attributes: ["PetType"],
+                    raw: true,
+                });
+            }
+            const data = {
+                BannerID: banner.BannerID,
+                BannerImage: banner.BannerImage,
+                CreatedAt: banner.CreatedAt,
+                HiddenAt: banner.HiddenAt,
+                BannerStatus: banner.BannerStatus,
+                ProductID: banner.ProductID,
+                ProductName: product ? product.ProductName : null,
+                ProductType: product ? product.ProductType : null,
+                PetTypes: petTypes ? petTypes.map(pt => pt.PetType) : [],
+            };
+            resolve({
+                errCode: 0,
+                errMessage: "Lấy thông tin banner thành công!",
+                data,
+            });
+        } catch (e) {
+            console.log("Error in getBannerInfo: ", e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi lấy thông tin banner: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
 module.exports = {
-    getBannerInfo,
+    getBannerSaleInfo,
     loadBannerInfo,
+    getBannerInfo,
 };

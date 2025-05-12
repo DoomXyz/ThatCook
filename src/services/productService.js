@@ -1327,6 +1327,91 @@ let changeProductInfo = (productInfo) => {
     });
 };
 
+let loadFilteredProductInfo = (filterProductType, filterPetType, search) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (filterProductType && filterProductType !== "ALL") {
+                const validProductType = await checkProductType(filterProductType);
+                if (!validProductType) {
+                    resolve({
+                        errCode: 1,
+                        errMessage: "Loại sản phẩm không hợp lệ!",
+                        data: null,
+                    });
+                    return;
+                }
+            }
+            if (filterPetType && Array.isArray(filterPetType) && filterPetType.length > 0 && filterPetType[0] !== "ALL") {
+                for (const petType of filterPetType) {
+                    const validPetType = await checkPetType(petType);
+                    if (!validPetType) {
+                        resolve({
+                            errCode: 1,
+                            errMessage: `Loại thú cưng ${petType} không hợp lệ!`,
+                            data: null,
+                        });
+                        return;
+                    }
+                }
+            }
+            await updateOutOfStock();
+            let where = {};
+            if (search) {
+                where[Op.or] = [{ ProductName: { [Op.like]: `%${search}%` } }];
+            }
+            if (filterProductType && filterProductType !== "ALL") {
+                where.ProductType = filterProductType;
+            }
+            // Lọc theo PetType (sản phẩm phải có tất cả PetType trong danh sách)
+            let petTypeProductIds = null;
+            if (filterPetType && filterPetType.length > 0 && filterPetType[0] !== "ALL") {
+                // Lấy danh sách ProductID cho từng PetType
+                const petTypePromises = filterPetType.map(async (petType) => {
+                    const products = await db.ProductPetType.findAll({
+                        where: { PetType: petType },
+                        attributes: ["ProductID"],
+                        raw: true,
+                    });
+                    return products.map((p) => p.ProductID);
+                });
+                const petTypeProductIdArrays = await Promise.all(petTypePromises);
+
+                // Tìm giao của các ProductID (sản phẩm phải có tất cả PetType)
+                petTypeProductIds = petTypeProductIdArrays.reduce((commonIds, ids) => {
+                    return commonIds.filter((id) => ids.includes(id));
+                }, petTypeProductIdArrays[0] || []);
+                if (petTypeProductIds.length === 0) {
+                    resolve({
+                        errCode: 0,
+                        errMessage: "Không tìm thấy sản phẩm nào thỏa mãn bộ lọc PetType!",
+                        data: [],
+                    });
+                    return;
+                }
+                where.ProductID = { [Op.in]: petTypeProductIds };
+            }
+            const products = await db.Product.findAll({
+                where,
+                attributes: ["ProductID", "ProductName"],
+                raw: true,
+            });
+            resolve({
+                errCode: 0,
+                errMessage: "Lấy danh sách sản phẩm thành công!",
+                data: products,
+            });
+        } catch (e) {
+            console.log("Error in loadFilteredProductInfo: ", e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi lấy danh sách sản phẩm: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
+
 module.exports = {
     loadProductInfo,
     getProductInfo,
@@ -1335,4 +1420,5 @@ module.exports = {
     getProductDetailInfo,
     createProduct,
     changeProductInfo,
+    loadFilteredProductInfo,
 };
