@@ -22,7 +22,7 @@ import CreateProductModal from "./CreateProductModal";
 import EditProductModal from "./EditProductModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
 import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
-import OwnerEditBannerModal from "./OwnerEditBannerModal";
+import EditBannerModal from "./EditBannerModal";
 
 
 class Owner extends Component {
@@ -56,10 +56,9 @@ class Owner extends Component {
       loadedProductInfo: [],
       loadedInvoiceInfo: [],
       loadedBannerInfo: [],
-
       selectedProduct: null,
-      selectedInvoice: null,
       selectedBanner: null,
+      selectedInvoice: null,
     };
     this.debounceTimeout = null;
   }
@@ -504,6 +503,50 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false })
   };
+  handleSelectedBanner = (bannerid) => {
+    this.setState({
+      selectedBanner: bannerid,
+      isShowEditBannerModal: true,
+    });
+  };
+  toggleEditBannerModal = () => {
+    this.setState({
+      isShowCreateProductModal: !this.state.isShowCreateProductModal,
+    });
+  };
+  handleEditBannerFromModal = async (bannerInfo) => {
+    console.log(bannerInfo)
+    // this.setState({ isLoading: true })
+    // try {
+    //   const response = await handleChangeProductInfoApi(productInfo);
+    //   if (response && response.errCode === 0) {
+    //     toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true
+    //     });
+    //     await this.handleLoadProductInfo();
+    //     this.setState({
+    //       isShowEditProductModal: false,
+    //     })
+    //   } else {
+    //     const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
+    //     toast.error(errMessage, {
+    //       position: "top-right",
+    //       autoClose: 500,
+    //       closeOnClick: true
+    //     });
+    //   }
+    // } catch (e) {
+    //   console.error("Edit:", e);
+    //   toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
+    //     position: "top-right",
+    //     autoClose: 500,
+    //     closeOnClick: true
+    //   });
+    // }
+    // this.setState({ isLoading: false })
+  };
   handleSelectedInvoice = (invoiceid) => {
     console.log(invoiceid)
     // this.setState({
@@ -511,13 +554,7 @@ class Owner extends Component {
     //   isShowHomeProductModal: true,
     // });
   };
-  handleSelectedBanner = (bannerid) => {
-    console.log(bannerid)
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
-  };
+
   handleChangeBannerStatus = (bannerid) => {
     console.log(bannerid)
     // this.setState({
@@ -599,16 +636,6 @@ class Owner extends Component {
     });
   };
 
-  toggleEditBannerModal = (banner = null) => {
-    this.setState((prev) => ({
-      ...prev,
-      isShowEditBannerModal: !prev.isShowEditBannerModal,
-    }));
-    if (banner) {
-      console.log("Banner ID:", banner.ID);
-    }
-  };
-
   toggleViewInvoiceModal = (hoadon = null) => {
     this.setState({
       isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
@@ -625,7 +652,7 @@ class Owner extends Component {
       loadedBannerInfo, loadedBannerStatusFilterValue, isLoading,
       actionPage, searchValue, sortValue, filterValue, dateFilterValue, currentPage, tempCurrentPage, totalPages,
       isShowCreateProductModal, isShowEditProductModal, isShowCreateBannerModal, isShowEditBannerModal, isShowViewInvoiceModal,
-      selectedProduct } = this.state
+      selectedProduct, selectedBanner } = this.state
     const renderSection = () => {
       switch (actionPage) {
         case 1:
@@ -1243,9 +1270,11 @@ class Owner extends Component {
           isOpen={isShowCreateBannerModal}
           toggleFromModal={this.toggleCreateBannerModal}
         />
-        <OwnerEditBannerModal
+        <EditBannerModal
           isOpen={isShowEditBannerModal}
           toggleFromModal={this.toggleEditBannerModal}
+          selectedBannerID={selectedBanner}
+          handleEditBannerFromModal={this.handleEditBannerFromModal}
         />
         <OwnerViewInvoiceModal
           isOpen={isShowViewInvoiceModal}

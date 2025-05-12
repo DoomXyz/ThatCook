@@ -1,14 +1,15 @@
 import React, { Component } from "react";
 import { toast } from "react-toastify";
 import { IonIcon } from "@ionic/react";
+
+import { trashOutline } from "ionicons/icons";
+
+import "./EditBannerModal.scss";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import DatePicker from "react-datepicker";
-import Select from "react-select";
-import { trashOutline } from "ionicons/icons";
-import "./EditBannerModal.scss";
+
 import { handleLoadFilteredProductInfoApi } from "../../services/productServices";
-import { handleGetBannerInfoApi } from "../../services/bannerServices";
+import { handleGetBannerInfoApi } from "../../services/bannerServices"
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from "../../services/utilitiesServices";
 
 class EditBannerModal extends Component {
@@ -21,8 +22,8 @@ class EditBannerModal extends Component {
       codeProductType: [],
       codePetType: [],
       bannerimage: "",
-      createdat: null,
-      hiddenat: null,
+      createdat: "",
+      hiddenat: "",
       bannerstatus: "",
       productid: "",
       productname: "",
@@ -32,7 +33,6 @@ class EditBannerModal extends Component {
       imageFile: null,
       imagePreview: null,
       searchValue: "",
-      loadedProductInfo: [],
     };
     this.debounceTimeout = null;
   }
@@ -63,9 +63,6 @@ class EditBannerModal extends Component {
     if (this.state.imagePreview && this.state.imageFile) {
       URL.revokeObjectURL(this.state.imagePreview);
     }
-    if (this.debounceTimeout) {
-      clearTimeout(this.debounceTimeout);
-    }
   }
 
   resetState = () => {
@@ -73,8 +70,8 @@ class EditBannerModal extends Component {
       loadedBannerInfo: null,
       selectedBannerID: null,
       bannerimage: "",
-      createdat: null,
-      hiddenat: null,
+      createdat: "",
+      hiddenat: "",
       bannerstatus: this.state.codeBannerStatus.length > 0 ? this.state.codeBannerStatus[0].Code : "",
       productid: "",
       productname: "",
@@ -84,7 +81,6 @@ class EditBannerModal extends Component {
       imageFile: null,
       imagePreview: null,
       searchValue: "",
-      loadedProductInfo: [],
     });
   };
 
@@ -112,6 +108,8 @@ class EditBannerModal extends Component {
     }
   };
 
+
+
   handleLoadCodePetType = async () => {
     try {
       const codePetType = await handleGetAllCodesApi("PetType");
@@ -132,6 +130,8 @@ class EditBannerModal extends Component {
       });
     }
   };
+
+
 
   handleLoadCodeBannerStatus = async () => {
     try {
@@ -166,8 +166,8 @@ class EditBannerModal extends Component {
           loadedBannerInfo: banner,
           selectedBannerID: banner.BannerID,
           bannerimage: banner.BannerImage,
-          createdat: banner.CreatedAt ? new Date(banner.CreatedAt) : null,
-          hiddenat: banner.HiddenAt ? new Date(banner.HiddenAt) : null,
+          createdat: banner.CreatedAt ? new Date(banner.CreatedAt).toISOString().split("T")[0] : "",
+          hiddenat: banner.HiddenAt ? new Date(banner.HiddenAt).toISOString().split("T")[0] : "",
           bannerstatus: banner.BannerStatus,
           productid: banner.ProductID,
           productname: banner.ProductName || "",
@@ -227,7 +227,7 @@ class EditBannerModal extends Component {
 
   handleSelectChange = (e, field) => {
     this.setState({ [field]: e.target.value }, () => {
-      if (field === "producttype") {
+      if (field === "producttype" || field === "pettype") {
         this.handleLoadFilteredProductInfo(this.state.searchValue);
       }
     });
@@ -244,15 +244,9 @@ class EditBannerModal extends Component {
     }, () => this.handleLoadFilteredProductInfo(this.state.searchValue));
   };
 
-  handleProductChange = (selectedOption) => {
-    this.setState({
-      productid: selectedOption ? selectedOption.value : "",
-      productname: selectedOption ? selectedOption.label : "",
-    });
-  };
-
-  handleSearchChange = (inputValue) => {
-    this.setState({ searchValue: inputValue }, () => {
+  handleSearchChange = (e) => {
+    const value = e.target.value;
+    this.setState({ searchValue: value }, () => {
       if (this.debounceTimeout) {
         clearTimeout(this.debounceTimeout);
       }
@@ -373,8 +367,8 @@ class EditBannerModal extends Component {
       const bannerInfo = {
         BannerID: this.state.selectedBannerID,
         BannerImage: bannerImage,
-        CreatedAt: this.state.createdat ? this.state.createdat.toISOString().split("T")[0] : null,
-        HiddenAt: this.state.hiddenat ? this.state.hiddenat.toISOString().split("T")[0] : null,
+        CreatedAt: this.state.createdat,
+        HiddenAt: this.state.hiddenat || null,
         BannerStatus: this.state.bannerstatus,
         ProductID: this.state.productid,
       };
@@ -409,6 +403,7 @@ class EditBannerModal extends Component {
     }
   };
 
+
   toggle = () => {
     this.props.toggleFromModal();
   };
@@ -434,13 +429,6 @@ class EditBannerModal extends Component {
       imagePreview,
       searchValue,
     } = this.state;
-
-    const productOptions = loadedProductInfo && loadedProductInfo.length > 0
-      ? loadedProductInfo.map(product => ({
-        value: product.ProductID,
-        label: product.ProductName,
-      }))
-      : [];
 
     return (
       <Modal
@@ -484,22 +472,18 @@ class EditBannerModal extends Component {
             </div>
             <div className="modal-content-edit-date">
               <p>Ngày tạo:</p>
-              <DatePicker
-                selected={createdat}
-                onChange={(date) => this.setState({ createdat: date })}
-                dateFormat="dd/MM/yyyy"
-                placeholderText="dd/mm/yyyy"
-                className="date-picker"
+              <input
+                type="date"
+                value={createdat}
+                onChange={(e) => this.handleInputChange(e, "createdat")}
               />
             </div>
             <div className="modal-content-edit-date">
               <p>Ngày ẩn:</p>
-              <DatePicker
-                selected={hiddenat}
-                onChange={(date) => this.setState({ hiddenat: date })}
-                dateFormat="dd/MM/yyyy"
-                placeholderText="dd/mm/yyyy"
-                className="date-picker"
+              <input
+                type="date"
+                value={hiddenat}
+                onChange={(e) => this.handleInputChange(e, "hiddenat")}
               />
             </div>
             <div className="modal-content-edit-status">
@@ -546,16 +530,28 @@ class EditBannerModal extends Component {
             </div>
             <div className="modal-content-edit-source">
               <p>Sản phẩm:</p>
-              <Select
-                options={productOptions}
-                onInputChange={this.handleSearchChange}
-                onChange={this.handleProductChange}
-                value={productOptions.find(option => option.value === productid) || null}
-                placeholder="Chọn hoặc tìm kiếm sản phẩm"
-                isClearable
-                className="product-select"
-                classNamePrefix="select"
+              <input
+                type="text"
+                placeholder="Tìm kiếm sản phẩm"
+                value={searchValue}
+                onChange={this.handleSearchChange}
+                className="search-product-input"
               />
+              <select
+                value={productid}
+                onChange={(e) => this.handleSelectChange(e, "productid")}
+              >
+                <option value="">Chọn sản phẩm</option>
+                {loadedProductInfo && loadedProductInfo.length > 0 ? (
+                  loadedProductInfo.map((product) => (
+                    <option key={product.ProductID} value={product.ProductID}>
+                      {product.ProductName}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>Không có sản phẩm</option>
+                )}
+              </select>
             </div>
           </div>
         </Modal.Body>

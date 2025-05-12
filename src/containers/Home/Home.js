@@ -12,7 +12,7 @@ import Footer from "../../components/HomeFooter";
 
 import { handleLogoutApi } from "../../services/accountServices";
 import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi } from "../../services/productServices";
-import { handleGetBannerInfoApi } from "../../services/bannerServices"
+import { handleGetSaleBannerInfoApi } from "../../services/bannerServices"
 import { handleAddToCartApi, handleGetCartApi } from "../../services/cartServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 
@@ -126,7 +126,7 @@ class Home extends Component {
 
   handleGetBannerInfo = async () => {
     try {
-      const response = await handleGetBannerInfoApi("ALL")
+      const response = await handleGetSaleBannerInfoApi("ALL")
       if (response && response.errCode === 0) {
         this.setState({
           loadedBannerInfo: response.data

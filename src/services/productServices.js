@@ -28,6 +28,10 @@ const handleChangeProductInfoApi = (productInfo) => {
     return axios.put("/api/change-productinfo", productInfo);
 }
 
+const handleLoadFilteredProductInfoApi = (filterProductType, filterPetType, search) => {
+    return axios.get(`/api/load-filtered-productinfo?filterProductType=${filterProductType}&filterPetType=${filterPetType}&search=${search}`);
+};
+
 export {
     handleLoadProductInfoApi,
     handleGetProductInfoApi,
@@ -36,4 +40,5 @@ export {
     handleGetProductDetailInfoApi,
     handleChangeProductInfoApi,
     handleCreateProductApi,
+    handleLoadFilteredProductInfoApi,
 };
