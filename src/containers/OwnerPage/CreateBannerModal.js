@@ -6,22 +6,17 @@ import Select from "react-select";
 
 import { trashOutline } from "ionicons/icons";
 
-import "./EditBannerModal.scss";
+import "./CreateBannerModal.scss";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
 import { handleLoadFilteredProductInfoApi } from "../../services/productServices";
-import { handleGetBannerInfoApi } from "../../services/bannerServices";
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from "../../services/utilitiesServices";
 
-import bannertest from "../../assets/bannerimgs/1.webp";
-
-class EditBannerModal extends Component {
+class CreateBannerModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadedBannerInfo: null,
-      selectedBannerID: null,
       codeBannerStatus: [],
       codeProductType: [],
       codePetType: [],
@@ -46,19 +41,13 @@ class EditBannerModal extends Component {
       this.handleLoadCodePetType(),
       this.handleLoadCodeBannerStatus(),
     ]);
-    const { selectedBannerID } = this.props;
-    if (selectedBannerID) {
-      await this.handleLoadBannerInfo(selectedBannerID);
-    }
   }
 
   async componentDidUpdate(prevProps) {
-    const { selectedBannerID, isOpen } = this.props;
+    const { isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
       this.resetState();
-      if (selectedBannerID) {
-        await this.handleLoadBannerInfo(selectedBannerID);
-      }
+      await this.handleLoadFilteredProductInfo();
     }
   }
 
@@ -70,11 +59,12 @@ class EditBannerModal extends Component {
 
   resetState = () => {
     this.setState({
-      loadedBannerInfo: null,
-      selectedBannerID: null,
+      codeBannerStatus: this.state.codeBannerStatus,
+      codeProductType: this.state.codeProductType,
+      codePetType: this.state.codePetType,
       bannerimage: "",
       hiddenat: null,
-      bannerstatus: "",
+      bannerstatus: this.state.codeBannerStatus.length > 0 ? this.state.codeBannerStatus[0].Code : "",
       productid: "",
       productname: "",
       producttype: "ALL",
@@ -155,46 +145,10 @@ class EditBannerModal extends Component {
     }
   };
 
-  handleLoadBannerInfo = async (bannerid) => {
-    try {
-      const response = await handleGetBannerInfoApi(bannerid);
-      if (response && response.errCode === 0) {
-        const banner = response.data;
-        this.setState({
-          loadedBannerInfo: banner,
-          selectedBannerID: banner.BannerID,
-          bannerimage: banner.BannerImage,
-          hiddenat: banner.HiddenAt ? new Date(banner.HiddenAt) : null,
-          bannerstatus: banner.BannerStatus,
-          productid: banner.ProductID,
-          productname: banner.ProductName || "",
-          producttype: banner.ProductType || "ALL",
-          pettype: banner.PetTypes || [],
-          imagePreview: banner.BannerImage,
-        });
-      } else {
-        this.resetState();
-        toast.error("Tải thông tin banner thất bại!", {
-          position: "top-right",
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error("Error loading banner info:", e);
-      this.resetState();
-      toast.error("Lỗi khi tải thông tin banner!", {
-        position: "top-right",
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
   handleLoadFilteredProductInfo = async () => {
     try {
-      const { producttype, pettype, searchValue } = this.state;
-      const response = await handleLoadFilteredProductInfoApi(producttype, JSON.stringify(pettype), searchValue);
+      const { producttype, pettype } = this.state;
+      const response = await handleLoadFilteredProductInfoApi(producttype, JSON.stringify(pettype), "");
       if (response && response.errCode === 0) {
         this.setState({ loadedProductInfo: response.data });
       } else {
@@ -217,7 +171,7 @@ class EditBannerModal extends Component {
   handleSelectChange = (e, field) => {
     this.setState({ [field]: e.target.value }, () => {
       if (field === "producttype") {
-        this.handleLoadFilteredProductInfo(this.state.searchValue);
+        this.handleLoadFilteredProductInfo();
       }
     });
   };
@@ -230,7 +184,7 @@ class EditBannerModal extends Component {
         ? [...prevState.pettype, petType]
         : prevState.pettype.filter((type) => type !== petType);
       return { pettype: updatedPetTypes };
-    }, () => this.handleLoadFilteredProductInfo(this.state.searchValue));
+    }, () => this.handleLoadFilteredProductInfo());
   };
 
   handleProductChange = (selectedOption) => {
@@ -276,7 +230,7 @@ class EditBannerModal extends Component {
   };
 
   checkValidateInput = () => {
-    const { bannerimage, imageFile, createdat, bannerstatus, productid } = this.state;
+    const { bannerimage, imageFile, bannerstatus, productid } = this.state;
     if (!bannerimage && !imageFile) {
       return { errCode: -1, errMessage: "Vui lòng thêm hình ảnh banner!" };
     }
@@ -289,7 +243,7 @@ class EditBannerModal extends Component {
     return { errCode: 0, errMessage: "Kiểm tra thành công!" };
   };
 
-  handleSaveBanner = async () => {
+  handleCreateBanner = async () => {
     const validation = this.checkValidateInput();
     if (validation.errCode !== 0) {
       toast.error(validation.errMessage, {
@@ -304,7 +258,7 @@ class EditBannerModal extends Component {
       new Promise((resolve) => {
         toast(
           <div>
-            <p>Xác nhận lưu thông tin banner?</p>
+            <p>Xác nhận tạo banner mới?</p>
             <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
               Có
             </button>
@@ -346,17 +300,15 @@ class EditBannerModal extends Component {
       }
 
       const bannerInfo = {
-        BannerID: this.state.selectedBannerID,
         BannerImage: bannerImage,
         HiddenAt: this.state.hiddenat ? this.state.hiddenat.toISOString().split("T")[0] : null,
         BannerStatus: this.state.bannerstatus,
         ProductID: this.state.productid,
       };
-
-      await this.props.handleChangeBannerFromModal(bannerInfo);
+      await this.props.handleCreateBannerFromModal(bannerInfo);
     } catch (e) {
-      console.error("Lỗi khi lưu banner:", e);
-      toast.error("Lỗi khi lưu banner!", {
+      console.error("Lỗi khi tạo banner:", e);
+      toast.error("Lỗi khi tạo banner!", {
         position: "top-right",
         autoClose: 500,
         closeOnClick: true,
@@ -372,34 +324,34 @@ class EditBannerModal extends Component {
 
   render() {
     const {
-      isOpen,
       codeBannerStatus,
       codePetType,
       codeProductType,
       imagePreview,
-      createdat,
       hiddenat,
       bannerstatus,
       producttype,
       pettype,
-      searchValue,
       loadedProductInfo,
       productid,
       productname,
     } = this.state;
+
     const productOptions = loadedProductInfo.map((product) => ({
       value: product.ProductID,
       label: product.ProductName,
     }));
+
     return (
       <Modal
         show={this.props.isOpen}
         onHide={this.toggle}
         centered
         backdrop="static"
+        className="create-banner-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Chỉnh sửa thông tin Banner</Modal.Title>
+          <Modal.Title>Thêm Banner Mới</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="modal-content">
@@ -519,7 +471,7 @@ class EditBannerModal extends Component {
           <Button variant="secondary" onClick={this.toggle}>
             Đóng
           </Button>
-          <Button variant="primary" onClick={this.handleSaveBanner}>
+          <Button variant="primary" onClick={this.handleCreateBanner}>
             Lưu
           </Button>
         </Modal.Footer>
@@ -528,4 +480,4 @@ class EditBannerModal extends Component {
   }
 }
 
-export default EditBannerModal;
+export default CreateBannerModal;

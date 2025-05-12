@@ -12,8 +12,18 @@ const handleGetBannerInfoApi = (bannerid) => {
     return axios.get(`/api/get-bannerinfo?bannerid=${bannerid}`);
 }
 
+const handleCreateBannerApi = (bannerInfo) => {
+    return axios.post("/api/create-banner", bannerInfo);
+};
+
+const handleChangeBannerInfoApi = (bannerInfo) => {
+    return axios.put("/api/change-bannerinfo", bannerInfo);
+}
+
 export {
     handleGetSaleBannerInfoApi,
     handleLoadBannerInfoApi,
     handleGetBannerInfoApi,
+    handleCreateBannerApi,
+    handleChangeBannerInfoApi,
 }

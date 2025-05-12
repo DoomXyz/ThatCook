@@ -395,9 +395,7 @@ class CreateProductModal extends Component {
         })),
         Image: uploadedImages.slice(1),
       };
-
       await this.props.handleCreateProductFromModal(productInfo);
-      this.resetState();
     } catch (e) {
       toast.error("Lỗi khi lưu sản phẩm!", {
         position: "top-right",
@@ -650,7 +648,10 @@ class CreateProductModal extends Component {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={this.handleSaveProduct}>
+          <Button variant="secondary" onClick={this.toggle}>
+            Đóng
+          </Button>
+          <Button variant="primary" onClick={this.handleSaveProduct}>
             Lưu
           </Button>
         </Modal.Footer>

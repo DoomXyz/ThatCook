@@ -4,25 +4,14 @@ import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
 import DatePicker from "react-datepicker";
 
-import {
-  pencil,
-  searchOutline,
-  add,
-  closeOutline,
-  checkmarkOutline,
-  homeOutline,
-} from "ionicons/icons";
+import { pencil, searchOutline, add, closeOutline, checkmarkOutline, homeOutline, ban } from "ionicons/icons";
 
 import "./Owner.scss";
 import Spinner from "../../components/Spinner";
 
 import { handleLogoutApi } from "../../services/accountServices";
-import {
-  handleLoadProductInfoApi,
-  handleChangeProductInfoApi,
-  handleCreateProductApi,
-} from "../../services/productServices";
-import { handleLoadBannerInfoApi } from "../../services/bannerServices";
+import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from "../../services/productServices";
+import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from "../../services/bannerServices";
 import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 
@@ -32,7 +21,7 @@ import { userLogin, userLogout } from "../../store/actions";
 import CreateProductModal from "./CreateProductModal";
 import EditProductModal from "./EditProductModal";
 import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
-import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
+import CreateBannerModal from "./CreateBannerModal";
 import EditBannerModal from "./EditBannerModal";
 
 class Owner extends Component {
@@ -62,7 +51,9 @@ class Owner extends Component {
       dateFilterValue: "",
       filterValue: "ALL",
       sortValue: "0",
-      totalPages: 1,
+      totalProductPages: 1,
+      totalInvoicePages: 1,
+      totalBannerPages: 1,
       loadedProductInfo: [],
       loadedInvoiceInfo: [],
       loadedBannerInfo: [],
@@ -172,7 +163,7 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
-          totalPages: Math.ceil(response.totalItems / limitProductPerQuery),
+          totalProductPages: Math.ceil(response.totalItems / limitProductPerQuery),
         });
       }
     } catch (e) {
@@ -249,7 +240,7 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
-          totalPages: Math.ceil(response.totalItems / limitInvoicePerQuery),
+          totalInvoicePages: Math.ceil(response.totalItems / limitInvoicePerQuery),
         });
       }
     } catch (e) {
@@ -326,7 +317,7 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedBannerInfo: response.data,
-          totalPages: Math.ceil(response.totalItems / limitBannerPerQuery),
+          totalBannerPages: Math.ceil(response.totalItems / limitBannerPerQuery),
         });
       }
     } catch (e) {
@@ -439,7 +430,21 @@ class Owner extends Component {
     this.setState({
       isLoading: true,
     });
-    const { totalPages } = this.state;
+    const { totalProductPages, totalInvoicePages, totalBannerPages } = this.state;
+    let totalPages;
+    switch (type) {
+      case 1:
+        totalPages = totalProductPages;
+        break;
+      case 2:
+        totalPages = totalInvoicePages;
+        break;
+      case 3:
+        totalPages = totalBannerPages;
+        break;
+      default:
+        totalPages = 1;
+    }
     let newPage = page;
     // Xử lý giá trị không hợp lệ
     if (isNaN(page) || page <= 0) {
@@ -500,7 +505,7 @@ class Owner extends Component {
     this.setState(
       (prevState) => {
         const newPage = Math.min(
-          prevState.totalPages,
+          type === 1 ? prevState.totalProductPages : type === 2 ? prevState.totalInvoicePages : prevState.totalBannerPages,
           prevState.currentPage + 1
         );
         return {
@@ -547,6 +552,18 @@ class Owner extends Component {
       isShowEditProductModal: true,
     });
   };
+  handleSelectedBanner = (bannerid) => {
+    this.setState({
+      selectedBanner: bannerid,
+      isShowEditBannerModal: true,
+    });
+  };
+  handleSelectedInvoice = (invoiceid) => {
+    this.setState({
+      selectedInvoice: invoiceid,
+      isShowViewInvoiceModal: true,
+    });
+  };
   toggleCreateProductModal = () => {
     this.setState({
       isShowCreateProductModal: !this.state.isShowCreateProductModal,
@@ -555,6 +572,21 @@ class Owner extends Component {
   toggleEditProductModal = () => {
     this.setState({
       isShowEditProductModal: !this.state.isShowEditProductModal,
+    });
+  };
+  toggleCreateBannerModal = () => {
+    this.setState({
+      isShowCreateBannerModal: !this.state.isShowCreateBannerModal,
+    });
+  };
+  toggleEditBannerModal = () => {
+    this.setState({
+      isShowEditBannerModal: !this.state.isShowEditBannerModal,
+    });
+  };
+  toggleViewInvoiceModal = () => {
+    this.setState({
+      isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
     });
   };
   handleCreateProductFromModal = async (productInfo) => {
@@ -590,7 +622,7 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleEditProductFromModal = async (productInfo) => {
+  handleChangeProductFromModal = async (productInfo) => {
     this.setState({ isLoading: true });
     try {
       const response = await handleChangeProductInfoApi(productInfo);
@@ -623,64 +655,70 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleSelectedBanner = (bannerid) => {
-    this.setState({
-      selectedBanner: bannerid,
-      isShowEditBannerModal: true,
-    });
+  handleCreateBannerFromModal = async (bannerInfo) => {
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleCreateBannerApi(bannerInfo);
+      if (response && response.errCode === 0) {
+        toast.success("Thêm banner mới thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadBannerInfo();
+        this.setState({
+          isShowCreateBannerModal: false,
+        });
+      } else {
+        const errMessage =
+          response?.errMessage || "Thêm banner mới thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Create Banner:", e);
+      toast.error("Xảy ra lỗi khi thêm banner mới, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
   };
-  toggleEditBannerModal = () => {
-    this.setState({
-      isShowEditBannerModal: !this.state.isShowEditBannerModal,
-    });
-  };
-  handleEditBannerFromModal = async (bannerInfo) => {
-    console.log(bannerInfo);
-    // this.setState({ isLoading: true })
-    // try {
-    //   const response = await handleChangeProductInfoApi(productInfo);
-    //   if (response && response.errCode === 0) {
-    //     toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //     await this.handleLoadProductInfo();
-    //     this.setState({
-    //       isShowEditProductModal: false,
-    //     })
-    //   } else {
-    //     const errMessage = response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
-    //     toast.error(errMessage, {
-    //       position: "top-right",
-    //       autoClose: 500,
-    //       closeOnClick: true
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.error("Edit:", e);
-    //   toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
-    //     position: "top-right",
-    //     autoClose: 500,
-    //     closeOnClick: true
-    //   });
-    // }
-    // this.setState({ isLoading: false })
-  };
-  handleSelectedInvoice = (invoiceid) => {
-    console.log(invoiceid);
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
-  };
-
-  handleChangeBannerStatus = (bannerid) => {
-    console.log(bannerid);
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
+  handleChangeBannerFromModal = async (bannerInfo) => {
+    this.setState({ isLoading: true })
+    try {
+      const response = await handleChangeBannerInfoApi(bannerInfo);
+      if (response && response.errCode === 0) {
+        toast.success("Chỉnh sửa thông tin banner thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+        await this.handleLoadBannerInfo();
+        this.setState({
+          isShowEditBannerModal: false,
+        })
+      } else {
+        const errMessage = response?.errMessage || "Chỉnh sửa thông tin banner thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true
+        });
+      }
+    } catch (e) {
+      console.error("Edit:", e);
+      toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true
+      });
+    }
+    this.setState({ isLoading: false })
   };
   handleConfirmInvoice = (invoiceid) => {
     console.log(invoiceid);
@@ -760,22 +798,6 @@ class Owner extends Component {
     });
   };
 
-  toggleCreateBannerModal = () => {
-    this.setState({
-      isShowCreateBannerModal: !this.state.isShowCreateBannerModal,
-    });
-  };
-
-  toggleViewInvoiceModal = (hoadon = null) => {
-    this.setState({
-      isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
-      selectedInvoice: hoadon,
-    });
-    if (hoadon) {
-      console.log("MADONHANG:", hoadon.MADONHANG);
-    }
-  };
-
   render() {
     const {
       loadedProductInfo,
@@ -794,7 +816,9 @@ class Owner extends Component {
       dateFilterValue,
       currentPage,
       tempCurrentPage,
-      totalPages,
+      totalProductPages,
+      totalInvoicePages,
+      totalBannerPages,
       isShowCreateProductModal,
       isShowEditProductModal,
       isShowCreateBannerModal,
@@ -802,6 +826,7 @@ class Owner extends Component {
       isShowViewInvoiceModal,
       selectedProduct,
       selectedBanner,
+      selectedInvoice,
     } = this.state;
     const renderSection = () => {
       switch (actionPage) {
@@ -958,7 +983,7 @@ class Owner extends Component {
                         )}
                       </tbody>
                     </table>
-                    {totalPages > 1 && (
+                    {totalProductPages > 1 && (
                       <div className="page-content">
                         <div className="page-content-item">
                           <button
@@ -986,18 +1011,18 @@ class Owner extends Component {
                             }
                             onBlur={() => this.handlePageInputBlur(1)}
                           />
-                          <span className="total-pages">/ {totalPages}</span>
+                          <span className="total-pages">/ {totalProductPages}</span>
                           <button
                             className="next"
                             onClick={() => this.handleNextPage(1)}
-                            disabled={currentPage === totalPages}
+                            disabled={currentPage === totalProductPages}
                           >
                             {">"}
                           </button>
                           <button
                             className="last"
-                            onClick={() => this.handlePageChange(totalPages, 1)}
-                            disabled={currentPage === totalPages}
+                            onClick={() => this.handlePageChange(totalProductPages, 1)}
+                            disabled={currentPage === totalProductPages}
                           >
                             {">>"}
                           </button>
@@ -1106,12 +1131,12 @@ class Owner extends Component {
                   <label>Ngày hóa đơn:</label>
                   <br />
                   <DatePicker
-                    selected={
-                      dateFilterValue ? new Date(dateFilterValue) : null
-                    }
+                    selected={dateFilterValue ? new Date(dateFilterValue + "T00:00:00") : null}
                     onChange={(date) => {
                       const formattedDate = date
-                        ? date.toISOString().split("T")[0]
+                        ? new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                          .toISOString()
+                          .split("T")[0]
                         : "";
                       this.setState({ dateFilterValue: formattedDate }, () => {
                         if (this.state.actionPage === 2) {
@@ -1189,8 +1214,8 @@ class Owner extends Component {
                           <td>
                             {item.CanceledAt
                               ? new Date(item.CanceledAt).toLocaleString(
-                                  "vi-VN"
-                                )
+                                "vi-VN"
+                              )
                               : ""}
                           </td>
                           <td className="f">
@@ -1222,7 +1247,7 @@ class Owner extends Component {
                     )}
                   </tbody>
                 </table>
-                {totalPages > 1 && (
+                {totalInvoicePages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
                       <button
@@ -1248,18 +1273,18 @@ class Owner extends Component {
                         onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
                         onBlur={() => this.handlePageInputBlur(2)}
                       />
-                      <span className="total-pages">/ {totalPages}</span>
+                      <span className="total-pages">/ {totalInvoicePages}</span>
                       <button
                         className="next"
                         onClick={() => this.handleNextPage(2)}
-                        disabled={currentPage === totalPages}
+                        disabled={currentPage === totalInvoicePages}
                       >
                         {">"}
                       </button>
                       <button
                         className="last"
-                        onClick={() => this.handlePageChange(totalPages, 2)}
-                        disabled={currentPage === totalPages}
+                        onClick={() => this.handlePageChange(totalInvoicePages, 2)}
+                        disabled={currentPage === totalInvoicePages}
                       >
                         {">>"}
                       </button>
@@ -1344,16 +1369,16 @@ class Owner extends Component {
                   <label>Banner hoạt động trong ngày:</label>
                   <br />
                   <DatePicker
-                    selected={
-                      dateFilterValue ? new Date(dateFilterValue) : null
-                    }
+                    selected={dateFilterValue ? new Date(dateFilterValue + "T00:00:00") : null}
                     onChange={(date) => {
                       const formattedDate = date
-                        ? date.toISOString().split("T")[0]
+                        ? new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                          .toISOString()
+                          .split("T")[0]
                         : "";
                       this.setState({ dateFilterValue: formattedDate }, () => {
-                        if (this.state.actionPage === 3) {
-                          this.handleLoadBannerInfo();
+                        if (this.state.actionPage === 2) {
+                          this.handleLoadInvoiceInfo();
                         }
                       });
                     }}
@@ -1416,25 +1441,25 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
                               : "N/A"}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
                               : "Vô thời hạn"}
                           </td>
                           <td
@@ -1449,20 +1474,6 @@ class Owner extends Component {
                             >
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
-                            <button
-                              className="btn-toggle"
-                              onClick={() =>
-                                this.handleChangeBannerStatus(item.BannerID)
-                              }
-                            >
-                              <IonIcon
-                                icon={
-                                  item.BannerStatus === "SHOW"
-                                    ? closeOutline
-                                    : checkmarkOutline
-                                }
-                              ></IonIcon>
-                            </button>
                           </td>
                         </tr>
                       ))
@@ -1473,7 +1484,7 @@ class Owner extends Component {
                     )}
                   </tbody>
                 </table>
-                {totalPages > 1 && (
+                {totalBannerPages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
                       <button
@@ -1499,18 +1510,18 @@ class Owner extends Component {
                         onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
                         onBlur={() => this.handlePageInputBlur(3)}
                       />
-                      <span className="total-pages">/ {totalPages}</span>
+                      <span className="total-pages">/ {totalBannerPages}</span>
                       <button
                         className="next"
                         onClick={() => this.handleNextPage(3)}
-                        disabled={currentPage === totalPages}
+                        disabled={currentPage === totalBannerPages}
                       >
                         {">"}
                       </button>
                       <button
                         className="last"
-                        onClick={() => this.handlePageChange(totalPages, 2)}
-                        disabled={currentPage === totalPages}
+                        onClick={() => this.handlePageChange(totalBannerPages, 2)}
+                        disabled={currentPage === totalBannerPages}
                       >
                         {">>"}
                       </button>
@@ -1536,22 +1547,23 @@ class Owner extends Component {
           isOpen={isShowEditProductModal}
           toggleFromModal={this.toggleEditProductModal}
           selectedProductID={selectedProduct}
-          handleEditProductFromModal={this.handleEditProductFromModal}
+          handleChangeProductFromModal={this.handleChangeProductFromModal}
         />
-        <OwnerCreateBannerModal
+        <CreateBannerModal
           isOpen={isShowCreateBannerModal}
           toggleFromModal={this.toggleCreateBannerModal}
+          handleCreateBannerFromModal={this.handleCreateBannerFromModal}
         />
         <EditBannerModal
           isOpen={isShowEditBannerModal}
           toggleFromModal={this.toggleEditBannerModal}
           selectedBannerID={selectedBanner}
-          handleEditBannerFromModal={this.handleEditBannerFromModal}
+          handleChangeBannerFromModal={this.handleChangeBannerFromModal}
         />
         <OwnerViewInvoiceModal
           isOpen={isShowViewInvoiceModal}
           toggleFromModal={this.toggleViewInvoiceModal}
-          hoadon={this.state.selectedInvoice}
+          selectedInvoiceID={selectedInvoice}
         />
         <ToastContainer />
         {isLoading ? (
