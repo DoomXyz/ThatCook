@@ -1103,36 +1103,32 @@ class Owner extends Component {
                   style={{ display: actionPage === 2 ? "block" : "none" }}
                   className="owner-mid-content-left-invoice-date"
                 >
-                  <div className="f">
-                    <label>Ngày hóa đơn:</label>
-                    <DatePicker
-                      selected={
-                        dateFilterValue ? new Date(dateFilterValue) : null
-                      }
-                      onChange={(date) => {
-                        const formattedDate = date
-                          ? date.toISOString().split("T")[0]
-                          : "";
-                        this.setState(
-                          { dateFilterValue: formattedDate },
-                          () => {
-                            if (this.state.actionPage === 2) {
-                              this.handleLoadInvoiceInfo();
-                            }
-                          }
-                        );
-                      }}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="dd/mm/yyyy"
-                      className="date-picker"
-                    />
-                    <button
-                      style={{ marginLeft: "10px" }}
-                      onClick={this.handleResetFilter}
-                    >
-                      Reset
-                    </button>
-                  </div>
+                  <label>Ngày hóa đơn:</label>
+                  <br />
+                  <DatePicker
+                    selected={
+                      dateFilterValue ? new Date(dateFilterValue) : null
+                    }
+                    onChange={(date) => {
+                      const formattedDate = date
+                        ? date.toISOString().split("T")[0]
+                        : "";
+                      this.setState({ dateFilterValue: formattedDate }, () => {
+                        if (this.state.actionPage === 2) {
+                          this.handleLoadInvoiceInfo();
+                        }
+                      });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="dd/mm/yyyy"
+                    className="date-picker"
+                  />
+                  <button
+                    style={{ marginLeft: "10px" }}
+                    onClick={this.handleResetFilter}
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
               <div className="owner-mid-content-right-list-invoice">
@@ -1193,8 +1189,8 @@ class Owner extends Component {
                           <td>
                             {item.CanceledAt
                               ? new Date(item.CanceledAt).toLocaleString(
-                                "vi-VN"
-                              )
+                                  "vi-VN"
+                                )
                               : ""}
                           </td>
                           <td className="f">
@@ -1279,12 +1275,13 @@ class Owner extends Component {
               <button
                 style={{ display: actionPage === 3 ? "block" : "none" }}
                 onClick={() => this.toggleCreateBannerModal()}
+                className="add-banner"
               >
                 THÊM BANNER <IonIcon icon={add}></IonIcon>
               </button>
-              <div className="owner-mid-content-left">
+              <div className="f">
                 <div
-                  className="owner-mid-content-left-search-banner"
+                  className="owner-mid-content-search-banner"
                   style={{ display: actionPage === 3 ? "flex" : "none" }}
                 >
                   <p>Tìm kiếm:</p>
@@ -1298,9 +1295,9 @@ class Owner extends Component {
                 </div>
                 <div
                   style={{ display: actionPage === 3 ? "flex" : "none" }}
-                  className="owner-mid-content-left-banner-filter-sort f"
+                  className="owner-mid-content-banner-filter-sort f"
                 >
-                  <div className="owner-mid-content-left-banner-filter">
+                  <div className="owner-mid-content-banner-filter">
                     <label>Lọc banner:</label>
                     <br />
                     <select
@@ -1325,7 +1322,7 @@ class Owner extends Component {
                         )}
                     </select>
                   </div>
-                  <div className="owner-mid-content-left-banner-sort">
+                  <div className="owner-mid-content-banner-sort">
                     <label>Sắp xếp:</label>
                     <br />
                     <select
@@ -1342,191 +1339,184 @@ class Owner extends Component {
                 </div>
                 <div
                   style={{ display: actionPage === 3 ? "block" : "none" }}
-                  className="owner-mid-content-left-banner-date"
+                  className="owner-mid-content-banner-date"
                 >
-                  <div className="f">
-                    <label>Các banner hoạt động trong ngày:</label>
-                    <DatePicker
-                      selected={
-                        dateFilterValue ? new Date(dateFilterValue) : null
-                      }
-                      onChange={(date) => {
-                        const formattedDate = date
-                          ? date.toISOString().split("T")[0]
-                          : "";
-                        this.setState(
-                          { dateFilterValue: formattedDate },
-                          () => {
-                            if (this.state.actionPage === 3) {
-                              this.handleLoadBannerInfo();
-                            }
-                          }
-                        );
-                      }}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="dd/mm/yyyy"
-                      className="date-picker"
-                    />
-                    <button
-                      style={{ marginLeft: "10px" }}
-                      onClick={this.handleResetFilter}
-                    >
-                      Reset
-                    </button>
-                  </div>
+                  <label>Banner hoạt động trong ngày:</label>
+                  <br />
+                  <DatePicker
+                    selected={
+                      dateFilterValue ? new Date(dateFilterValue) : null
+                    }
+                    onChange={(date) => {
+                      const formattedDate = date
+                        ? date.toISOString().split("T")[0]
+                        : "";
+                      this.setState({ dateFilterValue: formattedDate }, () => {
+                        if (this.state.actionPage === 3) {
+                          this.handleLoadBannerInfo();
+                        }
+                      });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="dd/mm/yyyy"
+                    className="date-picker"
+                  />
+                  <button
+                    style={{ marginLeft: "10px" }}
+                    onClick={this.handleResetFilter}
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
-              <div className="owner-mid-content-right">
-                <div className="owner-mid-content-mid-list-img">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Hình ảnh banner</th>
-                        <th>Mã sản phẩm</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Hình ảnh sản phẩm</th>
-                        <th>Trạng thái</th>
-                        <th>Thời gian tạo</th>
-                        <th>Thời gian ẩn</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loadedBannerInfo.length > 0 ? (
-                        loadedBannerInfo.map((item) => (
-                          <tr
-                            key={item.BannerID}
-                            className="owner-mid-content-right-list-banner-item"
+
+              <div className="owner-mid-content-mid-list-img">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Hình ảnh banner</th>
+                      <th>Mã sản phẩm</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Hình ảnh sản phẩm</th>
+                      <th>Trạng thái</th>
+                      <th>Thời gian tạo</th>
+                      <th>Thời gian ẩn</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadedBannerInfo.length > 0 ? (
+                      loadedBannerInfo.map((item) => (
+                        <tr
+                          key={item.BannerID}
+                          className="owner-mid-content-right-list-banner-item"
+                        >
+                          <td>
+                            <img
+                              src={item.BannerImage || ""}
+                              alt="Banner"
+                              style={{ width: "50px", height: "50px" }}
+                            />
+                          </td>
+                          <td>{item.ProductID}</td>
+                          <td>{item.ProductName}</td>
+                          <td>
+                            <img
+                              src={item.ProductImage || ""}
+                              alt="Sản phẩm"
+                              style={{ width: "50px", height: "50px" }}
+                            />
+                          </td>
+                          <td>
+                            {loadedBannerStatusFilterValue.find(
+                              (filterItem) =>
+                                filterItem.Code === item.BannerStatus
+                            )?.CodeValueVI || item.BannerStatus}
+                          </td>
+                          <td>
+                            {item.CreatedAt
+                              ? new Date(item.CreatedAt).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "N/A"}
+                          </td>
+                          <td>
+                            {item.HiddenAt
+                              ? new Date(item.HiddenAt).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "Vô thời hạn"}
+                          </td>
+                          <td
+                            className="f"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <td>
-                              <img
-                                src={item.BannerImage || ""}
-                                alt="Banner"
-                                style={{ width: "50px", height: "50px" }}
-                              />
-                            </td>
-                            <td>{item.ProductID}</td>
-                            <td>{item.ProductName}</td>
-                            <td>
-                              <img
-                                src={item.ProductImage || ""}
-                                alt="Sản phẩm"
-                                style={{ width: "50px", height: "50px" }}
-                              />
-                            </td>
-                            <td>
-                              {loadedBannerStatusFilterValue.find(
-                                (filterItem) =>
-                                  filterItem.Code === item.BannerStatus
-                              )?.CodeValueVI || item.BannerStatus}
-                            </td>
-                            <td>
-                              {item.CreatedAt
-                                ? new Date(item.CreatedAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
-                                : "N/A"}
-                            </td>
-                            <td>
-                              {item.HiddenAt
-                                ? new Date(item.HiddenAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
-                                : "Vô thời hạn"}
-                            </td>
-                            <td
-                              className="f"
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              className="btn-edit"
+                              onClick={() =>
+                                this.handleSelectedBanner(item.BannerID)
+                              }
                             >
-                              <button
-                                className="btn-edit"
-                                onClick={() =>
-                                  this.handleSelectedBanner(item.BannerID)
+                              <IonIcon icon={pencil}></IonIcon>
+                            </button>
+                            <button
+                              className="btn-toggle"
+                              onClick={() =>
+                                this.handleChangeBannerStatus(item.BannerID)
+                              }
+                            >
+                              <IonIcon
+                                icon={
+                                  item.BannerStatus === "SHOW"
+                                    ? closeOutline
+                                    : checkmarkOutline
                                 }
-                              >
-                                <IonIcon icon={pencil}></IonIcon>
-                              </button>
-                              <button
-                                className="btn-toggle"
-                                onClick={() =>
-                                  this.handleChangeBannerStatus(item.BannerID)
-                                }
-                              >
-                                <IonIcon
-                                  icon={
-                                    item.BannerStatus === "SHOW"
-                                      ? closeOutline
-                                      : checkmarkOutline
-                                  }
-                                ></IonIcon>
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="9">Không tìm thấy banner nào.</td>
+                              ></IonIcon>
+                            </button>
+                          </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                  {totalPages > 1 && (
-                    <div className="page-content">
-                      <div className="page-content-item">
-                        <button
-                          className="first"
-                          onClick={() => this.handlePageChange(1, 3)}
-                          disabled={currentPage === 1}
-                        >
-                          {"<<"}
-                        </button>
-                        <button
-                          className="prev"
-                          onClick={() => this.handlePrevPage(3)}
-                          disabled={currentPage === 1}
-                        >
-                          {"<"}
-                        </button>
-                        <input
-                          type="text"
-                          value={tempCurrentPage}
-                          onChange={(event) =>
-                            this.handlePageInputChange(event, 3)
-                          }
-                          onKeyDown={(event) =>
-                            this.handlePageKeyDown(event, 3)
-                          }
-                          onBlur={() => this.handlePageInputBlur(3)}
-                        />
-                        <span className="total-pages">/ {totalPages}</span>
-                        <button
-                          className="next"
-                          onClick={() => this.handleNextPage(3)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {">"}
-                        </button>
-                        <button
-                          className="last"
-                          onClick={() => this.handlePageChange(totalPages, 2)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {">>"}
-                        </button>
-                      </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="9">Không tìm thấy banner nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                {totalPages > 1 && (
+                  <div className="page-content">
+                    <div className="page-content-item">
+                      <button
+                        className="first"
+                        onClick={() => this.handlePageChange(1, 3)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<<"}
+                      </button>
+                      <button
+                        className="prev"
+                        onClick={() => this.handlePrevPage(3)}
+                        disabled={currentPage === 1}
+                      >
+                        {"<"}
+                      </button>
+                      <input
+                        type="text"
+                        value={tempCurrentPage}
+                        onChange={(event) =>
+                          this.handlePageInputChange(event, 3)
+                        }
+                        onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
+                        onBlur={() => this.handlePageInputBlur(3)}
+                      />
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button
+                        className="next"
+                        onClick={() => this.handleNextPage(3)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">"}
+                      </button>
+                      <button
+                        className="last"
+                        onClick={() => this.handlePageChange(totalPages, 2)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {">>"}
+                      </button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           );

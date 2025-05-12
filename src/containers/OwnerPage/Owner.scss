@@ -154,16 +154,30 @@
       }
       .owner-mid-content-left-invoice-date {
         margin-left: 1rem;
-        margin-top: 1rem;
+        margin-top: -0.6rem;
+        .date-picker {
+          height: 1.5rem;
+        }
         label {
           margin-right: 0.5rem;
+        }
+        button {
+          padding: 0 0.2rem;
+          border-radius: 0.3rem;
         }
       }
       .owner-mid-content-banner-date {
         margin-left: 1rem;
-        margin-top: 1rem;
+        margin-top: -0.6rem;
+        .date-picker {
+          height: 1.5rem;
+        }
         label {
           margin-right: 0.5rem;
+        }
+        button {
+          padding: 0 0.2rem;
+          border-radius: 0.3rem;
         }
       }
       .owner-mid-content-mid-list-img {
