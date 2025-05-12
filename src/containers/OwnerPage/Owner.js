@@ -1193,8 +1193,8 @@ class Owner extends Component {
                           <td>
                             {item.CanceledAt
                               ? new Date(item.CanceledAt).toLocaleString(
-                                  "vi-VN"
-                                )
+                                "vi-VN"
+                              )
                               : ""}
                           </td>
                           <td className="f">
@@ -1423,25 +1423,25 @@ class Owner extends Component {
                             <td>
                               {item.CreatedAt
                                 ? new Date(item.CreatedAt).toLocaleString(
-                                    "vi-VN",
-                                    {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "numeric",
-                                    }
-                                  )
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
                                 : "N/A"}
                             </td>
                             <td>
                               {item.HiddenAt
                                 ? new Date(item.HiddenAt).toLocaleString(
-                                    "vi-VN",
-                                    {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "numeric",
-                                    }
-                                  )
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
                                 : "Vô thời hạn"}
                             </td>
                             <td
