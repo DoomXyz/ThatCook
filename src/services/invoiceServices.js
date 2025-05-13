@@ -16,9 +16,14 @@ const handleLoadInvoiceInfoApi = (page, limit, search, filter, sort, date) => {
     return axios.get(`/api/load-invoiceinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}&date=${date}`);
 };
 
+const handleChangeInvoiceStatusApi = (invoiceid, type, status, cancelReason) => {
+    return axios.put("/api/change-invoicestatus", { invoiceid, type, status, cancelReason })
+}
+
 export {
     handleCreateInvoiceApi,
     handleGetAccountInvoiceInfoApi,
     handleGetInvoiceDetailInfoApi,
     handleLoadInvoiceInfoApi,
+    handleChangeInvoiceStatusApi,
 };

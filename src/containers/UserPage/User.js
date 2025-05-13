@@ -11,11 +11,13 @@ import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 
 import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from "../../services/accountServices";
-import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi } from "../../services/invoiceServices"
+import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from "../../services/invoiceServices"
 import { uploadImageToCloudinaryApi, handleGetAllCodesApi } from "../../services/utilitiesServices";
 
 import { userLogin, userLogout } from "../../store/actions";
 import { checkLoginStatus } from '../../utils/pakage';
+
+import CancelInvoiceModal from "../../components/CancelInvoiceModal";
 
 class User extends Component {
   constructor(props) {
@@ -51,12 +53,13 @@ class User extends Component {
       loadedInvoiceInfo: [],
       selectedInvoiceID: null,
       loadedInvoiceDetail: null,
+      isShowCancelInvoiceModal: false,
+      selectedCancelInvoice: null,
     };
     this.handlePreviceUserImage = this.handlePreviceUserImage.bind(this);
     this.handleUploadUserImage = this.handleUploadUserImage.bind(this);
     this.handleUpdateAccountInfo = this.handleUpdateAccountInfo.bind(this);
   }
-
   async componentDidMount() {
     await this.handleLoadCodeGender();
     await this.handleLoadPaymentType();
@@ -70,7 +73,6 @@ class User extends Component {
         const { accountid } = this.state
         this.loadAccountInfo(accountid)
         this.loadInvoiceInfo(accountid)
-        //loading thông tin người dùng và lịch sử mua hàng
         this.setState({ isLoading: false })
       }, 10)
       setTimeout(() => {
@@ -78,7 +80,6 @@ class User extends Component {
       }, 100)
     }
   }
-
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
@@ -578,12 +579,148 @@ class User extends Component {
     }
     this.setState({ isLoading: false })
   };
-  handleCancelInvoice = (invoiceid) => {
-    console.log(invoiceid)
-  }
-  handleConfirmReceived = (invoiceid) => {
-    console.log(invoiceid)
-  }
+  handleConfirmReceived = async (invoiceid) => {
+    const confirmReceived = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận đã nhận hàng?</p>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+              Có
+            </button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 1000, closeOnClick: false }
+        );
+      });
+    const isConfirmed = await confirmReceived();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const type = "ShippingStatus";
+      const status = "DELI";
+      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, "");
+      if (response && response.errCode === 0) {
+        toast.success("Xác nhận nhận hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.loadInvoiceInfo(this.state.accountid);
+      } else {
+        const errMessage = response?.errMessage || "Xác nhận nhận hàng thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error confirming received:", e);
+      toast.error("Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleContinueInvoice = async (invoiceid) => {
+    const confirmContinue = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận tiếp tục đơn hàng?</p>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+              Có
+            </button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 1000, closeOnClick: false }
+        );
+      });
+    const isConfirmed = await confirmContinue();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const type = "ShippingStatus";
+      const status = "PEND";
+      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, "");
+      if (response && response.errCode === 0) {
+        toast.success("Tiếp tục đơn hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.loadInvoiceInfo(this.state.accountid);
+      } else {
+        const errMessage = response?.errMessage || "Tiếp tục đơn hàng thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error continuing invoice:", e);
+      toast.error("Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleSelectedCancelInvoice = (invoiceid) => {
+    this.setState({
+      selectedCancelInvoice: invoiceid,
+      isShowCancelInvoiceModal: true,
+    });
+  };
+  toggleCancelInvoiceModal = () => {
+    this.setState({
+      isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
+    });
+  };
+  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+    this.setState({ isLoading: true });
+    try {
+      const type = "ShippingStatus";
+      const status = "PEND_CANCEL"
+      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, cancelreason);
+      if (response && response.errCode === 0) {
+        toast.success("Gửi yêu cầu hủy đơn hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.loadInvoiceInfo(this.state.accountid);
+        this.setState({
+          isShowCancelInvoiceModal: false,
+        });
+      } else {
+        const errMessage =
+          response?.errMessage || "Gửi yêu cầu hủy đơn hàng thất bại!";
+        toast.error(errMessage, {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Edit:", e);
+      toast.error("Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
   renderForm() {
     const { actionPage, oldPassword, newPassword, confirmPassword, editField, codePaymentType, codeShippingMethod, codePaymentStatus, codeShippingStatus,
       userimage, accountname, username, phone, address, gender, email, codeGender, loadedInvoiceInfo } = this.state
@@ -780,14 +917,40 @@ class User extends Component {
                             <div>
                               <div className="order-info-tab">
                                 <div className="descreption-order"><b>Tình trạng thanh toán:</b></div>
-                                <div className="value-oder">
-                                  {codePaymentStatus?.find((method) => method.Code === invoice.PaymentStatus)?.CodeValueVI || "N/A"}
+                                <div
+                                  className="value-oder"
+                                  style={{
+                                    color:
+                                      invoice.PaymentStatus === "PEND"
+                                        ? "#FFA500"
+                                        : invoice.PaymentStatus === "PAID"
+                                          ? "#008000"
+                                          : invoice.PaymentStatus === "FAIL"
+                                            ? "#FF0000"
+                                            : "inherit",
+                                  }}
+                                >
+                                  {codePaymentStatus?.find((method) => method.Code === invoice.PaymentStatus)?.CodeValueVI || "Không xác định"}
                                 </div>
                               </div>
                               <div className="order-info-tab">
                                 <div className="descreption-order"><b>Tình trạng giao hàng:</b></div>
-                                <div className="value-oder">
-                                  {codeShippingStatus?.find((method) => method.Code === invoice.ShippingStatus)?.CodeValueVI || "N/A"}
+                                <div
+                                  className="value-oder"
+                                  style={{
+                                    color:
+                                      invoice.ShippingStatus === "PEND"
+                                        ? "#FFA500"
+                                        : invoice.ShippingStatus === "DELI"
+                                          ? "#008000"
+                                          : invoice.ShippingStatus === "PEND_CANCEL"
+                                            ? "#FF4500"
+                                            : invoice.ShippingStatus === "CANCELED"
+                                              ? "#FF0000"
+                                              : "inherit",
+                                  }}
+                                >
+                                  {codeShippingStatus?.find((method) => method.Code === invoice.ShippingStatus)?.CodeValueVI || "Không xác định"}
                                 </div>
                               </div>
                             </div>
@@ -835,33 +998,32 @@ class User extends Component {
                         </div>
                       </div>
                       <div className="order-list-object-bot">
-                        <div className="oder-list-object-price">
-                          <div className="price-item">
-                            <div className="label">Tổng tiền hàng:</div>
-                            <div className="value">
-                              <b>
-                                {parseFloat(invoice.TotalPayment).toLocaleString("vi-VN", {
-                                  style: "currency",
-                                  currency: "VND",
-                                })}
-                              </b>
+                        {invoice.CanceledAt === null && (
+                          <div className="oder-list-object-price">
+                            <div className="price-item">
+                              <div className="label">Tổng tiền hàng:</div>
+                              <div className="value">
+                                <b>
+                                  {parseFloat(invoice.TotalPayment).toLocaleString("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                  })}
+                                </b>
+                              </div>
                             </div>
-                          </div>
-                          {invoice.CanceledAt === null && invoice.ShippingStatus === "PEND" && (
-                            <button
-                              type="button"
-                              className="cancel-order-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                this.handleCancelInvoice(invoice.InvoiceID);
-                              }}
-                            >
-                              Hủy đơn hàng
-                            </button>
-                          )}
-                          {invoice.CanceledAt === null &&
-                            invoice.PaymentStatus === "PAID" &&
-                            invoice.ShippingStatus === "PEND" && (
+                            {invoice.PaymentStatus === "PEND" && invoice.ShippingStatus === "PEND" && (
+                              <button
+                                type="button"
+                                className="cancel-order-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  this.handleSelectedCancelInvoice(invoice.InvoiceID);
+                                }}
+                              >
+                                Hủy đơn hàng
+                              </button>
+                            )}
+                            {invoice.PaymentStatus === "PAID" && invoice.ShippingStatus === "PEND" && (
                               <button
                                 type="button"
                                 className="received-order-btn"
@@ -870,10 +1032,24 @@ class User extends Component {
                                   this.handleConfirmReceived(invoice.InvoiceID);
                                 }}
                               >
-                                Đã nhận hàng
+                                Xác nhận giao hàng
                               </button>
                             )}
-                        </div>
+                            {(invoice.PaymentStatus === "PEND" || invoice.PaymentStatus === "PAID") &&
+                              invoice.ShippingStatus === "PEND_CANCEL" && (
+                                <button
+                                  type="button"
+                                  className="continue-order-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    this.handleContinueInvoice(invoice.InvoiceID);
+                                  }}
+                                >
+                                  Tiếp tục đơn hàng
+                                </button>
+                              )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
@@ -1137,13 +1313,19 @@ class User extends Component {
   }
 
   render() {
-    const { actionPage, isLoading } = this.state;
+    const { actionPage, isLoading, isShowCancelInvoiceModal, selectedCancelInvoice } = this.state;
     return (
       <div className="user-page">
         <Header
           navigate={this.props.navigate}
           userInfo={this.props.userInfo}
           triggerLoadInformation={this.state.triggerLoadInformation}
+        />
+        <CancelInvoiceModal
+          isOpen={isShowCancelInvoiceModal}
+          toggleFromModal={this.toggleCancelInvoiceModal}
+          selectedCancelInvoiceID={selectedCancelInvoice}
+          handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
         />
         <ToastContainer />
         {isLoading ? <Spinner /> : (
