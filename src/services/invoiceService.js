@@ -182,7 +182,6 @@ let generateInvoiceID = () => {
     });
 };
 
-// Tạo đơn hàng 
 let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
     discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid) => {
     return new Promise(async (resolve, reject) => {
@@ -691,8 +690,6 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
                 });
                 return;
             }
-
-            // Kiểm tra type hợp lệ
             if (!['PaymentStatus', 'ShippingStatus'].includes(type)) {
                 resolve({
                     errCode: 1,
@@ -701,22 +698,17 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
                 });
                 return;
             }
-
-            // Kiểm tra hóa đơn tồn tại
             let invoiceData = await db.Invoice.findOne({
                 where: { InvoiceID: invoiceid },
                 raw: false,
             });
 
             if (invoiceData) {
-                // Kiểm tra trạng thái có thay đổi
                 let currentStatus = type === 'PaymentStatus' ? invoiceData.PaymentStatus : invoiceData.ShippingStatus;
                 if (currentStatus !== status) {
-                    // Kiểm tra status hợp lệ
                     let validStatus = type === 'PaymentStatus'
                         ? await checkPaymentStatus(status)
                         : await checkShippingStatus(status);
-
                     if (typeof validStatus === 'object' && validStatus.errCode !== 0) {
                         resolve({
                             errCode: 1,
@@ -733,18 +725,29 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
                         });
                         return;
                     }
-
-                    // Kiểm tra cancelReason nếu type là ShippingStatus và status là PEND_CANCEL hoặc CANCELED
-                    if (type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(status) && !cancelReason) {
-                        resolve({
-                            errCode: 1,
-                            errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái hủy!',
-                            data: null
-                        });
-                        return;
+                    if (type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(status)) {
+                        if (status === 'PEND_CANCEL' && !cancelReason) {
+                            resolve({
+                                errCode: 1,
+                                errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái chờ hủy!',
+                                data: null
+                            });
+                            return;
+                        }
+                        if (status === 'CANCELED') {
+                            if (!cancelReason && !invoiceData.CancelReason) {
+                                resolve({
+                                    errCode: 1,
+                                    errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái đã hủy!',
+                                    data: null
+                                });
+                                return;
+                            }
+                            if (!cancelReason && invoiceData.CancelReason) {
+                                cancelReason = invoiceData.CancelReason;
+                            }
+                        }
                     }
-
-                    // Cập nhật dữ liệu
                     if (type === 'PaymentStatus') {
                         invoiceData.PaymentStatus = status;
                     } else {
@@ -754,10 +757,29 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
                         }
                         if (status === 'CANCELED') {
                             invoiceData.CanceledAt = new Date();
+                            const invoiceDetails = await db.InvoiceDetail.findAll({
+                                where: { InvoiceID: invoiceid },
+                                attributes: ['ProductDetailID', 'ItemQuantity']
+                            });
+                            for (let detail of invoiceDetails) {
+                                const productDetail = await db.ProductDetail.findOne({
+                                    where: { ProductDetailID: detail.ProductDetailID },
+                                    raw: false
+                                });
+                                if (!productDetail) {
+                                    resolve({
+                                        errCode: 2,
+                                        errMessage: `Chi tiết sản phẩm ${detail.ProductDetailID} không tồn tại!`,
+                                        data: null
+                                    });
+                                    return;
+                                }
+                                productDetail.Stock += detail.ItemQuantity;
+                                await productDetail.save();
+                            }
                         }
                     }
                     await invoiceData.save();
-
                     resolve({
                         errCode: 0,
                         errMessage: 'Thay đổi trạng thái hóa đơn thành công!',

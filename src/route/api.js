@@ -99,8 +99,6 @@ let initAPIRoutes = (app) => {
     router.get("/api/load-invoiceinfo", invoiceController.handleLoadInvoiceInfo);
     //veterinarian
 
-    //not converted
-    // router.get("/api/get-order-details", billController.handleGetOrderDetails);
     return app.use("/", router);
 };
 

@@ -80,7 +80,6 @@ let handleChangeInvoiceStatus = async (req, res) => {
         });
     }
 }
-
 module.exports = {
     handleCreateInvoice,
     handleGetAccountInvoiceInfo,
