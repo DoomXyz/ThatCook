@@ -321,7 +321,7 @@ class Admin extends Component {
               Không
             </button>
           </div>,
-          { position: "top-right", autoClose: 1000, closeOnClick: true }
+          { position: "top-right", autoClose: 1000, closeOnClick: false }
         );
       });
     let isConfirmed = await confirmChange();
@@ -383,7 +383,7 @@ class Admin extends Component {
               Không
             </button>
           </div>,
-          { autoClose: 1000, closeOnClick: true }
+          { autoClose: 1000, closeOnClick: false }
         );
       });
     const isConfirmed = await confirmLogout();

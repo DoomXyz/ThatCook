@@ -1,185 +1,214 @@
 import React, { Component } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "./Bill.scss";
-import { handleGetOrderDetails } from "../../services/billService";
 import logo from "../../assets/images/logo1.png";
 import Header from "../../components/HomeHeader";
-import {
-  handleGetSaleProductInfoApi,
-  handleGetProductDetailInfoApi,
-} from "../../services/productServices";
+import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from "../../services/invoiceServices";
+import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-
-// Import custom font
-import RobotoRegularFont from "../../assets/fonts/Roboto-Regular-normal.js"; // Adjust path as needed
+import RobotoRegularFont from "../../assets/fonts/Roboto-Regular-normal.js";
+import { IonIcon } from "@ionic/react";
+import { checkmarkCircleOutline, closeCircleOutline, refreshOutline } from "ionicons/icons";
+import CancelInvoiceModal from "../../components/CancelInvoiceModal";
 
 class BillClass extends Component {
-  state = {
-    orderDetails: null,
-    error: null,
-    productNames: {},
-    detailNames: {},
-  };
-
-  getShippingFee = () => {
-    const { orderDetails } = this.state;
-    const deliveryMethod = orderDetails?.deliveryMethod?.Code || "FAST";
-    switch (deliveryMethod) {
-      case "FAST":
-        return 21000;
-      case "ECO":
-        return 15000;
-      case "EXPRESS":
-        return 40000;
-      default:
-        return 21000;
-    }
-  };
-
-  componentDidMount() {
-    console.log("madonhang from props:", this.props.madonhang);
-    this.loadOrderDetails();
+  constructor(props) {
+    super(props);
+    this.state = {
+      loadedInvoiceDetails: null,
+      codePaymentType: [],
+      codeShippingMethod: [],
+      codeShippingStatus: [],
+      isShowCancelInvoiceModal: false,
+      selectedCancelInvoice: null,
+    };
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.madonhang !== this.props.madonhang) {
-      console.log("madonhang from props:", this.props.madonhang);
-      this.loadOrderDetails();
+  async componentDidMount() {
+    await Promise.all([
+      this.handleLoadCodePaymentType(),
+      this.handleLoadCodeShippingMethod(),
+      this.handleLoadCodeShippingStatus(),
+    ]);
+    if (this.props.madonhang) {
+      await this.handleLoadInvoiceDetails(this.props.madonhang);
     }
   }
 
-  loadOrderDetails = async () => {
-    const madonhang = this.props.madonhang;
-
-    if (!madonhang) {
-      this.setState({ error: "Không tìm thấy mã đơn hàng!" });
-      setTimeout(() => {
-        this.props.navigate("/home");
-      }, 2000);
-      return;
+  async componentDidUpdate(prevProps) {
+    if (prevProps.madonhang !== this.props.madonhang && this.props.madonhang) {
+      this.setState({ loadedInvoiceDetails: null });
+      await this.handleLoadInvoiceDetails(this.props.madonhang);
     }
+  }
 
+  handleLoadCodePaymentType = async () => {
     try {
-      const response = await handleGetOrderDetails(madonhang);
-      console.log("handleGetOrderDetails response:", response);
-
-      if (response && response.errCode === 0) {
-        const orderDetails = response.data;
-        this.setState({ orderDetails });
-
-        const productNames = {};
-        const detailNames = {};
-
-        for (const item of orderDetails.orderInfo) {
-          const productResponse = await handleGetSaleProductInfoApi(item.masanpham);
-          if (productResponse && productResponse.errCode === 0) {
-            productNames[item.masanpham] = productResponse.data.TenSanPham;
-          } else {
-            productNames[item.masanpham] = item.masanpham;
-          }
-
-          const detailResponse = await handleGetProductDetailInfoApi(
-            item.masanpham,
-            item.mactsp
-          );
-          if (detailResponse && detailResponse.errCode === 0) {
-            detailNames[item.mactsp] = detailResponse.data.TenCTSP;
-          } else {
-            detailNames[item.mactsp] = item.mactsp;
-          }
-        }
-
-        this.setState({ productNames, detailNames });
-      } else {
-        this.setState({
-          error: response?.errMessage || "Không thể tải thông tin đơn hàng!",
+      const codePaymentType = await handleGetAllCodesApi("PaymentType");
+      if (!codePaymentType || codePaymentType.length === 0) {
+        toast.error("Không thể tải danh sách phương thức thanh toán!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
         });
-        setTimeout(() => {
-          this.props.navigate("/home");
-        }, 2000);
+      }
+      this.setState({ codePaymentType });
+    } catch (e) {
+      console.error("Error loading payment type code:", e);
+      toast.error("Lỗi khi tải danh sách phương thức thanh toán!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
+  handleLoadCodeShippingMethod = async () => {
+    try {
+      const codeShippingMethod = await handleGetAllCodesApi("ShippingMethod");
+      if (!codeShippingMethod || codeShippingMethod.length === 0) {
+        toast.error("Không thể tải danh sách phương thức giao hàng!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({ codeShippingMethod });
+    } catch (e) {
+      console.error("Error loading shipping method code:", e);
+      toast.error("Lỗi khi tải danh sách phương thức giao hàng!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
+  handleLoadCodeShippingStatus = async () => {
+    try {
+      const codeShippingStatus = await handleGetAllCodesApi("ShippingStatus");
+      if (!codeShippingStatus || codeShippingStatus.length === 0) {
+        toast.error("Không thể tải danh sách trạng thái giao hàng!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({ codeShippingStatus });
+    } catch (e) {
+      console.error("Error loading shipping status code:", e);
+      toast.error("Lỗi khi tải danh sách trạng thái giao hàng!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
+  handleLoadInvoiceDetails = async (invoiceId) => {
+    try {
+      const response = await handleGetInvoiceDetailInfoApi(invoiceId);
+      if (response && response.errCode === 0) {
+        this.setState({ loadedInvoiceDetails: response.data });
+      } else {
+        toast.error(
+          response?.errMessage || "Không thể tải thông tin hóa đơn!",
+          {
+            position: "top-right",
+            autoClose: 500,
+            closeOnClick: true,
+          }
+        );
       }
     } catch (e) {
-      console.error("Error loading order details:", e);
-      this.setState({
-        error:
-          e.response?.data?.errMessage ||
-          "Lỗi khi tải thông tin đơn hàng, vui lòng thử lại!",
+      console.error("Error loading invoice details:", e);
+      toast.error("Lỗi khi tải thông tin hóa đơn: " + e.message, {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
       });
-      setTimeout(() => {
-        this.props.navigate("/home");
-      }, 2000);
     }
   };
 
-  handleGeneratePDF = async () => {
-    const { orderDetails, productNames, detailNames } = this.state;
+  getShippingFee = (shippingMethod) => {
+    const method = this.state.codeShippingMethod.find(
+      (item) => item.Code === shippingMethod
+    );
+    return method ? parseFloat(method.ExtraValue) || 0 : 0;
+  };
 
-    // Tạo instance của jsPDF
+  handleGeneratePDF = () => {
+    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
     const doc = new jsPDF();
 
-    // Thêm font tùy chỉnh/img/logo1.png (Roboto-Regular) với kiểm tra lỗi
     let fontLoaded = false;
     try {
       doc.addFileToVFS("Roboto-Regular-normal.ttf", RobotoRegularFont);
       doc.addFont("Roboto-Regular-normal.ttf", "Roboto-Regular", "normal");
-      doc.setFont("Roboto-Regular"); // Sử dụng font Roboto-Regular
+      doc.setFont("Roboto-Regular");
       fontLoaded = true;
     } catch (e) {
       console.error("Error loading custom font:", e);
-      // Fallback to default font if custom font fails
       doc.setFont("Helvetica");
       fontLoaded = false;
     }
 
-    // Thêm tiêu đề
     doc.setFontSize(18);
     doc.text("MINCOW", 14, 20);
     doc.setFontSize(10);
     doc.text("Pet Accessories & Food", 14, 26);
 
-    // Thêm địa chỉ
     const address = "136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM";
     doc.text(address, 14, 34);
 
-    // Thêm thông tin thời gian và mã hóa đơn
-    const dateText = `Thời gian: ${new Date(
-      orderDetails.NgayLapDonHang
-    ).toLocaleString()}`;
+    const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
+      ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+      : "N/A"}`;
     doc.text(dateText, 14, 42);
-    doc.text(`Mã hóa đơn: ${orderDetails.MADONHANG}`, 150, 42, {
-      align: "right",
-    });
+    doc.text(`Mã hóa đơn: ${this.props.madonhang}`, 150, 42, { align: "right" });
 
-    // Thêm thông tin khách hàng
-    const customerText = `Khách hàng: ${orderDetails.TenKhachHang}`;
+    const customerText = `Khách hàng: ${loadedInvoiceDetails.ReceiverName}\nSĐT: ${loadedInvoiceDetails.ReceiverPhone}\nĐịa chỉ: ${loadedInvoiceDetails.ReceiverAddress}`;
     doc.text(customerText, 14, 50);
 
-    // Thêm đường kẻ ngang
-    doc.setLineWidth(0.5);
-    doc.line(14, 55, 196, 55);
+    const statusText = `Phương thức thanh toán: ${codePaymentType.find(
+      (item) => item.Code === loadedInvoiceDetails.PaymentType
+    )?.CodeValueVI || loadedInvoiceDetails.PaymentType}\nPhương thức giao hàng: ${codeShippingMethod.find(
+      (item) => item.Code === loadedInvoiceDetails.ShippingMethod
+    )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${codeShippingStatus.find(
+      (item) => item.Code === loadedInvoiceDetails.ShippingStatus
+    )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus}`;
+    doc.text(statusText, 14, 70);
 
-    // Chuẩn bị dữ liệu bảng
-    const tableData = orderDetails.orderInfo.map((item) => [
-      productNames[item.masanpham] || item.masanpham,
-      detailNames[item.mactsp] || item.mactsp,
-      `${item.dongia.toLocaleString()}đ`,
-      item.soluong,
-      `${(item.soluong * item.dongia).toLocaleString()}đ`,
+    doc.setLineWidth(0.5);
+    doc.line(14, 85, 196, 85);
+
+    const tableData = loadedInvoiceDetails.ProductList.map((item) => [
+      item.ProductName,
+      item.DetailName,
+      `${parseFloat(item.ItemPrice).toLocaleString("vi-VN")}đ`,
+      item.ItemQuantity,
+      `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString("vi-VN")}đ`,
     ]);
 
-    // Sử dụng autoTable để tạo bảng với tùy chỉnh ngắt dòng
     autoTable(doc, {
-      startY: 60,
+      startY: 90,
       head: [["Tên sản phẩm", "Loại", "Giá", "Số lượng", "Thành tiền"]],
       body: tableData,
       theme: "grid",
       styles: {
-        font: fontLoaded ? "Roboto-Regular" : "Helvetica", // Sử dụng font tùy chỉnh hoặc fallback
+        font: fontLoaded ? "Roboto-Regular" : "Helvetica",
         fontSize: 9,
         cellPadding: 2,
-        overflow: "linebreak", // Ngắt dòng tự động
+        overflow: "linebreak",
         textColor: [0, 0, 0],
         halign: "left",
       },
@@ -189,91 +218,239 @@ class BillClass extends Component {
         fontSize: 9,
         fontStyle: "normal",
         halign: "center",
-        // Header font style is normal (not bold)
       },
-      columnWidths: [60, 40, 25, 20, 25], // Định nghĩa chiều rộng cho từng cột
+      columnWidths: [60, 40, 25, 20, 25],
       columnStyles: {
-        0: { halign: "center", overflow: "linebreak" }, // Tên sản phẩm
-        1: { halign: "center", overflow: "linebreak" }, // Loại
-        2: { halign: "center" }, // Giá
-        3: { halign: "center" }, // Số lượng
-        4: { halign: "center" }, // Thành tiền
+        0: { halign: "center", overflow: "linebreak" },
+        1: { halign: "center", overflow: "linebreak" },
+        2: { halign: "center" },
+        3: { halign: "center" },
+        4: { halign: "center" },
       },
       margin: { left: 14, right: 14 },
     });
 
-    // Tính toán vị trí Y sau bảng
     let finalY = doc.lastAutoTable.finalY;
 
-    // Thêm đường kẻ ngang dưới bảng
     doc.setLineWidth(0.5);
     doc.line(14, finalY + 2, 196, finalY + 2);
 
-    // Thêm thông tin tổng
-    const totalItems = orderDetails.orderInfo.reduce(
-      (sum, item) => sum + item.soluong,
-      0
-    );
-    const totalPrice = orderDetails.orderInfo
-      .reduce((sum, item) => sum + item.soluong * item.dongia, 0)
-      .toLocaleString();
-    const shippingFee = this.getShippingFee().toLocaleString();
-    const totalPayment = orderDetails.TongTien.toLocaleString();
-
     doc.setFontSize(10);
-    doc.text(`Tổng sản phẩm: ${totalItems}`, 14, finalY + 10);
-    doc.text(`Tổng tiền hàng: ${totalPrice}đ`, 14, finalY + 16);
-    doc.text(`Phí vận chuyển (FAST): ${shippingFee}đ`, 14, finalY + 22);
-    // Removed bold style for "Tổng thanh toán"
+    doc.text(`Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity}`, 14, finalY + 10);
+    doc.text(`Tổng tiền hàng: ${parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString("vi-VN")}đ`, 14, finalY + 16);
+    doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}): ${this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString("vi-VN")}đ`, 14, finalY + 22);
+    doc.text(`Giảm giá: -${parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString("vi-VN")}đ`, 14, finalY + 28);
     doc.setFont(fontLoaded ? "Roboto-Regular" : "Helvetica", "normal");
-    doc.text(`Tổng thanh toán: ${totalPayment}đ`, 14, finalY + 28);
+    doc.text(`Tổng thanh toán: ${parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString("vi-VN")}đ`, 14, finalY + 34);
 
-    // Thêm đường kẻ ngang trước ghi chú
     doc.setLineWidth(0.5);
-    doc.line(14, finalY + 32, 196, finalY + 32);
+    doc.line(14, finalY + 38, 196, finalY + 38);
 
-    // Thêm ghi chú với ngắt dòng
-    const note1 =
-      "*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).";
-    const note2 =
-      "Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).";
+    const note1 = "*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).";
+    const note2 = "Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).";
 
     doc.setFontSize(9);
     const splitNote1 = doc.splitTextToSize(note1, 180);
     const splitNote2 = doc.splitTextToSize(note2, 180);
 
-    doc.text(splitNote1, 14, finalY + 40);
-    doc.text(splitNote2, 14, finalY + 48);
+    doc.text(splitNote1, 14, finalY + 46);
+    doc.text(splitNote2, 14, finalY + 54);
 
-    // Tải xuống PDF
-    doc.save(`HoaDon_${orderDetails.MADONHANG}.pdf`);
+    doc.save(`HoaDon_${this.props.madonhang}.pdf`);
   };
 
   handleSendEmail = () => {
-    toast.info("Tính năng chưa có!", {
-      autoClose: 2000,
+    toast.info("Tính năng gửi email chưa được hỗ trợ!", {
+      position: "top-right",
+      autoClose: 500,
       closeOnClick: true,
     });
   };
 
+  handleConfirmReceived = async (invoiceid) => {
+    const confirmReceived = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận đã nhận hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 1000, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmReceived();
+    if (!isConfirmed) return;
+
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "DELI", "");
+      if (response && response.errCode === 0) {
+        toast.success("Xác nhận nhận hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceDetails(invoiceid);
+      } else {
+        toast.error(response?.errMessage || "Xác nhận nhận hàng thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error confirming received:", e);
+      toast.error("Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
+  handleContinueInvoice = async (invoiceid) => {
+    const confirmContinue = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận tiếp tục đơn hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 1000, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmContinue();
+    if (!isConfirmed) return;
+
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "PEND", "");
+      if (response && response.errCode === 0) {
+        toast.success("Tiếp tục đơn hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceDetails(invoiceid);
+      } else {
+        toast.error(response?.errMessage || "Tiếp tục đơn hàng thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error continuing invoice:", e);
+      toast.error("Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
+  handleSelectedCancelInvoice = (invoiceid) => {
+    this.setState({
+      selectedCancelInvoice: invoiceid,
+      isShowCancelInvoiceModal: true,
+    });
+  };
+
+  toggleCancelInvoiceModal = () => {
+    this.setState({
+      isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
+    });
+  };
+
+  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "PEND_CANCEL", cancelreason);
+      if (response && response.errCode === 0) {
+        toast.success("Gửi yêu cầu hủy đơn hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceDetails(invoiceid);
+        this.setState({
+          isShowCancelInvoiceModal: false,
+          selectedCancelInvoice: null,
+        });
+      } else {
+        toast.error(response?.errMessage || "Gửi yêu cầu hủy đơn hàng thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error canceling invoice:", e);
+      toast.error("Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
   render() {
-    const { orderDetails, error, productNames, detailNames } = this.state;
+    const {
+      loadedInvoiceDetails,
+      codePaymentType,
+      codeShippingMethod,
+      codeShippingStatus,
+      isShowCancelInvoiceModal,
+      selectedCancelInvoice,
+    } = this.state;
+    const { madonhang, cartItems, userInfo } = this.props;
 
     return (
       <div className="view-invoice-background">
+        <Header navigate={this.props.navigate} cartItems={cartItems} userInfo={userInfo} />
+        <CancelInvoiceModal
+          isOpen={isShowCancelInvoiceModal}
+          toggleFromModal={this.toggleCancelInvoiceModal}
+          selectedCancelInvoiceID={selectedCancelInvoice}
+          handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
+        />
+        <ToastContainer />
         <div className="view-invoice-modal">
           <div className="view-invoice-modal-content">
-            <Header
-              navigate={this.props.navigate}
-              cartItems={this.props.cartItems}
-              userInfo={this.props.userInfo}
-            />
-            {error ? (
-              <div className="error">
-                {error}
-                <p>Đang chuyển hướng về trang chủ...</p>
-              </div>
-            ) : orderDetails ? (
+            {loadedInvoiceDetails ? (
               <>
                 <div className="view-invoice-modal-content-top">
                   <div className="view-invoice-modal-content-top-logo">
@@ -286,21 +463,50 @@ class BillClass extends Component {
                     <div className="view-invoice-modal-content-top-time">
                       <p>
                         Thời gian:{" "}
-                        {new Date(orderDetails.NgayLapDonHang).toLocaleString()}
+                        {loadedInvoiceDetails.CreatedAt
+                          ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString("vi-VN", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })
+                          : "N/A"}
                       </p>
                     </div>
                     <div className="view-invoice-modal-content-top-invoiceid">
-                      <p>Mã hoá đơn: {orderDetails.MADONHANG}</p>
+                      <p>Mã hóa đơn: {madonhang}</p>
                     </div>
                   </div>
                   <div className="view-invoice-modal-content-top-cusname">
-                    <p>Khách hàng: {orderDetails.TenKhachHang}</p>
+                    <p>Khách hàng: {loadedInvoiceDetails.ReceiverName}</p>
+                    <p>SĐT: {loadedInvoiceDetails.ReceiverPhone}</p>
+                    <p>Địa chỉ: {loadedInvoiceDetails.ReceiverAddress}</p>
+                  </div>
+                  <div className="view-invoice-modal-content-top-status">
+                    <p>
+                      Phương thức thanh toán:{" "}
+                      {codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI ||
+                        loadedInvoiceDetails.PaymentType}
+                    </p>
+                    <p>
+                      Phương thức giao hàng:{" "}
+                      {codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI ||
+                        loadedInvoiceDetails.ShippingMethod}
+                    </p>
+                    <p>
+                      Trạng thái giao hàng:{" "}
+                      {codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI ||
+                        loadedInvoiceDetails.ShippingStatus}
+                    </p>
                   </div>
                 </div>
                 <div className="view-invoice-modal-content-mid">
                   <table>
                     <thead>
                       <tr>
+                        <th>Hình ảnh</th>
                         <th>Tên sản phẩm</th>
                         <th>Loại</th>
                         <th>Giá</th>
@@ -309,81 +515,83 @@ class BillClass extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      {orderDetails.orderInfo.map((item, index) => (
-                        <tr
-                          key={index}
-                          className="view-invoice-modal-content-mid-item"
-                        >
-                          <td>
-                            {productNames[item.masanpham] || item.masanpham}
-                          </td>
-                          <td>{detailNames[item.mactsp] || item.mactsp}</td>
-                          <td>
-                            {item.dongia.toLocaleString()}
-                            <sup>đ</sup>
-                          </td>
-                          <td>{item.soluong}</td>
-                          <td>
-                            {(item.soluong * item.dongia).toLocaleString()}
-                            <sup>đ</sup>
-                          </td>
+                      {loadedInvoiceDetails.ProductList && loadedInvoiceDetails.ProductList.length > 0 ? (
+                        loadedInvoiceDetails.ProductList.map((item, index) => (
+                          <tr key={index} className="view-invoice-modal-content-mid-item">
+                            <td>
+                              <img
+                                src={item.ProductImage || ""}
+                                alt={item.ProductName}
+                                style={{ width: "50px", height: "50px" }}
+                              />
+                            </td>
+                            <td>{item.ProductName}</td>
+                            <td>{item.DetailName}</td>
+                            <td>
+                              {parseFloat(item.ItemPrice).toLocaleString("vi-VN")}
+                              <sup>đ</sup>
+                            </td>
+                            <td>{item.ItemQuantity}</td>
+                            <td>
+                              {(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString("vi-VN")}
+                              <sup>đ</sup>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="6">Không có sản phẩm nào.</td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colSpan="4">Tổng sản phẩm:</td>
-                        <td className="cen">
-                          {orderDetails.orderInfo.reduce(
-                            (sum, item) => sum + item.soluong,
-                            0
-                          )}
-                        </td>
+                        <td colSpan="5">Tổng sản phẩm:</td>
+                        <td className="cen">{loadedInvoiceDetails.TotalQuantity}</td>
                       </tr>
                       <tr>
-                        <td colSpan="4">Tổng tiền hàng:</td>
+                        <td colSpan="5">Tổng tiền hàng:</td>
                         <td className="cen">
-                          {orderDetails.orderInfo
-                            .reduce(
-                              (sum, item) => sum + item.soluong * item.dongia,
-                              0
-                            )
-                            .toLocaleString()}
+                          {parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString("vi-VN")}
                           <sup>đ</sup>
                         </td>
                       </tr>
                       <tr>
-                        <td colSpan="4">Phí vận chuyển (FAST):</td>
+                        <td colSpan="5">
+                          Phí vận chuyển (
+                          {codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI ||
+                            loadedInvoiceDetails.ShippingMethod}
+                          ):
+                        </td>
                         <td className="cen">
-                          {(
-                            orderDetails.TongTien -
-                            orderDetails.orderInfo.reduce(
-                              (sum, item) => sum + item.soluong * item.dongia,
-                              0
-                            )
-                          ).toLocaleString()}
+                          {this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString("vi-VN")}
                           <sup>đ</sup>
                         </td>
                       </tr>
                       <tr>
-                        <td colSpan="4">
+                        <td colSpan="5">Giảm giá:</td>
+                        <td className="cen">
+                          -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString("vi-VN")}
+                          <sup>đ</sup>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan="5">
                           <b>Tổng thanh toán:</b>
                         </td>
                         <td className="cen">
                           <b>
-                            {orderDetails.TongTien.toLocaleString()}
+                            {parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString("vi-VN")}
                             <sup>đ</sup>
                           </b>
                         </td>
                       </tr>
                       <tr>
-                        <td colSpan="5">
+                        <td colSpan="6">
                           <p>
-                            <u>*Lưu ý:</u> giá thành tiền của sản phẩm đã bao
-                            gồm khuyến mãi (nếu có).
+                            <u>*Lưu ý:</u> Giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).
                             <br />
-                            Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách
-                            hàng <b>(0901131141)</b>.
+                            Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng <b>(0901131141)</b>.
                           </p>
                         </td>
                       </tr>
@@ -391,22 +599,46 @@ class BillClass extends Component {
                   </table>
                 </div>
                 <div className="bill-actions">
-                  {/* <button
-                    onClick={this.handleCancelOrder}
-                    className="cancel-btn"
-                  >
-                    Hủy đơn hàng
-                  </button> */}
+                  {loadedInvoiceDetails.PaymentStatus === "PEND" &&
+                    loadedInvoiceDetails.ShippingStatus === "PEND" && (
+                      <button
+                        className="cancel-order-btn"
+                        onClick={() => this.handleSelectedCancelInvoice(madonhang)}
+                        title="Hủy đơn hàng"
+                      >
+                        <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
+                      </button>
+                    )}
+                  {loadedInvoiceDetails.PaymentStatus === "PAID" &&
+                    loadedInvoiceDetails.ShippingStatus === "PEND" && (
+                      <button
+                        className="received-order-btn"
+                        onClick={() => this.handleConfirmReceived(madonhang)}
+                        title="Xác nhận giao hàng"
+                      >
+                        <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
+                      </button>
+                    )}
+                  {(loadedInvoiceDetails.PaymentStatus === "PEND" || loadedInvoiceDetails.PaymentStatus === "PAID") &&
+                    loadedInvoiceDetails.ShippingStatus === "PEND_CANCEL" && (
+                      <button
+                        className="continue-order-btn"
+                        onClick={() => this.handleContinueInvoice(madonhang)}
+                        title="Tiếp tục đơn hàng"
+                      >
+                        <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
+                      </button>
+                    )}
                   <button onClick={this.handleGeneratePDF} className="pdf-btn">
                     Tải PDF
                   </button>
-                  {/* <button onClick={this.handleSendEmail} className="email-btn">
-                      Gửi qua email
-                    </button> */}
+                  <button onClick={this.handleSendEmail} className="email-btn">
+                    Gửi qua email
+                  </button>
                 </div>
               </>
             ) : (
-              <div className="loading">Đang tải...</div>
+              <div className="error">Không tìm thấy thông tin hóa đơn.</div>
             )}
           </div>
         </div>
@@ -418,8 +650,7 @@ class BillClass extends Component {
 const Bill = () => {
   const { madonhang } = useParams();
   const navigate = useNavigate();
-
-  return <BillClass madonhang={madonhang} navigate={navigate} />;
+  return <BillClass madonhang={madonhang} navigate={navigate} cartItems={[]} userInfo={null} />;
 };
 
 export default Bill;

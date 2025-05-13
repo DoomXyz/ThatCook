@@ -32,10 +32,6 @@ const handleChangeAccountInfoApi = (userInfo) => {
 const handleChangePasswordApi = (accountid, password, newpassword) => {
   return axios.put("/api/change-password", { accountid, password, newpassword })
 }
-//non converted
-const handleGetThongTinThanhToan = (mataikhoan) => {
-  return axios.get(`/api/get-thongtin-thanhtoan?mataikhoan=${mataikhoan}`);
-};
 
 export {
   handleRegisterApi,
@@ -47,6 +43,4 @@ export {
   handleChangeAccountStatusApi,
   handleChangeAccountInfoApi,
   handleChangePasswordApi,
-
-  handleGetThongTinThanhToan,
 };

@@ -38,17 +38,19 @@ class HomeHeader extends Component {
       userName: null,
       codePetType: [],
       cartItemsCount: 0,
-      isScrolled: false, // Thêm state để theo dõi trạng thái cuộn
+      isScrolled: false,
     };
-    this.handleScroll = this.debounce(this.handleScroll.bind(this), 10);
+    this.handleScroll = this.handleScroll.bind(this);
   }
 
-  debounce(fn, ms) {
-    let timer;
-    return function (...args) {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn.apply(this, args), ms);
-    };
+  handleScroll() {
+    requestAnimationFrame(() => {
+      const isScrolled = window.scrollY > 0;
+      if (isScrolled !== this.state.isScrolled) {
+        console.log("Scroll position:", window.scrollY, "isScrolled:", isScrolled);
+        this.setState({ isScrolled });
+      }
+    });
   }
 
   async componentDidMount() {
@@ -58,29 +60,13 @@ class HomeHeader extends Component {
       this.countCartItem();
       this.handleLoadInformation();
     }, 0);
-    window.addEventListener("scroll", this.handleScroll);
+    window.addEventListener("scroll", this.handleScroll, { passive: true });
     this.handleScroll();
-    console.log("Header mounted, scroll listener added");
   }
 
   componentWillUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
-    console.log("Header unmounted, scroll listener removed");
+    window.removeEventListener("scroll", this.handleScroll, { passive: true });
   }
-
-  handleScroll() {
-    const isScrolled = window.scrollY > 0;
-    if (isScrolled !== this.state.isScrolled) {
-      console.log(
-        "Scroll position:",
-        window.scrollY,
-        "isScrolled:",
-        isScrolled
-      );
-      this.setState({ isScrolled });
-    }
-  }
-
   async componentDidUpdate(prevProps) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
@@ -233,7 +219,7 @@ class HomeHeader extends Component {
               Không
             </button>
           </div>,
-          { autoClose: 1000, closeOnClick: true }
+          { autoClose: 1000, closeOnClick: false, onClose: () => resolve(false), }
         );
       });
     const isConfirmed = await confirmLogout();
@@ -362,7 +348,7 @@ class HomeHeader extends Component {
               <li>
                 {isLoggedIn ? (
                   <div className="user f" id="user-icon">
-                    <img src={userImage} />
+                    <img src={userImage} loading="lazy" alt="User" />
                     <p>{userName}</p>
                     <ul className="sub-menu">
                       <li>

@@ -8,10 +8,8 @@ import {
   pencil,
   searchOutline,
   add,
-  closeOutline,
-  checkmarkOutline,
   homeOutline,
-  ban,
+  cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline
 } from "ionicons/icons";
 
 import "./Owner.scss";
@@ -28,7 +26,7 @@ import {
   handleCreateBannerApi,
   handleChangeBannerInfoApi,
 } from "../../services/bannerServices";
-import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices";
+import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from "../../services/invoiceServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 
 import { checkLoginStatus } from "../../utils/pakage";
@@ -36,9 +34,10 @@ import { userLogin, userLogout } from "../../store/actions";
 
 import CreateProductModal from "./CreateProductModal";
 import EditProductModal from "./EditProductModal";
-import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
+import ViewInvoiceModal from "./ViewInvoiceModal";
 import CreateBannerModal from "./CreateBannerModal";
 import EditBannerModal from "./EditBannerModal";
+import CancelInvoiceModal from "../../components/CancelInvoiceModal";
 
 class Owner extends Component {
   constructor(props) {
@@ -49,6 +48,7 @@ class Owner extends Component {
       isShowCreateProductModal: false,
       isShowEditProductModal: false,
       isShowViewInvoiceModal: false,
+      isShowCancelInvoiceModal: false,
       accountInfo: null,
       isLoggedIn: false,
       isLoading: true,
@@ -76,6 +76,7 @@ class Owner extends Component {
       selectedProduct: null,
       selectedBanner: null,
       selectedInvoice: null,
+      selectedCancelInvoice: null,
     };
     this.debounceTimeout = null;
   }
@@ -448,6 +449,33 @@ class Owner extends Component {
       }
     );
   };
+  handleResetFilter = () => {
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: "1",
+        searchValue: "",
+        dateFilterValue: "",
+        filterValue: "ALL",
+        sortValue: "0",
+      },
+      () => {
+        switch (this.state.actionPage) {
+          case 1:
+            this.handleLoadProductInfo();
+            break;
+          case 2:
+            this.handleLoadInvoiceInfo();
+            break;
+          case 3:
+            this.handleLoadBannerInfo();
+            break;
+          default:
+            break;
+        }
+      }
+    );
+  };
   handlePageChange = (page, type) => {
     this.setState({
       isLoading: true,
@@ -469,11 +497,10 @@ class Owner extends Component {
         totalPages = 1;
     }
     let newPage = page;
-    // Xử lý giá trị không hợp lệ
     if (isNaN(page) || page <= 0) {
-      newPage = 1; // Nếu nhập chữ, ký tự, hoặc số không hợp lệ, về trang 1
+      newPage = 1;
     } else if (page > totalPages) {
-      newPage = totalPages; // Nếu nhập số lớn hơn totalPages, đặt thành totalPages
+      newPage = totalPages;
     }
     this.setState(
       {
@@ -531,8 +558,8 @@ class Owner extends Component {
           type === 1
             ? prevState.totalProductPages
             : type === 2
-            ? prevState.totalInvoicePages
-            : prevState.totalBannerPages,
+              ? prevState.totalInvoicePages
+              : prevState.totalBannerPages,
           prevState.currentPage + 1
         );
         return {
@@ -591,6 +618,12 @@ class Owner extends Component {
       isShowViewInvoiceModal: true,
     });
   };
+  handleSelectedCancelInvoice = (invoiceid) => {
+    this.setState({
+      selectedCancelInvoice: invoiceid,
+      isShowCancelInvoiceModal: true,
+    });
+  };
   toggleCreateProductModal = () => {
     this.setState({
       isShowCreateProductModal: !this.state.isShowCreateProductModal,
@@ -614,6 +647,11 @@ class Owner extends Component {
   toggleViewInvoiceModal = () => {
     this.setState({
       isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
+    });
+  };
+  toggleCancelInvoiceModal = () => {
+    this.setState({
+      isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
     });
   };
   handleCreateProductFromModal = async (productInfo) => {
@@ -747,46 +785,37 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleConfirmInvoice = (invoiceid) => {
-    console.log(invoiceid);
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
-  };
-  handleDenyInvoice = (invoiceid) => {
-    console.log(invoiceid);
-    // this.setState({
-    //   selectedProduct: productid,
-    //   isShowHomeProductModal: true,
-    // });
-  };
-  handleResetFilter = () => {
-    this.setState(
-      {
-        currentPage: 1,
-        tempCurrentPage: "1",
-        searchValue: "",
-        dateFilterValue: "",
-        filterValue: "ALL",
-        sortValue: "0",
-      },
-      () => {
-        switch (this.state.actionPage) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          default:
-            break;
-        }
+  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "CANCELED", cancelreason);
+      if (response && response.errCode === 0) {
+        toast.success("Hủy hóa đơn thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceInfo();
+        this.setState({
+          isShowCancelInvoiceModal: false,
+          selectedCancelInvoice: null,
+        });
+      } else {
+        toast.error(response?.errMessage || "Hủy hóa đơn thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
       }
-    );
+    } catch (e) {
+      console.error("Error canceling invoice:", e);
+      toast.error("Lỗi khi hủy hóa đơn, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
   };
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
@@ -824,6 +853,194 @@ class Owner extends Component {
       sortValue: "0",
     });
   };
+  handleConfirmPayment = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hóa đơn đã thanh toán?</p>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+              Có
+            </button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 500, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "PaymentStatus", "PAID", "");
+      if (response && response.errCode === 0) {
+        toast.success("Xác nhận thanh toán thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || "Xác nhận thanh toán thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error confirming payment:", e);
+      toast.error("Lỗi khi xác nhận thanh toán, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleConfirmDelivery = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hóa đơn đã giao hàng?</p>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+              Có
+            </button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 500, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "DELI", "");
+      if (response && response.errCode === 0) {
+        toast.success("Xác nhận giao hàng thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || "Xác nhận giao hàng thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error confirming delivery:", e);
+      toast.error("Lỗi khi xác nhận giao hàng, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleAcceptCancelInvoice = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hủy hóa đơn?</p>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+              Có
+            </button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 500, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "CANCELED", "");
+      if (response && response.errCode === 0) {
+        toast.success("Hủy hóa đơn thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || "Hủy hóa đơn thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error canceling invoice:", e);
+      toast.error("Lỗi khi hủy hóa đơn, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleDenyCancelInvoice = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Từ chối yêu cầu hủy và tiếp tục hóa đơn?</p>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+              Có
+            </button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+              Không
+            </button>
+          </div>,
+          { position: "top-center", autoClose: 500, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "PEND", "");
+      if (response && response.errCode === 0) {
+        toast.success("Tiếp tục hóa đơn thành công!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || "Tiếp tục hóa đơn thất bại!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error("Error denying cancel invoice:", e);
+      toast.error("Lỗi khi tiếp tục hóa đơn, vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
 
   render() {
     const {
@@ -851,9 +1068,11 @@ class Owner extends Component {
       isShowCreateBannerModal,
       isShowEditBannerModal,
       isShowViewInvoiceModal,
+      isShowCancelInvoiceModal,
       selectedProduct,
       selectedBanner,
       selectedInvoice,
+      selectedCancelInvoice,
     } = this.state;
     const renderSection = () => {
       switch (actionPage) {
@@ -1171,10 +1390,10 @@ class Owner extends Component {
                       onChange={(date) => {
                         const formattedDate = date
                           ? new Date(
-                              date.getTime() - date.getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .split("T")[0]
+                            date.getTime() - date.getTimezoneOffset() * 60000
+                          )
+                            .toISOString()
+                            .split("T")[0]
                           : "";
                         this.setState(
                           { dateFilterValue: formattedDate },
@@ -1256,29 +1475,56 @@ class Owner extends Component {
                           <td>
                             {item.CanceledAt
                               ? new Date(item.CanceledAt).toLocaleString(
-                                  "vi-VN"
-                                )
+                                "vi-VN"
+                              )
                               : ""}
                           </td>
-                          <td className="">
-                            <button
-                              className="btn-show"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                this.handleConfirmInvoice(item.InvoiceID);
-                              }}
-                            >
-                              <IonIcon icon={checkmarkOutline}></IonIcon>
-                            </button>
-                            <button
-                              className="btn-hide"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                this.handleDenyInvoice(item.InvoiceID);
-                              }}
-                            >
-                              <IonIcon icon={closeOutline}></IonIcon>
-                            </button>
+                          <td className="f" onClick={(e) => e.stopPropagation()}>
+                            {item.PaymentStatus === "PEND" && item.ShippingStatus !== "CANCELED" && item.ShippingStatus !== "PEND_CANCEL" && (
+                              <button
+                                className="btn-confirm-payment"
+                                onClick={() => this.handleConfirmPayment(item.InvoiceID)}
+                                title="Xác nhận thanh toán"
+                              >
+                                <IonIcon icon={cashOutline}></IonIcon>
+                              </button>
+                            )}
+                            {item.PaymentStatus === "PAID" && item.ShippingStatus !== "CANCELED" && item.ShippingStatus !== "PEND_CANCEL" && (
+                              <button
+                                className="btn-confirm-delivery"
+                                onClick={() => this.handleConfirmDelivery(item.InvoiceID)}
+                                title="Xác nhận giao hàng"
+                              >
+                                <IonIcon icon={checkmarkCircleOutline}></IonIcon>
+                              </button>
+                            )}
+                            {item.ShippingStatus === "PEND" && (
+                              <button
+                                className="btn-cancel"
+                                onClick={() => this.handleSelectedCancelInvoice(item.InvoiceID)}
+                                title="Hủy hóa đơn"
+                              >
+                                <IonIcon icon={closeCircleOutline}></IonIcon>
+                              </button>
+                            )}
+                            {item.ShippingStatus === "PEND_CANCEL" && (
+                              <>
+                                <button
+                                  className="btn-accept-cancel"
+                                  onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)}
+                                  title="Chấp nhận hủy"
+                                >
+                                  <IonIcon icon={banOutline}></IonIcon>
+                                </button>
+                                <button
+                                  className="btn-deny-cancel"
+                                  onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)}
+                                  title="Từ chối hủy"
+                                >
+                                  <IonIcon icon={refreshOutline}></IonIcon>
+                                </button>
+                              </>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -1422,10 +1668,10 @@ class Owner extends Component {
                       onChange={(date) => {
                         const formattedDate = date
                           ? new Date(
-                              date.getTime() - date.getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .split("T")[0]
+                            date.getTime() - date.getTimezoneOffset() * 60000
+                          )
+                            .toISOString()
+                            .split("T")[0]
                           : "";
                         this.setState(
                           { dateFilterValue: formattedDate },
@@ -1496,25 +1742,25 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
                               : "N/A"}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString(
-                                  "vi-VN",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  }
-                                )
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
                               : "Vô thời hạn"}
                           </td>
                           <td
@@ -1617,10 +1863,16 @@ class Owner extends Component {
           selectedBannerID={selectedBanner}
           handleChangeBannerFromModal={this.handleChangeBannerFromModal}
         />
-        <OwnerViewInvoiceModal
+        <ViewInvoiceModal
           isOpen={isShowViewInvoiceModal}
           toggleFromModal={this.toggleViewInvoiceModal}
           selectedInvoiceID={selectedInvoice}
+        />
+        <CancelInvoiceModal
+          isOpen={isShowCancelInvoiceModal}
+          toggleFromModal={this.toggleCancelInvoiceModal}
+          selectedCancelInvoiceID={selectedCancelInvoice}
+          handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
         />
         <ToastContainer />
         {isLoading ? (

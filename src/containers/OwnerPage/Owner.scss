@@ -404,16 +404,56 @@
                 justify-content: center;
               }
               td:nth-child(10) {
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 button {
-                  width: 2.3rem;
-                  padding: 0.3rem;
-                  border-radius: 5rem;
+                  width: 2.5rem;
+                  height: 2.5rem;
+                  padding: 0.4rem;
+                  margin: 0 0.3rem;
+                  border-radius: 5px;
+                  border: none;
+                  background-color: transparent;
+                  cursor: pointer;
+                  transition:
+                    background-color 0.3s,
+                    transform 0.2s;
+                  ion-icon {
+                    font-size: 1.4rem;
+                    color: inherit;
+                  }
+                  &:hover {
+                    transform: scale(1.1);
+                  }
                 }
-                button:first-child {
-                  background-color: rgb(2, 219, 2);
+                .btn-confirm-payment {
+                  color: #28a745;
+                  &:hover {
+                    background-color: #e6f4ea;
+                    color: #218838;
+                  }
                 }
-                button:last-child {
-                  background-color: red;
+                .btn-cancel {
+                  color: #dc3545;
+                  &:hover {
+                    background-color: #f8d7da;
+                    color: #c82333;
+                  }
+                }
+                .btn-accept-cancel {
+                  color: #dc3545;
+                  &:hover {
+                    background-color: #f8d7da;
+                    color: #c82333;
+                  }
+                }
+                .btn-deny-cancel {
+                  color: #007bff;
+                  &:hover {
+                    background-color: #d4e6fc;
+                    color: #0056b3;
+                  }
                 }
               }
             }

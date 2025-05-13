@@ -315,7 +315,7 @@ class Cart extends Component {
                 Không
               </button>
             </div>,
-            { position: "top-center", autoClose: 1000, closeOnClick: true, onClose: () => resolve(false), }
+            { position: "top-center", autoClose: 1000, closeOnClick: false, onClose: () => resolve(false), }
           );
         });
       isConfirmed = await confirmRemove();
@@ -413,7 +413,7 @@ class Cart extends Component {
                   Không
                 </button>
               </div>,
-              { position: "top-center", autoClose: 1000, closeOnClick: true }
+              { position: "top-center", autoClose: 1000, closeOnClick: false }
             );
           });
         isConfirmed = await confirmMerge();
