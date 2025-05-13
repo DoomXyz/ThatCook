@@ -680,9 +680,118 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
     });
 };
 
+let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!invoiceid || !type || !status) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu tham số!',
+                    data: null
+                });
+                return;
+            }
+
+            // Kiểm tra type hợp lệ
+            if (!['PaymentStatus', 'ShippingStatus'].includes(type)) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Loại trạng thái không hợp lệ!',
+                    data: null
+                });
+                return;
+            }
+
+            // Kiểm tra hóa đơn tồn tại
+            let invoiceData = await db.Invoice.findOne({
+                where: { InvoiceID: invoiceid },
+                raw: false,
+            });
+
+            if (invoiceData) {
+                // Kiểm tra trạng thái có thay đổi
+                let currentStatus = type === 'PaymentStatus' ? invoiceData.PaymentStatus : invoiceData.ShippingStatus;
+                if (currentStatus !== status) {
+                    // Kiểm tra status hợp lệ
+                    let validStatus = type === 'PaymentStatus'
+                        ? await checkPaymentStatus(status)
+                        : await checkShippingStatus(status);
+
+                    if (typeof validStatus === 'object' && validStatus.errCode !== 0) {
+                        resolve({
+                            errCode: 1,
+                            errMessage: validStatus.errMessage,
+                            data: null
+                        });
+                        return;
+                    }
+                    if (!validStatus) {
+                        resolve({
+                            errCode: 1,
+                            errMessage: `Mã trạng thái ${type === 'PaymentStatus' ? 'thanh toán' : 'giao hàng'} không tồn tại!`,
+                            data: null
+                        });
+                        return;
+                    }
+
+                    // Kiểm tra cancelReason nếu type là ShippingStatus và status là PEND_CANCEL hoặc CANCELED
+                    if (type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(status) && !cancelReason) {
+                        resolve({
+                            errCode: 1,
+                            errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái hủy!',
+                            data: null
+                        });
+                        return;
+                    }
+
+                    // Cập nhật dữ liệu
+                    if (type === 'PaymentStatus') {
+                        invoiceData.PaymentStatus = status;
+                    } else {
+                        invoiceData.ShippingStatus = status;
+                        if (['PEND_CANCEL', 'CANCELED'].includes(status)) {
+                            invoiceData.CancelReason = cancelReason;
+                        }
+                        if (status === 'CANCELED') {
+                            invoiceData.CanceledAt = new Date();
+                        }
+                    }
+                    await invoiceData.save();
+
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'Thay đổi trạng thái hóa đơn thành công!',
+                        data: null
+                    });
+                } else {
+                    resolve({
+                        errCode: 1,
+                        errMessage: 'Trạng thái không thay đổi!',
+                        data: null
+                    });
+                }
+            } else {
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Hóa đơn không tồn tại!',
+                    data: null
+                });
+            }
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: 'Lỗi khi thay đổi trạng thái: ' + e.message,
+                data: null
+            });
+        }
+    });
+};
+
 export default {
     createInvoice,
     getAccountInvoiceInfo,
     getInvoiceDetailInfo,
     loadInvoiceInfo,
+    changeInvoiceStatus,
 };

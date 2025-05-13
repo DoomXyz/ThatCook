@@ -80,6 +80,7 @@ let initAPIRoutes = (app) => {
     router.post("/api/create-invoice", invoiceController.handleCreateInvoice);
     router.get("/api/get-account-invoiceinfo", invoiceController.handleGetAccountInvoiceInfo);
     router.get("/api/get-invoicedetailinfo", invoiceController.handleGetInvoiceDetailInfo)
+    router.put("/api/change-invoicestatus", invoiceController.handleChangeInvoiceStatus);
     //admin
     router.get("/api/load-accountinfo", accountController.handleLoadAccountInfo);
     router.put("/api/change-accountstatus", accountController.handleChangeAccountStatus);

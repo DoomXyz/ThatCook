@@ -55,35 +55,45 @@ module.exports = {
             // ShippingStatus
             { Type: 'ShippingStatus', Code: 'PEND', CodeValueVI: 'Chờ giao hàng', ExtraValue: null, CodeID: 30 },
             { Type: 'ShippingStatus', Code: 'DELI', CodeValueVI: 'Đã nhận hàng', ExtraValue: null, CodeID: 31 },
-            { Type: 'ShippingStatus', Code: 'CANCEL', CodeValueVI: 'Đã hủy', ExtraValue: null, CodeID: 32 },
+            { Type: 'ShippingStatus', Code: 'PEND_CANCEL', CodeValueVI: 'Chờ hủy', ExtraValue: null, CodeID: 32 },
+            { Type: 'ShippingStatus', Code: 'CANCELED', CodeValueVI: 'Đã hủy', ExtraValue: null, CodeID: 33 },
 
             // ShippingMethod
-            { Type: 'ShippingMethod', Code: 'FAST', CodeValueVI: 'Giao hàng chuyển phát nhanh', ExtraValue: 30000, CodeID: 33 },
-            { Type: 'ShippingMethod', Code: 'ECO', CodeValueVI: 'Giao hàng tiết kiệm', ExtraValue: 15000, CodeID: 34 },
-            { Type: 'ShippingMethod', Code: 'EXPRESS', CodeValueVI: 'Giao hàng hỏa tốc', ExtraValue: 40000, CodeID: 35 },
+            { Type: 'ShippingMethod', Code: 'FAST', CodeValueVI: 'Giao hàng chuyển phát nhanh', ExtraValue: 30000, CodeID: 34 },
+            { Type: 'ShippingMethod', Code: 'ECO', CodeValueVI: 'Giao hàng tiết kiệm', ExtraValue: 15000, CodeID: 35 },
+            { Type: 'ShippingMethod', Code: 'EXPRESS', CodeValueVI: 'Giao hàng hỏa tốc', ExtraValue: 40000, CodeID: 36 },
 
             // CouponStatus
-            { Type: 'CouponStatus', Code: 'ACTIVE', CodeValueVI: 'Hoạt động', ExtraValue: null, CodeID: 36 },
-            { Type: 'CouponStatus', Code: 'EXPIRED', CodeValueVI: 'Hết hạn', ExtraValue: null, CodeID: 37 },
+            { Type: 'CouponStatus', Code: 'ACTIVE', CodeValueVI: 'Hoạt động', ExtraValue: null, CodeID: 37 },
+            { Type: 'CouponStatus', Code: 'EXPIRED', CodeValueVI: 'Hết hạn', ExtraValue: null, CodeID: 38 },
 
             // DiscountType
-            { Type: 'DiscountType', Code: 'PERC', CodeValueVI: 'Phần trăm', ExtraValue: null, CodeID: 38 },
-            { Type: 'DiscountType', Code: 'FIXED', CodeValueVI: 'Cố định', ExtraValue: null, CodeID: 39 },
+            { Type: 'DiscountType', Code: 'PERC', CodeValueVI: 'Phần trăm', ExtraValue: null, CodeID: 39 },
+            { Type: 'DiscountType', Code: 'FIXED', CodeValueVI: 'Cố định', ExtraValue: null, CodeID: 40 },
 
             // AppointmentStatus
-            { Type: 'AppointmentStatus', Code: 'PEND', CodeValueVI: 'Chờ xác nhận', ExtraValue: null, CodeID: 40 },
-            { Type: 'AppointmentStatus', Code: 'CONF', CodeValueVI: 'Đã xác nhận', ExtraValue: null, CodeID: 41 },
-            { Type: 'AppointmentStatus', Code: 'COMP', CodeValueVI: 'Đã hoàn thành', ExtraValue: null, CodeID: 42 },
-            { Type: 'AppointmentStatus', Code: 'CANCEL', CodeValueVI: 'Đã hủy', ExtraValue: null, CodeID: 43 },
+            { Type: 'AppointmentStatus', Code: 'PEND', CodeValueVI: 'Chờ xác nhận', ExtraValue: null, CodeID: 41 },
+            { Type: 'AppointmentStatus', Code: 'CONF', CodeValueVI: 'Đã xác nhận', ExtraValue: null, CodeID: 42 },
+            { Type: 'AppointmentStatus', Code: 'COMP', CodeValueVI: 'Đã hoàn thành', ExtraValue: null, CodeID: 43 },
+            { Type: 'AppointmentStatus', Code: 'PEND_CANCEL', CodeValueVI: 'Chờ hủy', ExtraValue: null, CodeID: 44 },
+            { Type: 'AppointmentStatus', Code: 'CANCELED', CodeValueVI: 'Đã hủy', ExtraValue: null, CodeID: 45 },
 
-            // FuAppointment (FuAppointmentStatus)
-            { Type: 'FuAppointment', Code: 'CONF', CodeValueVI: 'Đã xác nhận', ExtraValue: null, CodeID: 44 },
-            { Type: 'FuAppointment', Code: 'COMP', CodeValueVI: 'Đã hoàn thành', ExtraValue: null, CodeID: 45 },
-            { Type: 'FuAppointment', Code: 'CANCEL', CodeValueVI: 'Đã hủy', ExtraValue: null, CodeID: 46 },
+            // FuAppointmentStatus
+            { Type: 'FuAppointmentStatus', Code: 'CONF', CodeValueVI: 'Đã xác nhận', ExtraValue: null, CodeID: 46 },
+            { Type: 'FuAppointmentStatus', Code: 'COMP', CodeValueVI: 'Đã hoàn thành', ExtraValue: null, CodeID: 47 },
+            { Type: 'FuAppointmentStatus', Code: 'PEND_CANCEL', CodeValueVI: 'Chờ hủy', ExtraValue: null, CodeID: 48 },
+            { Type: 'FuAppointmentStatus', Code: 'CANCELED', CodeValueVI: 'Đã hủy', ExtraValue: null, CodeID: 49 },
 
             // BannerStatus
-            { Type: 'BannerStatus', Code: 'SHOW', CodeValueVI: 'Hiển thị', ExtraValue: null, CodeID: 47 },
-            { Type: 'BannerStatus', Code: 'HIDE', CodeValueVI: 'Ẩn', ExtraValue: null, CodeID: 48 },
+            { Type: 'BannerStatus', Code: 'SHOW', CodeValueVI: 'Hiển thị', ExtraValue: null, CodeID: 50 },
+            { Type: 'BannerStatus', Code: 'HIDE', CodeValueVI: 'Ẩn', ExtraValue: null, CodeID: 51 },
+
+            //CancelReason
+            { Type: 'CancelReason', Code: 'OTHER', CodeValueVI: 'Khác', ExtraValue: null, CodeID: 52 },
+            { Type: 'CancelReason', Code: 'CHANGE_MIND', CodeValueVI: 'Đổi ý không muốn mua nữa', ExtraValue: null, CodeID: 53 },
+            { Type: 'CancelReason', Code: 'BETTER_PRICE', CodeValueVI: 'Tìm thấy giá tốt hơn ở nơi khác', ExtraValue: null, CodeID: 54 },
+            { Type: 'CancelReason', Code: 'NOT_NEEDED', CodeValueVI: 'Sản phẩm không còn cần thiết', ExtraValue: null, CodeID: 55 },
+            { Type: 'CancelReason', Code: 'ORDER_ERROR', CodeValueVI: 'Lỗi trong quá trình đặt hàng', ExtraValue: null, CodeID: 56 },
         ], {});
     },
 

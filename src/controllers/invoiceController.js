@@ -66,9 +66,25 @@ let handleLoadInvoiceInfo = async (req, res) => {
     }
 };
 
+let handleChangeInvoiceStatus = async (req, res) => {
+    try {
+        const { invoiceid, type, status, cancelReason } = req.body
+        let response = await invoiceService.changeInvoiceStatus(invoiceid, type, status, cancelReason);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: 'Lỗi từ server: ' + e.message,
+            data: null
+        });
+    }
+}
+
 module.exports = {
     handleCreateInvoice,
     handleGetAccountInvoiceInfo,
     handleGetInvoiceDetailInfo,
     handleLoadInvoiceInfo,
+    handleChangeInvoiceStatus,
 };
