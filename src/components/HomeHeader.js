@@ -3,19 +3,30 @@ import { connect } from "react-redux";
 import { toast } from "react-toastify";
 import { IonIcon } from "@ionic/react";
 
-import { cart, person, informationCircleOutline, logOutOutline, } from "ionicons/icons";
+import {
+  cart,
+  person,
+  informationCircleOutline,
+  logOutOutline,
+  menuOutline,
+  cartOutline,
+} from "ionicons/icons";
 
 import "./HomeHeader.scss";
 import "../styles/ToastifyOverride.scss";
 
-import { handleGetAccountInfoApi, handleLogoutApi } from "../services/accountServices";
+import {
+  handleGetAccountInfoApi,
+  handleLogoutApi,
+} from "../services/accountServices";
 import { handleGetCartApi } from "../services/cartServices";
-import { handleGetAllCodesApi } from "../services/utilitiesServices"
+import { handleGetAllCodesApi } from "../services/utilitiesServices";
 
-import { checkLoginStatus } from '../utils/pakage';
+import { checkLoginStatus } from "../utils/pakage";
 import { userLogin, userLogout, clearCheckOutCart } from "../store/actions/";
 
-const defUserImage = "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg";
+const defUserImage =
+  "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg";
 
 class HomeHeader extends Component {
   constructor(props) {
@@ -27,6 +38,16 @@ class HomeHeader extends Component {
       userName: null,
       codePetType: [],
       cartItemsCount: 0,
+      isScrolled: false, // Thêm state để theo dõi trạng thái cuộn
+    };
+    this.handleScroll = this.debounce(this.handleScroll.bind(this), 10);
+  }
+
+  debounce(fn, ms) {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), ms);
     };
   }
 
@@ -37,6 +58,27 @@ class HomeHeader extends Component {
       this.countCartItem();
       this.handleLoadInformation();
     }, 0);
+    window.addEventListener("scroll", this.handleScroll);
+    this.handleScroll();
+    console.log("Header mounted, scroll listener added");
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+    console.log("Header unmounted, scroll listener removed");
+  }
+
+  handleScroll() {
+    const isScrolled = window.scrollY > 0;
+    if (isScrolled !== this.state.isScrolled) {
+      console.log(
+        "Scroll position:",
+        window.scrollY,
+        "isScrolled:",
+        isScrolled
+      );
+      this.setState({ isScrolled });
+    }
   }
 
   async componentDidUpdate(prevProps) {
@@ -48,7 +90,9 @@ class HomeHeader extends Component {
     if (prevProps.triggerCountCartItem !== this.props.triggerCountCartItem) {
       await this.countCartItem();
     }
-    if (prevProps.triggerLoadInformation !== this.props.triggerLoadInformation) {
+    if (
+      prevProps.triggerLoadInformation !== this.props.triggerLoadInformation
+    ) {
       await this.handleLoadInformation();
     }
   }
@@ -62,38 +106,38 @@ class HomeHeader extends Component {
         }
         this.setState({
           isLoggedIn: true,
-          accountInfo: accountInfo
-        })
+          accountInfo: accountInfo,
+        });
       } else {
         await handleLogoutApi();
         this.props.userLogout();
         this.setState({
           isLoggedIn: false,
-          accountInfo: null
-        })
+          accountInfo: null,
+        });
       }
     } catch (e) {
-      console.log("Token not found!")
+      console.log("Token not found!");
     }
   };
 
   handleLoadInformation = async () => {
-    const { isLoggedIn, accountInfo } = this.state
+    const { isLoggedIn, accountInfo } = this.state;
     if (isLoggedIn) {
-      const response = await handleGetAccountInfoApi(accountInfo.AccountID)
+      const response = await handleGetAccountInfoApi(accountInfo.AccountID);
       if (response && response.errCode === 0) {
-        const accountInfo = response.data
+        const accountInfo = response.data;
         this.setState({
           userImage: accountInfo.UserImage || defUserImage,
           userName: accountInfo.UserName,
-        })
+        });
       }
     }
-  }
+  };
 
   handleLoadPetType = async () => {
     try {
-      const codePetType = await handleGetAllCodesApi('PetType');
+      const codePetType = await handleGetAllCodesApi("PetType");
       if (!codePetType || codePetType.length === 0) {
         toast.error("Không thể tải danh sách sản phẩm!", {
           position: "top-right",
@@ -112,11 +156,11 @@ class HomeHeader extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
 
   countCartItem = async () => {
     try {
-      const { isLoggedIn, accountInfo } = this.state
+      const { isLoggedIn, accountInfo } = this.state;
       let count = 0;
       let cartItems = null;
       if (isLoggedIn) {
@@ -133,36 +177,36 @@ class HomeHeader extends Component {
         }
       }
       this.setState({
-        cartItemsCount: count
-      })
+        cartItemsCount: count,
+      });
     } catch (e) {
-      console.log("Chưa kết nối backend!")
+      console.log("Chưa kết nối backend!");
     }
   };
 
   handlePetTypeFilter = (code) => {
-    this.props.navigate("/home")
-    const formatedCode = "pettype-" + code
+    this.props.navigate("/home");
+    const formatedCode = "pettype-" + code;
     console.log("PetType code:", formatedCode);
   };
 
   handlePromotionFilter = () => {
-    this.props.navigate("/home")
-    console.log("Promotion product only selected")
-  }
+    this.props.navigate("/home");
+    console.log("Promotion product only selected");
+  };
 
   handleAccountTypeNavigate = (accounttype) => {
     const navigateMap = {
-      'A': '/user/admin',
-      'O': '/user/owner',
-      'V': '/user/veterinarian',
-      'C': '/home'
+      A: "/user/admin",
+      O: "/user/owner",
+      V: "/user/veterinarian",
+      C: "/home",
     };
-    const path = navigateMap[accounttype] || '/login';
+    const path = navigateMap[accounttype] || "/login";
     setTimeout(() => {
       this.props.navigate(path);
     }, 0);
-  }
+  };
 
   handleLogout = async () => {
     const confirmLogout = () =>
@@ -201,30 +245,38 @@ class HomeHeader extends Component {
         this.setState({
           isLoggedIn: false,
           accountInfo: null,
-        })
+        });
         this.props.navigate("/home");
         toast.success("Đăng xuất thành công!", {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
       } catch (e) {
-        console.log(e)
+        console.log(e);
         toast.error("Đăng xuất thất bại. Vui lòng thử lại!", {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
       }
     }
-    await this.countCartItem()
+    await this.countCartItem();
   };
 
   render() {
-    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codePetType } = this.state;
+    const {
+      accountInfo,
+      isLoggedIn,
+      cartItemsCount,
+      userImage,
+      userName,
+      codePetType,
+      isScrolled,
+    } = this.state;
     return (
       <div className="body-container">
-        <div className="header-container">
+        <div className={`header-container ${isScrolled ? "scrolled" : ""}`}>
           <div className="header-top">
             <div
               className="logo"
@@ -233,10 +285,21 @@ class HomeHeader extends Component {
               }}
             ></div>
             <div className="menu">
-              <li>
+              <li className="menu-icon">
                 <a>
-                  SẢN PHẨM
+                  <IonIcon icon={menuOutline}></IonIcon>
                 </a>
+                <ul className="sub-menu-1">
+                  <li>
+                    <a>
+                      {" "}
+                      <IonIcon icon={cartOutline}></IonIcon>Cửa Hàng
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a>Sản phẩm</a>
                 <ul className="sub-menu">
                   {codePetType.map((type) => (
                     <li key={type.Code}>
@@ -248,33 +311,41 @@ class HomeHeader extends Component {
                 </ul>
               </li>
               <li>
-                <a onClick={() => this.handlePromotionFilter()}>
-                  ƯU ĐÃI
-                </a>
+                <a onClick={() => this.handlePromotionFilter()}>Ưu đãi</a>
               </li>
               <li>
                 <a onClick={() => this.props.navigate("/appointment")}>
-                  DỊCH VỤ
+                  Dịch vụ
                 </a>
+              </li>
+              <li>
+                <a>Đặt lịch</a>
+              </li>
+              <li>
+                <a>Bác sĩ</a>
               </li>
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === "C" ? (
                   <li>
                     <a onClick={() => this.props.navigate("/information")}>
-                      LIÊN HỆ
+                      Liên hệ
                     </a>
                   </li>
                 ) : (
                   <li>
-                    <a onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}>
-                      QUẢN TRỊ
+                    <a
+                      onClick={() =>
+                        this.handleAccountTypeNavigate(accountInfo.AccountType)
+                      }
+                    >
+                      Quản trị
                     </a>
                   </li>
                 )
               ) : (
                 <li>
                   <a onClick={() => this.props.navigate("/information")}>
-                    LIÊN HỆ
+                    Liên hệ
                   </a>
                 </li>
               )}
@@ -334,17 +405,16 @@ class HomeHeader extends Component {
   }
 }
 
-// Map state từ Redux store vào props
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
   cartItems: state.cart.cartItems,
   isUpdateCartCount: state.cart.isUpdateCartCount,
 });
 
-// Map dispatch để gửi action lên store
 const mapDispatchToProps = (dispatch) => ({
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
 });
+
 export default connect(mapStateToProps, mapDispatchToProps)(HomeHeader);

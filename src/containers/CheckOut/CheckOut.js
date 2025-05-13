@@ -12,11 +12,21 @@ import {
   handleLogoutApi,
 } from "../../services/accountServices";
 import { handleGetCartDetailApi } from "../../services/cartServices";
-import { handleCreateInvoiceApi } from "../../services/invoiceServices"
-import { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi } from "../../services/utilitiesServices";
+import { handleCreateInvoiceApi } from "../../services/invoiceServices";
+import {
+  handleGetAllCodesApi,
+  handleCheckCouponApi,
+  handleGetCouponApi,
+} from "../../services/utilitiesServices";
 
-import { checkLoginStatus } from '../../utils/pakage';
-import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout, } from "../../store/actions";
+import { checkLoginStatus } from "../../utils/pakage";
+import {
+  clearCart,
+  clearCheckOutCart,
+  saveCartForCheckOut,
+  userLogin,
+  userLogout,
+} from "../../store/actions";
 
 import cart from "../../assets/icons/shopping-cart.png";
 import card from "../../assets/icons/cheque.png";
@@ -857,48 +867,6 @@ class CheckOut extends Component {
                   </div>
 
                   <div className="pay-content-right">
-                    {totalPages > 1 && (
-                      <div className="page-content">
-                        <div className="page-content-item">
-                          <button
-                            className="first"
-                            onClick={this.handleFirstPage}
-                            disabled={currentPage === 1}
-                          >
-                            {"<<"}
-                          </button>
-                          <button
-                            className="prev"
-                            onClick={this.handlePrevPage}
-                            disabled={currentPage === 1}
-                          >
-                            {"<"}
-                          </button>
-                          <input
-                            type="text"
-                            value={tempCurrentPage}
-                            onChange={this.handlePageInputChange}
-                            onKeyDown={this.handlePageKeyDown}
-                            onBlur={this.handlePageInputBlur}
-                          />
-                          <span className="total-pages">/ {totalPages}</span>
-                          <button
-                            className="next"
-                            onClick={this.handleNextPage}
-                            disabled={currentPage === totalPages}
-                          >
-                            {">"}
-                          </button>
-                          <button
-                            className="last"
-                            onClick={this.handleLastPage}
-                            disabled={currentPage === totalPages}
-                          >
-                            {">>"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
                     <table>
                       <thead>
                         <tr>
@@ -1053,6 +1021,48 @@ class CheckOut extends Component {
                         </tr>
                       </tfoot>
                     </table>
+                    {totalPages > 1 && (
+                      <div className="page-content">
+                        <div className="page-content-item">
+                          <button
+                            className="first"
+                            onClick={this.handleFirstPage}
+                            disabled={currentPage === 1}
+                          >
+                            {"<<"}
+                          </button>
+                          <button
+                            className="prev"
+                            onClick={this.handlePrevPage}
+                            disabled={currentPage === 1}
+                          >
+                            {"<"}
+                          </button>
+                          <input
+                            type="text"
+                            value={tempCurrentPage}
+                            onChange={this.handlePageInputChange}
+                            onKeyDown={this.handlePageKeyDown}
+                            onBlur={this.handlePageInputBlur}
+                          />
+                          <span className="total-pages">/ {totalPages}</span>
+                          <button
+                            className="next"
+                            onClick={this.handleNextPage}
+                            disabled={currentPage === totalPages}
+                          >
+                            {">"}
+                          </button>
+                          <button
+                            className="last"
+                            onClick={this.handleLastPage}
+                            disabled={currentPage === totalPages}
+                          >
+                            {">>"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     <div>
                       {!isPlaced && loadedCheckOutCartDetailInfo.length > 0 ? (
                         <button

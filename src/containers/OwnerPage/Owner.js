@@ -4,14 +4,30 @@ import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react";
 import DatePicker from "react-datepicker";
 
-import { pencil, searchOutline, add, closeOutline, checkmarkOutline, homeOutline, ban } from "ionicons/icons";
+import {
+  pencil,
+  searchOutline,
+  add,
+  closeOutline,
+  checkmarkOutline,
+  homeOutline,
+  ban,
+} from "ionicons/icons";
 
 import "./Owner.scss";
 import Spinner from "../../components/Spinner";
 
 import { handleLogoutApi } from "../../services/accountServices";
-import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from "../../services/productServices";
-import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from "../../services/bannerServices";
+import {
+  handleLoadProductInfoApi,
+  handleCreateProductApi,
+  handleChangeProductInfoApi,
+} from "../../services/productServices";
+import {
+  handleLoadBannerInfoApi,
+  handleCreateBannerApi,
+  handleChangeBannerInfoApi,
+} from "../../services/bannerServices";
 import { handleLoadInvoiceInfoApi } from "../../services/invoiceServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 
@@ -163,7 +179,9 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
-          totalProductPages: Math.ceil(response.totalItems / limitProductPerQuery),
+          totalProductPages: Math.ceil(
+            response.totalItems / limitProductPerQuery
+          ),
         });
       }
     } catch (e) {
@@ -240,7 +258,9 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
-          totalInvoicePages: Math.ceil(response.totalItems / limitInvoicePerQuery),
+          totalInvoicePages: Math.ceil(
+            response.totalItems / limitInvoicePerQuery
+          ),
         });
       }
     } catch (e) {
@@ -317,7 +337,9 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedBannerInfo: response.data,
-          totalBannerPages: Math.ceil(response.totalItems / limitBannerPerQuery),
+          totalBannerPages: Math.ceil(
+            response.totalItems / limitBannerPerQuery
+          ),
         });
       }
     } catch (e) {
@@ -430,7 +452,8 @@ class Owner extends Component {
     this.setState({
       isLoading: true,
     });
-    const { totalProductPages, totalInvoicePages, totalBannerPages } = this.state;
+    const { totalProductPages, totalInvoicePages, totalBannerPages } =
+      this.state;
     let totalPages;
     switch (type) {
       case 1:
@@ -505,7 +528,11 @@ class Owner extends Component {
     this.setState(
       (prevState) => {
         const newPage = Math.min(
-          type === 1 ? prevState.totalProductPages : type === 2 ? prevState.totalInvoicePages : prevState.totalBannerPages,
+          type === 1
+            ? prevState.totalProductPages
+            : type === 2
+            ? prevState.totalInvoicePages
+            : prevState.totalBannerPages,
           prevState.currentPage + 1
         );
         return {
@@ -670,8 +697,7 @@ class Owner extends Component {
           isShowCreateBannerModal: false,
         });
       } else {
-        const errMessage =
-          response?.errMessage || "Thêm banner mới thất bại!";
+        const errMessage = response?.errMessage || "Thêm banner mới thất bại!";
         toast.error(errMessage, {
           position: "top-right",
           autoClose: 500,
@@ -689,25 +715,26 @@ class Owner extends Component {
     this.setState({ isLoading: false });
   };
   handleChangeBannerFromModal = async (bannerInfo) => {
-    this.setState({ isLoading: true })
+    this.setState({ isLoading: true });
     try {
       const response = await handleChangeBannerInfoApi(bannerInfo);
       if (response && response.errCode === 0) {
         toast.success("Chỉnh sửa thông tin banner thành công!", {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
         await this.handleLoadBannerInfo();
         this.setState({
           isShowEditBannerModal: false,
-        })
+        });
       } else {
-        const errMessage = response?.errMessage || "Chỉnh sửa thông tin banner thất bại!";
+        const errMessage =
+          response?.errMessage || "Chỉnh sửa thông tin banner thất bại!";
         toast.error(errMessage, {
           position: "top-right",
           autoClose: 500,
-          closeOnClick: true
+          closeOnClick: true,
         });
       }
     } catch (e) {
@@ -715,10 +742,10 @@ class Owner extends Component {
       toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
         position: "top-right",
         autoClose: 500,
-        closeOnClick: true
+        closeOnClick: true,
       });
     }
-    this.setState({ isLoading: false })
+    this.setState({ isLoading: false });
   };
   handleConfirmInvoice = (invoiceid) => {
     console.log(invoiceid);
@@ -1011,7 +1038,9 @@ class Owner extends Component {
                             }
                             onBlur={() => this.handlePageInputBlur(1)}
                           />
-                          <span className="total-pages">/ {totalProductPages}</span>
+                          <span className="total-pages">
+                            / {totalProductPages}
+                          </span>
                           <button
                             className="next"
                             onClick={() => this.handleNextPage(1)}
@@ -1021,7 +1050,9 @@ class Owner extends Component {
                           </button>
                           <button
                             className="last"
-                            onClick={() => this.handlePageChange(totalProductPages, 1)}
+                            onClick={() =>
+                              this.handlePageChange(totalProductPages, 1)
+                            }
                             disabled={currentPage === totalProductPages}
                           >
                             {">>"}
@@ -1126,34 +1157,45 @@ class Owner extends Component {
                 </div>
                 <div
                   style={{ display: actionPage === 2 ? "block" : "none" }}
-                  className="owner-mid-content-left-invoice-date"
+                  className="owner-mid-content-left-invoice-date "
                 >
                   <label>Ngày hóa đơn:</label>
                   <br />
-                  <DatePicker
-                    selected={dateFilterValue ? new Date(dateFilterValue + "T00:00:00") : null}
-                    onChange={(date) => {
-                      const formattedDate = date
-                        ? new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-                          .toISOString()
-                          .split("T")[0]
-                        : "";
-                      this.setState({ dateFilterValue: formattedDate }, () => {
-                        if (this.state.actionPage === 2) {
-                          this.handleLoadInvoiceInfo();
-                        }
-                      });
-                    }}
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="dd/mm/yyyy"
-                    className="date-picker"
-                  />
-                  <button
-                    style={{ marginLeft: "10px" }}
-                    onClick={this.handleResetFilter}
-                  >
-                    Reset
-                  </button>
+                  <div className="f">
+                    <DatePicker
+                      selected={
+                        dateFilterValue
+                          ? new Date(dateFilterValue + "T00:00:00")
+                          : null
+                      }
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? new Date(
+                              date.getTime() - date.getTimezoneOffset() * 60000
+                            )
+                              .toISOString()
+                              .split("T")[0]
+                          : "";
+                        this.setState(
+                          { dateFilterValue: formattedDate },
+                          () => {
+                            if (this.state.actionPage === 2) {
+                              this.handleLoadInvoiceInfo();
+                            }
+                          }
+                        );
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    <button
+                      style={{ marginLeft: "10px" }}
+                      onClick={this.handleResetFilter}
+                    >
+                      Reset
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="owner-mid-content-right-list-invoice">
@@ -1214,13 +1256,13 @@ class Owner extends Component {
                           <td>
                             {item.CanceledAt
                               ? new Date(item.CanceledAt).toLocaleString(
-                                "vi-VN"
-                              )
+                                  "vi-VN"
+                                )
                               : ""}
                           </td>
-                          <td className="f">
+                          <td className="">
                             <button
-                              className="btn-check"
+                              className="btn-show"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 this.handleConfirmInvoice(item.InvoiceID);
@@ -1229,7 +1271,7 @@ class Owner extends Component {
                               <IonIcon icon={checkmarkOutline}></IonIcon>
                             </button>
                             <button
-                              className="btn-check"
+                              className="btn-hide"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 this.handleDenyInvoice(item.InvoiceID);
@@ -1283,7 +1325,9 @@ class Owner extends Component {
                       </button>
                       <button
                         className="last"
-                        onClick={() => this.handlePageChange(totalInvoicePages, 2)}
+                        onClick={() =>
+                          this.handlePageChange(totalInvoicePages, 2)
+                        }
                         disabled={currentPage === totalInvoicePages}
                       >
                         {">>"}
@@ -1368,30 +1412,41 @@ class Owner extends Component {
                 >
                   <label>Banner hoạt động trong ngày:</label>
                   <br />
-                  <DatePicker
-                    selected={dateFilterValue ? new Date(dateFilterValue + "T00:00:00") : null}
-                    onChange={(date) => {
-                      const formattedDate = date
-                        ? new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-                          .toISOString()
-                          .split("T")[0]
-                        : "";
-                      this.setState({ dateFilterValue: formattedDate }, () => {
-                        if (this.state.actionPage === 2) {
-                          this.handleLoadInvoiceInfo();
-                        }
-                      });
-                    }}
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="dd/mm/yyyy"
-                    className="date-picker"
-                  />
-                  <button
-                    style={{ marginLeft: "10px" }}
-                    onClick={this.handleResetFilter}
-                  >
-                    Reset
-                  </button>
+                  <div className="f">
+                    <DatePicker
+                      selected={
+                        dateFilterValue
+                          ? new Date(dateFilterValue + "T00:00:00")
+                          : null
+                      }
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? new Date(
+                              date.getTime() - date.getTimezoneOffset() * 60000
+                            )
+                              .toISOString()
+                              .split("T")[0]
+                          : "";
+                        this.setState(
+                          { dateFilterValue: formattedDate },
+                          () => {
+                            if (this.state.actionPage === 2) {
+                              this.handleLoadInvoiceInfo();
+                            }
+                          }
+                        );
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    <button
+                      style={{ marginLeft: "10px" }}
+                      onClick={this.handleResetFilter}
+                    >
+                      Reset
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1441,25 +1496,25 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString(
-                                "vi-VN",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                }
-                              )
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
                               : "N/A"}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString(
-                                "vi-VN",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                }
-                              )
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )
                               : "Vô thời hạn"}
                           </td>
                           <td
@@ -1520,7 +1575,9 @@ class Owner extends Component {
                       </button>
                       <button
                         className="last"
-                        onClick={() => this.handlePageChange(totalBannerPages, 2)}
+                        onClick={() =>
+                          this.handlePageChange(totalBannerPages, 2)
+                        }
                         disabled={currentPage === totalBannerPages}
                       >
                         {">>"}

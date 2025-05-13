@@ -6,16 +6,28 @@ import { IonIcon } from "@ionic/react";
 import { eyeOutline, eyeOffOutline, chevronBack, pencil } from "ionicons/icons";
 
 import "./User.scss";
-import Spinner from '../../components/Spinner';
+import Spinner from "../../components/Spinner";
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
 
-import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from "../../services/accountServices";
-import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from "../../services/invoiceServices"
-import { uploadImageToCloudinaryApi, handleGetAllCodesApi } from "../../services/utilitiesServices";
+import {
+  handleGetAccountInfoApi,
+  handleLogoutApi,
+  handleChangeAccountInfoApi,
+  handleChangePasswordApi,
+} from "../../services/accountServices";
+import {
+  handleGetAccountInvoiceInfoApi,
+  handleGetInvoiceDetailInfoApi,
+  handleChangeInvoiceStatusApi,
+} from "../../services/invoiceServices";
+import {
+  uploadImageToCloudinaryApi,
+  handleGetAllCodesApi,
+} from "../../services/utilitiesServices";
 
 import { userLogin, userLogout } from "../../store/actions";
-import { checkLoginStatus } from '../../utils/pakage';
+import { checkLoginStatus } from "../../utils/pakage";
 
 import CancelInvoiceModal from "../../components/CancelInvoiceModal";
 
@@ -55,6 +67,14 @@ class User extends Component {
       loadedInvoiceDetail: null,
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
+      currentInvoicePage: 1,
+      tempCurrentInvoicePage: "1",
+      limitInvoicePerQuery: 5,
+      totalInvoicePages: 1,
+      currentProductPage: 1,
+      tempCurrentProductPage: "1",
+      limitProductPerQuery: 7,
+      totalProductPages: 1,
     };
     this.handlePreviceUserImage = this.handlePreviceUserImage.bind(this);
     this.handleUploadUserImage = this.handleUploadUserImage.bind(this);
@@ -70,14 +90,14 @@ class User extends Component {
     if (this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        const { accountid } = this.state
-        this.loadAccountInfo(accountid)
-        this.loadInvoiceInfo(accountid)
-        this.setState({ isLoading: false })
-      }, 10)
+        const { accountid } = this.state;
+        this.loadAccountInfo(accountid);
+        this.loadInvoiceInfo(accountid);
+        this.setState({ isLoading: false });
+      }, 10);
       setTimeout(() => {
-        console.log(this.state)
-      }, 100)
+        console.log(this.state);
+      }, 100);
     }
   }
   async componentDidUpdate(prevProps, prevState) {
@@ -86,7 +106,7 @@ class User extends Component {
       setTimeout(() => {
         this.loadAccountInfo();
         this.loadInvoiceInfo();
-      }, 10)
+      }, 10);
     }
   }
   componentWillUnmount() {
@@ -103,7 +123,7 @@ class User extends Component {
         }
         this.setState({
           isLoggedIn: true,
-          accountid: accountInfo.AccountID
+          accountid: accountInfo.AccountID,
         });
       } else {
         await handleLogoutApi();
@@ -112,11 +132,11 @@ class User extends Component {
           isLoggedIn: false,
           accountid: "",
         });
-        this.props.navigate("/login")
+        this.props.navigate("/login");
       }
     } catch (e) {
       this.props.navigate("/login");
-      console.log("Token not found!")
+      console.log("Token not found!");
     }
   };
   triggerLoadInformation = () => {
@@ -126,7 +146,7 @@ class User extends Component {
   };
   handleLoadPaymentType = async () => {
     try {
-      const codePaymentType = await handleGetAllCodesApi('PaymentType');
+      const codePaymentType = await handleGetAllCodesApi("PaymentType");
       if (!codePaymentType || codePaymentType.length === 0) {
         toast.error("Không thể tải phương thức thanh toán!", {
           position: "top-right",
@@ -145,10 +165,10 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadShippingMethod = async () => {
     try {
-      const codeShippingMethod = await handleGetAllCodesApi('ShippingMethod');
+      const codeShippingMethod = await handleGetAllCodesApi("ShippingMethod");
       if (!codeShippingMethod || codeShippingMethod.length === 0) {
         toast.error("Không thể tải cách thức vận chuyển!", {
           position: "top-right",
@@ -167,10 +187,10 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadPaymentStatus = async () => {
     try {
-      const codePaymentStatus = await handleGetAllCodesApi('PaymentStatus');
+      const codePaymentStatus = await handleGetAllCodesApi("PaymentStatus");
       if (!codePaymentStatus || codePaymentStatus.length === 0) {
         toast.error("Không thể tải trạng thái thanh toán!", {
           position: "top-right",
@@ -189,10 +209,10 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadShippingStatus = async () => {
     try {
-      const codeShippingStatus = await handleGetAllCodesApi('ShippingStatus');
+      const codeShippingStatus = await handleGetAllCodesApi("ShippingStatus");
       if (!codeShippingStatus || codeShippingStatus.length === 0) {
         toast.error("Không thể tải trạng thái vận chuyển!", {
           position: "top-right",
@@ -211,12 +231,12 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   loadAccountInfo = async (accountid) => {
     try {
       const response = await handleGetAccountInfoApi(accountid);
       if (response && response.errCode === 0) {
-        const accountInfo = response.data
+        const accountInfo = response.data;
         this.setState({
           accountname: accountInfo.AccountName,
           email: accountInfo.Email,
@@ -224,8 +244,8 @@ class User extends Component {
           phone: accountInfo.Phone,
           address: accountInfo.Address,
           gender: accountInfo.Gender,
-          userimage: accountInfo.UserImage
-        })
+          userimage: accountInfo.UserImage,
+        });
       } else {
         toast.error("Bạn đã được đăng xuất!", {
           position: "top-right",
@@ -247,8 +267,11 @@ class User extends Component {
       const response = await handleGetAccountInvoiceInfoApi(accountid);
       if (response && response.errCode === 0) {
         this.setState({
-          loadedInvoiceInfo: response.data
-        })
+          loadedInvoiceInfo: response.data,
+          totalInvoicePages: Math.ceil(
+            response.data.length / this.state.limitInvoicePerQuery
+          ),
+        });
       } else {
         toast.error("Tải thông tin đơn hàng thất bại!", {
           position: "top-right",
@@ -264,10 +287,10 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadCodeGender = async () => {
     try {
-      const codeGender = await handleGetAllCodesApi('Gender');
+      const codeGender = await handleGetAllCodesApi("Gender");
       if (!codeGender || codeGender.length === 0) {
         toast.error("Không thể tải danh sách giới tính!", {
           position: "top-right",
@@ -287,7 +310,7 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handlePreviceUserImage = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -377,7 +400,7 @@ class User extends Component {
     this.setState({
       [name]: value,
     });
-  }
+  };
   toggleShowPassword = (field) => {
     this.setState((prevState) => ({
       [field]: !prevState[field],
@@ -385,7 +408,19 @@ class User extends Component {
   };
   handleUpdateAccountInfo = async (e) => {
     e.preventDefault();
-    const { fileToUpload, isUploading, editField, originalValue, accountid, accountname, username, phone, address, gender, email } = this.state;
+    const {
+      fileToUpload,
+      isUploading,
+      editField,
+      originalValue,
+      accountid,
+      accountname,
+      username,
+      phone,
+      address,
+      gender,
+      email,
+    } = this.state;
     let updateInfo = {
       accountid: accountid,
       accountname: accountname,
@@ -440,7 +475,7 @@ class User extends Component {
         autoClose: 500,
         closeOnClick: true,
       });
-      this.loadAccountInfo(accountid)
+      this.loadAccountInfo(accountid);
       return;
     }
     const phoneNumber = updateInfo.phone.trim();
@@ -451,14 +486,13 @@ class User extends Component {
         autoClose: 500,
         closeOnClick: true,
       });
-      this.loadAccountInfo(accountid)
+      this.loadAccountInfo(accountid);
       return;
     }
     if (hasChanges) {
       let response = await handleChangeAccountInfoApi(updateInfo);
       if (response && response.errCode === 0) {
-        toast.success(
-          "Cập nhật thông tin thành công!", {
+        toast.success("Cập nhật thông tin thành công!", {
           position: "top-right",
           autoClose: 500,
           closeOnClick: true,
@@ -470,11 +504,11 @@ class User extends Component {
           autoClose: 500,
           closeOnClick: true,
         });
-        this.loadAccountInfo(accountid)
+        this.loadAccountInfo(accountid);
       }
     }
     this.setState({ editField: null, originalValue: "" });
-  }
+  };
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 1, editField: null });
@@ -489,9 +523,18 @@ class User extends Component {
   };
   handleFormChiTietDonHang = async (invoiceid) => {
     try {
-      const response = await handleGetInvoiceDetailInfoApi(invoiceid)
+      const response = await handleGetInvoiceDetailInfoApi(invoiceid);
       if (response && response.errCode === 0) {
-        this.setState({ actionPage: 4, selectedInvoiceID: invoiceid, loadedInvoiceDetail: response.data });
+        this.setState({
+          actionPage: 4,
+          selectedInvoiceID: invoiceid,
+          loadedInvoiceDetail: response.data,
+          totalProductPages: Math.ceil(
+            response.data.ProductList.length / this.state.limitProductPerQuery
+          ),
+          currentProductPage: 1,
+          tempCurrentProductPage: "1",
+        });
       } else {
         toast.error(response.errMessage, {
           position: "top-right",
@@ -500,7 +543,11 @@ class User extends Component {
         });
       }
     } catch (e) {
-      this.setState({ actionPage: 4, selectedInvoiceID: invoiceid, loadedInvoiceDetail: null });
+      this.setState({
+        actionPage: 4,
+        selectedInvoiceID: invoiceid,
+        loadedInvoiceDetail: null,
+      });
       toast.error("Lỗi khi lấy chi tiết đơn hàng!", {
         position: "top-right",
         autoClose: 500,
@@ -541,14 +588,21 @@ class User extends Component {
       return;
     }
     try {
-      this.setState({ isLoading: true })
-      const response = await handleChangePasswordApi(accountid, oldPassword, newPassword)
+      this.setState({ isLoading: true });
+      const response = await handleChangePasswordApi(
+        accountid,
+        oldPassword,
+        newPassword
+      );
       if (response && response.errCode === 0) {
-        toast.success("Đổi mật khẩu thành công, hãy đăng nhập lại với mật khẩu mới", {
-          position: "top-right",
-          autoClose: 1000,
-          closeOnClick: true,
-        });
+        toast.success(
+          "Đổi mật khẩu thành công, hãy đăng nhập lại với mật khẩu mới",
+          {
+            position: "top-right",
+            autoClose: 1000,
+            closeOnClick: true,
+          }
+        );
         this.setState({
           oldPassword: "",
           newPassword: "",
@@ -561,7 +615,7 @@ class User extends Component {
             isLoggedIn: false,
             accountid: "",
           });
-          this.props.navigate("/login")
+          this.props.navigate("/login");
         }, 1001);
       } else {
         toast.error(response.errMessage, {
@@ -577,7 +631,7 @@ class User extends Component {
         closeOnClick: true,
       });
     }
-    this.setState({ isLoading: false })
+    this.setState({ isLoading: false });
   };
   handleConfirmReceived = async (invoiceid) => {
     const confirmReceived = () =>
@@ -585,10 +639,22 @@ class User extends Component {
         toast(
           <div>
             <p>Xác nhận đã nhận hàng?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
@@ -601,7 +667,12 @@ class User extends Component {
     try {
       const type = "ShippingStatus";
       const status = "DELI";
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, "");
+      const response = await handleChangeInvoiceStatusApi(
+        invoiceid,
+        type,
+        status,
+        ""
+      );
       if (response && response.errCode === 0) {
         toast.success("Xác nhận nhận hàng thành công!", {
           position: "top-right",
@@ -610,7 +681,8 @@ class User extends Component {
         });
         await this.loadInvoiceInfo(this.state.accountid);
       } else {
-        const errMessage = response?.errMessage || "Xác nhận nhận hàng thất bại!";
+        const errMessage =
+          response?.errMessage || "Xác nhận nhận hàng thất bại!";
         toast.error(errMessage, {
           position: "top-right",
           autoClose: 500,
@@ -633,10 +705,22 @@ class User extends Component {
         toast(
           <div>
             <p>Xác nhận tiếp tục đơn hàng?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
@@ -649,7 +733,12 @@ class User extends Component {
     try {
       const type = "ShippingStatus";
       const status = "PEND";
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, "");
+      const response = await handleChangeInvoiceStatusApi(
+        invoiceid,
+        type,
+        status,
+        ""
+      );
       if (response && response.errCode === 0) {
         toast.success("Tiếp tục đơn hàng thành công!", {
           position: "top-right",
@@ -658,7 +747,8 @@ class User extends Component {
         });
         await this.loadInvoiceInfo(this.state.accountid);
       } else {
-        const errMessage = response?.errMessage || "Tiếp tục đơn hàng thất bại!";
+        const errMessage =
+          response?.errMessage || "Tiếp tục đơn hàng thất bại!";
         toast.error(errMessage, {
           position: "top-right",
           autoClose: 500,
@@ -690,8 +780,13 @@ class User extends Component {
     this.setState({ isLoading: true });
     try {
       const type = "ShippingStatus";
-      const status = "PEND_CANCEL"
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, cancelreason);
+      const status = "PEND_CANCEL";
+      const response = await handleChangeInvoiceStatusApi(
+        invoiceid,
+        type,
+        status,
+        cancelreason
+      );
       if (response && response.errCode === 0) {
         toast.success("Gửi yêu cầu hủy đơn hàng thành công!", {
           position: "top-right",
@@ -713,21 +808,175 @@ class User extends Component {
       }
     } catch (e) {
       console.error("Edit:", e);
-      toast.error("Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!", {
-        position: "top-right",
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(
+        "Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!",
+        {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        }
+      );
     }
     this.setState({ isLoading: false });
   };
+  handleFirstInvoicePage = () => {
+    this.setState({ currentInvoicePage: 1, tempCurrentInvoicePage: "1" });
+  };
+
+  handlePrevInvoicePage = () => {
+    this.setState((prevState) => ({
+      currentInvoicePage: Math.max(1, prevState.currentInvoicePage - 1),
+      tempCurrentInvoicePage: Math.max(1, prevState.currentInvoicePage - 1),
+    }));
+  };
+
+  handleNextInvoicePage = () => {
+    this.setState((prevState) => ({
+      currentInvoicePage: Math.min(
+        prevState.totalInvoicePages,
+        prevState.currentInvoicePage + 1
+      ),
+      tempCurrentInvoicePage: Math.min(
+        prevState.totalInvoicePages,
+        prevState.currentInvoicePage + 1
+      ),
+    }));
+  };
+
+  handleLastInvoicePage = () => {
+    this.setState((prevState) => ({
+      currentInvoicePage: prevState.totalInvoicePages,
+      tempCurrentInvoicePage: prevState.totalInvoicePages,
+    }));
+  };
+
+  handleInvoicePageInputChange = (e) => {
+    const value = e.target.value;
+    this.setState({ tempCurrentInvoicePage: value });
+  };
+
+  handleInvoicePageKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const pageNumber = parseInt(this.state.tempCurrentInvoicePage, 10);
+      if (
+        !isNaN(pageNumber) &&
+        pageNumber >= 1 &&
+        pageNumber <= this.state.totalInvoicePages
+      ) {
+        this.setState({ currentInvoicePage: pageNumber });
+      } else {
+        this.setState({ currentInvoicePage: 1, tempCurrentInvoicePage: "1" });
+      }
+    }
+  };
+
+  handleInvoicePageInputBlur = () => {
+    const { tempCurrentInvoicePage, totalInvoicePages } = this.state;
+    const pageNumber = parseInt(tempCurrentInvoicePage, 10);
+    if (
+      !isNaN(pageNumber) &&
+      pageNumber >= 1 &&
+      pageNumber <= totalInvoicePages
+    ) {
+      this.setState({ currentInvoicePage: pageNumber });
+    } else {
+      this.setState({ currentInvoicePage: 1, tempCurrentInvoicePage: "1" });
+    }
+  };
+  handleFirstProductPage = () => {
+    this.setState({ currentProductPage: 1, tempCurrentProductPage: "1" });
+  };
+
+  handlePrevProductPage = () => {
+    this.setState((prevState) => ({
+      currentProductPage: Math.max(1, prevState.currentProductPage - 1),
+      tempCurrentProductPage: Math.max(1, prevState.currentProductPage - 1),
+    }));
+  };
+
+  handleNextProductPage = () => {
+    this.setState((prevState) => ({
+      currentProductPage: Math.min(
+        prevState.totalProductPages,
+        prevState.currentProductPage + 1
+      ),
+      tempCurrentProductPage: Math.min(
+        prevState.totalProductPages,
+        prevState.currentProductPage + 1
+      ),
+    }));
+  };
+
+  handleLastProductPage = () => {
+    this.setState((prevState) => ({
+      currentProductPage: prevState.totalProductPages,
+      tempCurrentProductPage: prevState.totalProductPages,
+    }));
+  };
+
+  handleProductPageInputChange = (e) => {
+    const value = e.target.value;
+    this.setState({ tempCurrentProductPage: value });
+  };
+
+  handleProductPageKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const pageNumber = parseInt(this.state.tempCurrentProductPage, 10);
+      if (
+        !isNaN(pageNumber) &&
+        pageNumber >= 1 &&
+        pageNumber <= this.state.totalProductPages
+      ) {
+        this.setState({ currentProductPage: pageNumber });
+      } else {
+        this.setState({ currentProductPage: 1, tempCurrentProductPage: "1" });
+      }
+    }
+  };
+
+  handleProductPageInputBlur = () => {
+    const { tempCurrentProductPage, totalProductPages } = this.state;
+    const pageNumber = parseInt(tempCurrentProductPage, 10);
+    if (
+      !isNaN(pageNumber) &&
+      pageNumber >= 1 &&
+      pageNumber <= totalProductPages
+    ) {
+      this.setState({ currentProductPage: pageNumber });
+    } else {
+      this.setState({ currentProductPage: 1, tempCurrentProductPage: "1" });
+    }
+  };
   renderForm() {
-    const { actionPage, oldPassword, newPassword, confirmPassword, editField, codePaymentType, codeShippingMethod, codePaymentStatus, codeShippingStatus,
-      userimage, accountname, username, phone, address, gender, email, codeGender, loadedInvoiceInfo } = this.state
+    const {
+      actionPage,
+      oldPassword,
+      newPassword,
+      confirmPassword,
+      editField,
+      codePaymentType,
+      codeShippingMethod,
+      codePaymentStatus,
+      codeShippingStatus,
+      userimage,
+      accountname,
+      username,
+      phone,
+      address,
+      gender,
+      email,
+      codeGender,
+      loadedInvoiceInfo,
+    } = this.state;
     switch (actionPage) {
       case 1:
         return (
-          <form className="user-info-form" onSubmit={this.handleUpdateAccountInfo}>
+          <form
+            className="user-info-form"
+            onSubmit={this.handleUpdateAccountInfo}
+          >
             <h3>
               <b>Thông tin người dùng:</b>
             </h3>
@@ -871,6 +1120,19 @@ class User extends Component {
           </form>
         );
       case 2:
+        const {
+          currentInvoicePage,
+          limitInvoicePerQuery,
+          totalInvoicePages,
+          tempCurrentInvoicePage,
+        } = this.state;
+        const startInvoiceIndex =
+          (currentInvoicePage - 1) * limitInvoicePerQuery;
+        const endInvoiceIndex = startInvoiceIndex + limitInvoicePerQuery;
+        const paginatedInvoiceInfo = loadedInvoiceInfo.slice(
+          startInvoiceIndex,
+          endInvoiceIndex
+        );
         return (
           <form className="user-cart-form">
             <h3>
@@ -879,12 +1141,15 @@ class User extends Component {
             <div className="user-cart-form-content">
               <div className="order-list">
                 {loadedInvoiceInfo.length > 0 ? (
-                  loadedInvoiceInfo.map((invoice, index) => (
+                  paginatedInvoiceInfo.map((invoice, index) => (
                     <div
                       key={index}
-                      className={`order-list-object ${actionPage === 4 ? "active" : ""
-                        }`}
-                      onClick={() => this.handleFormChiTietDonHang(invoice.InvoiceID)}
+                      className={`order-list-object ${
+                        actionPage === 4 ? "active" : ""
+                      }`}
+                      onClick={() =>
+                        this.handleFormChiTietDonHang(invoice.InvoiceID)
+                      }
                     >
                       <div className="order-list-object-top">
                         <div className="oder-list-descreption-left">
@@ -892,31 +1157,39 @@ class User extends Component {
                             <div className="descreption-order">
                               <b>Mã đơn hàng:</b>
                             </div>
-                            <div className="value-oder">{invoice.InvoiceID}</div>
+                            <div className="value-oder">
+                              {invoice.InvoiceID}
+                            </div>
                           </div>
                           <div className="order-info-tab">
                             <div className="descreption-order">
                               <b>Ngày mua hàng:</b>
                             </div>
                             <div className="value-oder">
-                              {new Date(
-                                invoice.CreatedAt
-                              ).toLocaleDateString("vi-VN")}
+                              {new Date(invoice.CreatedAt).toLocaleDateString(
+                                "vi-VN"
+                              )}
                             </div>
                           </div>
                         </div>
                         <div className="oder-list-descreption-right">
                           {invoice.CanceledAt ? (
                             <div className="order-info-tab">
-                              <div className="descreption-order"><b>Ngày hủy:</b></div>
+                              <div className="descreption-order">
+                                <b>Ngày hủy:</b>
+                              </div>
                               <div className="value-oder">
-                                {new Date(invoice.CanceledAt).toLocaleDateString("vi-VN")}
+                                {new Date(
+                                  invoice.CanceledAt
+                                ).toLocaleDateString("vi-VN")}
                               </div>
                             </div>
                           ) : (
                             <div>
                               <div className="order-info-tab">
-                                <div className="descreption-order"><b>Tình trạng thanh toán:</b></div>
+                                <div className="descreption-order">
+                                  <b>Tình trạng thanh toán:</b>
+                                </div>
                                 <div
                                   className="value-oder"
                                   style={{
@@ -924,17 +1197,22 @@ class User extends Component {
                                       invoice.PaymentStatus === "PEND"
                                         ? "#FFA500"
                                         : invoice.PaymentStatus === "PAID"
-                                          ? "#008000"
-                                          : invoice.PaymentStatus === "FAIL"
-                                            ? "#FF0000"
-                                            : "inherit",
+                                        ? "#008000"
+                                        : invoice.PaymentStatus === "FAIL"
+                                        ? "#FF0000"
+                                        : "inherit",
                                   }}
                                 >
-                                  {codePaymentStatus?.find((method) => method.Code === invoice.PaymentStatus)?.CodeValueVI || "Không xác định"}
+                                  {codePaymentStatus?.find(
+                                    (method) =>
+                                      method.Code === invoice.PaymentStatus
+                                  )?.CodeValueVI || "Không xác định"}
                                 </div>
                               </div>
                               <div className="order-info-tab">
-                                <div className="descreption-order"><b>Tình trạng giao hàng:</b></div>
+                                <div className="descreption-order">
+                                  <b>Tình trạng giao hàng:</b>
+                                </div>
                                 <div
                                   className="value-oder"
                                   style={{
@@ -942,15 +1220,19 @@ class User extends Component {
                                       invoice.ShippingStatus === "PEND"
                                         ? "#FFA500"
                                         : invoice.ShippingStatus === "DELI"
-                                          ? "#008000"
-                                          : invoice.ShippingStatus === "PEND_CANCEL"
-                                            ? "#FF4500"
-                                            : invoice.ShippingStatus === "CANCELED"
-                                              ? "#FF0000"
-                                              : "inherit",
+                                        ? "#008000"
+                                        : invoice.ShippingStatus ===
+                                          "PEND_CANCEL"
+                                        ? "#FF4500"
+                                        : invoice.ShippingStatus === "CANCELED"
+                                        ? "#FF0000"
+                                        : "inherit",
                                   }}
                                 >
-                                  {codeShippingStatus?.find((method) => method.Code === invoice.ShippingStatus)?.CodeValueVI || "Không xác định"}
+                                  {codeShippingStatus?.find(
+                                    (method) =>
+                                      method.Code === invoice.ShippingStatus
+                                  )?.CodeValueVI || "Không xác định"}
                                 </div>
                               </div>
                             </div>
@@ -1004,45 +1286,56 @@ class User extends Component {
                               <div className="label">Tổng tiền hàng:</div>
                               <div className="value">
                                 <b>
-                                  {parseFloat(invoice.TotalPayment).toLocaleString("vi-VN", {
+                                  {parseFloat(
+                                    invoice.TotalPayment
+                                  ).toLocaleString("vi-VN", {
                                     style: "currency",
                                     currency: "VND",
                                   })}
                                 </b>
                               </div>
                             </div>
-                            {invoice.PaymentStatus === "PEND" && invoice.ShippingStatus === "PEND" && (
-                              <button
-                                type="button"
-                                className="cancel-order-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  this.handleSelectedCancelInvoice(invoice.InvoiceID);
-                                }}
-                              >
-                                Hủy đơn hàng
-                              </button>
-                            )}
-                            {invoice.PaymentStatus === "PAID" && invoice.ShippingStatus === "PEND" && (
-                              <button
-                                type="button"
-                                className="received-order-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  this.handleConfirmReceived(invoice.InvoiceID);
-                                }}
-                              >
-                                Xác nhận giao hàng
-                              </button>
-                            )}
-                            {(invoice.PaymentStatus === "PEND" || invoice.PaymentStatus === "PAID") &&
+                            {invoice.PaymentStatus === "PEND" &&
+                              invoice.ShippingStatus === "PEND" && (
+                                <button
+                                  type="button"
+                                  className="cancel-order-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    this.handleSelectedCancelInvoice(
+                                      invoice.InvoiceID
+                                    );
+                                  }}
+                                >
+                                  Hủy đơn hàng
+                                </button>
+                              )}
+                            {invoice.PaymentStatus === "PAID" &&
+                              invoice.ShippingStatus === "PEND" && (
+                                <button
+                                  type="button"
+                                  className="received-order-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    this.handleConfirmReceived(
+                                      invoice.InvoiceID
+                                    );
+                                  }}
+                                >
+                                  Xác nhận giao hàng
+                                </button>
+                              )}
+                            {(invoice.PaymentStatus === "PEND" ||
+                              invoice.PaymentStatus === "PAID") &&
                               invoice.ShippingStatus === "PEND_CANCEL" && (
                                 <button
                                   type="button"
                                   className="continue-order-btn"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    this.handleContinueInvoice(invoice.InvoiceID);
+                                    this.handleContinueInvoice(
+                                      invoice.InvoiceID
+                                    );
                                   }}
                                 >
                                   Tiếp tục đơn hàng
@@ -1057,6 +1350,52 @@ class User extends Component {
                   <p>Không có đơn hàng nào.</p>
                 )}
               </div>
+              {totalInvoicePages > 1 && (
+                <div className="page-content">
+                  <div className="page-content-item">
+                    <button
+                      type="button"
+                      className="first"
+                      onClick={this.handleFirstInvoicePage}
+                      disabled={currentInvoicePage === 1}
+                    >
+                      {"<<"}
+                    </button>
+                    <button
+                      type="button"
+                      className="prev"
+                      onClick={this.handlePrevInvoicePage}
+                      disabled={currentInvoicePage === 1}
+                    >
+                      {"<"}
+                    </button>
+                    <input
+                      type="text"
+                      value={tempCurrentInvoicePage}
+                      onChange={this.handleInvoicePageInputChange}
+                      onKeyDown={this.handleInvoicePageKeyDown}
+                      onBlur={this.handleInvoicePageInputBlur}
+                    />
+                    <span className="total-pages">/ {totalInvoicePages}</span>
+                    <button
+                      type="button"
+                      className="next"
+                      onClick={this.handleNextInvoicePage}
+                      disabled={currentInvoicePage === totalInvoicePages}
+                    >
+                      {">"}
+                    </button>
+                    <button
+                      type="button"
+                      className="last"
+                      onClick={this.handleLastInvoicePage}
+                      disabled={currentInvoicePage === totalInvoicePages}
+                    >
+                      {">>"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </form>
         );
@@ -1113,7 +1452,9 @@ class User extends Component {
                   required
                 />
                 <IonIcon
-                  icon={this.state.showConfirmPassword ? eyeOffOutline : eyeOutline}
+                  icon={
+                    this.state.showConfirmPassword ? eyeOffOutline : eyeOutline
+                  }
                   className="password-toggle-icon"
                   onClick={() => this.toggleShowPassword("showConfirmPassword")}
                 />
@@ -1125,7 +1466,22 @@ class User extends Component {
           </form>
         );
       case 4:
-        const { loadedInvoiceDetail, selectedInvoiceID } = this.state;
+        const {
+          loadedInvoiceDetail,
+          selectedInvoiceID,
+          limitProductPerQuery,
+          currentProductPage,
+          totalProductPages,
+          tempCurrentProductPage,
+        } = this.state;
+        const startProductIndex =
+          (currentProductPage - 1) * limitProductPerQuery;
+        const endProductIndex = startProductIndex + limitProductPerQuery;
+        const paginatedProductList =
+          loadedInvoiceDetail?.ProductList?.slice(
+            startProductIndex,
+            endProductIndex
+          ) || [];
         if (!loadedInvoiceDetail) {
           return (
             <div>
@@ -1160,8 +1516,18 @@ class User extends Component {
                   </div>
                 </div>
                 <div className="tt">
-                  <h5 style={{ color: loadedInvoiceDetail?.ShippingStatus === "DELI" ? "green" : "inherit" }}>
-                    {codeShippingStatus?.find((status) => status.Code === loadedInvoiceDetail?.ShippingStatus)?.CodeValueVI || "N/A"}
+                  <h5
+                    style={{
+                      color:
+                        loadedInvoiceDetail?.ShippingStatus === "DELI"
+                          ? "green"
+                          : "inherit",
+                    }}
+                  >
+                    {codeShippingStatus?.find(
+                      (status) =>
+                        status.Code === loadedInvoiceDetail?.ShippingStatus
+                    )?.CodeValueVI || "N/A"}
                   </h5>
                 </div>
               </div>
@@ -1188,8 +1554,11 @@ class User extends Component {
             </div>
             <div className="user-cart-form-info-list-item">
               {loadedInvoiceDetail?.ProductList?.length > 0 ? (
-                loadedInvoiceDetail.ProductList.map((item, index) => (
-                  <div key={index} className="user-cart-form-info-list-item-row">
+                paginatedProductList.map((item, index) => (
+                  <div
+                    key={index}
+                    className="user-cart-form-info-list-item-row"
+                  >
                     <div className="user-cart-form-info-list-item-left">
                       <div className="img-product">
                         <img
@@ -1202,26 +1571,32 @@ class User extends Component {
                     <div className="user-cart-form-info-list-item-center">
                       <div className="item-info-tab">
                         <div className="descreption-item">Sản phẩm:</div>
-                        <div className="value-item">{item?.ProductName || "N/A"}</div>
+                        <div className="value-item">
+                          {item?.ProductName || "N/A"}
+                        </div>
                       </div>
                       <div className="item-info-tab">
                         <div className="descreption-item">Loại:</div>
-                        <div className="value-item">{item?.DetailName || "N/A"}</div>
+                        <div className="value-item">
+                          {item?.DetailName || "N/A"}
+                        </div>
                       </div>
                     </div>
                     <div className="user-cart-form-info-list-item-right">
                       <div className="item-info-tab">
                         <div className="descreption-item">Số lượng:</div>
-                        <div className="value-item"><b>{item?.ItemQuantity || "N/A"}</b></div>
+                        <div className="value-item">
+                          <b>{item?.ItemQuantity || "N/A"}</b>
+                        </div>
                       </div>
                       <div className="item-info-tab">
                         <div className="descreption-item">Đơn giá:</div>
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString("vi-VN", {
-                              style: "currency",
-                              currency: "VND",
-                            })
+                                style: "currency",
+                                currency: "VND",
+                              })
                             : "N/A"}
                         </div>
                       </div>
@@ -1232,18 +1607,69 @@ class User extends Component {
                 <p>Không có sản phẩm trong đơn hàng.</p>
               )}
             </div>
+            {totalProductPages > 1 && (
+              <div className="page-content">
+                <div className="page-content-item">
+                  <button
+                    type="button"
+                    className="first"
+                    onClick={this.handleFirstProductPage}
+                    disabled={currentProductPage === 1}
+                  >
+                    {"<<"}
+                  </button>
+                  <button
+                    type="button"
+                    className="prev"
+                    onClick={this.handlePrevProductPage}
+                    disabled={currentProductPage === 1}
+                  >
+                    {"<"}
+                  </button>
+                  <input
+                    type="text"
+                    value={tempCurrentProductPage}
+                    onChange={this.handleProductPageInputChange}
+                    onKeyDown={this.handleProductPageKeyDown}
+                    onBlur={this.handleProductPageInputBlur}
+                  />
+                  <span className="total-pages">/ {totalProductPages}</span>
+                  <button
+                    type="button"
+                    className="next"
+                    onClick={this.handleNextProductPage}
+                    disabled={currentProductPage === totalProductPages}
+                  >
+                    {">"}
+                  </button>
+                  <button
+                    type="button"
+                    className="last"
+                    onClick={this.handleLastProductPage}
+                    disabled={currentProductPage === totalProductPages}
+                  >
+                    {">>"}
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="user-cart-form-info-table-price">
               <div className="price-item">
                 <div className="label">Tổng sản phẩm:</div>
-                <div className="value">{loadedInvoiceDetail?.TotalQuantity || 0}</div>
+                <div className="value">
+                  {loadedInvoiceDetail?.TotalQuantity || 0}
+                </div>
               </div>
               <div className="price-item">
                 <div className="label">Tổng tiền hàng:</div>
                 <div className="value">
-                  {parseFloat(loadedInvoiceDetail?.TotalPrice).toLocaleString("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }) || "0 ₫"}
+                  {parseFloat(loadedInvoiceDetail?.TotalPrice).toLocaleString(
+                    "vi-VN",
+                    {
+                      style: "currency",
+                      currency: "VND",
+                    }
+                  ) || "0 ₫"}
                 </div>
               </div>
               <div className="price-item">
@@ -1251,13 +1677,17 @@ class User extends Component {
                 <div className="value">
                   {(() => {
                     const shipping = codeShippingMethod?.find(
-                      (method) => method.Code === loadedInvoiceDetail?.ShippingMethod
+                      (method) =>
+                        method.Code === loadedInvoiceDetail?.ShippingMethod
                     );
                     return shipping
-                      ? parseFloat(shipping.ExtraValue).toLocaleString("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      })
+                      ? parseFloat(shipping.ExtraValue).toLocaleString(
+                          "vi-VN",
+                          {
+                            style: "currency",
+                            currency: "VND",
+                          }
+                        )
                       : "0 ₫";
                   })()}
                 </div>
@@ -1266,7 +1696,10 @@ class User extends Component {
                 <div className="price-item">
                   <div className="label">Giảm giá từ coupon:</div>
                   <div className="value">
-                    -{parseFloat(loadedInvoiceDetail?.DiscountAmount).toLocaleString("vi-VN", {
+                    -
+                    {parseFloat(
+                      loadedInvoiceDetail?.DiscountAmount
+                    ).toLocaleString("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }) || "0 ₫"}
@@ -1276,10 +1709,13 @@ class User extends Component {
               <div className="price-item">
                 <div className="label">Tổng thanh toán:</div>
                 <div className="value">
-                  {parseFloat(loadedInvoiceDetail?.TotalPayment).toLocaleString("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }) || "0 ₫"}
+                  {parseFloat(loadedInvoiceDetail?.TotalPayment).toLocaleString(
+                    "vi-VN",
+                    {
+                      style: "currency",
+                      currency: "VND",
+                    }
+                  ) || "0 ₫"}
                 </div>
               </div>
               <div className="price-item">
@@ -1287,7 +1723,8 @@ class User extends Component {
                 <div className="value">
                   {(() => {
                     const payment = codePaymentType?.find(
-                      (method) => method.Code === loadedInvoiceDetail?.PaymentType
+                      (method) =>
+                        method.Code === loadedInvoiceDetail?.PaymentType
                     );
                     return payment ? payment.CodeValueVI : "N/A";
                   })()}
@@ -1298,7 +1735,8 @@ class User extends Component {
                 <div className="value">
                   {(() => {
                     const shipping = codeShippingMethod?.find(
-                      (method) => method.Code === loadedInvoiceDetail?.ShippingMethod
+                      (method) =>
+                        method.Code === loadedInvoiceDetail?.ShippingMethod
                     );
                     return shipping ? shipping.CodeValueVI : "N/A";
                   })()}
@@ -1313,7 +1751,12 @@ class User extends Component {
   }
 
   render() {
-    const { actionPage, isLoading, isShowCancelInvoiceModal, selectedCancelInvoice } = this.state;
+    const {
+      actionPage,
+      isLoading,
+      isShowCancelInvoiceModal,
+      selectedCancelInvoice,
+    } = this.state;
     return (
       <div className="user-page">
         <Header
@@ -1328,25 +1771,31 @@ class User extends Component {
           handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
         />
         <ToastContainer />
-        {isLoading ? <Spinner /> : (
+        {isLoading ? (
+          <Spinner />
+        ) : (
           <div className="user-container">
             <div className="user-action-form">
               <div
-                className={`user-action-info ${actionPage === 1 ? "active" : ""}`}
+                className={`user-action-info ${
+                  actionPage === 1 ? "active" : ""
+                }`}
                 onClick={this.handleFormHoSoNguoiDung}
               >
                 Hồ sơ người dùng
               </div>
               <div
-                className={`user-action-cart ${actionPage === 2 ? "active" : ""}${actionPage === 4 ? "active" : ""
-                  }`}
+                className={`user-action-cart ${
+                  actionPage === 2 ? "active" : ""
+                }${actionPage === 4 ? "active" : ""}`}
                 onClick={this.handleFormLichSuDonHang}
               >
                 Lịch sử đơn hàng
               </div>
               <div
-                className={`user-action-change-pw ${actionPage === 3 ? "active" : ""
-                  }`}
+                className={`user-action-change-pw ${
+                  actionPage === 3 ? "active" : ""
+                }`}
                 onClick={this.handleFormDoiMatKhau}
               >
                 Đổi mật khẩu

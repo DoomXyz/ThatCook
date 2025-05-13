@@ -393,7 +393,7 @@
                 width: 6%;
               }
               th:nth-child(10) {
-                width: 5%;
+                width: 10%;
               }
             }
           }
@@ -402,6 +402,19 @@
               td:nth-child(6) {
                 margin-top: 16.5px;
                 justify-content: center;
+              }
+              td:nth-child(10) {
+                button {
+                  width: 2.3rem;
+                  padding: 0.3rem;
+                  border-radius: 5rem;
+                }
+                button:first-child {
+                  background-color: rgb(2, 219, 2);
+                }
+                button:last-child {
+                  background-color: red;
+                }
               }
             }
           }

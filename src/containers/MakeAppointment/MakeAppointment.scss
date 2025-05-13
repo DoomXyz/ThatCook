@@ -1,0 +1,193 @@
+f {
+  display: flex;
+}
+
+.makeappointment-body {
+  background-color: white;
+  background-image: url("../../assets/doctor-imgs/bg-ck.png");
+  display: flex;
+  flex-direction: column; // Add this to stack children vertically
+  width: 100%;
+  align-items: center;
+  min-height: 100vh;
+  .header-container {
+    background-color: rgb(255, 255, 255) !important;
+    border-bottom: 1px solid black;
+    height: 5rem;
+  }
+  button {
+    background-color: #00b5f1;
+    border-radius: 0.3rem;
+    color: white;
+    font-weight: bold;
+  }
+  justify-content: center;
+  .makeappointment-content {
+    margin-top: 6rem;
+    width: 40rem;
+
+    h1 {
+      font-weight: bold;
+      color: #00b5f1;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .makeappointment-content-user-info {
+      b {
+        display: block;
+        margin-left: 5rem;
+        margin-bottom: 1rem;
+      }
+      input {
+        background-color: transparent;
+        padding: 0.2rem;
+        display: block;
+        margin: 0 auto;
+        width: 30rem;
+        margin-bottom: 1rem;
+        border: none;
+        border-bottom: 1px solid black;
+        padding-left: 0.5rem;
+      }
+      input:last-child {
+        margin-bottom: 2rem;
+      }
+    }
+    .makeappointment-content-pet-info {
+      b {
+        margin: 1rem 0;
+        display: block;
+        margin-left: 5rem;
+      }
+      input {
+        background-color: transparent;
+        padding: 0.2rem;
+        display: block;
+        margin: 0 auto;
+        width: 30rem;
+        margin-bottom: 1rem;
+        border: none;
+        border-bottom: 1px solid black;
+        padding-left: 0.5rem;
+      }
+      .f {
+        input {
+          width: 14.5rem;
+          margin: 0;
+          margin-bottom: 1rem;
+        }
+        input:first-child {
+          margin-left: 5rem;
+
+          margin-right: 1rem;
+        }
+      }
+    }
+    .makeappointment-content-doctor {
+      margin-top: 1rem;
+      margin-left: 5rem;
+      button {
+        height: 1.7rem;
+        width: 10rem;
+      }
+      p {
+        margin-left: 1rem;
+      }
+    }
+    .makeappointment-content-date {
+      margin-top: 1rem;
+      margin-left: 5rem;
+      button {
+        width: 10rem;
+      }
+      button:last-child {
+        width: 5rem;
+        margin-left: 1rem;
+      }
+    }
+    .makeappointment-content-service {
+      margin-top: 1rem;
+      margin-left: 5rem;
+      p {
+        margin: 0;
+        margin-bottom: 0.7rem;
+      }
+      select {
+        width: 7rem;
+      }
+    }
+    .makeappointment-content-time {
+      margin-top: 1rem;
+      margin-left: 9rem;
+      p {
+        margin: 0;
+        margin-bottom: 0.7rem;
+      }
+      select {
+        width: 7rem;
+      }
+    }
+    .makeappointment-content-pet {
+      margin-bottom: 1.5rem;
+      margin-left: 5rem;
+      button {
+        width: 13rem;
+        padding: 0.2rem;
+      }
+    }
+    textarea {
+      background-color: transparent;
+      padding: 0.2rem;
+      height: 10rem;
+      margin-top: 1.5rem;
+      width: 30rem;
+      margin-left: 5rem;
+    }
+    .makeappointment-content-petimgs {
+      margin-top: 0.7rem;
+      p {
+        margin-bottom: 1rem;
+      }
+      margin-left: 5rem;
+      .makeappointment-content-petimgs-block {
+        min-width: 30rem;
+        max-width: 30rem;
+        min-height: 15rem;
+        border: 1px solid black;
+        .makeappointment-content-petimgs-item {
+          display: inline-block;
+          margin: 1rem 0;
+          img {
+            margin-left: 1.7rem;
+            max-width: 12rem;
+          }
+          button {
+            margin: 1rem 0;
+            background-color: red;
+            position: absolute;
+            color: white;
+            width: 1.5rem;
+            transform: translateX(-1.5rem);
+          }
+        }
+
+        .add {
+          margin-left: 1.7rem;
+          width: 10rem;
+          height: 10rem;
+          background-color: rgb(212, 212, 212);
+          font-size: 1rem;
+          color: black;
+        }
+      }
+    }
+    .makeapp {
+      width: 7rem;
+      height: 2rem;
+      margin-top: 2rem;
+      margin-left: 28rem;
+      margin-bottom: 4rem;
+    }
+  }
+}
