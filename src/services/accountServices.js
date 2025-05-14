@@ -33,4 +33,19 @@ const handleChangePasswordApi = (accountid, password, newpassword) => {
   return axios.put('/api/change-password', { accountid, password, newpassword });
 };
 
-export { handleRegisterApi, handleLoginApi, handleVerifyTokenApi, handleLogoutApi, handleGetAccountInfoApi, handleLoadAccountInfoApi, handleChangeAccountStatusApi, handleChangeAccountInfoApi, handleChangePasswordApi };
+const handleGetVeterinarianInfoApi = (accountid) => {
+  return axios.get(`/api/get-veterinarianinfo?accountid=${accountid}`);
+};
+
+export {
+  handleRegisterApi,
+  handleLoginApi,
+  handleVerifyTokenApi,
+  handleLogoutApi,
+  handleGetAccountInfoApi,
+  handleLoadAccountInfoApi,
+  handleChangeAccountStatusApi,
+  handleChangeAccountInfoApi,
+  handleChangePasswordApi,
+  handleGetVeterinarianInfoApi
+};

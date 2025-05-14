@@ -52,13 +52,13 @@ const AppRoutes = () => {
       <Route path="/forgotpassword" element={<ForgotPassword navigate={navigate} />} />
       <Route path="/user/customer" element={<UserPage navigate={navigate} />} />
       <Route path="/user/owner" element={<OwnerPage navigate={navigate} />} />
-      <Route path="/user/homeappointment" element={<HomeAppointment navigate={navigate} />} />
-      <Route path="/user/makeappointment" element={<MakeAppointment navigate={navigate} />} />
-      <Route path="/user/showdoctor" element={<ShowDoctor navigate={navigate} />} />
-      <Route path="/user/genhealthcheck" element={<GenHealthCheck navigate={navigate} />} />
-      <Route path="/user/vaccination" element={<Vaccination navigate={navigate} />} />
-      <Route path="/user/surgery" element={<Surgery navigate={navigate} />} />
-      <Route path="/user/test" element={<Test navigate={navigate} />} />
+      <Route path="/homeappointment" element={<HomeAppointment navigate={navigate} />} />
+      <Route path="/makeappointment" element={<MakeAppointment navigate={navigate} />} />
+      <Route path="/showdoctor" element={<ShowDoctor navigate={navigate} />} />
+      <Route path="/service/genhealthcheck" element={<GenHealthCheck navigate={navigate} />} />
+      <Route path="/service/vaccination" element={<Vaccination navigate={navigate} />} />
+      <Route path="/service/surgery" element={<Surgery navigate={navigate} />} />
+      <Route path="/service/test" element={<Test navigate={navigate} />} />
     </Routes>
   );
 };

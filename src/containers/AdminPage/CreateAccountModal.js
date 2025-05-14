@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
-import { IonIcon } from '@ionic/react'; //import thư viện icon
-
-import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
-
+import { IonIcon } from '@ionic/react';
+import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline, informationCircleOutline } from 'ionicons/icons';
 import './CreateAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class CreateAccountModal extends Component {
@@ -24,16 +21,23 @@ class CreateAccountModal extends Component {
       address: '',
       gender: '',
       confirmPassword: '',
+      bio: '',
+      specialization: '',
+      workingStatus: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       codeGender: [],
       codeAccountType: [],
+      codeWorkingStatus: [],
     };
   }
+
   async componentDidMount() {
     await this.handleLoadCodeGender();
     await this.handleLoadCodeAccountType();
+    await this.handleLoadCodeWorkingStatus();
   }
+
   handleLoadCodeGender = async () => {
     try {
       const codeGender = await handleGetAllCodesApi('Gender');
@@ -57,6 +61,7 @@ class CreateAccountModal extends Component {
       });
     }
   };
+
   handleLoadCodeAccountType = async () => {
     try {
       const codeAccountType = await handleGetAllCodesApi('AccountType');
@@ -80,9 +85,35 @@ class CreateAccountModal extends Component {
       });
     }
   };
+
+  handleLoadCodeWorkingStatus = async () => {
+    try {
+      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
+      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
+        toast.error('Không thể tải danh sách trạng thái làm việc!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeWorkingStatus,
+        workingStatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
+      });
+    } catch (e) {
+      console.log('Error loading working status code:', e);
+      toast.error('Lỗi khi tải danh sách trạng thái làm việc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
   toggle = async () => {
     await this.handleLoadCodeGender();
     await this.handleLoadCodeAccountType();
+    await this.handleLoadCodeWorkingStatus();
     this.setState({
       accountname: '',
       email: '',
@@ -91,20 +122,23 @@ class CreateAccountModal extends Component {
       phone: '',
       address: '',
       confirmPassword: '',
+      bio: '',
+      specialization: '',
+      workingStatus: this.state.codeWorkingStatus.length > 0 ? this.state.codeWorkingStatus[0].Code : '',
       isTogglePassword1: false,
       isTogglePassword2: false,
     });
     this.props.toggleFromModal();
   };
-  //ẩn hiện pass
+
   handleTogglePassword1 = () => {
     this.setState({ isTogglePassword1: !this.state.isTogglePassword1 });
   };
-  //ẩn hiện confirmpass
+
   handleTogglePassword2 = () => {
     this.setState({ isTogglePassword2: !this.state.isTogglePassword2 });
   };
-  //quản lý state nhập
+
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -112,13 +146,15 @@ class CreateAccountModal extends Component {
       ...copyState,
     });
   };
+
   checkValidateInput = () => {
-    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender } = this.state;
+    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender, specialization } = this.state;
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/; //cần ít nhất 8 ký tự
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/; //chứa chữ cái, số hoặc khoảng trắng, dài từ 2-50 ký tự
-    const phoneRegex = /^[0-9]{10,11}$/; //chỉ chứa số và có độ dài từ 10-11 ký tự
+    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
+    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+    const phoneRegex = /^[0-9]{10,11}$/;
+    const specializationRegex = /^$|^[A-Za-zÀ-ỹ\s]{0,50}$/;
 
     if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
     if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
@@ -143,23 +179,33 @@ class CreateAccountModal extends Component {
 
     if (password !== confirmPassword) return { errCode: 1, errMessage: 'Mật khẩu không trùng khớp!' };
 
+    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên môn không hợp lệ!' };
+
     return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
   };
-  //gọi hàm tạo người dùng ở admin
+
   handleCreateAccount = () => {
     let isValidateInput = this.checkValidateInput();
     if (isValidateInput.errCode === 0) {
-      const { accounttype, accountname, email, password, username, phone, address, gender } = this.state;
-      this.props.handleCreateAccountFromModal({
-        accounttype: accounttype,
-        accountname: accountname,
-        email: email,
-        password: password,
-        username: username,
-        phone: phone,
-        address: address,
-        gender: gender,
-      });
+      const { accounttype, accountname, email, password, username, phone, address, gender, bio, specialization, workingStatus } = this.state;
+      const userInfo = {
+        accounttype,
+        accountname,
+        email,
+        password,
+        username,
+        phone,
+        address,
+        gender,
+      };
+      if (accounttype === 'V') {
+        userInfo.veterinarianInfo = {
+          bio: bio || null,
+          specialization: specialization || null,
+          workingStatus: workingStatus || null,
+        };
+      }
+      this.props.handleCreateAccountFromModal(userInfo);
     } else {
       toast.error(isValidateInput.errMessage, {
         position: 'top-right',
@@ -168,9 +214,10 @@ class CreateAccountModal extends Component {
       });
     }
   };
+
   render() {
     const { isOpen } = this.props;
-    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType } = this.state;
+    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingStatus, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus } = this.state;
     return (
       <Modal show={isOpen} onHide={this.toggle} className="create-user-modal" centered backdrop="static">
         <Modal.Header closeButton>
@@ -199,6 +246,34 @@ class CreateAccountModal extends Component {
               <IonIcon icon={peopleCircleOutline}></IonIcon>
             </div>
           </div>
+          {accounttype === 'V' && (
+            <div className="R2 veterinarian-info">
+              <div className="inputbox">
+                <IonIcon icon={informationCircleOutline}></IonIcon>
+                <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
+                <label>Chuyên môn</label>
+              </div>
+              <div className="inputbox">
+                <IonIcon icon={informationCircleOutline}></IonIcon>
+                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} />
+                <label>Tiểu sử</label>
+              </div>
+              <div className="selectbox">
+                <label>Trạng thái làm việc</label>
+                <select value={workingStatus} onChange={(event) => this.handleOnChangeInput(event, 'workingStatus')}>
+                  {codeWorkingStatus.length > 0 ? (
+                    codeWorkingStatus.map((item) => (
+                      <option key={item.Code} value={item.Code}>
+                        {item.CodeValueVI}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Không có dữ liệu trạng thái</option>
+                  )}
+                </select>
+              </div>
+            </div>
+          )}
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={person}></IonIcon>

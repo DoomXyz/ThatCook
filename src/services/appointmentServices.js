@@ -4,4 +4,11 @@ const handleCreateAppointmentApi = (appointmentData) => {
   return axios.post('/api/create-appointment', appointmentData);
 };
 
-export { handleCreateAppointmentApi };
+const handleGetServiceInfoApi = (serviceid) => {
+  return axios.get(`/api/get-serviceinfo?serviceid=${serviceid}`);
+};
+
+export {
+  handleCreateAppointmentApi,
+  handleGetServiceInfoApi
+};

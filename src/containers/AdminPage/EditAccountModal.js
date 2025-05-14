@@ -3,13 +3,13 @@ import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 
-import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
+import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline, informationCircleOutline } from 'ionicons/icons';
 
 import './EditAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
-import { handleGetAccountInfoApi } from '../../services/accountServices';
+import { handleGetAccountInfoApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class EditAccountModal extends Component {
@@ -25,13 +25,18 @@ class EditAccountModal extends Component {
       phone: '',
       address: '',
       gender: '',
+      bio: '',
+      specialization: '',
+      workingStatus: '',
       codeGender: [],
       codeAccountType: [],
+      codeWorkingStatus: [],
     };
   }
   async componentDidMount() {
     await this.handleLoadCodeGender();
     await this.handleLoadCodeAccountType();
+    await this.handleLoadCodeWorkingStatus();
     const { selectedAccountID } = this.props;
     if (selectedAccountID) {
       this.loadAccountInfo(selectedAccountID);
@@ -42,13 +47,19 @@ class EditAccountModal extends Component {
     if (isOpen && !prevProps.isOpen) {
       await this.handleLoadCodeGender();
       await this.handleLoadCodeAccountType();
+      await this.handleLoadCodeWorkingStatus();
       this.setState({
         loadedAccountInfo: null,
+        accounttype: '',
         accountname: '',
         email: '',
         username: '',
         phone: '',
         address: '',
+        gender: '',
+        bio: '',
+        specialization: '',
+        workingStatus: '',
       });
       if (selectedAccountID) {
         this.loadAccountInfo(selectedAccountID);
@@ -57,9 +68,13 @@ class EditAccountModal extends Component {
   }
   loadAccountInfo = async (accountid) => {
     try {
-      const response = await handleGetAccountInfoApi(accountid);
-      if (response && response.errCode === 0) {
-        const accountInfo = response.data;
+      const [accountResponse, vetResponse] = await Promise.all([
+        handleGetAccountInfoApi(accountid),
+        handleGetVeterinarianInfoApi(accountid),
+      ]);
+      if (accountResponse && accountResponse.errCode === 0) {
+        const accountInfo = accountResponse.data;
+        const vetInfo = vetResponse && vetResponse.errCode === 0 ? vetResponse.data : null;
         this.setState({
           loadedAccountInfo: accountInfo,
           selectedAccountID: accountInfo.AccountID,
@@ -70,6 +85,9 @@ class EditAccountModal extends Component {
           phone: accountInfo.Phone,
           address: accountInfo.Address,
           gender: accountInfo.Gender,
+          bio: vetInfo ? vetInfo.Bio || '' : '',
+          specialization: vetInfo ? vetInfo.Specialization || '' : '',
+          workingStatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
         });
       } else {
         this.setState({
@@ -81,6 +99,9 @@ class EditAccountModal extends Component {
           phone: '',
           address: '',
           gender: '',
+          bio: '',
+          specialization: '',
+          workingStatus: '',
         });
         toast.error('Tải tài khoản thất bại!', {
           position: 'top-right',
@@ -99,6 +120,9 @@ class EditAccountModal extends Component {
         phone: '',
         address: '',
         gender: '',
+        bio: '',
+        specialization: '',
+        workingStatus: '',
       });
       toast.error('Lỗi khi tải tài khoản!', {
         position: 'top-right',
@@ -153,15 +177,44 @@ class EditAccountModal extends Component {
       });
     }
   };
+  handleLoadCodeWorkingStatus = async () => {
+    try {
+      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
+      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
+        toast.error('Không thể tải danh sách trạng thái làm việc!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeWorkingStatus,
+        workingStatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
+      });
+    } catch (e) {
+      console.log('Error loading working status code:', e);
+      toast.error('Lỗi khi tải danh sách trạng thái làm việc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   toggle = async () => {
     await this.handleLoadCodeGender();
     await this.handleLoadCodeAccountType();
+    await this.handleLoadCodeWorkingStatus();
     this.setState({
+      accounttype: '',
       accountname: '',
       email: '',
       username: '',
       phone: '',
       address: '',
+      gender: '',
+      bio: '',
+      specialization: '',
+      workingStatus: '',
     });
     this.props.toggleFromModal();
   };
@@ -173,10 +226,11 @@ class EditAccountModal extends Component {
     });
   };
   checkValidateInput = () => {
-    const { accountname, username, phone, address, gender, codeGender } = this.state;
+    const { accountname, username, phone, address, gender, codeGender, specialization } = this.state;
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/; //chứa chữ cái, số hoặc khoảng trắng, dài từ 2-50 ký tự
-    const phoneRegex = /^[0-9]{10,11}$/; //chỉ chứa số và có độ dài từ 10-11 ký tự
+    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+    const phoneRegex = /^[0-9]{10,11}$/;
+    const specializationRegex = /^$|^[A-Za-zÀ-ỹ\s]{0,50}$/;
 
     if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
     if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
@@ -192,6 +246,8 @@ class EditAccountModal extends Component {
     const validGenderCode = codeGender.map((item) => item.Code);
     if (!gender) return { errCode: -1, errMessage: 'Giới tính không tồn tại!' };
     if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: 'Giới tính không hợp lệ!' };
+
+    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên môn không hợp lệ!' };
 
     return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
   };
@@ -227,16 +283,24 @@ class EditAccountModal extends Component {
     if (isConfirmed) {
       let isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode === 0) {
-        const { selectedAccountID, accounttype, accountname, username, phone, address, gender } = this.state;
-        this.props.handleEditAccountFromModal({
+        const { selectedAccountID, accounttype, accountname, username, phone, address, gender, bio, specialization, workingStatus } = this.state;
+        const userInfo = {
           accountid: selectedAccountID,
-          accounttype: accounttype,
-          accountname: accountname,
-          username: username,
-          phone: phone,
-          address: address,
-          gender: gender,
-        });
+          accounttype,
+          accountname,
+          username,
+          phone,
+          address,
+          gender,
+        };
+        if (accounttype === 'V') {
+          userInfo.veterinarianInfo = {
+            bio: bio || null,
+            specialization: specialization || null,
+            workingStatus: workingStatus || null,
+          };
+        }
+        this.props.handleEditAccountFromModal(userInfo);
       } else {
         toast.error(isValidateInput.errMessage, {
           position: 'top-right',
@@ -248,7 +312,7 @@ class EditAccountModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType } = this.state;
+    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType, codeWorkingStatus, bio, specialization, workingStatus } = this.state;
     if (!loadedAccountInfo) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="edit-user-modal" centered backdrop="static">
@@ -283,6 +347,34 @@ class EditAccountModal extends Component {
               <IonIcon icon={peopleCircleOutline}></IonIcon>
             </div>
           </div>
+          {accounttype === 'V' && (
+            <div className="R2 veterinarian-info">
+              <div className="inputbox">
+                <IonIcon icon={informationCircleOutline}></IonIcon>
+                <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
+                <label>Chuyên môn</label>
+              </div>
+              <div className="inputbox">
+                <IonIcon icon={informationCircleOutline}></IonIcon>
+                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} />
+                <label>Tiểu sử</label>
+              </div>
+              <div className="selectbox">
+                <label>Trạng thái làm việc</label>
+                <select value={workingStatus} onChange={(event) => this.handleOnChangeInput(event, 'workingStatus')}>
+                  {codeWorkingStatus.length > 0 ? (
+                    codeWorkingStatus.map((item) => (
+                      <option key={item.Code} value={item.Code}>
+                        {item.CodeValueVI}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Không có dữ liệu trạng thái</option>
+                  )}
+                </select>
+              </div>
+            </div>
+          )}
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={person}></IonIcon>

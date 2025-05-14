@@ -10,6 +10,7 @@ import '../styles/ToastifyOverride.scss';
 
 import { handleGetAccountInfoApi, handleLogoutApi } from '../services/accountServices';
 import { handleGetCartApi } from '../services/cartServices';
+import { handleGetServiceInfoApi } from '../services/appointmentServices';
 import { handleGetAllCodesApi } from '../services/utilitiesServices';
 
 import { checkLoginStatus } from '../utils/pakage';
@@ -26,6 +27,7 @@ class HomeHeader extends Component {
       userImage: null,
       userName: null,
       codePetType: [],
+      codeService: [],
       cartItemsCount: 0,
       isScrolled: false,
     };
@@ -44,6 +46,7 @@ class HomeHeader extends Component {
   async componentDidMount() {
     await this.handleIsLogin();
     await this.handleLoadPetType();
+    await this.handleLoadService();
     setTimeout(() => {
       this.countCartItem();
       this.handleLoadInformation();
@@ -128,6 +131,39 @@ class HomeHeader extends Component {
         closeOnClick: true,
       });
     }
+  };
+  handleLoadService = async () => {
+    try {
+      const response = await handleGetServiceInfoApi('ALL');
+      if (response.errCode !== 0 || !response.data || response.data.length === 0) {
+        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({ codeService: [] });
+        return;
+      }
+      this.setState({ codeService: response.data });
+    } catch (e) {
+      console.log('Error loading service:', e);
+      toast.error('Lỗi khi tải danh sách dịch vụ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
+  handleServiceNavigate = (serviceID) => {
+    const servicePaths = {
+      1: '/service/genhealthcheck',
+      2: '/service/vaccination',
+      3: '/service/surgery',
+      4: '/service/test',
+    };
+    const path = servicePaths[serviceID] || '/homeappointment';
+    this.props.navigate(path);
   };
 
   countCartItem = async () => {
@@ -241,7 +277,7 @@ class HomeHeader extends Component {
   };
 
   render() {
-    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codePetType, isScrolled } = this.state;
+    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codePetType, codeService, isScrolled } = this.state;
     return (
       <div className="body-container">
         <div className={`header-container ${isScrolled ? 'scrolled' : ''}`}>
@@ -270,7 +306,7 @@ class HomeHeader extends Component {
                   <li>
                     <a
                       onClick={() => {
-                        this.props.navigate('/user/homeappointment');
+                        this.props.navigate('/homeappointment');
                       }}
                     >
                       <IonIcon icon={newspaperOutline}></IonIcon>D.vụ Đặt Lịch
@@ -294,58 +330,30 @@ class HomeHeader extends Component {
               <li>
                 <a>Dịch vụ</a>
                 <ul className="sub-menu-2">
-                  <li>
-                    <a>
-                      <p
-                        onClick={() => {
-                          this.props.navigate('/user/genhealthcheck');
-                        }}
-                      >
-                        Khám tổng quát
-                      </p>
-                    </a>
-                  </li>
-                  <li>
-                    <a>
-                      <p
-                        onClick={() => {
-                          this.props.navigate('/user/vaccination');
-                        }}
-                      >
-                        Tiêm phòng
-                      </p>
-                    </a>
-                  </li>
-
-                  <li>
-                    <a>
-                      <p
-                        onClick={() => {
-                          this.props.navigate('/user/surgery');
-                        }}
-                      >
-                        Phẫu thuật cơ bản
-                      </p>
-                    </a>
-                  </li>
-                  <li>
-                    <a>
-                      <p
-                        onClick={() => {
-                          this.props.navigate('/user/test');
-                        }}
-                      >
-                        Xét nghiệm
-                      </p>
-                    </a>
-                  </li>
+                  {codeService.length > 0 ? (
+                    codeService.map((service) => (
+                      <li key={service.ServiceID}>
+                        <a>
+                          <p onClick={() => this.handleServiceNavigate(service.ServiceID)}>
+                            {service.ServiceName}
+                          </p>
+                        </a>
+                      </li>
+                    ))
+                  ) : (
+                    <li>
+                      <a>
+                        <p>Không có dịch vụ</p>
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </li>
               <li>
-                <a onClick={() => this.props.navigate('/user/makeappointment')}>Đặt lịch</a>
+                <a onClick={() => this.props.navigate('/makeappointment')}>Đặt lịch</a>
               </li>
               <li>
-                <a onClick={() => this.props.navigate('/user/showdoctor')}>Bác sĩ</a>
+                <a onClick={() => this.props.navigate('/showdoctor')}>Bác sĩ</a>
               </li>
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === 'C' ? (

@@ -1,30 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
 
 .edit-user-modal {
   .modal-dialog {
-    max-width: 695px;
+    max-width: 900px;
   }
   .modal-header {
     .btn-close {
-      margin-left: 187px;
+      margin-left: 300px;
     }
     .modal-title {
-      margin-left: 220px;
+      margin-left: 350px;
     }
   }
 
   .modal-body {
-    height: 400px;
-    align-items: center;
+    height: 700px;
+    align-items: flex-start;
+    padding: 20px;
     .R1 {
       display: flex;
-      margin-bottom: -25px;
-
+      margin-bottom: 10px;
       .inputbox {
         position: relative;
-        margin: 30px 15px;
+        margin: 20px 15px;
         border-bottom: 2px solid black;
         color: black;
+        width: 350px;
         .toggle-password {
           ion-icon {
             cursor: pointer;
@@ -32,16 +33,14 @@
         }
         input {
           width: 100%;
-          max-width: 500px;
-          width: 300px;
-          height: 60px;
+          height: 50px;
           background: transparent;
           border: none;
           outline: none;
           font-size: 1rem;
           padding: 0 35px 0 5px;
           color: black;
-          margin-bottom: -15px;
+          margin-bottom: -10px;
 
           &:-webkit-autofill {
             &,
@@ -93,15 +92,21 @@
           right: 8px;
           color: black;
           font-size: 1.2rem;
-          top: 20px;
+          top: 15px;
 
-          &[name='eye-outline'],
-          &[name='eye-off-outline'] {
+          &[name="eye-outline"],
+          &[name="eye-off-outline"] {
             cursor: pointer;
 
             &:hover {
               color: #333;
             }
+          }
+        }
+        .selectbox {
+          width: 350px;
+          select {
+            height: 50px;
           }
         }
 
@@ -180,6 +185,45 @@
       }
     }
     .R2 {
+      &.veterinarian-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 20px 15px;
+        .inputbox {
+          width: 100%;
+          max-width: 720px;
+          textarea {
+            width: 100%;
+            height: 100px;
+            resize: vertical;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            padding: 10px 35px 10px 5px;
+            color: black;
+            margin-bottom: -10px;
+          }
+          input {
+            width: 100%;
+            height: 50px;
+          }
+          label {
+            top: 20px;
+          }
+          ion-icon {
+            top: 15px;
+          }
+        }
+        .selectbox {
+          width: 100%;
+          max-width: 720px;
+          select {
+            height: 50px;
+          }
+        }
+      }
       .inputbox {
         position: relative;
         margin: 30px 15px;
@@ -197,7 +241,7 @@
           color: black;
           margin-bottom: -15px;
 
-          &:not([type='password']):-webkit-autofill {
+          &:not([type="password"]):-webkit-autofill {
             &,
             &:hover,
             &:focus,
@@ -249,8 +293,8 @@
           font-size: 1.2rem;
           top: 20px;
 
-          &[name='eye-outline'],
-          &[name='eye-off-outline'] {
+          &[name="eye-outline"],
+          &[name="eye-off-outline"] {
             cursor: pointer;
 
             &:hover {
