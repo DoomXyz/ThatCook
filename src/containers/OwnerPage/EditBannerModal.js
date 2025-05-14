@@ -380,8 +380,7 @@ class EditBannerModal extends Component {
   };
 
   render() {
-    const { isOpen, codeBannerStatus, codePetType, codeProductType, imagePreview, createdat, hiddenat, bannerstatus, producttype, pettype, searchValue, loadedProductInfo, productid, productname } =
-      this.state;
+    const { isOpen, codeBannerStatus, codePetType, codeProductType, imagePreview, createdat, hiddenat, bannerstatus, producttype, pettype, searchValue, loadedProductInfo, productid, productname } = this.state;
     const productOptions = loadedProductInfo.map((product) => ({
       value: product.ProductID,
       label: product.ProductName,

@@ -40,19 +40,13 @@ const cartReducer = (state = initialState, action) => {
     case actionTypes.UPDATE_QUANTITY:
       return {
         ...state,
-        cartItems: state.cartItems.map((item) =>
-          item.ProductID === action.data.ProductID && item.ProductDetailID === action.data.ProductDetailID ? { ...item, ItemQuantity: action.data.ItemQuantity } : item
-        ),
+        cartItems: state.cartItems.map((item) => (item.ProductID === action.data.ProductID && item.ProductDetailID === action.data.ProductDetailID ? { ...item, ItemQuantity: action.data.ItemQuantity } : item)),
       };
     //Cập nhật chi tiết sản phẩm trong giỏ hàng
     case actionTypes.UPDATE_DETAIL:
       return {
         ...state,
-        cartItems: state.cartItems.map((item) =>
-          item.ProductID === action.data.ProductID && item.ProductDetailID === action.data.ProductDetailID1
-            ? { ...item, ProductDetailID: action.data.ProductDetailID2, ItemPrice: action.data.newItemPrice, ItemQuantity: action.data.newItemQuantity }
-            : item
-        ),
+        cartItems: state.cartItems.map((item) => (item.ProductID === action.data.ProductID && item.ProductDetailID === action.data.ProductDetailID1 ? { ...item, ProductDetailID: action.data.ProductDetailID2, ItemPrice: action.data.newItemPrice, ItemQuantity: action.data.newItemQuantity } : item)),
       };
     //Gộp chi tiết sản phẩm (xóa masanpham có chitietsanpham 1 và cập nhật số lượng của masanpham có chitietsanpham 2 bằng soluong 1 + soluong 2)
     case actionTypes.MERGE_DETAIL: {

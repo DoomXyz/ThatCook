@@ -526,8 +526,7 @@ class EditProductModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } =
-      this.state;
+    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } = this.state;
 
     return (
       <Modal show={isOpen} onHide={this.toggle} centered backdrop="static" className="create-product-modal">
@@ -610,24 +609,10 @@ class EditProductModal extends Component {
                     {loadedProductDetailInfo && loadedProductDetailInfo.length > 0 ? (
                       loadedProductDetailInfo.map((item, index) => (
                         <tr key={item.ProductDetailID}>
-                          <td>
-                            {editingField === index ? <input type="text" value={item.DetailName} onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)} /> : item.DetailName}
-                          </td>
+                          <td>{editingField === index ? <input type="text" value={item.DetailName} onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)} /> : item.DetailName}</td>
                           <td>{editingField === index ? <input type="number" value={item.Stock} onChange={(e) => this.handleDetailChange(index, 'Stock', e.target.value)} /> : item.Stock}</td>
-                          <td>
-                            {editingField === index ? (
-                              <input type="number" value={item.ExtraPrice ?? ''} onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)} />
-                            ) : (
-                              parseFloat(item.ExtraPrice) || 0
-                            )}
-                          </td>
-                          <td>
-                            {editingField === index ? (
-                              <input type="number" value={item.Promotion ?? ''} onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)} />
-                            ) : (
-                              parseFloat(item.Promotion) || 0
-                            )}
-                          </td>
+                          <td>{editingField === index ? <input type="number" value={item.ExtraPrice ?? ''} onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)} /> : parseFloat(item.ExtraPrice) || 0}</td>
+                          <td>{editingField === index ? <input type="number" value={item.Promotion ?? ''} onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)} /> : parseFloat(item.Promotion) || 0}</td>
                           <td>
                             {editingField === index ? (
                               <select value={item.DetailStatus} onChange={(e) => this.handleDetailChange(index, 'DetailStatus', e.target.value)}>

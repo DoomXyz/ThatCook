@@ -69,10 +69,8 @@ class GenHealthCheck extends Component {
             </div>
             <h1>DỊCH VỤ KHÁM TỔNG QUÁT</h1>
             <p>
-              Dịch vụ khám sức khỏe tổng quát thú y tại phòng khám của chúng tôi mang đến sự chăm sóc toàn diện, giúp đảm bảo sức khỏe và hạnh phúc cho thú cưng của bạn. Với đội ngũ bác sĩ thú y giàu
-              kinh nghiệm và trang thiết bị hiện đại, chúng tôi thực hiện kiểm tra kỹ lưỡng từ đánh giá thể chất, xét nghiệm máu, siêu âm đến kiểm tra răng miệng và các cơ quan nội tạng. Mục tiêu là
-              phát hiện sớm các vấn đề tiềm ẩn, tư vấn dinh dưỡng phù hợp và xây dựng kế hoạch chăm sóc lâu dài. Dịch vụ được thiết kế linh hoạt, phù hợp với mọi giống loài và độ tuổi của thú cưng,
-              đảm bảo mang lại sự an tâm cho chủ nuôi trong việc duy trì cuộc sống khỏe mạnh và tràn đầy năng lượng cho người bạn đồng hành yêu quý.
+              Dịch vụ khám sức khỏe tổng quát thú y tại phòng khám của chúng tôi mang đến sự chăm sóc toàn diện, giúp đảm bảo sức khỏe và hạnh phúc cho thú cưng của bạn. Với đội ngũ bác sĩ thú y giàu kinh nghiệm và trang thiết bị hiện đại, chúng tôi thực hiện kiểm tra kỹ lưỡng từ đánh giá thể chất, xét nghiệm máu, siêu âm đến kiểm tra răng miệng và các cơ quan nội tạng. Mục tiêu là phát hiện sớm các vấn đề tiềm ẩn, tư vấn dinh dưỡng phù hợp và xây dựng kế hoạch chăm sóc lâu dài. Dịch vụ được
+              thiết kế linh hoạt, phù hợp với mọi giống loài và độ tuổi của thú cưng, đảm bảo mang lại sự an tâm cho chủ nuôi trong việc duy trì cuộc sống khỏe mạnh và tràn đầy năng lượng cho người bạn đồng hành yêu quý.
             </p>
             <ul className="f">
               <li className="f">

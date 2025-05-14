@@ -33,14 +33,4 @@ const handleChangePasswordApi = (accountid, password, newpassword) => {
   return axios.put('/api/change-password', { accountid, password, newpassword });
 };
 
-export {
-  handleRegisterApi,
-  handleLoginApi,
-  handleVerifyTokenApi,
-  handleLogoutApi,
-  handleGetAccountInfoApi,
-  handleLoadAccountInfoApi,
-  handleChangeAccountStatusApi,
-  handleChangeAccountInfoApi,
-  handleChangePasswordApi,
-};
+export { handleRegisterApi, handleLoginApi, handleVerifyTokenApi, handleLogoutApi, handleGetAccountInfoApi, handleLoadAccountInfoApi, handleChangeAccountStatusApi, handleChangeAccountInfoApi, handleChangePasswordApi };

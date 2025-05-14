@@ -9,15 +9,7 @@ import Footer from '../../components/HomeFooter';
 
 import { handleLogoutApi } from '../../services/accountServices';
 import { handleGetProductDetailInfoApi } from '../../services/productServices';
-import {
-  handleGetCartApi,
-  handleGetCartDetailApi,
-  handleGetDetailListApi,
-  handleUpdateQuantityApi,
-  handleRemoveFromCartApi,
-  handleUpdateCartDetailApi,
-  handleMergeCartDetailApi,
-} from '../../services/cartServices';
+import { handleGetCartApi, handleGetCartDetailApi, handleGetDetailListApi, handleUpdateQuantityApi, handleRemoveFromCartApi, handleUpdateCartDetailApi, handleMergeCartDetailApi } from '../../services/cartServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { updateItemQuantity, removeFromCart, updateCartDetail, mergeCartDetail, saveCartForCheckOut, clearCheckOutCart, userLogout } from '../../store/actions';
@@ -733,8 +725,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   removeFromCart: (productid, productdetailid) => dispatch(removeFromCart(productid, productdetailid)),
   updateItemQuantity: (productid, productdetailid, quantity) => dispatch(updateItemQuantity(productid, productdetailid, quantity)),
-  updateCartDetail: (productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity) =>
-    dispatch(updateCartDetail(productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity)),
+  updateCartDetail: (productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity) => dispatch(updateCartDetail(productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity)),
   mergeCartDetail: (productid, productdetailid1, productdetailid2, quantity) => dispatch(mergeCartDetail(productid, productdetailid1, productdetailid2, quantity)),
   saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),

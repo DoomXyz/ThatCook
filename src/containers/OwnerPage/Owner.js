@@ -1155,13 +1155,7 @@ class Owner extends Component {
                           <button className="prev" onClick={() => this.handlePrevPage(1)} disabled={currentPage === 1}>
                             {'<'}
                           </button>
-                          <input
-                            type="text"
-                            value={tempCurrentPage}
-                            onChange={(event) => this.handlePageInputChange(event, 1)}
-                            onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
-                            onBlur={() => this.handlePageInputBlur(1)}
-                          />
+                          <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 1)} onKeyDown={(event) => this.handlePageKeyDown(event, 1)} onBlur={() => this.handlePageInputBlur(1)} />
                           <span className="total-pages">/ {totalProductPages}</span>
                           <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalProductPages}>
                             {'>'}
@@ -1338,13 +1332,7 @@ class Owner extends Component {
                       <button className="prev" onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
                         {'<'}
                       </button>
-                      <input
-                        type="text"
-                        value={tempCurrentPage}
-                        onChange={(event) => this.handlePageInputChange(event, 2)}
-                        onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
-                        onBlur={() => this.handlePageInputBlur(2)}
-                      />
+                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 2)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
                       <span className="total-pages">/ {totalInvoicePages}</span>
                       <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalInvoicePages}>
                         {'>'}
@@ -1492,13 +1480,7 @@ class Owner extends Component {
                       <button className="prev" onClick={() => this.handlePrevPage(3)} disabled={currentPage === 1}>
                         {'<'}
                       </button>
-                      <input
-                        type="text"
-                        value={tempCurrentPage}
-                        onChange={(event) => this.handlePageInputChange(event, 3)}
-                        onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
-                        onBlur={() => this.handlePageInputBlur(3)}
-                      />
+                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 3)} onKeyDown={(event) => this.handlePageKeyDown(event, 3)} onBlur={() => this.handlePageInputBlur(3)} />
                       <span className="total-pages">/ {totalBannerPages}</span>
                       <button className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalBannerPages}>
                         {'>'}
@@ -1520,21 +1502,11 @@ class Owner extends Component {
     return (
       <div className="owner-body">
         <CreateProductModal isOpen={isShowCreateProductModal} toggleFromModal={this.toggleCreateProductModal} handleCreateProductFromModal={this.handleCreateProductFromModal} />
-        <EditProductModal
-          isOpen={isShowEditProductModal}
-          toggleFromModal={this.toggleEditProductModal}
-          selectedProductID={selectedProduct}
-          handleChangeProductFromModal={this.handleChangeProductFromModal}
-        />
+        <EditProductModal isOpen={isShowEditProductModal} toggleFromModal={this.toggleEditProductModal} selectedProductID={selectedProduct} handleChangeProductFromModal={this.handleChangeProductFromModal} />
         <CreateBannerModal isOpen={isShowCreateBannerModal} toggleFromModal={this.toggleCreateBannerModal} handleCreateBannerFromModal={this.handleCreateBannerFromModal} />
         <EditBannerModal isOpen={isShowEditBannerModal} toggleFromModal={this.toggleEditBannerModal} selectedBannerID={selectedBanner} handleChangeBannerFromModal={this.handleChangeBannerFromModal} />
         <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} />
-        <CancelInvoiceModal
-          isOpen={isShowCancelInvoiceModal}
-          toggleFromModal={this.toggleCancelInvoiceModal}
-          selectedCancelInvoiceID={selectedCancelInvoice}
-          handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
-        />
+        <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />

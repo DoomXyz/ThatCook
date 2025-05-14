@@ -32,13 +32,4 @@ const handleLoadFilteredProductInfoApi = (filterProductType, filterPetType, sear
   return axios.get(`/api/load-filtered-productinfo?filterProductType=${filterProductType}&filterPetType=${filterPetType}&search=${search}`);
 };
 
-export {
-  handleLoadProductInfoApi,
-  handleGetProductInfoApi,
-  handleLoadSaleProductInfoApi,
-  handleGetSaleProductInfoApi,
-  handleGetProductDetailInfoApi,
-  handleChangeProductInfoApi,
-  handleCreateProductApi,
-  handleLoadFilteredProductInfoApi,
-};
+export { handleLoadProductInfoApi, handleGetProductInfoApi, handleLoadSaleProductInfoApi, handleGetSaleProductInfoApi, handleGetProductDetailInfoApi, handleChangeProductInfoApi, handleCreateProductApi, handleLoadFilteredProductInfoApi };

@@ -174,9 +174,7 @@ class BillClass extends Component {
     const customerText = `Khách hàng: ${loadedInvoiceDetails.ReceiverName}\nSĐT: ${loadedInvoiceDetails.ReceiverPhone}\nĐịa chỉ: ${loadedInvoiceDetails.ReceiverAddress}`;
     doc.text(customerText, 14, 50);
 
-    const statusText = `Phương thức thanh toán: ${
-      codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType
-    }\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${
+    const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${
       codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus
     }`;
     doc.text(statusText, 14, 70);
@@ -184,13 +182,7 @@ class BillClass extends Component {
     doc.setLineWidth(0.5);
     doc.line(14, 85, 196, 85);
 
-    const tableData = loadedInvoiceDetails.ProductList.map((item) => [
-      item.ProductName,
-      item.DetailName,
-      `${parseFloat(item.ItemPrice).toLocaleString('vi-VN')}đ`,
-      item.ItemQuantity,
-      `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString('vi-VN')}đ`,
-    ]);
+    const tableData = loadedInvoiceDetails.ProductList.map((item) => [item.ProductName, item.DetailName, `${parseFloat(item.ItemPrice).toLocaleString('vi-VN')}đ`, item.ItemQuantity, `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString('vi-VN')}đ`]);
 
     autoTable(doc, {
       startY: 90,
@@ -231,13 +223,7 @@ class BillClass extends Component {
     doc.setFontSize(10);
     doc.text(`Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity}`, 14, finalY + 10);
     doc.text(`Tổng tiền hàng: ${parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString('vi-VN')}đ`, 14, finalY + 16);
-    doc.text(
-      `Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}): ${this.getShippingFee(
-        loadedInvoiceDetails.ShippingMethod
-      ).toLocaleString('vi-VN')}đ`,
-      14,
-      finalY + 22
-    );
+    doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}): ${this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString('vi-VN')}đ`, 14, finalY + 22);
     doc.text(`Giảm giá: -${parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 28);
     doc.setFont(fontLoaded ? 'Roboto-Regular' : 'Helvetica', 'normal');
     doc.text(`Tổng thanh toán: ${parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString('vi-VN')}đ`, 14, finalY + 34);
@@ -433,12 +419,7 @@ class BillClass extends Component {
     return (
       <div className="view-invoice-background">
         <Header navigate={this.props.navigate} cartItems={cartItems} userInfo={userInfo} />
-        <CancelInvoiceModal
-          isOpen={isShowCancelInvoiceModal}
-          toggleFromModal={this.toggleCancelInvoiceModal}
-          selectedCancelInvoiceID={selectedCancelInvoice}
-          handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
-        />
+        <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
         <ToastContainer />
         <div className="view-invoice-modal">
           <div className="view-invoice-modal-content">

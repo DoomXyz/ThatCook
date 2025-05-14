@@ -510,32 +510,12 @@ class Admin extends Component {
   };
 
   render() {
-    const {
-      isLoading,
-      loadedAccountInfo,
-      searchValue,
-      filterValue,
-      sortValue,
-      currentPage,
-      totalPages,
-      codeGender,
-      codeAccountType,
-      codeAccountStatus,
-      isShowCreateAccountModal,
-      isShowEditAccountModal,
-      selectedAccount,
-      tempCurrentPage,
-    } = this.state;
+    const { isLoading, loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages, codeGender, codeAccountType, codeAccountStatus, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, tempCurrentPage } = this.state;
     console.log(codeGender, codeAccountType, codeAccountStatus);
     return (
       <div className="admin-container">
         <CreateAccountModal isOpen={isShowCreateAccountModal} toggleFromModal={this.toggleCreateUserModal} handleCreateAccountFromModal={this.handleCreateAccountFromModal} />
-        <EditAccountModal
-          isOpen={isShowEditAccountModal}
-          toggleFromModal={this.toggleEditAccountModal}
-          selectedAccountID={selectedAccount}
-          handleEditAccountFromModal={this.handleEditAccountFromModal}
-        />
+        <EditAccountModal isOpen={isShowEditAccountModal} toggleFromModal={this.toggleEditAccountModal} selectedAccountID={selectedAccount} handleEditAccountFromModal={this.handleEditAccountFromModal} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />

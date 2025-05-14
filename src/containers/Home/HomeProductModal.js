@@ -181,9 +181,7 @@ class HomeProductModal extends Component {
       );
     }
 
-    const basePrice = selectedProductDetail
-      ? (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice || 0)) * (1 - parseFloat(selectedProductDetail.Promotion || 0) / 100)
-      : parseFloat(loadedProductInfo.ProductPrice);
+    const basePrice = selectedProductDetail ? (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice || 0)) * (1 - parseFloat(selectedProductDetail.Promotion || 0) / 100) : parseFloat(loadedProductInfo.ProductPrice);
     const formattedOriginalPrice = basePrice.toLocaleString('vi-VN');
     const finalPrice = quantity * basePrice;
     const formattedFinalPrice = finalPrice.toLocaleString('vi-VN');
@@ -212,14 +210,7 @@ class HomeProductModal extends Component {
                 <img src={selectedImage} alt="Product" />
               </div>
               <div className="product-content-left-small-imgs">
-                {loadedProductInfo.ProductImage && (
-                  <img
-                    src={loadedProductInfo.ProductImage}
-                    alt="Main Product"
-                    onClick={() => this.handleProductImageClick(loadedProductInfo.ProductImage)}
-                    className={selectedImage === loadedProductInfo.ProductImage ? 'selected' : ''}
-                  />
-                )}
+                {loadedProductInfo.ProductImage && <img src={loadedProductInfo.ProductImage} alt="Main Product" onClick={() => this.handleProductImageClick(loadedProductInfo.ProductImage)} className={selectedImage === loadedProductInfo.ProductImage ? 'selected' : ''} />}
                 {loadedProductImage && loadedProductImage.map((img, index) => <img key={index} src={img.Image} alt={`Thumbnail ${index}`} onClick={() => this.handleProductImageClick(img.Image)} />)}
               </div>
             </div>
@@ -253,14 +244,7 @@ class HomeProductModal extends Component {
                   <button onClick={this.handleQuantityDecrease}>
                     <IonIcon icon={remove} />
                   </button>
-                  <input
-                    type="text"
-                    value={quantity}
-                    onChange={handleQuantityChange}
-                    min="1"
-                    max={selectedProductDetail ? selectedProductDetail.Stock : ''}
-                    style={{ width: '50px', textAlign: 'center' }}
-                  />
+                  <input type="text" value={quantity} onChange={handleQuantityChange} min="1" max={selectedProductDetail ? selectedProductDetail.Stock : ''} style={{ width: '50px', textAlign: 'center' }} />
                   <button onClick={this.handleQuantityIncrease}>
                     <IonIcon icon={add} />
                   </button>

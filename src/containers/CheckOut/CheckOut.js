@@ -428,20 +428,7 @@ class CheckOut extends Component {
   };
 
   handleCompleteOrder = async () => {
-    const {
-      receiverName,
-      receiverPhone,
-      receiverAddress,
-      isLoggedIn,
-      accountInfo,
-      checkOutCart,
-      selectedPaymentType,
-      selectedShippingMethod,
-      couponCode,
-      totalPriceAfterPromo,
-      discountAmout,
-      totalPayment,
-    } = this.state;
+    const { receiverName, receiverPhone, receiverAddress, isLoggedIn, accountInfo, checkOutCart, selectedPaymentType, selectedShippingMethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment } = this.state;
     await this.loadCheckOutCart();
     let couponID = null;
     try {
@@ -582,27 +569,7 @@ class CheckOut extends Component {
   };
 
   render() {
-    const {
-      isLoading,
-      receiverName,
-      receiverPhone,
-      receiverAddress,
-      tempCouponCode,
-      codePaymentType,
-      codeShippingMethod,
-      selectedPaymentType,
-      selectedShippingMethod,
-      discountAmout,
-      loadedCheckOutCartDetailInfo,
-      totalPrice,
-      totalPriceAfterPromo,
-      totalPayment,
-      currentPage,
-      limitProductPerQuery,
-      totalPages,
-      tempCurrentPage,
-      isPlaced,
-    } = this.state;
+    const { isLoading, receiverName, receiverPhone, receiverAddress, tempCouponCode, codePaymentType, codeShippingMethod, selectedPaymentType, selectedShippingMethod, discountAmout, loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced } = this.state;
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
     const endIndex = startIndex + limitProductPerQuery;
@@ -876,9 +843,7 @@ class CheckOut extends Component {
                           {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
                         </button>
                       ) : (
-                        <div style={{ color: 'green', fontWeight: 'bold' }}>
-                          {loadedCheckOutCartDetailInfo.length === 0 ? 'Giỏ hàng trống, vui lòng chọn lại sản phẩm!' : 'Đơn hàng đã được đặt thành công!'}
-                        </div>
+                        <div style={{ color: 'green', fontWeight: 'bold' }}>{loadedCheckOutCartDetailInfo.length === 0 ? 'Giỏ hàng trống, vui lòng chọn lại sản phẩm!' : 'Đơn hàng đã được đặt thành công!'}</div>
                       )}
                     </div>
                   </div>

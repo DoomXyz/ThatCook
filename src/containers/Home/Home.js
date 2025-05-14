@@ -412,30 +412,10 @@ class Home extends Component {
   };
 
   render() {
-    const {
-      isLoading,
-      loadedBannerInfo,
-      loadedProductInfo,
-      loadedFilterValue,
-      searchValue,
-      filterValue,
-      sortValue,
-      currentPage,
-      totalPages,
-      isShowHomeProductModal,
-      currentBannerIndex,
-      selectedProduct,
-      tempCurrentPage,
-    } = this.state;
+    const { isLoading, loadedBannerInfo, loadedProductInfo, loadedFilterValue, searchValue, filterValue, sortValue, currentPage, totalPages, isShowHomeProductModal, currentBannerIndex, selectedProduct, tempCurrentPage } = this.state;
     return (
       <div className="home-body">
-        <HomeProductModal
-          isOpen={isShowHomeProductModal}
-          toggleFromModal={this.toggleHomeProductModal}
-          selectedProductID={selectedProduct}
-          handleBuyNowFromModal={this.handleBuyNowFromModal}
-          handleAddToCart={this.handleAddToCart}
-        />
+        <HomeProductModal isOpen={isShowHomeProductModal} toggleFromModal={this.toggleHomeProductModal} selectedProductID={selectedProduct} handleBuyNowFromModal={this.handleBuyNowFromModal} handleAddToCart={this.handleAddToCart} />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <ToastContainer />
 
@@ -446,11 +426,7 @@ class Home extends Component {
             <div className="home-banner">
               <div className="home-slide-show">
                 <div className="list-img" style={{ transform: `translateX(-${currentBannerIndex * 100}%)` }}>
-                  {loadedBannerInfo && loadedBannerInfo.length > 0 ? (
-                    loadedBannerInfo.map((item, index) => <img key={index} alt="" src={item.BannerImage} onClick={() => this.handleSelectedProduct(item.ProductID)} />)
-                  ) : (
-                    <img alt="" src={defBannerImage} />
-                  )}
+                  {loadedBannerInfo && loadedBannerInfo.length > 0 ? loadedBannerInfo.map((item, index) => <img key={index} alt="" src={item.BannerImage} onClick={() => this.handleSelectedProduct(item.ProductID)} />) : <img alt="" src={defBannerImage} />}
                 </div>
                 <div className="btns">
                   <button className="btn-right" onClick={this.handleBannerRightClick}>

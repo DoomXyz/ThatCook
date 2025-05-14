@@ -862,26 +862,7 @@ class User extends Component {
     }
   };
   renderForm() {
-    const {
-      actionPage,
-      oldPassword,
-      newPassword,
-      confirmPassword,
-      editField,
-      codePaymentType,
-      codeShippingMethod,
-      codePaymentStatus,
-      codeShippingStatus,
-      userimage,
-      accountname,
-      username,
-      phone,
-      address,
-      gender,
-      email,
-      codeGender,
-      loadedInvoiceInfo,
-    } = this.state;
+    const { actionPage, oldPassword, newPassword, confirmPassword, editField, codePaymentType, codeShippingMethod, codePaymentStatus, codeShippingStatus, userimage, accountname, username, phone, address, gender, email, codeGender, loadedInvoiceInfo } = this.state;
     switch (actionPage) {
       case 1:
         return (
@@ -893,44 +874,28 @@ class User extends Component {
               <div className="user-content-left">
                 <div className="user-info-tab">
                   <div className="descreption-user">Tên tài khoản:</div>
-                  {editField === 'accountname' ? (
-                    <input type="text" name="accountname" value={accountname} onChange={this.handleAccountInfoChange} className="value-user-input" />
-                  ) : (
-                    <div className="value-user">{accountname}</div>
-                  )}
+                  {editField === 'accountname' ? <input type="text" name="accountname" value={accountname} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{accountname}</div>}
                   <button type="button" className="edit-button" onClick={() => this.handleEditClick('accountname')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Họ và tên:</div>
-                  {editField === 'username' ? (
-                    <input type="text" name="username" value={username} onChange={this.handleAccountInfoChange} className="value-user-input" />
-                  ) : (
-                    <div className="value-user">{username}</div>
-                  )}
+                  {editField === 'username' ? <input type="text" name="username" value={username} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{username}</div>}
                   <button type="button" className="edit-button" onClick={() => this.handleEditClick('username')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Số điện thoại: </div>
-                  {editField === 'phone' ? (
-                    <input type="text" name="phone" value={phone} onChange={this.handleAccountInfoChange} className="value-user-input" />
-                  ) : (
-                    <div className="value-user">{phone}</div>
-                  )}
+                  {editField === 'phone' ? <input type="text" name="phone" value={phone} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{phone}</div>}
                   <button type="button" className="edit-button" onClick={() => this.handleEditClick('phone')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Địa chỉ:</div>
-                  {editField === 'address' ? (
-                    <input type="text" name="address" value={address} onChange={this.handleAccountInfoChange} className="value-user-input" />
-                  ) : (
-                    <div className="value-user">{address}</div>
-                  )}
+                  {editField === 'address' ? <input type="text" name="address" value={address} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{address}</div>}
                   <button type="button" className="edit-button" onClick={() => this.handleEditClick('address')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
@@ -1028,16 +993,7 @@ class User extends Component {
                                 <div
                                   className="value-oder"
                                   style={{
-                                    color:
-                                      invoice.ShippingStatus === 'PEND'
-                                        ? '#FFA500'
-                                        : invoice.ShippingStatus === 'DELI'
-                                          ? '#008000'
-                                          : invoice.ShippingStatus === 'PEND_CANCEL'
-                                            ? '#FF4500'
-                                            : invoice.ShippingStatus === 'CANCELED'
-                                              ? '#FF0000'
-                                              : 'inherit',
+                                    color: invoice.ShippingStatus === 'PEND' ? '#FFA500' : invoice.ShippingStatus === 'DELI' ? '#008000' : invoice.ShippingStatus === 'PEND_CANCEL' ? '#FF4500' : invoice.ShippingStatus === 'CANCELED' ? '#FF0000' : 'inherit',
                                   }}
                                 >
                                   {codeShippingStatus?.find((method) => method.Code === invoice.ShippingStatus)?.CodeValueVI || 'Không xác định'}
@@ -1170,14 +1126,7 @@ class User extends Component {
             <div className="user-change-pw-form-content">
               <label>Mật khẩu cũ:</label>
               <div className="user-change-pw-form-content-input">
-                <input
-                  type={this.state.showOldPassword ? 'text' : 'password'}
-                  name="oldPassword"
-                  value={oldPassword}
-                  onChange={this.handleChangePasswordInputChange}
-                  placeholder="Nhập mật khẩu cũ"
-                  required
-                />
+                <input type={this.state.showOldPassword ? 'text' : 'password'} name="oldPassword" value={oldPassword} onChange={this.handleChangePasswordInputChange} placeholder="Nhập mật khẩu cũ" required />
                 <IonIcon icon={this.state.showOldPassword ? eyeOffOutline : eyeOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showOldPassword')} />
               </div>
               <label>Mật khẩu mới:</label>
@@ -1403,12 +1352,7 @@ class User extends Component {
     return (
       <div className="user-page">
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} triggerLoadInformation={this.state.triggerLoadInformation} />
-        <CancelInvoiceModal
-          isOpen={isShowCancelInvoiceModal}
-          toggleFromModal={this.toggleCancelInvoiceModal}
-          selectedCancelInvoiceID={selectedCancelInvoice}
-          handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal}
-        />
+        <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />

@@ -67,12 +67,8 @@ class Vaccination extends Component {
             <img src={image} />
             <h1>DỊCH VỤ TIÊM PHÒNG</h1>
             <p>
-              Dịch vụ tiêm phòng thú y tại phòng khám của chúng tôi giúp bảo vệ thú cưng khỏi các bệnh truyền nhiễm nguy hiểm, đảm bảo một cuộc sống khỏe mạnh và tràn đầy năng lượng. Được thực hiện
-              bởi đội ngũ bác sĩ thú y giàu kinh nghiệm, cùng với việc sử dụng các loại vắc-xin chất lượng cao đạt tiêu chuẩn quốc tế, chúng tôi cung cấp lịch tiêm phòng khoa học, phù hợp với từng
-              giai đoạn phát triển của thú cưng. Trước khi tiêm, bác sĩ sẽ kiểm tra sức khỏe tổng quát để đảm bảo thú cưng ở trạng thái tốt nhất, đồng thời tư vấn chi tiết về các loại vắc-xin cần
-              thiết, thời gian tái tiêm và cách chăm sóc sau tiêm. Quy trình được thiết kế cẩn thận, an toàn và minh bạch, với sự theo dõi chặt chẽ để đảm bảo hiệu quả miễn dịch tối ưu. Dịch vụ của
-              chúng tôi không chỉ giúp ngăn ngừa bệnh tật mà còn mang lại sự yên tâm cho chủ nuôi, biết rằng người bạn đồng hành của mình được bảo vệ toàn diện, sẵn sàng vui chơi và gắn bó lâu dài bên
-              gia đình bạn.
+              Dịch vụ tiêm phòng thú y tại phòng khám của chúng tôi giúp bảo vệ thú cưng khỏi các bệnh truyền nhiễm nguy hiểm, đảm bảo một cuộc sống khỏe mạnh và tràn đầy năng lượng. Được thực hiện bởi đội ngũ bác sĩ thú y giàu kinh nghiệm, cùng với việc sử dụng các loại vắc-xin chất lượng cao đạt tiêu chuẩn quốc tế, chúng tôi cung cấp lịch tiêm phòng khoa học, phù hợp với từng giai đoạn phát triển của thú cưng. Trước khi tiêm, bác sĩ sẽ kiểm tra sức khỏe tổng quát để đảm bảo thú cưng ở trạng
+              thái tốt nhất, đồng thời tư vấn chi tiết về các loại vắc-xin cần thiết, thời gian tái tiêm và cách chăm sóc sau tiêm. Quy trình được thiết kế cẩn thận, an toàn và minh bạch, với sự theo dõi chặt chẽ để đảm bảo hiệu quả miễn dịch tối ưu. Dịch vụ của chúng tôi không chỉ giúp ngăn ngừa bệnh tật mà còn mang lại sự yên tâm cho chủ nuôi, biết rằng người bạn đồng hành của mình được bảo vệ toàn diện, sẵn sàng vui chơi và gắn bó lâu dài bên gia đình bạn.
             </p>
             <ul className="f">
               <li className="f">

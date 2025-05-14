@@ -106,13 +106,7 @@ class HomeAppointment extends Component {
     return (
       <div className="HomeAppointment-body">
         <ToastContainer />
-        <HomeProductModal
-          isOpen={isShowHomeProductModal}
-          toggleFromModal={this.toggleHomeProductModal}
-          currentProduct={productDetail.MASANPHAM}
-          handleBuyNowFromModal={(masanpham, soluong, mactsp) => console.log('Buy now:', masanpham, soluong, mactsp)}
-          handleAddToCartFromModal={(masanpham, soluong, mactsp) => console.log('Add to cart:', masanpham, soluong, mactsp)}
-        />
+        <HomeProductModal isOpen={isShowHomeProductModal} toggleFromModal={this.toggleHomeProductModal} currentProduct={productDetail.MASANPHAM} handleBuyNowFromModal={(masanpham, soluong, mactsp) => console.log('Buy now:', masanpham, soluong, mactsp)} handleAddToCartFromModal={(masanpham, soluong, mactsp) => console.log('Add to cart:', masanpham, soluong, mactsp)} />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
 
         <div className="home-bg"></div>
@@ -233,10 +227,7 @@ class HomeAppointment extends Component {
                 KHÔNG NGỪNG VƯƠN TỚI
               </h1>
               <div className="stra"></div>
-              <p>
-                Website Thú Y Mincow luôn nỗ lực để đạt được sự hài lòng và tín nhiệm bằng chất lượng dịch vụ, trải nghiệm hoàn hảo với chi phí hợp lý. Đáp ứng kỳ vọng của khách hàng, đạt được sự tin
-                tưởng gắn kết với sứ mệnh phát triển và nâng cao sức khoẻ cho thú cưng Việt Nam.
-              </p>
+              <p>Website Thú Y Mincow luôn nỗ lực để đạt được sự hài lòng và tín nhiệm bằng chất lượng dịch vụ, trải nghiệm hoàn hảo với chi phí hợp lý. Đáp ứng kỳ vọng của khách hàng, đạt được sự tin tưởng gắn kết với sứ mệnh phát triển và nâng cao sức khoẻ cho thú cưng Việt Nam.</p>
               <div className="f">
                 <img src={im1} />
                 <img src={im2} />
