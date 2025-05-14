@@ -27,6 +27,9 @@ class ViewInvoiceModal extends Component {
     if (this.props.selectedInvoiceID) {
       await this.handleLoadInvoiceDetails(this.props.selectedInvoiceID);
     }
+    setTimeout(() => {
+      console.log(this.state.loadedInvoiceDetails)
+    })
   }
 
   async componentDidUpdate(prevProps) {
@@ -226,6 +229,11 @@ class ViewInvoiceModal extends Component {
                           item.Code === loadedInvoiceDetails.ShippingStatus
                       )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus}
                     </p>
+                    {loadedInvoiceDetails.CancelReason !== null ?
+                      <p>
+                        Lí do hủy đơn hàng:{" "}
+                        {loadedInvoiceDetails.CancelReason}
+                      </p> : ""}
                   </div>
                 </div>
                 <div className="view-invoice-modal-content-mid">
