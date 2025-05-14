@@ -4,13 +4,20 @@ import { ToastContainer, toast } from "react-toastify";
 import "./Bill.scss";
 import logo from "../../assets/images/logo1.png";
 import Header from "../../components/HomeHeader";
-import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from "../../services/invoiceServices";
+import {
+  handleGetInvoiceDetailInfoApi,
+  handleChangeInvoiceStatusApi,
+} from "../../services/invoiceServices";
 import { handleGetAllCodesApi } from "../../services/utilitiesServices";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import RobotoRegularFont from "../../assets/fonts/Roboto-Regular-normal.js";
 import { IonIcon } from "@ionic/react";
-import { checkmarkCircleOutline, closeCircleOutline, refreshOutline } from "ionicons/icons";
+import {
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  refreshOutline,
+} from "ionicons/icons";
 import CancelInvoiceModal from "../../components/CancelInvoiceModal";
 
 class BillClass extends Component {
@@ -140,7 +147,12 @@ class BillClass extends Component {
   };
 
   handleGeneratePDF = () => {
-    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
+    const {
+      loadedInvoiceDetails,
+      codePaymentType,
+      codeShippingMethod,
+      codeShippingStatus,
+    } = this.state;
     const doc = new jsPDF();
 
     let fontLoaded = false;
@@ -163,29 +175,39 @@ class BillClass extends Component {
     const address = "136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM";
     doc.text(address, 14, 34);
 
-    const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
-      ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
-      : "N/A"}`;
+    const dateText = `Thời gian: ${
+      loadedInvoiceDetails.CreatedAt
+        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })
+        : "N/A"
+    }`;
     doc.text(dateText, 14, 42);
-    doc.text(`Mã hóa đơn: ${this.props.madonhang}`, 150, 42, { align: "right" });
+    doc.text(`Mã hóa đơn: ${this.props.madonhang}`, 150, 42, {
+      align: "right",
+    });
 
     const customerText = `Khách hàng: ${loadedInvoiceDetails.ReceiverName}\nSĐT: ${loadedInvoiceDetails.ReceiverPhone}\nĐịa chỉ: ${loadedInvoiceDetails.ReceiverAddress}`;
     doc.text(customerText, 14, 50);
 
-    const statusText = `Phương thức thanh toán: ${codePaymentType.find(
-      (item) => item.Code === loadedInvoiceDetails.PaymentType
-    )?.CodeValueVI || loadedInvoiceDetails.PaymentType}\nPhương thức giao hàng: ${codeShippingMethod.find(
-      (item) => item.Code === loadedInvoiceDetails.ShippingMethod
-    )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${codeShippingStatus.find(
-      (item) => item.Code === loadedInvoiceDetails.ShippingStatus
-    )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus}`;
+    const statusText = `Phương thức thanh toán: ${
+      codePaymentType.find(
+        (item) => item.Code === loadedInvoiceDetails.PaymentType
+      )?.CodeValueVI || loadedInvoiceDetails.PaymentType
+    }\nPhương thức giao hàng: ${
+      codeShippingMethod.find(
+        (item) => item.Code === loadedInvoiceDetails.ShippingMethod
+      )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod
+    }\nTrạng thái giao hàng: ${
+      codeShippingStatus.find(
+        (item) => item.Code === loadedInvoiceDetails.ShippingStatus
+      )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus
+    }`;
     doc.text(statusText, 14, 70);
 
     doc.setLineWidth(0.5);
@@ -196,7 +218,9 @@ class BillClass extends Component {
       item.DetailName,
       `${parseFloat(item.ItemPrice).toLocaleString("vi-VN")}đ`,
       item.ItemQuantity,
-      `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString("vi-VN")}đ`,
+      `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString(
+        "vi-VN"
+      )}đ`,
     ]);
 
     autoTable(doc, {
@@ -236,18 +260,52 @@ class BillClass extends Component {
     doc.line(14, finalY + 2, 196, finalY + 2);
 
     doc.setFontSize(10);
-    doc.text(`Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity}`, 14, finalY + 10);
-    doc.text(`Tổng tiền hàng: ${parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString("vi-VN")}đ`, 14, finalY + 16);
-    doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}): ${this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString("vi-VN")}đ`, 14, finalY + 22);
-    doc.text(`Giảm giá: -${parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString("vi-VN")}đ`, 14, finalY + 28);
+    doc.text(
+      `Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity}`,
+      14,
+      finalY + 10
+    );
+    doc.text(
+      `Tổng tiền hàng: ${parseFloat(
+        loadedInvoiceDetails.TotalPrice
+      ).toLocaleString("vi-VN")}đ`,
+      14,
+      finalY + 16
+    );
+    doc.text(
+      `Phí vận chuyển (${
+        codeShippingMethod.find(
+          (item) => item.Code === loadedInvoiceDetails.ShippingMethod
+        )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod
+      }): ${this.getShippingFee(
+        loadedInvoiceDetails.ShippingMethod
+      ).toLocaleString("vi-VN")}đ`,
+      14,
+      finalY + 22
+    );
+    doc.text(
+      `Giảm giá: -${parseFloat(
+        loadedInvoiceDetails.DiscountAmount || 0
+      ).toLocaleString("vi-VN")}đ`,
+      14,
+      finalY + 28
+    );
     doc.setFont(fontLoaded ? "Roboto-Regular" : "Helvetica", "normal");
-    doc.text(`Tổng thanh toán: ${parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString("vi-VN")}đ`, 14, finalY + 34);
+    doc.text(
+      `Tổng thanh toán: ${parseFloat(
+        loadedInvoiceDetails.TotalPayment
+      ).toLocaleString("vi-VN")}đ`,
+      14,
+      finalY + 34
+    );
 
     doc.setLineWidth(0.5);
     doc.line(14, finalY + 38, 196, finalY + 38);
 
-    const note1 = "*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).";
-    const note2 = "Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).";
+    const note1 =
+      "*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).";
+    const note2 =
+      "Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).";
 
     doc.setFontSize(9);
     const splitNote1 = doc.splitTextToSize(note1, 180);
@@ -300,7 +358,12 @@ class BillClass extends Component {
     if (!isConfirmed) return;
 
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "DELI", "");
+      const response = await handleChangeInvoiceStatusApi(
+        invoiceid,
+        "ShippingStatus",
+        "DELI",
+        ""
+      );
       if (response && response.errCode === 0) {
         toast.success("Xác nhận nhận hàng thành công!", {
           position: "top-right",
@@ -358,7 +421,12 @@ class BillClass extends Component {
     if (!isConfirmed) return;
 
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "PEND", "");
+      const response = await handleChangeInvoiceStatusApi(
+        invoiceid,
+        "ShippingStatus",
+        "PEND",
+        ""
+      );
       if (response && response.errCode === 0) {
         toast.success("Tiếp tục đơn hàng thành công!", {
           position: "top-right",
@@ -398,7 +466,12 @@ class BillClass extends Component {
 
   handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "PEND_CANCEL", cancelreason);
+      const response = await handleChangeInvoiceStatusApi(
+        invoiceid,
+        "ShippingStatus",
+        "PEND_CANCEL",
+        cancelreason
+      );
       if (response && response.errCode === 0) {
         toast.success("Gửi yêu cầu hủy đơn hàng thành công!", {
           position: "top-right",
@@ -411,19 +484,25 @@ class BillClass extends Component {
           selectedCancelInvoice: null,
         });
       } else {
-        toast.error(response?.errMessage || "Gửi yêu cầu hủy đơn hàng thất bại!", {
-          position: "top-right",
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(
+          response?.errMessage || "Gửi yêu cầu hủy đơn hàng thất bại!",
+          {
+            position: "top-right",
+            autoClose: 500,
+            closeOnClick: true,
+          }
+        );
       }
     } catch (e) {
       console.error("Error canceling invoice:", e);
-      toast.error("Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!", {
-        position: "top-right",
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(
+        "Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!",
+        {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        }
+      );
     }
   };
 
@@ -440,7 +519,11 @@ class BillClass extends Component {
 
     return (
       <div className="view-invoice-background">
-        <Header navigate={this.props.navigate} cartItems={cartItems} userInfo={userInfo} />
+        <Header
+          navigate={this.props.navigate}
+          cartItems={cartItems}
+          userInfo={userInfo}
+        />
         <CancelInvoiceModal
           isOpen={isShowCancelInvoiceModal}
           toggleFromModal={this.toggleCancelInvoiceModal}
@@ -464,14 +547,16 @@ class BillClass extends Component {
                       <p>
                         Thời gian:{" "}
                         {loadedInvoiceDetails.CreatedAt
-                          ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString("vi-VN", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
+                          ? new Date(
+                              loadedInvoiceDetails.CreatedAt
+                            ).toLocaleString("vi-VN", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })
                           : "N/A"}
                       </p>
                     </div>
@@ -479,7 +564,7 @@ class BillClass extends Component {
                       <p>Mã hóa đơn: {madonhang}</p>
                     </div>
                   </div>
-                  <div className="view-invoice-modal-content-top-cusname">
+                  <div className="view-invoice-modal-content-top-cusname-1">
                     <p>Khách hàng: {loadedInvoiceDetails.ReceiverName}</p>
                     <p>SĐT: {loadedInvoiceDetails.ReceiverPhone}</p>
                     <p>Địa chỉ: {loadedInvoiceDetails.ReceiverAddress}</p>
@@ -487,18 +572,23 @@ class BillClass extends Component {
                   <div className="view-invoice-modal-content-top-status">
                     <p>
                       Phương thức thanh toán:{" "}
-                      {codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI ||
-                        loadedInvoiceDetails.PaymentType}
+                      {codePaymentType.find(
+                        (item) => item.Code === loadedInvoiceDetails.PaymentType
+                      )?.CodeValueVI || loadedInvoiceDetails.PaymentType}
                     </p>
                     <p>
                       Phương thức giao hàng:{" "}
-                      {codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI ||
-                        loadedInvoiceDetails.ShippingMethod}
+                      {codeShippingMethod.find(
+                        (item) =>
+                          item.Code === loadedInvoiceDetails.ShippingMethod
+                      )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}
                     </p>
                     <p>
                       Trạng thái giao hàng:{" "}
-                      {codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI ||
-                        loadedInvoiceDetails.ShippingStatus}
+                      {codeShippingStatus.find(
+                        (item) =>
+                          item.Code === loadedInvoiceDetails.ShippingStatus
+                      )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus}
                     </p>
                   </div>
                 </div>
@@ -515,9 +605,13 @@ class BillClass extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      {loadedInvoiceDetails.ProductList && loadedInvoiceDetails.ProductList.length > 0 ? (
+                      {loadedInvoiceDetails.ProductList &&
+                      loadedInvoiceDetails.ProductList.length > 0 ? (
                         loadedInvoiceDetails.ProductList.map((item, index) => (
-                          <tr key={index} className="view-invoice-modal-content-mid-item">
+                          <tr
+                            key={index}
+                            className="view-invoice-modal-content-mid-item"
+                          >
                             <td>
                               <img
                                 src={item.ProductImage || ""}
@@ -528,12 +622,16 @@ class BillClass extends Component {
                             <td>{item.ProductName}</td>
                             <td>{item.DetailName}</td>
                             <td>
-                              {parseFloat(item.ItemPrice).toLocaleString("vi-VN")}
+                              {parseFloat(item.ItemPrice).toLocaleString(
+                                "vi-VN"
+                              )}
                               <sup>đ</sup>
                             </td>
                             <td>{item.ItemQuantity}</td>
                             <td>
-                              {(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString("vi-VN")}
+                              {(
+                                parseFloat(item.ItemPrice) * item.ItemQuantity
+                              ).toLocaleString("vi-VN")}
                               <sup>đ</sup>
                             </td>
                           </tr>
@@ -547,31 +645,42 @@ class BillClass extends Component {
                     <tfoot>
                       <tr>
                         <td colSpan="5">Tổng sản phẩm:</td>
-                        <td className="cen">{loadedInvoiceDetails.TotalQuantity}</td>
+                        <td className="cen">
+                          {loadedInvoiceDetails.TotalQuantity}
+                        </td>
                       </tr>
                       <tr>
                         <td colSpan="5">Tổng tiền hàng:</td>
                         <td className="cen">
-                          {parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString("vi-VN")}
+                          {parseFloat(
+                            loadedInvoiceDetails.TotalPrice
+                          ).toLocaleString("vi-VN")}
                           <sup>đ</sup>
                         </td>
                       </tr>
                       <tr>
                         <td colSpan="5">
                           Phí vận chuyển (
-                          {codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI ||
-                            loadedInvoiceDetails.ShippingMethod}
+                          {codeShippingMethod.find(
+                            (item) =>
+                              item.Code === loadedInvoiceDetails.ShippingMethod
+                          )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}
                           ):
                         </td>
                         <td className="cen">
-                          {this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString("vi-VN")}
+                          {this.getShippingFee(
+                            loadedInvoiceDetails.ShippingMethod
+                          ).toLocaleString("vi-VN")}
                           <sup>đ</sup>
                         </td>
                       </tr>
                       <tr>
                         <td colSpan="5">Giảm giá:</td>
                         <td className="cen">
-                          -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString("vi-VN")}
+                          -
+                          {parseFloat(
+                            loadedInvoiceDetails.DiscountAmount || 0
+                          ).toLocaleString("vi-VN")}
                           <sup>đ</sup>
                         </td>
                       </tr>
@@ -581,7 +690,9 @@ class BillClass extends Component {
                         </td>
                         <td className="cen">
                           <b>
-                            {parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString("vi-VN")}
+                            {parseFloat(
+                              loadedInvoiceDetails.TotalPayment
+                            ).toLocaleString("vi-VN")}
                             <sup>đ</sup>
                           </b>
                         </td>
@@ -589,9 +700,11 @@ class BillClass extends Component {
                       <tr>
                         <td colSpan="6">
                           <p>
-                            <u>*Lưu ý:</u> Giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).
+                            <u>*Lưu ý:</u> Giá thành tiền của sản phẩm đã bao
+                            gồm khuyến mãi (nếu có).
                             <br />
-                            Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng <b>(0901131141)</b>.
+                            Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách
+                            hàng <b>(0901131141)</b>.
                           </p>
                         </td>
                       </tr>
@@ -603,10 +716,13 @@ class BillClass extends Component {
                     loadedInvoiceDetails.ShippingStatus === "PEND" && (
                       <button
                         className="cancel-order-btn"
-                        onClick={() => this.handleSelectedCancelInvoice(madonhang)}
+                        onClick={() =>
+                          this.handleSelectedCancelInvoice(madonhang)
+                        }
                         title="Hủy đơn hàng"
                       >
-                        <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
+                        <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn
+                        hàng
                       </button>
                     )}
                   {loadedInvoiceDetails.PaymentStatus === "PAID" &&
@@ -616,25 +732,36 @@ class BillClass extends Component {
                         onClick={() => this.handleConfirmReceived(madonhang)}
                         title="Xác nhận giao hàng"
                       >
-                        <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
+                        <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác
+                        nhận giao hàng
                       </button>
                     )}
-                  {(loadedInvoiceDetails.PaymentStatus === "PEND" || loadedInvoiceDetails.PaymentStatus === "PAID") &&
+                  {(loadedInvoiceDetails.PaymentStatus === "PEND" ||
+                    loadedInvoiceDetails.PaymentStatus === "PAID") &&
                     loadedInvoiceDetails.ShippingStatus === "PEND_CANCEL" && (
                       <button
                         className="continue-order-btn"
                         onClick={() => this.handleContinueInvoice(madonhang)}
                         title="Tiếp tục đơn hàng"
                       >
-                        <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
+                        <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn
+                        hàng
                       </button>
                     )}
-                  <button onClick={this.handleGeneratePDF} className="pdf-btn">
-                    Tải PDF
-                  </button>
-                  <button onClick={this.handleSendEmail} className="email-btn">
-                    Gửi qua email
-                  </button>
+                  <div className="f">
+                    <button
+                      onClick={this.handleGeneratePDF}
+                      className="pdf-btn"
+                    >
+                      Tải PDF
+                    </button>
+                    <button
+                      onClick={this.handleSendEmail}
+                      className="email-btn"
+                    >
+                      Gửi qua email
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (
@@ -650,7 +777,14 @@ class BillClass extends Component {
 const Bill = () => {
   const { madonhang } = useParams();
   const navigate = useNavigate();
-  return <BillClass madonhang={madonhang} navigate={navigate} cartItems={[]} userInfo={null} />;
+  return (
+    <BillClass
+      madonhang={madonhang}
+      navigate={navigate}
+      cartItems={[]}
+      userInfo={null}
+    />
+  );
 };
 
 export default Bill;

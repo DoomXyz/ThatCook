@@ -117,7 +117,6 @@ class MakeAppointment extends Component {
           triggerCountCartItem={this.state.triggerCountCartItem}
         />
         <div className="makeappointment-content">
-          {" "}
           <h1>Thông tin đặt lịch</h1>
           <div className="makeappointment-content-user-info">
             <b>*Thông tin Khách hàng</b>
@@ -133,6 +132,7 @@ class MakeAppointment extends Component {
 
             <input type="text" placeholder="Hãy nhập Tên thú cưng"></input>
             <div className="f">
+              <p>Loại: </p>
               <select
                 value={pettype}
                 onChange={(event) => this.handleOnChangeInput(event, "pettype")}
@@ -147,10 +147,7 @@ class MakeAppointment extends Component {
                   <option value="">Không có dữ liệu loại thú cưng</option>
                 )}
               </select>
-              <input type="text" placeholder="Hãy nhập Tuổi"></input>
-            </div>
-
-            <div className="f">
+              <p>Giới tính:</p>
               <select
                 value={petgender}
                 onChange={(event) =>
@@ -167,6 +164,10 @@ class MakeAppointment extends Component {
                   <option value="">Không có dữ liệu giới tính</option>
                 )}
               </select>
+            </div>
+
+            <div className="f">
+              <input type="text" placeholder="Hãy nhập Tuổi"></input>
               <input type="text" placeholder="Hãy nhập Cân nặng"></input>
             </div>
           </div>

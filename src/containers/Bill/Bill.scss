@@ -57,7 +57,7 @@
 
         .view-invoice-modal-content-top-address {
           margin-top: 10px;
-          margin-bottom: 50px;
+
           font-weight: bold;
         }
 
@@ -78,10 +78,16 @@
           }
         }
 
-        .view-invoice-modal-content-top-cusname {
+        .view-invoice-modal-content-top-cusname-1 {
           margin-left: 10px;
           text-align: left;
-          margin-bottom: 35px;
+
+          p {
+          }
+        }
+        .view-invoice-modal-content-top-status {
+          text-align: left;
+          margin-left: 0.5rem;
         }
       }
 
@@ -148,9 +154,14 @@
         //   color: white;
         // }
         .pdf-btn {
-          margin-left: 32rem;
-          background-color: rgb(93, 93, 212);
+          margin-right: 24rem;
+          background-color: rgb(0, 0, 255);
           color: white;
+          font-weight: bold;
+          border: none;
+        }
+        .email-btn {
+          margin-left: 1rem;
         }
         // button:nth-child(3) {
         //   background-color: rgb(1, 187, 1);

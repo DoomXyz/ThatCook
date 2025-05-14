@@ -20,6 +20,8 @@ f {
     border-radius: 0.3rem;
     color: white;
     font-weight: bold;
+    border: none;
+    padding: 0.4rem 0.3rem;
   }
   justify-content: center;
   .makeappointment-content {
@@ -82,13 +84,34 @@ f {
 
           margin-right: 1rem;
         }
+        select {
+          margin-top: 1rem;
+          background-color: #00b5f1;
+          color: white;
+          font-weight: bold;
+          padding: 0.4rem;
+          width: 5rem;
+          border-radius: 0.3rem;
+          margin-bottom: 2rem;
+          border: none;
+        }
+        p {
+          margin-right: 1rem;
+          margin-top: 1.3rem;
+        }
+
+        p:first-of-type {
+          margin-left: 5.4rem;
+        }
+        select:first-of-type {
+          margin-right: 7.4rem;
+        }
       }
     }
     .makeappointment-content-doctor {
       margin-top: 1rem;
       margin-left: 5rem;
       button {
-        height: 1.7rem;
         width: 10rem;
       }
       p {
@@ -133,7 +156,6 @@ f {
       margin-left: 5rem;
       button {
         width: 13rem;
-        padding: 0.2rem;
       }
     }
     textarea {
@@ -184,7 +206,7 @@ f {
     }
     .makeapp {
       width: 7rem;
-      height: 2rem;
+
       margin-top: 2rem;
       margin-left: 28rem;
       margin-bottom: 4rem;

@@ -10,6 +10,7 @@ import {
   logOutOutline,
   menuOutline,
   cartOutline,
+  newspaperOutline,
 } from "ionicons/icons";
 
 import "./HomeHeader.scss";
@@ -286,9 +287,21 @@ class HomeHeader extends Component {
                 </a>
                 <ul className="sub-menu-1">
                   <li>
-                    <a>
-                      {" "}
+                    <a
+                      onClick={() => {
+                        this.props.navigate("/home");
+                      }}
+                    >
                       <IonIcon icon={cartOutline}></IonIcon>Cửa Hàng
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      onClick={() => {
+                        this.props.navigate("/user/homeappointment");
+                      }}
+                    >
+                      <IonIcon icon={newspaperOutline}></IonIcon>D.vụ Đặt Lịch
                     </a>
                   </li>
                 </ul>
@@ -309,9 +322,7 @@ class HomeHeader extends Component {
                 <a onClick={() => this.handlePromotionFilter()}>Ưu đãi</a>
               </li>
               <li>
-                <a onClick={() => this.props.navigate("/appointment")}>
-                  Dịch vụ
-                </a>
+                <a>Dịch vụ</a>
                 <ul className="sub-menu-2">
                   <li>
                     <a>
@@ -361,10 +372,14 @@ class HomeHeader extends Component {
                 </ul>
               </li>
               <li>
-                <a>Đặt lịch</a>
+                <a onClick={() => this.props.navigate("/user/makeappointment")}>
+                  Đặt lịch
+                </a>
               </li>
               <li>
-                <a>Bác sĩ</a>
+                <a onClick={() => this.props.navigate("/user/showdoctor")}>
+                  Bác sĩ
+                </a>
               </li>
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === "C" ? (

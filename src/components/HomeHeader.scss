@@ -107,6 +107,7 @@ a {
           height: 2rem;
 
           &.menu-icon a,
+          a[href="/user/makeappointment"],
           a[href="/appointment"],
           a[href="/information"],
           a:not([href]):not(.sub-menu a):not(.sub-menu-1 a):not(.sub-menu-2 a) {
@@ -137,6 +138,7 @@ a {
             min-height: 5rem;
 
             li {
+              transition: 0.3s;
               height: 1.5rem;
               margin-top: 0.6rem;
               margin-bottom: 0.2rem;
@@ -154,9 +156,14 @@ a {
                 line-height: 0;
                 font-weight: normal;
                 color: black;
-              }
-              a:hover {
-                border-bottom: 2px solid black;
+                &:hover {
+                  transform: translateY(-2px);
+                  border-bottom: 1px solid black;
+                }
+                &:active {
+                  transform: translateY(2px);
+                  border-bottom: 1px solid black;
+                }
               }
             }
           }
@@ -167,6 +174,7 @@ a {
             position: relative;
             visibility: hidden;
             width: 10.5rem;
+
             margin-left: -3.8rem;
             border-radius: 10px;
             position: absolute;
@@ -176,12 +184,13 @@ a {
             padding: 0;
 
             li {
-              height: 0.5rem;
+              height: 1rem;
               transform: translateY(-1rem);
               width: 10rem;
               text-align: center;
               border-right: none;
               margin-bottom: 0.5rem;
+              margin-top: 1.5rem;
               cursor: default;
 
               ion-icon {
@@ -215,7 +224,7 @@ a {
             margin-left: -3rem;
             border-radius: 10px;
             position: absolute;
-            transition: 0.2s;
+            transition: 0.3s;
             background-color: white;
             padding: 0;
 
@@ -237,6 +246,7 @@ a {
                 color: black;
 
                 p {
+                  transition: 0.3s;
                   display: inline-block;
                   &:hover {
                     transform: translateY(-2px);
@@ -279,7 +289,7 @@ a {
           width: 270px;
           border-radius: 10px;
           position: absolute;
-          transition: 0.1s;
+          transition: 0.3s;
           background-color: rgb(250, 250, 250);
           border: 2px solid rgb(91, 82, 82);
           padding: 5px 0;
@@ -299,6 +309,8 @@ a {
               font-weight: normal;
               color: rgb(91, 82, 82);
               display: inline-block;
+
+              transition: 0.3s;
               &:hover {
                 transform: translateY(-2px);
                 border-bottom: 1px solid black;
@@ -347,6 +359,7 @@ a {
           }
           .user {
             cursor: pointer;
+
             img {
               width: 45px;
               height: 45px;
