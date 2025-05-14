@@ -1,25 +1,25 @@
 // import React, { Component } from 'react';
-import React from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import Login from "../containers/Login/Login";
-import AdminPage from "../containers/AdminPage/Admin";
-import Register from "../containers/Register/Register";
-import Home from "../containers/Home/Home";
-import UserPage from "../containers/UserPage/User";
-import CheckOut from "../containers/CheckOut/CheckOut";
-import ForgotPassword from "../containers/UserUtilities/ForgotPassword";
-import Cart from "../containers/Cart/Cart";
-import Bill from "../containers/Bill/Bill";
-import OwnerPage from "../containers/OwnerPage/Owner";
-import MainPage from "../containers/MainPage/MainPage";
-import HomeAppointment from "../containers/HomeAppointment/HomeAppointment";
-import MakeAppointment from "../containers/MakeAppointment/MakeAppointment";
-import ShowDoctor from "../containers/ShowDoctor/ShowDoctor";
-import GenHealthCheck from "../containers/GenHealthCheck/GenHealthCheck";
-import Vaccination from "../containers/Vaccination/Vaccination";
-import Surgery from "../containers/Surgery/Surgery";
-import Test from "../containers/Test/Test";
-import DoctorPage from "../containers/DoctorPage/Doctor";
+import React from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import Login from '../containers/Login/Login';
+import AdminPage from '../containers/AdminPage/Admin';
+import Register from '../containers/Register/Register';
+import Home from '../containers/Home/Home';
+import UserPage from '../containers/UserPage/User';
+import CheckOut from '../containers/CheckOut/CheckOut';
+import ForgotPassword from '../containers/UserUtilities/ForgotPassword';
+import Cart from '../containers/Cart/Cart';
+import Bill from '../containers/Bill/Bill';
+import OwnerPage from '../containers/OwnerPage/Owner';
+import MainPage from '../containers/MainPage/MainPage';
+import HomeAppointment from '../containers/HomeAppointment/HomeAppointment';
+import MakeAppointment from '../containers/MakeAppointment/MakeAppointment';
+import ShowDoctor from '../containers/ShowDoctor/ShowDoctor';
+import GenHealthCheck from '../containers/GenHealthCheck/GenHealthCheck';
+import Vaccination from '../containers/Vaccination/Vaccination';
+import Surgery from '../containers/Surgery/Surgery';
+import Test from '../containers/Test/Test';
+import DoctorPage from '../containers/DoctorPage/Doctor';
 // class AppRoutes extends Component {
 //     render() {
 //         const { navigate } = this.props; // Nhận navigate từ props
@@ -49,32 +49,14 @@ const AppRoutes = () => {
       <Route path="/checkout" element={<CheckOut navigate={navigate} />} />
       <Route path="/bill/:madonhang" element={<Bill navigate={navigate} />} />
       <Route path="/user/doctor" element={<DoctorPage navigate={navigate} />} />
-      <Route
-        path="/forgotpassword"
-        element={<ForgotPassword navigate={navigate} />}
-      />
+      <Route path="/forgotpassword" element={<ForgotPassword navigate={navigate} />} />
       <Route path="/user/customer" element={<UserPage navigate={navigate} />} />
       <Route path="/user/owner" element={<OwnerPage navigate={navigate} />} />
-      <Route
-        path="/user/homeappointment"
-        element={<HomeAppointment navigate={navigate} />}
-      />
-      <Route
-        path="/user/makeappointment"
-        element={<MakeAppointment navigate={navigate} />}
-      />
-      <Route
-        path="/user/showdoctor"
-        element={<ShowDoctor navigate={navigate} />}
-      />
-      <Route
-        path="/user/genhealthcheck"
-        element={<GenHealthCheck navigate={navigate} />}
-      />
-      <Route
-        path="/user/vaccination"
-        element={<Vaccination navigate={navigate} />}
-      />
+      <Route path="/user/homeappointment" element={<HomeAppointment navigate={navigate} />} />
+      <Route path="/user/makeappointment" element={<MakeAppointment navigate={navigate} />} />
+      <Route path="/user/showdoctor" element={<ShowDoctor navigate={navigate} />} />
+      <Route path="/user/genhealthcheck" element={<GenHealthCheck navigate={navigate} />} />
+      <Route path="/user/vaccination" element={<Vaccination navigate={navigate} />} />
       <Route path="/user/surgery" element={<Surgery navigate={navigate} />} />
       <Route path="/user/test" element={<Test navigate={navigate} />} />
     </Routes>

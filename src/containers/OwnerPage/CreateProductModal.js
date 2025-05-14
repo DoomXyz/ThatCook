@@ -1,14 +1,14 @@
-import React, { Component } from "react";
-import { toast } from "react-toastify";
-import { IonIcon } from "@ionic/react";
+import React, { Component } from 'react';
+import { toast } from 'react-toastify';
+import { IonIcon } from '@ionic/react';
 
-import { trashOutline } from "ionicons/icons";
+import { trashOutline } from 'ionicons/icons';
 
-import "./CreateProductModal.scss";
-import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
+import './CreateProductModal.scss';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 
-import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from "../../services/utilitiesServices";
+import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
 
 class CreateProductModal extends Component {
   constructor(props) {
@@ -17,11 +17,11 @@ class CreateProductModal extends Component {
       codePetType: [],
       codeProductType: [],
       codeDetailStatus: [],
-      productname: "",
-      producttype: "",
+      productname: '',
+      producttype: '',
       pettype: [],
-      productprice: "",
-      productdescription: "",
+      productprice: '',
+      productdescription: '',
       allImages: [],
       loadedProductDetailInfo: [],
       isUploading: false,
@@ -30,11 +30,7 @@ class CreateProductModal extends Component {
     };
   }
   async componentDidMount() {
-    await Promise.all([
-      this.handleLoadCodeProductType(),
-      this.handleLoadCodePetType(),
-      this.handleLoadCodeDetailStatus(),
-    ]);
+    await Promise.all([this.handleLoadCodeProductType(), this.handleLoadCodePetType(), this.handleLoadCodeDetailStatus()]);
   }
 
   componentWillUnmount() {
@@ -45,22 +41,22 @@ class CreateProductModal extends Component {
 
   handleLoadCodeProductType = async () => {
     try {
-      const codeProductType = await handleGetAllCodesApi("ProductType");
+      const codeProductType = await handleGetAllCodesApi('ProductType');
       if (!codeProductType || codeProductType.length === 0) {
-        toast.error("Không thể tải danh sách loại sản phẩm!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách loại sản phẩm!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({
         codeProductType,
-        producttype: codeProductType.length > 0 ? codeProductType[0].Code : "",
+        producttype: codeProductType.length > 0 ? codeProductType[0].Code : '',
       });
     } catch (e) {
-      console.error("Error loading product type code:", e);
-      toast.error("Lỗi khi tải danh sách loại sản phẩm!", {
-        position: "top-right",
+      console.error('Error loading product type code:', e);
+      toast.error('Lỗi khi tải danh sách loại sản phẩm!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -69,19 +65,19 @@ class CreateProductModal extends Component {
 
   handleLoadCodePetType = async () => {
     try {
-      const codePetType = await handleGetAllCodesApi("PetType");
+      const codePetType = await handleGetAllCodesApi('PetType');
       if (!codePetType || codePetType.length === 0) {
-        toast.error("Không thể tải danh sách loại thú cưng!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách loại thú cưng!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ codePetType });
     } catch (e) {
-      console.error("Error loading pet type code:", e);
-      toast.error("Lỗi khi tải danh sách loại thú cưng!", {
-        position: "top-right",
+      console.error('Error loading pet type code:', e);
+      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -90,19 +86,19 @@ class CreateProductModal extends Component {
 
   handleLoadCodeDetailStatus = async () => {
     try {
-      const codeDetailStatus = await handleGetAllCodesApi("DetailStatus");
+      const codeDetailStatus = await handleGetAllCodesApi('DetailStatus');
       if (!codeDetailStatus || codeDetailStatus.length === 0) {
-        toast.error("Không thể tải danh sách trạng thái chi tiết!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách trạng thái chi tiết!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ codeDetailStatus });
     } catch (e) {
-      console.error("Error loading detail status code:", e);
-      toast.error("Lỗi khi tải danh sách trạng thái chi tiết!", {
-        position: "top-right",
+      console.error('Error loading detail status code:', e);
+      toast.error('Lỗi khi tải danh sách trạng thái chi tiết!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -116,11 +112,11 @@ class CreateProductModal extends Component {
 
   resetState = () => {
     this.setState({
-      productname: "",
-      producttype: this.state.codeProductType.length > 0 ? this.state.codeProductType[0].Code : "",
+      productname: '',
+      producttype: this.state.codeProductType.length > 0 ? this.state.codeProductType[0].Code : '',
       pettype: [],
-      productprice: "",
-      productdescription: "",
+      productprice: '',
+      productdescription: '',
       allImages: [],
       loadedProductDetailInfo: [],
       isUploading: false,
@@ -128,7 +124,6 @@ class CreateProductModal extends Component {
       isAddingDetail: false,
     });
   };
-
 
   handleInputChange = (e, field) => {
     this.setState({ [field]: e.target.value });
@@ -142,9 +137,7 @@ class CreateProductModal extends Component {
     const petType = e.target.value;
     const isChecked = e.target.checked;
     this.setState((prevState) => {
-      const updatedPetTypes = isChecked
-        ? [...prevState.pettype, petType]
-        : prevState.pettype.filter((type) => type !== petType);
+      const updatedPetTypes = isChecked ? [...prevState.pettype, petType] : prevState.pettype.filter((type) => type !== petType);
       return { pettype: updatedPetTypes };
     });
   };
@@ -153,24 +146,24 @@ class CreateProductModal extends Component {
     const file = e.target.files[0];
     if (!file) return;
     if (this.state.allImages.length >= 5) {
-      toast.error("Tối đa 5 hình ảnh!", {
-        position: "top-right",
+      toast.error('Tối đa 5 hình ảnh!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
       return;
     }
     if (file.size > 20 * 1024 * 1024) {
-      toast.error("Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!", {
-        position: "top-right",
+      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
       return;
     }
-    if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file ảnh!", {
-        position: "top-right",
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -182,7 +175,6 @@ class CreateProductModal extends Component {
     }));
   };
 
-
   handleRemoveImage = (imageID) => {
     this.setState((prevState) => ({
       allImages: prevState.allImages.filter((img) => img.ImageID !== imageID),
@@ -193,8 +185,8 @@ class CreateProductModal extends Component {
     this.setState((prevState) => {
       const newDetails = [...prevState.loadedProductDetailInfo];
       newDetails[index] = { ...newDetails[index], [field]: value };
-      if (field === "Stock") {
-        newDetails[index].DetailStatus = parseInt(value) > 0 ? newDetails[index].DetailStatus : "OUT";
+      if (field === 'Stock') {
+        newDetails[index].DetailStatus = parseInt(value) > 0 ? newDetails[index].DetailStatus : 'OUT';
       }
       return { loadedProductDetailInfo: newDetails };
     });
@@ -208,7 +200,7 @@ class CreateProductModal extends Component {
     const validation = this.checkValidateDetail(index);
     if (validation.errCode !== 0) {
       toast.error(validation.errMessage, {
-        position: "top-right",
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -223,11 +215,11 @@ class CreateProductModal extends Component {
         ...prevState.loadedProductDetailInfo,
         {
           ProductDetailID: Date.now(),
-          DetailName: "",
-          Stock: "0",
-          ExtraPrice: "0",
-          Promotion: "0",
-          DetailStatus: "OUT",
+          DetailName: '',
+          Stock: '0',
+          ExtraPrice: '0',
+          Promotion: '0',
+          DetailStatus: 'OUT',
         },
       ],
       editingField: prevState.loadedProductDetailInfo.length,
@@ -256,53 +248,53 @@ class CreateProductModal extends Component {
     if (!item.DetailName) return { errCode: -1, errMessage: `Tên chi tiết tại dòng ${index + 1} không được để trống!` };
     const regex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
     if (!regex.test(item.DetailName.trim())) return { errCode: -1, errMessage: `Tên chi tiết tại dòng ${index + 1} không hợp lệ!` };
-    if (item.Stock === "" || item.Stock === undefined) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} không được để trống!` };
+    if (item.Stock === '' || item.Stock === undefined) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} không được để trống!` };
     if (isNaN(item.Stock) || parseInt(item.Stock) < 0) return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!` };
-    if (parseInt(item.Stock) === 0 && item.DetailStatus === "AVAIL") return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} bằng 0, không thể chọn trạng thái Còn hàng!` };
-    if (item.ExtraPrice !== "" && item.ExtraPrice !== undefined && (isNaN(item.ExtraPrice) || parseFloat(item.ExtraPrice) < 0)) {
+    if (parseInt(item.Stock) === 0 && item.DetailStatus === 'AVAIL') return { errCode: -1, errMessage: `Số lượng tồn tại dòng ${index + 1} bằng 0, không thể chọn trạng thái Còn hàng!` };
+    if (item.ExtraPrice !== '' && item.ExtraPrice !== undefined && (isNaN(item.ExtraPrice) || parseFloat(item.ExtraPrice) < 0)) {
       return { errCode: -1, errMessage: `Giá thêm tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!` };
     }
-    if (item.Promotion !== "" && item.Promotion !== undefined && (isNaN(item.Promotion) || parseFloat(item.Promotion) < 0 || parseFloat(item.Promotion) > 100)) {
+    if (item.Promotion !== '' && item.Promotion !== undefined && (isNaN(item.Promotion) || parseFloat(item.Promotion) < 0 || parseFloat(item.Promotion) > 100)) {
       return { errCode: -1, errMessage: `Khuyến mãi tại dòng ${index + 1} phải từ 0 đến 100%!` };
     }
     if (!item.DetailStatus) return { errCode: -1, errMessage: `Trạng thái chi tiết tại dòng ${index + 1} không được để trống!` };
-    return { errCode: 0, errMessage: "Kiểm tra thành công!" };
+    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
   };
 
   checkValidateProduct = () => {
     const { productname, producttype, productprice, allImages, productdescription, pettype, loadedProductDetailInfo } = this.state;
 
-    if (!productname) return { errCode: -1, errMessage: "Tên sản phẩm không được để trống!" };
+    if (!productname) return { errCode: -1, errMessage: 'Tên sản phẩm không được để trống!' };
     const nameRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
-    if (!nameRegex.test(productname.trim())) return { errCode: -1, errMessage: "Tên sản phẩm không hợp lệ!" };
+    if (!nameRegex.test(productname.trim())) return { errCode: -1, errMessage: 'Tên sản phẩm không hợp lệ!' };
 
-    if (!producttype) return { errCode: -1, errMessage: "Vui lòng chọn loại sản phẩm!" };
+    if (!producttype) return { errCode: -1, errMessage: 'Vui lòng chọn loại sản phẩm!' };
 
-    if (!productprice) return { errCode: -1, errMessage: "Giá bán không được để trống!" };
-    if (isNaN(productprice) || parseFloat(productprice) <= 0) return { errCode: -1, errMessage: "Giá bán phải lớn hơn 0!" };
+    if (!productprice) return { errCode: -1, errMessage: 'Giá bán không được để trống!' };
+    if (isNaN(productprice) || parseFloat(productprice) <= 0) return { errCode: -1, errMessage: 'Giá bán phải lớn hơn 0!' };
 
-    if (!productdescription) return { errCode: -1, errMessage: "Mô tả sản phẩm không được để trống!" };
+    if (!productdescription) return { errCode: -1, errMessage: 'Mô tả sản phẩm không được để trống!' };
 
-    if (allImages.length === 0) return { errCode: -1, errMessage: "Vui lòng thêm ít nhất 1 hình ảnh!" };
-    if (allImages.length > 5) return { errCode: -1, errMessage: "Tối đa 5 hình ảnh!" };
+    if (allImages.length === 0) return { errCode: -1, errMessage: 'Vui lòng thêm ít nhất 1 hình ảnh!' };
+    if (allImages.length > 5) return { errCode: -1, errMessage: 'Tối đa 5 hình ảnh!' };
 
-    if (pettype.length === 0) return { errCode: -1, errMessage: "Vui lòng chọn ít nhất một loại thú cưng!" };
+    if (pettype.length === 0) return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một loại thú cưng!' };
 
-    if (!loadedProductDetailInfo || loadedProductDetailInfo.length === 0) return { errCode: -1, errMessage: "Vui lòng thêm ít nhất một chi tiết sản phẩm!" };
+    if (!loadedProductDetailInfo || loadedProductDetailInfo.length === 0) return { errCode: -1, errMessage: 'Vui lòng thêm ít nhất một chi tiết sản phẩm!' };
 
     for (let i = 0; i < loadedProductDetailInfo.length; i++) {
       const validation = this.checkValidateDetail(i);
       if (validation.errCode !== 0) return validation;
     }
 
-    return { errCode: 0, errMessage: "Kiểm tra thành công!" };
+    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
   };
 
   handleSaveProduct = async () => {
     const validation = this.checkValidateProduct();
     if (validation.errCode !== 0) {
       toast.error(validation.errMessage, {
-        position: "top-right",
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -314,14 +306,26 @@ class CreateProductModal extends Component {
         toast(
           <div>
             <p>Xác nhận lưu thông tin sản phẩm?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 1000, closeOnClick: false }
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
         );
       });
 
@@ -329,8 +333,8 @@ class CreateProductModal extends Component {
     if (!isConfirmed) return;
 
     if (this.state.isUploading) {
-      toast.info("Đang tải ảnh, vui lòng chờ!", {
-        position: "top-right",
+      toast.info('Đang tải ảnh, vui lòng chờ!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -361,16 +365,16 @@ class CreateProductModal extends Component {
       }
 
       if (failedImages.length > 0) {
-        toast.error(`Không thể tải lên các ảnh: ${failedImages.join(", ")}`, {
-          position: "top-right",
+        toast.error(`Không thể tải lên các ảnh: ${failedImages.join(', ')}`, {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
 
       if (uploadedImages.length === 0) {
-        toast.error("Vui lòng thêm ít nhất 1 hình ảnh!", {
-          position: "top-right",
+        toast.error('Vui lòng thêm ít nhất 1 hình ảnh!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -389,16 +393,16 @@ class CreateProductModal extends Component {
           DetailName: item.DetailName,
           Stock: parseInt(item.Stock),
           SoldCount: 0,
-          ExtraPrice: item.ExtraPrice ? parseFloat(item.ExtraPrice).toFixed(2) : "0.00",
-          Promotion: item.Promotion ? parseFloat(item.Promotion).toFixed(2) : "0.00",
+          ExtraPrice: item.ExtraPrice ? parseFloat(item.ExtraPrice).toFixed(2) : '0.00',
+          Promotion: item.Promotion ? parseFloat(item.Promotion).toFixed(2) : '0.00',
           DetailStatus: item.DetailStatus,
         })),
         Image: uploadedImages.slice(1),
       };
       await this.props.handleCreateProductFromModal(productInfo);
     } catch (e) {
-      toast.error("Lỗi khi lưu sản phẩm!", {
-        position: "top-right",
+      toast.error('Lỗi khi lưu sản phẩm!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -409,29 +413,11 @@ class CreateProductModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const {
-      productname,
-      producttype,
-      productprice,
-      productdescription,
-      allImages,
-      codeProductType,
-      codePetType,
-      pettype,
-      loadedProductDetailInfo,
-      editingField,
-      codeDetailStatus,
-      isAddingDetail,
-    } = this.state;
+    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } =
+      this.state;
 
     return (
-      <Modal
-        show={isOpen}
-        onHide={this.toggle}
-        centered
-        backdrop="static"
-        className="create-product-modal"
-      >
+      <Modal show={isOpen} onHide={this.toggle} centered backdrop="static" className="create-product-modal">
         <Modal.Header closeButton>
           <Modal.Title>Thêm sản phẩm mới</Modal.Title>
         </Modal.Header>
@@ -442,24 +428,15 @@ class CreateProductModal extends Component {
               <div className="f">
                 {allImages.map((img, index) => (
                   <div key={img.ImageID} className="modal-content-add-img-item f">
-                    <img src={img.Image} alt={`Hình ảnh ${index === 0 ? "chính" : "phụ"}`} />
-                    <button
-                      className="delete-img"
-                      onClick={() => this.handleRemoveImage(img.ImageID)}
-                    >
+                    <img src={img.Image} alt={`Hình ảnh ${index === 0 ? 'chính' : 'phụ'}`} />
+                    <button className="delete-img" onClick={() => this.handleRemoveImage(img.ImageID)}>
                       <IonIcon icon={trashOutline}></IonIcon>
                     </button>
                   </div>
                 ))}
                 {allImages.length < 5 && (
                   <div className="add-img">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={this.handleAddImage}
-                      style={{ display: "none" }}
-                      id="upload-image"
-                    />
+                    <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
                     <label htmlFor="upload-image" className="add-img-label">
                       +
                     </label>
@@ -469,20 +446,12 @@ class CreateProductModal extends Component {
             </div>
             <div className="modal-content-add-name">
               <p>Tên sản phẩm:</p>
-              <input
-                type="text"
-                placeholder="Nhập tên sản phẩm"
-                value={productname}
-                onChange={(e) => this.handleInputChange(e, "productname")}
-              />
+              <input type="text" placeholder="Nhập tên sản phẩm" value={productname} onChange={(e) => this.handleInputChange(e, 'productname')} />
             </div>
             <div className="f">
               <div className="modal-content-add-category">
                 <p>Loại sản phẩm:</p>
-                <select
-                  value={producttype}
-                  onChange={this.handleSelectChange}
-                >
+                <select value={producttype} onChange={this.handleSelectChange}>
                   {codeProductType.map((type) => (
                     <option key={type.Code} value={type.Code}>
                       {type.CodeValueVI}
@@ -495,12 +464,7 @@ class CreateProductModal extends Component {
                 <div className="pettype-checkboxes">
                   {codePetType.map((type) => (
                     <label key={type.Code} className="pettype-checkbox">
-                      <input
-                        type="checkbox"
-                        value={type.Code}
-                        checked={pettype.includes(type.Code)}
-                        onChange={this.handlePetTypeChange}
-                      />
+                      <input type="checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
                       {type.CodeValueVI}
                     </label>
                   ))}
@@ -509,12 +473,7 @@ class CreateProductModal extends Component {
               <div className="modal-content-add-main-price">
                 <p>Giá cơ bản:</p>
                 <div className="f">
-                  <input
-                    type="number"
-                    placeholder="Nhập giá"
-                    value={isNaN(parseFloat(productprice)) ? "" : parseFloat(productprice)}
-                    onChange={(e) => this.handleInputChange(e, "productprice")}
-                  />
+                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(productprice)) ? '' : parseFloat(productprice)} onChange={(e) => this.handleInputChange(e, 'productprice')} />
                   <p>vnđ</p>
                 </div>
               </div>
@@ -538,55 +497,26 @@ class CreateProductModal extends Component {
                       loadedProductDetailInfo.map((item, index) => (
                         <tr key={item.ProductDetailID}>
                           <td>
-                            {editingField === index ? (
-                              <input
-                                type="text"
-                                value={item.DetailName}
-                                onChange={(e) => this.handleDetailChange(index, "DetailName", e.target.value)}
-                              />
-                            ) : (
-                              item.DetailName
-                            )}
+                            {editingField === index ? <input type="text" value={item.DetailName} onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)} /> : item.DetailName}
                           </td>
+                          <td>{editingField === index ? <input type="number" value={item.Stock} onChange={(e) => this.handleDetailChange(index, 'Stock', e.target.value)} /> : item.Stock}</td>
                           <td>
                             {editingField === index ? (
-                              <input
-                                type="number"
-                                value={item.Stock}
-                                onChange={(e) => this.handleDetailChange(index, "Stock", e.target.value)}
-                              />
-                            ) : (
-                              item.Stock
-                            )}
-                          </td>
-                          <td>
-                            {editingField === index ? (
-                              <input
-                                type="number"
-                                value={item.ExtraPrice ?? ""}
-                                onChange={(e) => this.handleDetailChange(index, "ExtraPrice", e.target.value)}
-                              />
+                              <input type="number" value={item.ExtraPrice ?? ''} onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)} />
                             ) : (
                               parseFloat(item.ExtraPrice) || 0
                             )}
                           </td>
                           <td>
                             {editingField === index ? (
-                              <input
-                                type="number"
-                                value={item.Promotion ?? ""}
-                                onChange={(e) => this.handleDetailChange(index, "Promotion", e.target.value)}
-                              />
+                              <input type="number" value={item.Promotion ?? ''} onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)} />
                             ) : (
                               parseFloat(item.Promotion) || 0
                             )}
                           </td>
                           <td>
                             {editingField === index ? (
-                              <select
-                                value={item.DetailStatus}
-                                onChange={(e) => this.handleDetailChange(index, "DetailStatus", e.target.value)}
-                              >
+                              <select value={item.DetailStatus} onChange={(e) => this.handleDetailChange(index, 'DetailStatus', e.target.value)}>
                                 {codeDetailStatus.map((status) => (
                                   <option key={status.Code} value={status.Code}>
                                     {status.CodeValueVI}
@@ -594,22 +524,16 @@ class CreateProductModal extends Component {
                                 ))}
                               </select>
                             ) : (
-                              codeDetailStatus.find((status) => status.Code === item.DetailStatus)?.CodeValueVI || "Không xác định"
+                              codeDetailStatus.find((status) => status.Code === item.DetailStatus)?.CodeValueVI || 'Không xác định'
                             )}
                           </td>
                           <td>
                             {editingField === index ? (
-                              <button
-                                className="save-detail"
-                                onClick={() => this.handleSaveDetail(index)}
-                              >
+                              <button className="save-detail" onClick={() => this.handleSaveDetail(index)}>
                                 Lưu
                               </button>
                             ) : (
-                              <button
-                                className="edit-detail"
-                                onClick={() => this.handleEditDetail(index)}
-                              >
+                              <button className="edit-detail" onClick={() => this.handleEditDetail(index)}>
                                 Sửa
                               </button>
                             )}
@@ -618,18 +542,15 @@ class CreateProductModal extends Component {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="6" style={{ textAlign: "center" }}>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>
                           Chưa có chi tiết sản phẩm
                         </td>
                       </tr>
                     )}
                     <tr>
-                      <td colSpan="6" style={{ textAlign: "center" }}>
-                        <button
-                          className={`add-detail-btn ${isAddingDetail ? "cancel" : ""}`}
-                          onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}
-                        >
-                          {isAddingDetail ? "Hủy" : "Thêm"}
+                      <td colSpan="6" style={{ textAlign: 'center' }}>
+                        <button className={`add-detail-btn ${isAddingDetail ? 'cancel' : ''}`} onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}>
+                          {isAddingDetail ? 'Hủy' : 'Thêm'}
                         </button>
                       </td>
                     </tr>
@@ -639,11 +560,7 @@ class CreateProductModal extends Component {
             </div>
             <div className="modal-content-add-info">
               <p>Mô tả sản phẩm:</p>
-              <textarea
-                placeholder="Nhập mô tả sản phẩm"
-                value={productdescription}
-                onChange={(e) => this.handleInputChange(e, "productdescription")}
-              />
+              <textarea placeholder="Nhập mô tả sản phẩm" value={productdescription} onChange={(e) => this.handleInputChange(e, 'productdescription')} />
             </div>
           </div>
         </Modal.Body>

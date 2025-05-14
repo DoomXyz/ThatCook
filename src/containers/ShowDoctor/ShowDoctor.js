@@ -1,12 +1,12 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react"; //import thư viện icon
-import { searchOutline } from "ionicons/icons"; //chỉ import các icon cần dùng
-import "./ShowDoctor.scss"; //import scss
-import Header from "../../components/HomeHeader";
-import Footer from "../../components/HomeFooter";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { IonIcon } from '@ionic/react'; //import thư viện icon
+import { searchOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
+import './ShowDoctor.scss'; //import scss
+import Header from '../../components/HomeHeader';
+import Footer from '../../components/HomeFooter';
 
-import doctor from "../../assets/doctor-imgs/Anh-bac-si-Web_ThS.-BS.-DOAN-TRONG-NGHIA-.jpg";
+import doctor from '../../assets/doctor-imgs/Anh-bac-si-Web_ThS.-BS.-DOAN-TRONG-NGHIA-.jpg';
 
 class ShowDoctor extends Component {
   constructor(props) {
@@ -17,12 +17,7 @@ class ShowDoctor extends Component {
   render() {
     return (
       <div className="showdoctor-body">
-        <Header
-          navigate={this.props.navigate}
-          cartItems={this.props.cartItems}
-          userInfo={this.props.userInfo}
-          triggerCountCartItem={this.state.triggerCountCartItem}
-        />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <div className="showdoctor-content">
           <h1>Danh sách bác sĩ</h1>
           <div className="showdoctor-content-top f  ">

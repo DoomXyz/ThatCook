@@ -1,52 +1,39 @@
-import React, { Component } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import { connect } from "react-redux";
+import React, { Component } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import { connect } from 'react-redux';
 
-import "./CheckOut.scss";
-import Spinner from "../../components/Spinner";
-import Header from "../../components/HomeHeader";
-import Footer from "../../components/HomeFooter";
+import './CheckOut.scss';
+import Spinner from '../../components/Spinner';
+import Header from '../../components/HomeHeader';
+import Footer from '../../components/HomeFooter';
 
-import {
-  handleGetAccountInfoApi,
-  handleLogoutApi,
-} from "../../services/accountServices";
-import { handleGetCartDetailApi } from "../../services/cartServices";
-import { handleCreateInvoiceApi } from "../../services/invoiceServices";
-import {
-  handleGetAllCodesApi,
-  handleCheckCouponApi,
-  handleGetCouponApi,
-} from "../../services/utilitiesServices";
+import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
+import { handleGetCartDetailApi } from '../../services/cartServices';
+import { handleCreateInvoiceApi } from '../../services/invoiceServices';
+import { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi } from '../../services/utilitiesServices';
 
-import { checkLoginStatus } from "../../utils/pakage";
-import {
-  clearCart,
-  clearCheckOutCart,
-  saveCartForCheckOut,
-  userLogin,
-  userLogout,
-} from "../../store/actions";
+import { checkLoginStatus } from '../../utils/pakage';
+import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout } from '../../store/actions';
 
-import cart from "../../assets/icons/shopping-cart.png";
-import card from "../../assets/icons/cheque.png";
-import visa from "../../assets/icons/visa.png";
-import mastercard from "../../assets/icons/card.png";
+import cart from '../../assets/icons/shopping-cart.png';
+import card from '../../assets/icons/cheque.png';
+import visa from '../../assets/icons/visa.png';
+import mastercard from '../../assets/icons/card.png';
 
 class CheckOut extends Component {
   state = {
     isLoading: true,
     isLoggedIn: false,
     accountInfo: null,
-    receiverName: "",
-    receiverPhone: "",
-    receiverAddress: "",
-    couponCode: "",
-    tempCouponCode: "",
+    receiverName: '',
+    receiverPhone: '',
+    receiverAddress: '',
+    couponCode: '',
+    tempCouponCode: '',
     codePaymentType: [],
     codeShippingMethod: [],
-    selectedPaymentType: "",
-    selectedShippingMethod: "",
+    selectedPaymentType: '',
+    selectedShippingMethod: '',
     checkOutCart: [],
     loadedCheckOutCartDetailInfo: [],
     totalPrice: 0,
@@ -57,7 +44,7 @@ class CheckOut extends Component {
     isPlaced: false,
     invoiceID: null,
     currentPage: 1,
-    tempCurrentPage: "1",
+    tempCurrentPage: '1',
     limitProductPerQuery: 5,
     totalPages: 1,
     triggerCountCartItem: false,
@@ -93,9 +80,9 @@ class CheckOut extends Component {
       await this.loadPaymentType();
       await this.loadShippingMethod();
     } catch (e) {
-      console.log("Error loading allcodes data:", e);
-      toast.error("Lỗi khi tải dữ liệu!", {
-        position: "top-right",
+      console.log('Error loading allcodes data:', e);
+      toast.error('Lỗi khi tải dữ liệu!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -104,23 +91,22 @@ class CheckOut extends Component {
 
   loadPaymentType = async () => {
     try {
-      const codePaymentType = await handleGetAllCodesApi("PaymentType");
+      const codePaymentType = await handleGetAllCodesApi('PaymentType');
       if (!codePaymentType || codePaymentType.length === 0) {
-        toast.error("Không thể tải phương thức thanh toán!", {
-          position: "top-right",
+        toast.error('Không thể tải phương thức thanh toán!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({
         codePaymentType,
-        selectedPaymentType:
-          codePaymentType.length > 0 ? codePaymentType[0].Code : "",
+        selectedPaymentType: codePaymentType.length > 0 ? codePaymentType[0].Code : '',
       });
     } catch (e) {
-      console.log("Error loading paymenttype code:", e);
-      toast.error("Lỗi khi tải phương thức thanh toán!", {
-        position: "top-right",
+      console.log('Error loading paymenttype code:', e);
+      toast.error('Lỗi khi tải phương thức thanh toán!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -129,23 +115,22 @@ class CheckOut extends Component {
 
   loadShippingMethod = async () => {
     try {
-      const codeShippingMethod = await handleGetAllCodesApi("ShippingMethod");
+      const codeShippingMethod = await handleGetAllCodesApi('ShippingMethod');
       if (!codeShippingMethod || codeShippingMethod.length === 0) {
-        toast.error("Không thể tải cách thức vận chuyển!", {
-          position: "top-right",
+        toast.error('Không thể tải cách thức vận chuyển!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({
         codeShippingMethod,
-        selectedShippingMethod:
-          codeShippingMethod.length > 0 ? codeShippingMethod[0].Code : "",
+        selectedShippingMethod: codeShippingMethod.length > 0 ? codeShippingMethod[0].Code : '',
       });
     } catch (e) {
-      console.log("Error loading shippingmethod code:", e);
-      toast.error("Lỗi khi tải cách thức vận chuyển!", {
-        position: "top-right",
+      console.log('Error loading shippingmethod code:', e);
+      toast.error('Lỗi khi tải cách thức vận chuyển!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -178,8 +163,8 @@ class CheckOut extends Component {
         });
       }
     } catch (e) {
-      this.props.navigate("/home");
-      console.log("Token not found!");
+      this.props.navigate('/home');
+      console.log('Token not found!');
     }
     this.triggerCountCartItem();
   };
@@ -197,16 +182,16 @@ class CheckOut extends Component {
             receiverAddress: userInfo.Address,
           });
         } else {
-          toast.error("Tải thông tin người dùng thất bại!", {
-            position: "top-right",
+          toast.error('Tải thông tin người dùng thất bại!', {
+            position: 'top-right',
             autoClose: 500,
             closeOnClick: true,
           });
         }
       } catch (e) {
         console.log(e);
-        toast.error("Lỗi khi tải thông tin người dùng!", {
-          position: "top-right",
+        toast.error('Lỗi khi tải thông tin người dùng!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -217,13 +202,13 @@ class CheckOut extends Component {
   loadCheckOutCart = async () => {
     const { checkOutCarts } = this.props;
     if (!checkOutCarts || checkOutCarts.length === 0) {
-      toast.error("Giỏ hàng không tồn tại!", {
-        position: "top-right",
+      toast.error('Giỏ hàng không tồn tại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
       this.setState({ isExpired: true });
-      this.props.navigate("/cart");
+      this.props.navigate('/cart');
       return;
     } else {
       const checkOutCart = checkOutCarts[0];
@@ -231,23 +216,18 @@ class CheckOut extends Component {
       const expiresAt = parseInt(checkOutCart.expiresAt);
       const timeLeft = expiresAt - now;
       if (timeLeft <= -5000) {
-        toast.error("Giỏ hàng thanh toán đã hết hạn!", {
-          position: "top-right",
+        toast.error('Giỏ hàng thanh toán đã hết hạn!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         this.props.clearCheckOutCart();
         this.setState({ isExpired: true, checkOutCarts: null });
-        this.props.navigate("/cart");
+        this.props.navigate('/cart');
         return;
       } else if (timeLeft <= 10 * 60 * 1000) {
         const newExpiresAt = now + 60 * 60 * 1000;
-        this.props.saveCartForCheckOut(
-          checkOutCart.cartItems,
-          checkOutCart.AccountID,
-          newExpiresAt,
-          false
-        );
+        this.props.saveCartForCheckOut(checkOutCart.cartItems, checkOutCart.AccountID, newExpiresAt, false);
         this.setState({
           isExpired: false,
           checkOutCart: checkOutCart.cartItems,
@@ -266,16 +246,14 @@ class CheckOut extends Component {
   loadCheckOutCartInfo = async () => {
     try {
       const { checkOutCart, limitProductPerQuery } = this.state;
-      const responseDetail = await handleGetCartDetailApi(
-        JSON.stringify(checkOutCart)
-      );
+      console.log(checkOutCart);
+      const responseDetail = await handleGetCartDetailApi(JSON.stringify(checkOutCart));
       if (responseDetail && responseDetail.errCode === 0) {
         const checkOutCart = responseDetail.data;
         let totalPrice = 0;
         for (let i = 0; i < checkOutCart.length; i++) {
           if (checkOutCart[i].ProductPrice > 0) {
-            totalPrice +=
-              checkOutCart[i].ProductPrice * checkOutCart[i].ItemQuantity;
+            totalPrice += checkOutCart[i].ProductPrice * checkOutCart[i].ItemQuantity;
           }
         }
         let totalPriceAfterPromo = 0;
@@ -285,8 +263,7 @@ class CheckOut extends Component {
             productPrice = checkOutCart[i].ProductPrice;
           }
           if (checkOutCart[i].Promotion) {
-            productPrice *=
-              (100 - parseFloat(checkOutCart[i].Promotion, 10)) / 100;
+            productPrice *= (100 - parseFloat(checkOutCart[i].Promotion, 10)) / 100;
           }
           totalPriceAfterPromo += productPrice * checkOutCart[i].ItemQuantity;
         }
@@ -301,58 +278,44 @@ class CheckOut extends Component {
           this.handleCalculateTotalPayment();
         }, 10);
       } else {
-        toast.error("Tải chi tiết giỏ hàng thất bại!", {
-          position: "top-right",
+        toast.error('Tải chi tiết giỏ hàng thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.log("Lỗi khi tải chi tiết giỏ hàng!");
+      console.log('Lỗi khi tải chi tiết giỏ hàng!');
     }
   };
 
   handleApplyCouponCode = async () => {
-    const {
-      tempCouponCode,
-      couponCode,
-      totalPriceAfterPromo,
-      selectedShippingMethod,
-      codeShippingMethod,
-    } = this.state;
-    const shipValue = parseFloat(
-      codeShippingMethod.find(
-        (method) => method.Code === selectedShippingMethod
-      ).ExtraValue
-    );
+    const { tempCouponCode, couponCode, totalPriceAfterPromo, selectedShippingMethod, codeShippingMethod } = this.state;
+    const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === selectedShippingMethod).ExtraValue);
     let finalPrice = totalPriceAfterPromo + shipValue;
     if (tempCouponCode !== couponCode) {
       try {
         const response = await handleGetCouponApi(tempCouponCode);
-        if (
-          response &&
-          response.data.errCode === 0 &&
-          parseFloat(finalPrice) > parseFloat(response.data.data.MinOrderValue)
-        ) {
+        if (response && response.data.errCode === 0 && parseFloat(finalPrice) > parseFloat(response.data.data.MinOrderValue)) {
           this.setState({ isLoading: true });
-          toast.success("Áp dụng mã giảm giá thành công!", {
-            position: "top-right",
+          toast.success('Áp dụng mã giảm giá thành công!', {
+            position: 'top-right',
             autoClose: 500,
             closeOnClick: true,
           });
           this.setState({ couponCode: tempCouponCode, isLoading: false });
         } else {
-          toast.error("Áp dụng mã giảm giá thất bại", {
-            position: "top-right",
+          toast.error('Áp dụng mã giảm giá thất bại', {
+            position: 'top-right',
             autoClose: 500,
             closeOnClick: true,
           });
-          this.setState({ couponCode: "" });
+          this.setState({ couponCode: '' });
         }
       } catch (e) {
         console.log(e);
-        toast.error("Lỗi khi tải thông tin giảm giá!", {
-          position: "top-right",
+        toast.error('Lỗi khi tải thông tin giảm giá!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -364,17 +327,8 @@ class CheckOut extends Component {
   };
 
   handleCalculateTotalPayment = async () => {
-    const {
-      totalPriceAfterPromo,
-      couponCode,
-      selectedShippingMethod,
-      codeShippingMethod,
-    } = this.state;
-    const shipValue = parseFloat(
-      codeShippingMethod.find(
-        (method) => method.Code === selectedShippingMethod
-      ).ExtraValue
-    );
+    const { totalPriceAfterPromo, couponCode, selectedShippingMethod, codeShippingMethod } = this.state;
+    const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === selectedShippingMethod).ExtraValue);
     let finalPrice = totalPriceAfterPromo + shipValue;
     let discount = 0;
     if (couponCode) {
@@ -388,8 +342,8 @@ class CheckOut extends Component {
         }
       } catch (e) {
         console.log(e);
-        toast.error("Lỗi khi tải thông tin giảm giá!", {
-          position: "top-right",
+        toast.error('Lỗi khi tải thông tin giảm giá!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -402,8 +356,8 @@ class CheckOut extends Component {
   };
 
   handleOnChangeInput = (event, type) => {
-    if (type === "tempCouponCode") {
-      this.setState({ couponCode: "" });
+    if (type === 'tempCouponCode') {
+      this.setState({ couponCode: '' });
     }
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -436,10 +390,7 @@ class CheckOut extends Component {
   handleNextPage = () => {
     this.setState((prevState) => ({
       currentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
-      tempCurrentPage: Math.min(
-        prevState.totalPages,
-        prevState.currentPage + 1
-      ),
+      tempCurrentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
     }));
   };
 
@@ -456,13 +407,9 @@ class CheckOut extends Component {
   };
 
   handlePageKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       const pageNumber = parseInt(this.state.tempCurrentPage, 10);
-      if (
-        !isNaN(pageNumber) &&
-        pageNumber >= 1 &&
-        pageNumber <= this.state.totalPages
-      ) {
+      if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.state.totalPages) {
         this.setState({ currentPage: pageNumber });
       } else {
         this.setState({ currentPage: 1, tempCurrentPage: 1 });
@@ -504,37 +451,31 @@ class CheckOut extends Component {
       }
     } catch (e) {
       console.log(e);
-      toast.error("Lỗi khi tải thông tin giảm giá!", {
-        position: "top-right",
+      toast.error('Lỗi khi tải thông tin giảm giá!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
     }
-    const shippingStatus = "PEND";
-    let paymentStatus = "FAIL";
+    const shippingStatus = 'PEND';
+    let paymentStatus = 'FAIL';
     let cardInfo = null;
     if (!receiverName || !receiverPhone || !receiverAddress) {
-      toast.info("Vui lòng nhập đầy đủ thông tin giao hàng!", {
-        position: "top-right",
+      toast.info('Vui lòng nhập đầy đủ thông tin giao hàng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
       return;
     }
-    if (selectedPaymentType === "CARD") {
-      const cardNumber = document.querySelector(
-        'input[name="card-number"]'
-      ).value;
-      const cardholderName = document.querySelector(
-        'input[name="cardholder-name"]'
-      ).value;
-      const expiryDate = document.querySelector(
-        'input[name="expiry-date"]'
-      ).value;
+    if (selectedPaymentType === 'CARD') {
+      const cardNumber = document.querySelector('input[name="card-number"]').value;
+      const cardholderName = document.querySelector('input[name="cardholder-name"]').value;
+      const expiryDate = document.querySelector('input[name="expiry-date"]').value;
       const cvv = document.querySelector('input[name="cvv"]').value;
       if (!cardNumber || !cardholderName || !expiryDate || !cvv) {
-        toast.info("Vui lòng nhập đầy đủ thông tin thẻ!", {
-          position: "top-right",
+        toast.info('Vui lòng nhập đầy đủ thông tin thẻ!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -546,9 +487,9 @@ class CheckOut extends Component {
         expiryDate,
         cvv,
       };
-      paymentStatus = "PAID";
-    } else if (selectedPaymentType === "CASH") {
-      paymentStatus = "PEND";
+      paymentStatus = 'PAID';
+    } else if (selectedPaymentType === 'CASH') {
+      paymentStatus = 'PEND';
     }
     const invoiceData = {
       accountid: isLoggedIn ? accountInfo.AccountID : null,
@@ -587,26 +528,26 @@ class CheckOut extends Component {
         toast.success(
           <div>
             Đặt hàng thành công! Mã đơn hàng: {response.data}
-            <div style={{ marginTop: "10px" }}>
+            <div style={{ marginTop: '10px' }}>
               <button
                 onClick={() => this.props.navigate(`/bill/${response.data}`)}
                 style={{
-                  marginRight: "10px",
-                  color: "blue",
-                  textDecoration: "underline",
-                  background: "none",
-                  border: "none",
+                  marginRight: '10px',
+                  color: 'blue',
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
                 }}
               >
                 Xem chi tiết
               </button>
               <button
-                onClick={() => this.props.navigate("/home")}
+                onClick={() => this.props.navigate('/home')}
                 style={{
-                  color: "blue",
-                  textDecoration: "underline",
-                  background: "none",
-                  border: "none",
+                  color: 'blue',
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
                 }}
               >
                 Về trang chủ
@@ -618,21 +559,21 @@ class CheckOut extends Component {
             closeOnClick: false,
             onClose: () => {
               this.props.clearCheckOutCart();
-              this.props.navigate("/home");
+              this.props.navigate('/home');
             },
           }
         );
       } else {
         toast.error(response.errMessage, {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ isLoading: false });
     } catch (e) {
-      toast.error("Lỗi khi tạo đơn hàng!", {
-        position: "top-right",
+      toast.error('Lỗi khi tạo đơn hàng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -665,18 +606,10 @@ class CheckOut extends Component {
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
     const endIndex = startIndex + limitProductPerQuery;
-    const paginatedCheckOutCartDetailInfo = loadedCheckOutCartDetailInfo.slice(
-      startIndex,
-      endIndex
-    );
+    const paginatedCheckOutCartDetailInfo = loadedCheckOutCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div className="none-logged-body">
-        <Header
-          navigate={this.props.navigate}
-          cartItems={this.props.cartItems}
-          userInfo={this.props.userInfo}
-          triggerCountCartItem={this.state.triggerCountCartItem}
-        />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />
@@ -694,55 +627,29 @@ class CheckOut extends Component {
                 </div>
               </div>
             </div>
-            <div className="pay" style={{ marginBottom: "100px" }}>
+            <div className="pay" style={{ marginBottom: '100px' }}>
               <div className="container-checkout">
                 <div className="pay-content row">
                   <div className="delivery-content-left">
-                    <p style={{ fontWeight: "bold" }}>Thông tin khách hàng</p>
+                    <p style={{ fontWeight: 'bold' }}>Thông tin khách hàng</p>
                     <div className="delivery-content-left-input-top-none-logged">
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Họ tên</label>
-                        <input
-                          type="text"
-                          value={receiverName}
-                          onChange={(event) =>
-                            this.handleOnChangeInput(event, "receiverName")
-                          }
-                        />
+                        <input type="text" value={receiverName} onChange={(event) => this.handleOnChangeInput(event, 'receiverName')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Số điện thoại</label>
-                        <input
-                          type="text"
-                          value={receiverPhone}
-                          onChange={(event) =>
-                            this.handleOnChangeInput(event, "receiverPhone")
-                          }
-                        />
+                        <input type="text" value={receiverPhone} onChange={(event) => this.handleOnChangeInput(event, 'receiverPhone')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Địa chỉ</label>
-                        <input
-                          type="text"
-                          value={receiverAddress}
-                          onChange={(event) =>
-                            this.handleOnChangeInput(event, "receiverAddress")
-                          }
-                        />
+                        <input type="text" value={receiverAddress} onChange={(event) => this.handleOnChangeInput(event, 'receiverAddress')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Mã giảm giá</label>
                         <div className="f">
-                          <input
-                            type="text"
-                            value={tempCouponCode}
-                            onChange={(event) =>
-                              this.handleOnChangeInput(event, "tempCouponCode")
-                            }
-                          />
-                          <button onClick={this.handleApplyCouponCode}>
-                            Áp dụng
-                          </button>
+                          <input type="text" value={tempCouponCode} onChange={(event) => this.handleOnChangeInput(event, 'tempCouponCode')} />
+                          <button onClick={this.handleApplyCouponCode}>Áp dụng</button>
                         </div>
                       </div>
                     </div>
@@ -750,8 +657,8 @@ class CheckOut extends Component {
                       <a href="/cart">
                         <p
                           style={{
-                            color: "rgba(91, 82, 82)",
-                            fontWeight: "bold",
+                            color: 'rgba(91, 82, 82)',
+                            fontWeight: 'bold',
                           }}
                         >
                           *Quay lại trang giỏ hàng
@@ -761,29 +668,13 @@ class CheckOut extends Component {
                   </div>
                   <div className="pay-content-left">
                     <div className="pay-content-left-method-delivery">
-                      <p style={{ fontWeight: "bold" }}>
-                        Phương thức giao hàng
-                      </p>
+                      <p style={{ fontWeight: 'bold' }}>Phương thức giao hàng</p>
                       {codeShippingMethod.length > 0 ? (
                         codeShippingMethod.map((method, index) => (
-                          <div
-                            key={index}
-                            className="pay-content-left-method-delivery-item"
-                          >
-                            <input
-                              type="radio"
-                              value={method.Code}
-                              checked={selectedShippingMethod === method.Code}
-                              onChange={this.handleShippingMethodChange}
-                            />
+                          <div key={index} className="pay-content-left-method-delivery-item">
+                            <input type="radio" value={method.Code} checked={selectedShippingMethod === method.Code} onChange={this.handleShippingMethodChange} />
                             <label htmlFor={method.Code}>
-                              {method.CodeValueVI} (
-                              {method.Code === "FAST"
-                                ? "3-7 ngày"
-                                : method.Code === "ECO"
-                                ? "7-14 ngày"
-                                : "~1 ngày"}
-                              )
+                              {method.CodeValueVI} ({method.Code === 'FAST' ? '3-7 ngày' : method.Code === 'ECO' ? '7-14 ngày' : '~1 ngày'})
                             </label>
                           </div>
                         ))
@@ -794,31 +685,18 @@ class CheckOut extends Component {
                       )}
                     </div>
                     <div className="pay-content-left-method-payment">
-                      <p style={{ fontWeight: "bold" }}>
-                        Phương thức thanh toán
-                      </p>
+                      <p style={{ fontWeight: 'bold' }}>Phương thức thanh toán</p>
                       <p>
                         <u>
-                          <i style={{ color: "blue" }}>*Lưu ý:</i>
-                        </u>{" "}
+                          <i style={{ color: 'blue' }}>*Lưu ý:</i>
+                        </u>{' '}
                         Thông tin thẻ không được lưu lại
                       </p>
                       {codePaymentType.length > 0 ? (
                         codePaymentType.map((type, index) => (
-                          <div
-                            key={index}
-                            className="pay-content-left-method-payment-item"
-                          >
-                            <input
-                              type="radio"
-                              name="paymentType"
-                              value={type.Code}
-                              checked={selectedPaymentType === type.Code}
-                              onChange={this.handlePaymentTypeChange}
-                            />
-                            <label htmlFor={type.Code}>
-                              {type.CodeValueVI}
-                            </label>
+                          <div key={index} className="pay-content-left-method-payment-item">
+                            <input type="radio" name="paymentType" value={type.Code} checked={selectedPaymentType === type.Code} onChange={this.handlePaymentTypeChange} />
+                            <label htmlFor={type.Code}>{type.CodeValueVI}</label>
                           </div>
                         ))
                       ) : (
@@ -831,36 +709,13 @@ class CheckOut extends Component {
                         <img src={visa} alt="Visa" />
                         <img src={mastercard} alt="MasterCard" />
                       </div>
-                      {selectedPaymentType === "CARD" && (
+                      {selectedPaymentType === 'CARD' && (
                         <div className="pay-content-left-method-payment-item-input block">
-                          <p style={{ fontWeight: "bold" }}>
-                            Nhập thông tin thẻ
-                          </p>
-                          <input
-                            type="text"
-                            name="card-number"
-                            maxLength="16"
-                            pattern="[0-9]{13,16}"
-                            placeholder="Số thẻ (13-16 chữ số)"
-                          />
-                          <input
-                            type="text"
-                            name="cardholder-name"
-                            placeholder="Tên trên thẻ"
-                          />
-                          <input
-                            type="text"
-                            name="expiry-date"
-                            pattern="(0[1-9]|1[0-2])/[0-9]{2}"
-                            placeholder="MM/YY"
-                          />
-                          <input
-                            type="text"
-                            name="cvv"
-                            maxLength="3"
-                            pattern="[0-9]{3}"
-                            placeholder="CVV"
-                          />
+                          <p style={{ fontWeight: 'bold' }}>Nhập thông tin thẻ</p>
+                          <input type="text" name="card-number" maxLength="16" pattern="[0-9]{13,16}" placeholder="Số thẻ (13-16 chữ số)" />
+                          <input type="text" name="cardholder-name" placeholder="Tên trên thẻ" />
+                          <input type="text" name="expiry-date" pattern="(0[1-9]|1[0-2])/[0-9]{2}" placeholder="MM/YY" />
+                          <input type="text" name="cvv" maxLength="3" pattern="[0-9]{3}" placeholder="CVV" />
                         </div>
                       )}
                     </div>
@@ -887,11 +742,7 @@ class CheckOut extends Component {
                                 <p>{item.ProductName}</p>
                               </td>
                               <td>
-                                <img
-                                  src={item.ProductImage}
-                                  alt=""
-                                  style={{ width: "50px", height: "50px" }}
-                                />
+                                <img src={item.ProductImage} alt="" style={{ width: '50px', height: '50px' }} />
                               </td>
                               <td>
                                 <p>{item.DetailName}</p>
@@ -906,12 +757,8 @@ class CheckOut extends Component {
                                 </div>
                               </td>
                               <td>
-                                {" "}
-                                <p>
-                                  {item.Promotion > 0
-                                    ? parseFloat(item.Promotion, 10) + "%"
-                                    : ""}
-                                </p>
+                                {' '}
+                                <p>{item.Promotion > 0 ? parseFloat(item.Promotion, 10) + '%' : ''}</p>
                               </td>
                               <td>
                                 <div className="f">
@@ -923,7 +770,7 @@ class CheckOut extends Component {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan="7" style={{ textAlign: "center" }}>
+                            <td colSpan="7" style={{ textAlign: 'center' }}>
                               Giỏ hàng trống
                             </td>
                           </tr>
@@ -932,11 +779,7 @@ class CheckOut extends Component {
                       <tfoot>
                         <tr>
                           <td colSpan="6">Tổng sản phẩm</td>
-                          <td>
-                            {loadedCheckOutCartDetailInfo.length > 0
-                              ? `${loadedCheckOutCartDetailInfo.length} sản phẩm`
-                              : ""}
-                          </td>
+                          <td>{loadedCheckOutCartDetailInfo.length > 0 ? `${loadedCheckOutCartDetailInfo.length} sản phẩm` : ''}</td>
                         </tr>
                         <tr>
                           <td colSpan="6">Tổng tiền hàng (trước giảm giá)</td>
@@ -948,7 +791,7 @@ class CheckOut extends Component {
                                   <sup>đ</sup>
                                 </>
                               ) : (
-                                ""
+                                ''
                               )}
                             </div>
                           </td>
@@ -963,30 +806,16 @@ class CheckOut extends Component {
                                   <sup>đ</sup>
                                 </>
                               ) : (
-                                ""
+                                ''
                               )}
                             </div>
                           </td>
                         </tr>
                         <tr>
-                          <td colSpan="6">
-                            {
-                              codeShippingMethod.find(
-                                (method) =>
-                                  method.Code === selectedShippingMethod
-                              ).CodeValueVI
-                            }
-                          </td>
+                          <td colSpan="6">{codeShippingMethod.find((method) => method.Code === selectedShippingMethod).CodeValueVI}</td>
                           <td>
                             <div className="f">
-                              <p>
-                                {parseFloat(
-                                  codeShippingMethod.find(
-                                    (method) =>
-                                      method.Code === selectedShippingMethod
-                                  ).ExtraValue
-                                )}
-                              </p>
+                              <p>{parseFloat(codeShippingMethod.find((method) => method.Code === selectedShippingMethod).ExtraValue)}</p>
                               <sup>đ</sup>
                             </div>
                           </td>
@@ -1004,10 +833,10 @@ class CheckOut extends Component {
                             </td>
                           </tr>
                         ) : (
-                          ""
+                          ''
                         )}
                         <tr className="total">
-                          <td colSpan="6" style={{ fontWeight: "bold" }}>
+                          <td colSpan="6" style={{ fontWeight: 'bold' }}>
                             TỔNG THANH TOÁN
                           </td>
                           <td>
@@ -1024,60 +853,31 @@ class CheckOut extends Component {
                     {totalPages > 1 && (
                       <div className="page-content">
                         <div className="page-content-item">
-                          <button
-                            className="first"
-                            onClick={this.handleFirstPage}
-                            disabled={currentPage === 1}
-                          >
-                            {"<<"}
+                          <button className="first" onClick={this.handleFirstPage} disabled={currentPage === 1}>
+                            {'<<'}
                           </button>
-                          <button
-                            className="prev"
-                            onClick={this.handlePrevPage}
-                            disabled={currentPage === 1}
-                          >
-                            {"<"}
+                          <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
+                            {'<'}
                           </button>
-                          <input
-                            type="text"
-                            value={tempCurrentPage}
-                            onChange={this.handlePageInputChange}
-                            onKeyDown={this.handlePageKeyDown}
-                            onBlur={this.handlePageInputBlur}
-                          />
+                          <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
                           <span className="total-pages">/ {totalPages}</span>
-                          <button
-                            className="next"
-                            onClick={this.handleNextPage}
-                            disabled={currentPage === totalPages}
-                          >
-                            {">"}
+                          <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
+                            {'>'}
                           </button>
-                          <button
-                            className="last"
-                            onClick={this.handleLastPage}
-                            disabled={currentPage === totalPages}
-                          >
-                            {">>"}
+                          <button className="last" onClick={this.handleLastPage} disabled={currentPage === totalPages}>
+                            {'>>'}
                           </button>
                         </div>
                       </div>
                     )}
                     <div>
                       {!isPlaced && loadedCheckOutCartDetailInfo.length > 0 ? (
-                        <button
-                          className="pay-content-right-button"
-                          onClick={this.handleCompleteOrder}
-                          disabled={isLoading}
-                          style={{ opacity: isLoading ? 0.5 : 1 }}
-                        >
-                          {isLoading ? "Đang xử lý..." : "Thanh toán"}
+                        <button className="pay-content-right-button" onClick={this.handleCompleteOrder} disabled={isLoading} style={{ opacity: isLoading ? 0.5 : 1 }}>
+                          {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
                         </button>
                       ) : (
-                        <div style={{ color: "green", fontWeight: "bold" }}>
-                          {loadedCheckOutCartDetailInfo.length === 0
-                            ? "Giỏ hàng trống, vui lòng chọn lại sản phẩm!"
-                            : "Đơn hàng đã được đặt thành công!"}
+                        <div style={{ color: 'green', fontWeight: 'bold' }}>
+                          {loadedCheckOutCartDetailInfo.length === 0 ? 'Giỏ hàng trống, vui lòng chọn lại sản phẩm!' : 'Đơn hàng đã được đặt thành công!'}
                         </div>
                       )}
                     </div>
@@ -1101,8 +901,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   clearCart: () => dispatch(clearCart()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
-  saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) =>
-    dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
+  saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
 });

@@ -90,7 +90,7 @@
 
             // Tạo hình checkbox tùy chỉnh
             &:before {
-              content: "";
+              content: '';
               position: absolute;
               top: 0;
               left: 0;
@@ -111,7 +111,7 @@
 
             // Tạo dấu check
             &:checked:after {
-              content: "\2713"; // Ký tự dấu check (✓)
+              content: '\2713'; // Ký tự dấu check (✓)
               position: absolute;
               top: 50%;
               left: 50%;

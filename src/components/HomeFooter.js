@@ -1,11 +1,11 @@
-import React, { Component } from "react";
+import React, { Component } from 'react';
 
-import "./HomeFooter.scss";
+import './HomeFooter.scss';
 
-import fb from "../assets/icons/social-fb.png";
-import tiktok from "../assets/icons/social-media.png";
-import insta from "../assets/icons/play.png";
-import phone from "../assets/icons/phone-call.png";
+import fb from '../assets/icons/social-fb.png';
+import tiktok from '../assets/icons/social-media.png';
+import insta from '../assets/icons/play.png';
+import phone from '../assets/icons/phone-call.png';
 
 class Footer extends Component {
   render() {
@@ -14,10 +14,8 @@ class Footer extends Component {
         <div className="contact">
           <p>Thông tin liên hệ</p>
           <li>
-            <b>Mincow</b> là trang mua sắm trực tuyến các sản phẩm bán lẻ dành
-            cho thú cưng của <b>Mincow Pet Shop</b>.<b>Công ty TNHH MINCOW</b>.
-            Giấy chứng nhận Đăng ký Kinh doanh số 0315592769 do Sở Kế hoạch và
-            Đầu tư Thành phố Hồ Chí Minh cấp ngày 28/03/2019.
+            <b>Mincow</b> là trang mua sắm trực tuyến các sản phẩm bán lẻ dành cho thú cưng của <b>Mincow Pet Shop</b>.<b>Công ty TNHH MINCOW</b>. Giấy chứng nhận Đăng ký Kinh doanh số 0315592769 do
+            Sở Kế hoạch và Đầu tư Thành phố Hồ Chí Minh cấp ngày 28/03/2019.
           </li>
         </div>
         <div className="address">

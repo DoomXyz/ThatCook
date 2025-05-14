@@ -1,24 +1,17 @@
-import React, { Component } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "./Bill.scss";
-import logo from "../../assets/images/logo1.png";
-import Header from "../../components/HomeHeader";
-import {
-  handleGetInvoiceDetailInfoApi,
-  handleChangeInvoiceStatusApi,
-} from "../../services/invoiceServices";
-import { handleGetAllCodesApi } from "../../services/utilitiesServices";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import RobotoRegularFont from "../../assets/fonts/Roboto-Regular-normal.js";
-import { IonIcon } from "@ionic/react";
-import {
-  checkmarkCircleOutline,
-  closeCircleOutline,
-  refreshOutline,
-} from "ionicons/icons";
-import CancelInvoiceModal from "../../components/CancelInvoiceModal";
+import React, { Component } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import './Bill.scss';
+import logo from '../../assets/images/logo1.png';
+import Header from '../../components/HomeHeader';
+import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import RobotoRegularFont from '../../assets/fonts/Roboto-Regular-normal.js';
+import { IonIcon } from '@ionic/react';
+import { checkmarkCircleOutline, closeCircleOutline, refreshOutline } from 'ionicons/icons';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 class BillClass extends Component {
   constructor(props) {
@@ -34,11 +27,7 @@ class BillClass extends Component {
   }
 
   async componentDidMount() {
-    await Promise.all([
-      this.handleLoadCodePaymentType(),
-      this.handleLoadCodeShippingMethod(),
-      this.handleLoadCodeShippingStatus(),
-    ]);
+    await Promise.all([this.handleLoadCodePaymentType(), this.handleLoadCodeShippingMethod(), this.handleLoadCodeShippingStatus()]);
     if (this.props.madonhang) {
       await this.handleLoadInvoiceDetails(this.props.madonhang);
     }
@@ -53,19 +42,19 @@ class BillClass extends Component {
 
   handleLoadCodePaymentType = async () => {
     try {
-      const codePaymentType = await handleGetAllCodesApi("PaymentType");
+      const codePaymentType = await handleGetAllCodesApi('PaymentType');
       if (!codePaymentType || codePaymentType.length === 0) {
-        toast.error("Không thể tải danh sách phương thức thanh toán!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách phương thức thanh toán!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ codePaymentType });
     } catch (e) {
-      console.error("Error loading payment type code:", e);
-      toast.error("Lỗi khi tải danh sách phương thức thanh toán!", {
-        position: "top-right",
+      console.error('Error loading payment type code:', e);
+      toast.error('Lỗi khi tải danh sách phương thức thanh toán!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -74,19 +63,19 @@ class BillClass extends Component {
 
   handleLoadCodeShippingMethod = async () => {
     try {
-      const codeShippingMethod = await handleGetAllCodesApi("ShippingMethod");
+      const codeShippingMethod = await handleGetAllCodesApi('ShippingMethod');
       if (!codeShippingMethod || codeShippingMethod.length === 0) {
-        toast.error("Không thể tải danh sách phương thức giao hàng!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách phương thức giao hàng!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ codeShippingMethod });
     } catch (e) {
-      console.error("Error loading shipping method code:", e);
-      toast.error("Lỗi khi tải danh sách phương thức giao hàng!", {
-        position: "top-right",
+      console.error('Error loading shipping method code:', e);
+      toast.error('Lỗi khi tải danh sách phương thức giao hàng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -95,19 +84,19 @@ class BillClass extends Component {
 
   handleLoadCodeShippingStatus = async () => {
     try {
-      const codeShippingStatus = await handleGetAllCodesApi("ShippingStatus");
+      const codeShippingStatus = await handleGetAllCodesApi('ShippingStatus');
       if (!codeShippingStatus || codeShippingStatus.length === 0) {
-        toast.error("Không thể tải danh sách trạng thái giao hàng!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách trạng thái giao hàng!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ codeShippingStatus });
     } catch (e) {
-      console.error("Error loading shipping status code:", e);
-      toast.error("Lỗi khi tải danh sách trạng thái giao hàng!", {
-        position: "top-right",
+      console.error('Error loading shipping status code:', e);
+      toast.error('Lỗi khi tải danh sách trạng thái giao hàng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -120,19 +109,16 @@ class BillClass extends Component {
       if (response && response.errCode === 0) {
         this.setState({ loadedInvoiceDetails: response.data });
       } else {
-        toast.error(
-          response?.errMessage || "Không thể tải thông tin hóa đơn!",
-          {
-            position: "top-right",
-            autoClose: 500,
-            closeOnClick: true,
-          }
-        );
+        toast.error(response?.errMessage || 'Không thể tải thông tin hóa đơn!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
       }
     } catch (e) {
-      console.error("Error loading invoice details:", e);
-      toast.error("Lỗi khi tải thông tin hóa đơn: " + e.message, {
-        position: "top-right",
+      console.error('Error loading invoice details:', e);
+      toast.error('Lỗi khi tải thông tin hóa đơn: ' + e.message, {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -140,73 +126,58 @@ class BillClass extends Component {
   };
 
   getShippingFee = (shippingMethod) => {
-    const method = this.state.codeShippingMethod.find(
-      (item) => item.Code === shippingMethod
-    );
+    const method = this.state.codeShippingMethod.find((item) => item.Code === shippingMethod);
     return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
 
   handleGeneratePDF = () => {
-    const {
-      loadedInvoiceDetails,
-      codePaymentType,
-      codeShippingMethod,
-      codeShippingStatus,
-    } = this.state;
+    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
     const doc = new jsPDF();
 
     let fontLoaded = false;
     try {
-      doc.addFileToVFS("Roboto-Regular-normal.ttf", RobotoRegularFont);
-      doc.addFont("Roboto-Regular-normal.ttf", "Roboto-Regular", "normal");
-      doc.setFont("Roboto-Regular");
+      doc.addFileToVFS('Roboto-Regular-normal.ttf', RobotoRegularFont);
+      doc.addFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal');
+      doc.setFont('Roboto-Regular');
       fontLoaded = true;
     } catch (e) {
-      console.error("Error loading custom font:", e);
-      doc.setFont("Helvetica");
+      console.error('Error loading custom font:', e);
+      doc.setFont('Helvetica');
       fontLoaded = false;
     }
 
     doc.setFontSize(18);
-    doc.text("MINCOW", 14, 20);
+    doc.text('MINCOW', 14, 20);
     doc.setFontSize(10);
-    doc.text("Pet Accessories & Food", 14, 26);
+    doc.text('Pet Accessories & Food', 14, 26);
 
-    const address = "136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM";
+    const address = '136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM';
     doc.text(address, 14, 34);
 
     const dateText = `Thời gian: ${
       loadedInvoiceDetails.CreatedAt
-        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
+        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
           })
-        : "N/A"
+        : 'N/A'
     }`;
     doc.text(dateText, 14, 42);
     doc.text(`Mã hóa đơn: ${this.props.madonhang}`, 150, 42, {
-      align: "right",
+      align: 'right',
     });
 
     const customerText = `Khách hàng: ${loadedInvoiceDetails.ReceiverName}\nSĐT: ${loadedInvoiceDetails.ReceiverPhone}\nĐịa chỉ: ${loadedInvoiceDetails.ReceiverAddress}`;
     doc.text(customerText, 14, 50);
 
     const statusText = `Phương thức thanh toán: ${
-      codePaymentType.find(
-        (item) => item.Code === loadedInvoiceDetails.PaymentType
-      )?.CodeValueVI || loadedInvoiceDetails.PaymentType
-    }\nPhương thức giao hàng: ${
-      codeShippingMethod.find(
-        (item) => item.Code === loadedInvoiceDetails.ShippingMethod
-      )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod
-    }\nTrạng thái giao hàng: ${
-      codeShippingStatus.find(
-        (item) => item.Code === loadedInvoiceDetails.ShippingStatus
-      )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus
+      codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType
+    }\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${
+      codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus
     }`;
     doc.text(statusText, 14, 70);
 
@@ -216,40 +187,38 @@ class BillClass extends Component {
     const tableData = loadedInvoiceDetails.ProductList.map((item) => [
       item.ProductName,
       item.DetailName,
-      `${parseFloat(item.ItemPrice).toLocaleString("vi-VN")}đ`,
+      `${parseFloat(item.ItemPrice).toLocaleString('vi-VN')}đ`,
       item.ItemQuantity,
-      `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString(
-        "vi-VN"
-      )}đ`,
+      `${(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString('vi-VN')}đ`,
     ]);
 
     autoTable(doc, {
       startY: 90,
-      head: [["Tên sản phẩm", "Loại", "Giá", "Số lượng", "Thành tiền"]],
+      head: [['Tên sản phẩm', 'Loại', 'Giá', 'Số lượng', 'Thành tiền']],
       body: tableData,
-      theme: "grid",
+      theme: 'grid',
       styles: {
-        font: fontLoaded ? "Roboto-Regular" : "Helvetica",
+        font: fontLoaded ? 'Roboto-Regular' : 'Helvetica',
         fontSize: 9,
         cellPadding: 2,
-        overflow: "linebreak",
+        overflow: 'linebreak',
         textColor: [0, 0, 0],
-        halign: "left",
+        halign: 'left',
       },
       headStyles: {
         fillColor: [200, 200, 200],
         textColor: [0, 0, 0],
         fontSize: 9,
-        fontStyle: "normal",
-        halign: "center",
+        fontStyle: 'normal',
+        halign: 'center',
       },
       columnWidths: [60, 40, 25, 20, 25],
       columnStyles: {
-        0: { halign: "center", overflow: "linebreak" },
-        1: { halign: "center", overflow: "linebreak" },
-        2: { halign: "center" },
-        3: { halign: "center" },
-        4: { halign: "center" },
+        0: { halign: 'center', overflow: 'linebreak' },
+        1: { halign: 'center', overflow: 'linebreak' },
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'center' },
       },
       margin: { left: 14, right: 14 },
     });
@@ -260,52 +229,24 @@ class BillClass extends Component {
     doc.line(14, finalY + 2, 196, finalY + 2);
 
     doc.setFontSize(10);
+    doc.text(`Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity}`, 14, finalY + 10);
+    doc.text(`Tổng tiền hàng: ${parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString('vi-VN')}đ`, 14, finalY + 16);
     doc.text(
-      `Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity}`,
-      14,
-      finalY + 10
-    );
-    doc.text(
-      `Tổng tiền hàng: ${parseFloat(
-        loadedInvoiceDetails.TotalPrice
-      ).toLocaleString("vi-VN")}đ`,
-      14,
-      finalY + 16
-    );
-    doc.text(
-      `Phí vận chuyển (${
-        codeShippingMethod.find(
-          (item) => item.Code === loadedInvoiceDetails.ShippingMethod
-        )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod
-      }): ${this.getShippingFee(
+      `Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}): ${this.getShippingFee(
         loadedInvoiceDetails.ShippingMethod
-      ).toLocaleString("vi-VN")}đ`,
+      ).toLocaleString('vi-VN')}đ`,
       14,
       finalY + 22
     );
-    doc.text(
-      `Giảm giá: -${parseFloat(
-        loadedInvoiceDetails.DiscountAmount || 0
-      ).toLocaleString("vi-VN")}đ`,
-      14,
-      finalY + 28
-    );
-    doc.setFont(fontLoaded ? "Roboto-Regular" : "Helvetica", "normal");
-    doc.text(
-      `Tổng thanh toán: ${parseFloat(
-        loadedInvoiceDetails.TotalPayment
-      ).toLocaleString("vi-VN")}đ`,
-      14,
-      finalY + 34
-    );
+    doc.text(`Giảm giá: -${parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 28);
+    doc.setFont(fontLoaded ? 'Roboto-Regular' : 'Helvetica', 'normal');
+    doc.text(`Tổng thanh toán: ${parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString('vi-VN')}đ`, 14, finalY + 34);
 
     doc.setLineWidth(0.5);
     doc.line(14, finalY + 38, 196, finalY + 38);
 
-    const note1 =
-      "*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).";
-    const note2 =
-      "Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).";
+    const note1 = '*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).';
+    const note2 = 'Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).';
 
     doc.setFontSize(9);
     const splitNote1 = doc.splitTextToSize(note1, 180);
@@ -318,8 +259,8 @@ class BillClass extends Component {
   };
 
   handleSendEmail = () => {
-    toast.info("Tính năng gửi email chưa được hỗ trợ!", {
-      position: "top-right",
+    toast.info('Tính năng gửi email chưa được hỗ trợ!', {
+      position: 'top-right',
       autoClose: 500,
       closeOnClick: true,
     });
@@ -350,7 +291,7 @@ class BillClass extends Component {
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 1000, closeOnClick: false }
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
         );
       });
 
@@ -358,30 +299,25 @@ class BillClass extends Component {
     if (!isConfirmed) return;
 
     try {
-      const response = await handleChangeInvoiceStatusApi(
-        invoiceid,
-        "ShippingStatus",
-        "DELI",
-        ""
-      );
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
       if (response && response.errCode === 0) {
-        toast.success("Xác nhận nhận hàng thành công!", {
-          position: "top-right",
+        toast.success('Xác nhận nhận hàng thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         await this.handleLoadInvoiceDetails(invoiceid);
       } else {
-        toast.error(response?.errMessage || "Xác nhận nhận hàng thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Xác nhận nhận hàng thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error confirming received:", e);
-      toast.error("Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error confirming received:', e);
+      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -413,7 +349,7 @@ class BillClass extends Component {
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 1000, closeOnClick: false }
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
         );
       });
 
@@ -421,30 +357,25 @@ class BillClass extends Component {
     if (!isConfirmed) return;
 
     try {
-      const response = await handleChangeInvoiceStatusApi(
-        invoiceid,
-        "ShippingStatus",
-        "PEND",
-        ""
-      );
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
       if (response && response.errCode === 0) {
-        toast.success("Tiếp tục đơn hàng thành công!", {
-          position: "top-right",
+        toast.success('Tiếp tục đơn hàng thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         await this.handleLoadInvoiceDetails(invoiceid);
       } else {
-        toast.error(response?.errMessage || "Tiếp tục đơn hàng thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Tiếp tục đơn hàng thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error continuing invoice:", e);
-      toast.error("Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error continuing invoice:', e);
+      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -466,15 +397,10 @@ class BillClass extends Component {
 
   handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
     try {
-      const response = await handleChangeInvoiceStatusApi(
-        invoiceid,
-        "ShippingStatus",
-        "PEND_CANCEL",
-        cancelreason
-      );
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND_CANCEL', cancelreason);
       if (response && response.errCode === 0) {
-        toast.success("Gửi yêu cầu hủy đơn hàng thành công!", {
-          position: "top-right",
+        toast.success('Gửi yêu cầu hủy đơn hàng thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -484,46 +410,29 @@ class BillClass extends Component {
           selectedCancelInvoice: null,
         });
       } else {
-        toast.error(
-          response?.errMessage || "Gửi yêu cầu hủy đơn hàng thất bại!",
-          {
-            position: "top-right",
-            autoClose: 500,
-            closeOnClick: true,
-          }
-        );
-      }
-    } catch (e) {
-      console.error("Error canceling invoice:", e);
-      toast.error(
-        "Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!",
-        {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Gửi yêu cầu hủy đơn hàng thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
-        }
-      );
+        });
+      }
+    } catch (e) {
+      console.error('Error canceling invoice:', e);
+      toast.error('Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
     }
   };
 
   render() {
-    const {
-      loadedInvoiceDetails,
-      codePaymentType,
-      codeShippingMethod,
-      codeShippingStatus,
-      isShowCancelInvoiceModal,
-      selectedCancelInvoice,
-    } = this.state;
+    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus, isShowCancelInvoiceModal, selectedCancelInvoice } = this.state;
     const { madonhang, cartItems, userInfo } = this.props;
 
     return (
       <div className="view-invoice-background">
-        <Header
-          navigate={this.props.navigate}
-          cartItems={cartItems}
-          userInfo={userInfo}
-        />
+        <Header navigate={this.props.navigate} cartItems={cartItems} userInfo={userInfo} />
         <CancelInvoiceModal
           isOpen={isShowCancelInvoiceModal}
           toggleFromModal={this.toggleCancelInvoiceModal}
@@ -545,19 +454,17 @@ class BillClass extends Component {
                   <div className="f">
                     <div className="view-invoice-modal-content-top-time">
                       <p>
-                        Thời gian:{" "}
+                        Thời gian:{' '}
                         {loadedInvoiceDetails.CreatedAt
-                          ? new Date(
-                              loadedInvoiceDetails.CreatedAt
-                            ).toLocaleString("vi-VN", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              second: "2-digit",
+                          ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
                             })
-                          : "N/A"}
+                          : 'N/A'}
                       </p>
                     </div>
                     <div className="view-invoice-modal-content-top-invoiceid">
@@ -570,26 +477,9 @@ class BillClass extends Component {
                     <p>Địa chỉ: {loadedInvoiceDetails.ReceiverAddress}</p>
                   </div>
                   <div className="view-invoice-modal-content-top-status">
-                    <p>
-                      Phương thức thanh toán:{" "}
-                      {codePaymentType.find(
-                        (item) => item.Code === loadedInvoiceDetails.PaymentType
-                      )?.CodeValueVI || loadedInvoiceDetails.PaymentType}
-                    </p>
-                    <p>
-                      Phương thức giao hàng:{" "}
-                      {codeShippingMethod.find(
-                        (item) =>
-                          item.Code === loadedInvoiceDetails.ShippingMethod
-                      )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}
-                    </p>
-                    <p>
-                      Trạng thái giao hàng:{" "}
-                      {codeShippingStatus.find(
-                        (item) =>
-                          item.Code === loadedInvoiceDetails.ShippingStatus
-                      )?.CodeValueVI || loadedInvoiceDetails.ShippingStatus}
-                    </p>
+                    <p>Phương thức thanh toán: {codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType}</p>
+                    <p>Phương thức giao hàng: {codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}</p>
+                    <p>Trạng thái giao hàng: {codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus}</p>
                   </div>
                 </div>
                 <div className="view-invoice-modal-content-mid">
@@ -605,33 +495,21 @@ class BillClass extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      {loadedInvoiceDetails.ProductList &&
-                      loadedInvoiceDetails.ProductList.length > 0 ? (
+                      {loadedInvoiceDetails.ProductList && loadedInvoiceDetails.ProductList.length > 0 ? (
                         loadedInvoiceDetails.ProductList.map((item, index) => (
-                          <tr
-                            key={index}
-                            className="view-invoice-modal-content-mid-item"
-                          >
+                          <tr key={index} className="view-invoice-modal-content-mid-item">
                             <td>
-                              <img
-                                src={item.ProductImage || ""}
-                                alt={item.ProductName}
-                                style={{ width: "50px", height: "50px" }}
-                              />
+                              <img src={item.ProductImage || ''} alt={item.ProductName} style={{ width: '50px', height: '50px' }} />
                             </td>
                             <td>{item.ProductName}</td>
                             <td>{item.DetailName}</td>
                             <td>
-                              {parseFloat(item.ItemPrice).toLocaleString(
-                                "vi-VN"
-                              )}
+                              {parseFloat(item.ItemPrice).toLocaleString('vi-VN')}
                               <sup>đ</sup>
                             </td>
                             <td>{item.ItemQuantity}</td>
                             <td>
-                              {(
-                                parseFloat(item.ItemPrice) * item.ItemQuantity
-                              ).toLocaleString("vi-VN")}
+                              {(parseFloat(item.ItemPrice) * item.ItemQuantity).toLocaleString('vi-VN')}
                               <sup>đ</sup>
                             </td>
                           </tr>
@@ -645,42 +523,29 @@ class BillClass extends Component {
                     <tfoot>
                       <tr>
                         <td colSpan="5">Tổng sản phẩm:</td>
-                        <td className="cen">
-                          {loadedInvoiceDetails.TotalQuantity}
-                        </td>
+                        <td className="cen">{loadedInvoiceDetails.TotalQuantity}</td>
                       </tr>
                       <tr>
                         <td colSpan="5">Tổng tiền hàng:</td>
                         <td className="cen">
-                          {parseFloat(
-                            loadedInvoiceDetails.TotalPrice
-                          ).toLocaleString("vi-VN")}
+                          {parseFloat(loadedInvoiceDetails.TotalPrice).toLocaleString('vi-VN')}
                           <sup>đ</sup>
                         </td>
                       </tr>
                       <tr>
                         <td colSpan="5">
-                          Phí vận chuyển (
-                          {codeShippingMethod.find(
-                            (item) =>
-                              item.Code === loadedInvoiceDetails.ShippingMethod
-                          )?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}
+                          Phí vận chuyển ({codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}
                           ):
                         </td>
                         <td className="cen">
-                          {this.getShippingFee(
-                            loadedInvoiceDetails.ShippingMethod
-                          ).toLocaleString("vi-VN")}
+                          {this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString('vi-VN')}
                           <sup>đ</sup>
                         </td>
                       </tr>
                       <tr>
                         <td colSpan="5">Giảm giá:</td>
                         <td className="cen">
-                          -
-                          {parseFloat(
-                            loadedInvoiceDetails.DiscountAmount || 0
-                          ).toLocaleString("vi-VN")}
+                          -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}
                           <sup>đ</sup>
                         </td>
                       </tr>
@@ -690,9 +555,7 @@ class BillClass extends Component {
                         </td>
                         <td className="cen">
                           <b>
-                            {parseFloat(
-                              loadedInvoiceDetails.TotalPayment
-                            ).toLocaleString("vi-VN")}
+                            {parseFloat(loadedInvoiceDetails.TotalPayment).toLocaleString('vi-VN')}
                             <sup>đ</sup>
                           </b>
                         </td>
@@ -700,11 +563,9 @@ class BillClass extends Component {
                       <tr>
                         <td colSpan="6">
                           <p>
-                            <u>*Lưu ý:</u> Giá thành tiền của sản phẩm đã bao
-                            gồm khuyến mãi (nếu có).
+                            <u>*Lưu ý:</u> Giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).
                             <br />
-                            Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách
-                            hàng <b>(0901131141)</b>.
+                            Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng <b>(0901131141)</b>.
                           </p>
                         </td>
                       </tr>
@@ -712,53 +573,26 @@ class BillClass extends Component {
                   </table>
                 </div>
                 <div className="bill-actions">
-                  {loadedInvoiceDetails.PaymentStatus === "PEND" &&
-                    loadedInvoiceDetails.ShippingStatus === "PEND" && (
-                      <button
-                        className="cancel-order-btn"
-                        onClick={() =>
-                          this.handleSelectedCancelInvoice(madonhang)
-                        }
-                        title="Hủy đơn hàng"
-                      >
-                        <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn
-                        hàng
-                      </button>
-                    )}
-                  {loadedInvoiceDetails.PaymentStatus === "PAID" &&
-                    loadedInvoiceDetails.ShippingStatus === "PEND" && (
-                      <button
-                        className="received-order-btn"
-                        onClick={() => this.handleConfirmReceived(madonhang)}
-                        title="Xác nhận giao hàng"
-                      >
-                        <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác
-                        nhận giao hàng
-                      </button>
-                    )}
-                  {(loadedInvoiceDetails.PaymentStatus === "PEND" ||
-                    loadedInvoiceDetails.PaymentStatus === "PAID") &&
-                    loadedInvoiceDetails.ShippingStatus === "PEND_CANCEL" && (
-                      <button
-                        className="continue-order-btn"
-                        onClick={() => this.handleContinueInvoice(madonhang)}
-                        title="Tiếp tục đơn hàng"
-                      >
-                        <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn
-                        hàng
-                      </button>
-                    )}
+                  {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                    <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(madonhang)} title="Hủy đơn hàng">
+                      <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
+                    </button>
+                  )}
+                  {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                    <button className="received-order-btn" onClick={() => this.handleConfirmReceived(madonhang)} title="Xác nhận giao hàng">
+                      <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
+                    </button>
+                  )}
+                  {(loadedInvoiceDetails.PaymentStatus === 'PEND' || loadedInvoiceDetails.PaymentStatus === 'PAID') && loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
+                    <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(madonhang)} title="Tiếp tục đơn hàng">
+                      <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
+                    </button>
+                  )}
                   <div className="f">
-                    <button
-                      onClick={this.handleGeneratePDF}
-                      className="pdf-btn"
-                    >
+                    <button onClick={this.handleGeneratePDF} className="pdf-btn">
                       Tải PDF
                     </button>
-                    <button
-                      onClick={this.handleSendEmail}
-                      className="email-btn"
-                    >
+                    <button onClick={this.handleSendEmail} className="email-btn">
                       Gửi qua email
                     </button>
                   </div>
@@ -777,14 +611,7 @@ class BillClass extends Component {
 const Bill = () => {
   const { madonhang } = useParams();
   const navigate = useNavigate();
-  return (
-    <BillClass
-      madonhang={madonhang}
-      navigate={navigate}
-      cartItems={[]}
-      userInfo={null}
-    />
-  );
+  return <BillClass madonhang={madonhang} navigate={navigate} cartItems={[]} userInfo={null} />;
 };
 
 export default Bill;

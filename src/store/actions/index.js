@@ -6,14 +6,14 @@ import cartReducer from '../reducers/cartReducer';
 
 // Cấu hình persist
 const persistConfig = {
-    key: "root",
-    storage,
+  key: 'root',
+  storage,
 };
 
 // Combine reducers
 const rootReducer = combineReducers({
-    user: userReducer, // Gắn reducer "user" vào store
-    cart: cartReducer,
+  user: userReducer, // Gắn reducer "user" vào store
+  cart: cartReducer,
 });
 // Tạo persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -27,5 +27,5 @@ const persistor = persistStore(store);
 // Export store và persistor để sử dụng trong ứng dụng
 export { store, persistor };
 
-export * from "./userActions";
-export * from "./cartActions"
+export * from './userActions';
+export * from './cartActions';

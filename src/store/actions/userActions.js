@@ -1,10 +1,10 @@
-import actionTypes from "./actionTypes";
+import actionTypes from './actionTypes';
 
 export const userLogin = (userInfo) => ({
-    type: actionTypes.USER_LOGIN_SUCCESS,
-    data: userInfo
+  type: actionTypes.USER_LOGIN_SUCCESS,
+  data: userInfo,
 });
 
 export const userLogout = () => ({
-    type: actionTypes.USER_LOGOUT,
+  type: actionTypes.USER_LOGOUT,
 });

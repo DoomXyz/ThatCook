@@ -59,6 +59,7 @@
     ]
   },
   "devDependencies": {
-    "@types/redux-logger": "^3.0.13"
+    "@types/redux-logger": "^3.0.13",
+    "prettier": "^3.5.3"
   }
 }

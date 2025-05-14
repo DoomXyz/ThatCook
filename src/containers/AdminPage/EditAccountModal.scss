@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
 
 .edit-user-modal {
   .modal-dialog {
@@ -95,8 +95,8 @@
           font-size: 1.2rem;
           top: 20px;
 
-          &[name="eye-outline"],
-          &[name="eye-off-outline"] {
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
             cursor: pointer;
 
             &:hover {
@@ -197,7 +197,7 @@
           color: black;
           margin-bottom: -15px;
 
-          &:not([type="password"]):-webkit-autofill {
+          &:not([type='password']):-webkit-autofill {
             &,
             &:hover,
             &:focus,
@@ -249,8 +249,8 @@
           font-size: 1.2rem;
           top: 20px;
 
-          &[name="eye-outline"],
-          &[name="eye-off-outline"] {
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
             cursor: pointer;
 
             &:hover {

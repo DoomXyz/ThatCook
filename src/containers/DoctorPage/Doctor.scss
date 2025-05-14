@@ -1,73 +1,73 @@
 .doctor-page {
-    padding-top: 60px;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  padding-top: 60px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .doctor-container {
-    background-color: rgb(240, 227, 234);
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    padding: 40px 40px 40px 360px;
-    /* Thêm padding-left để tránh che bởi doctor-action-form */
-    min-height: calc(100vh - 100px);
-    /* Đảm bảo đủ cao để cuộn */
-    overflow-y: auto;
-    /* Cho phép cuộn dọc */
+  background-color: rgb(240, 227, 234);
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 40px 40px 40px 360px;
+  /* Thêm padding-left để tránh che bởi doctor-action-form */
+  min-height: calc(100vh - 100px);
+  /* Đảm bảo đủ cao để cuộn */
+  overflow-y: auto;
+  /* Cho phép cuộn dọc */
 }
 
 .doctor-action-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    width: 300px;
-    min-height: 200px;
-    /* Chiều cao tối thiểu */
-    position: fixed;
-    /* Cố định so với viewport */
-    top: 80px;
-    /* Khoảng cách từ đỉnh, dưới header */
-    left: 40px;
-    /* Căn trái với padding */
-    z-index: 1000;
-    /* Đảm bảo hiển thị trên các phần tử khác */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    /* Đổ bóng để nổi bật */
-    transition: box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  width: 300px;
+  min-height: 200px;
+  /* Chiều cao tối thiểu */
+  position: fixed;
+  /* Cố định so với viewport */
+  top: 80px;
+  /* Khoảng cách từ đỉnh, dưới header */
+  left: 40px;
+  /* Căn trái với padding */
+  z-index: 1000;
+  /* Đảm bảo hiển thị trên các phần tử khác */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  /* Đổ bóng để nổi bật */
+  transition: box-shadow 0.3s ease;
 }
 
 .doctor-action-form:hover {
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    /* Hiệu ứng shadow khi hover */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  /* Hiệu ứng shadow khi hover */
 }
 
 .doctor-action-info,
 .doctor-action-wait-appointment,
 .doctor-action-celendar,
 .doctor-action-history-appointment {
-    border-bottom: 1px solid rgb(184, 184, 184);
-    padding: 10px;
-    cursor: pointer;
+  border-bottom: 1px solid rgb(184, 184, 184);
+  padding: 10px;
+  cursor: pointer;
 
-    &.active {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
-    }
+  &.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
 
-    &:hover {
-        color: #333;
-        background-color: #e0e0e0;
-    }
+  &:hover {
+    color: #333;
+    background-color: #e0e0e0;
+  }
 }
 
 .doctor-form {
-    flex: 1;
+  flex: 1;
 }
 
 .doctor-info-form,
@@ -75,364 +75,368 @@
 .doctor-celendar-form,
 .appointment-history-form,
 .appointment-detail-form {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    min-height: 400px;
-    /* Đặt chiều cao tối thiểu cố định */
-    display: flex;
-    /* Sử dụng flex để quản lý nội dung */
-    flex-direction: column;
-    justify-content: flex-start;
-    /* Căn nội dung từ trên xuống */
-    animation: fadeIn 0.3s ease;
-    /* Hiệu ứng xuất hiện */
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  min-height: 400px;
+  /* Đặt chiều cao tối thiểu cố định */
+  display: flex;
+  /* Sử dụng flex để quản lý nội dung */
+  flex-direction: column;
+  justify-content: flex-start;
+  /* Căn nội dung từ trên xuống */
+  animation: fadeIn 0.3s ease;
+  /* Hiệu ứng xuất hiện */
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .wait-appointment-object {
-    border: 1px solid #d3d3d3;
-    /* Border màu xám nhạt để phân biệt */
-    border-radius: 8px;
-    /* Bo góc cho mềm mại */
-    margin-bottom: 15px;
-    /* Khoảng cách giữa các object */
-    padding: 15px;
-    /* Padding bên trong */
-    background-color: #f9f9f9;
-    /* Màu nền nhẹ để nổi bật */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    /* Đổ bóng nhẹ để tạo chiều sâu */
+  border: 1px solid #d3d3d3;
+  /* Border màu xám nhạt để phân biệt */
+  border-radius: 8px;
+  /* Bo góc cho mềm mại */
+  margin-bottom: 15px;
+  /* Khoảng cách giữa các object */
+  padding: 15px;
+  /* Padding bên trong */
+  background-color: #f9f9f9;
+  /* Màu nền nhẹ để nổi bật */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  /* Đổ bóng nhẹ để tạo chiều sâu */
+
+  &:hover {
+    border-color: #007bff;
+    /* Đổi màu border khi hover */
+    background-color: #f1faff;
+    /* Đổi màu nền nhẹ khi hover */
+  }
+
+  .wait-appointment-info {
+    display: flex;
+    flex-direction: column;
+    /* Đặt nội dung theo cột */
+    gap: 10px;
+    /* Khoảng cách giữa các phần tử con */
+  }
+
+  .wait-appointment-left,
+  .wait-appointment-right {
+    flex: 1;
+    /* Chia đều không gian */
+  }
+
+  .wait-appointment-button {
+    display: flex;
+    gap: 10px;
+    /* Khoảng cách giữa các nút */
+    margin-top: 10px;
+    /* Khoảng cách phía trên nút */
+  }
+
+  .wait-appointment-button-accept,
+  .wait-appointment-button-refuse {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .wait-appointment-button-accept {
+    background-color: #28a745;
+    /* Màu xanh cho nút xác nhận */
+    color: white;
 
     &:hover {
-        border-color: #007bff;
-        /* Đổi màu border khi hover */
-        background-color: #f1faff;
-        /* Đổi màu nền nhẹ khi hover */
+      background-color: #218838;
+      /* Đậm hơn khi hover */
     }
+  }
 
-    .wait-appointment-info {
-        display: flex;
-        flex-direction: column;
-        /* Đặt nội dung theo cột */
-        gap: 10px;
-        /* Khoảng cách giữa các phần tử con */
+  .wait-appointment-button-refuse {
+    background-color: #dc3545;
+    /* Màu đỏ cho nút từ chối */
+    color: white;
+
+    &:hover {
+      background-color: #c82333;
+      /* Đậm hơn khi hover */
     }
+  }
 
-    .wait-appointment-left,
-    .wait-appointment-right {
-        flex: 1;
-        /* Chia đều không gian */
-    }
-
-    .wait-appointment-button {
-        display: flex;
-        gap: 10px;
-        /* Khoảng cách giữa các nút */
-        margin-top: 10px;
-        /* Khoảng cách phía trên nút */
-    }
-
-    .wait-appointment-button-accept,
-    .wait-appointment-button-refuse {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .wait-appointment-button-accept {
-        background-color: #28a745;
-        /* Màu xanh cho nút xác nhận */
-        color: white;
-
-        &:hover {
-            background-color: #218838;
-            /* Đậm hơn khi hover */
-        }
-    }
-
-    .wait-appointment-button-refuse {
-        background-color: #dc3545;
-        /* Màu đỏ cho nút từ chối */
-        color: white;
-
-        &:hover {
-            background-color: #c82333;
-            /* Đậm hơn khi hover */
-        }
-    }
-
-    .wait-appointment-descrpiton {
-        font-size: 14px;
-        color: #333;
-        margin-bottom: 5px;
-        /* Khoảng cách giữa các dòng mô tả */
-    }
+  .wait-appointment-descrpiton {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+    /* Khoảng cách giữa các dòng mô tả */
+  }
 }
 
 .appointment-detail-container {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
 .appointment-detail-container h3 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #007bff;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #007bff;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
 }
 
 .appointment-detail-content {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    transition: transform 0.2s ease;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.2s ease;
 }
 
 .appointment-detail-content:hover {
-    transform: translateY(-3px);
-    /* Hiệu ứng nâng nhẹ khi hover */
+  transform: translateY(-3px);
+  /* Hiệu ứng nâng nhẹ khi hover */
 }
 
 .detail-item {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    /* Nhãn cố định, giá trị linh hoạt */
-    align-items: center;
-    gap: 15px;
-    padding: 10px 0;
-    border-bottom: 1px solid #e9ecef;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  /* Nhãn cố định, giá trị linh hoạt */
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .detail-item:last-child {
-    border-bottom: none;
-    /* Bỏ đường viền cho mục cuối */
+  border-bottom: none;
+  /* Bỏ đường viền cho mục cuối */
 }
 
 .detail-item label {
-    font-weight: 600;
-    font-size: 16px;
-    color: #343a40;
-    text-align: right;
-    text-transform: capitalize;
+  font-weight: 600;
+  font-size: 16px;
+  color: #343a40;
+  text-align: right;
+  text-transform: capitalize;
 }
 
 .detail-item span {
-    font-size: 16px;
-    color: #212529;
-    background-color: #ffffff;
-    padding: 8px 12px;
-    border-radius: 6px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-    line-height: 1.5;
+  font-size: 16px;
+  color: #212529;
+  background-color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  line-height: 1.5;
 }
 
 .back-button {
-    align-self: flex-start;
-    padding: 12px 24px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 16px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+  align-self: flex-start;
+  padding: 12px 24px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 .back-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
+  background-color: #0056b3;
+  transform: translateY(-2px);
 }
 
 .back-button:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .doctor-celendar-form {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    min-height: 600px;
-    /* Tăng chiều cao tối thiểu để giống thời khóa biểu */
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    font-family: 'Arial', sans-serif;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  min-height: 600px;
+  /* Tăng chiều cao tối thiểu để giống thời khóa biểu */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Arial', sans-serif;
 }
 
 .calendar-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .calendar-container h3 {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .celendar-button {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    /* Đặt các phần tử ở hai góc */
-    width: 100%;
-    /* Chiếm toàn bộ chiều rộng container */
-    margin-bottom: 20px;
-    padding: 0 10px;
-    /* Khoảng cách lề để nút không sát mép */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Đặt các phần tử ở hai góc */
+  width: 100%;
+  /* Chiếm toàn bộ chiều rộng container */
+  margin-bottom: 20px;
+  padding: 0 10px;
+  /* Khoảng cách lề để nút không sát mép */
 }
 
 .celendar-button-left,
 .celendar-button-right {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 .celendar-button-left:hover,
 .celendar-button-right:hover {
-    background-color: #0056b3;
-    transform: scale(1.1);
-    /* Hiệu ứng phóng to nhẹ khi hover */
+  background-color: #0056b3;
+  transform: scale(1.1);
+  /* Hiệu ứng phóng to nhẹ khi hover */
 }
 
 .celendar-real {
-    font-size: 20px;
-    font-weight: 600;
-    color: #333;
-    text-align: center;
-    flex-grow: 1;
-    /* Tiêu đề chiếm không gian giữa */
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  flex-grow: 1;
+  /* Tiêu đề chiếm không gian giữa */
 }
 
 .calendar-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .celendar-day-info {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
 }
 
 .celendar-day-info:hover {
-    transform: translateY(-2px);
+  transform: translateY(-2px);
 }
 
 .celendar-day-info h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #007bff;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #007bff;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 5px;
 }
 
 .calendar-object {
-    display: grid;
-    grid-template-columns: 100px 1fr 2fr;
-    /* Cột: Thời gian, Dịch vụ, Chủ/Thú cưng */
-    gap: 10px;
-    background-color: #ffffff;
-    border-left: 4px solid #28a745;
-    /* Đường viền trái màu xanh */
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-    align-items: center;
-    transition: background-color 0.3s ease;
+  display: grid;
+  grid-template-columns: 100px 1fr 2fr;
+  /* Cột: Thời gian, Dịch vụ, Chủ/Thú cưng */
+  gap: 10px;
+  background-color: #ffffff;
+  border-left: 4px solid #28a745;
+  /* Đường viền trái màu xanh */
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  transition: background-color 0.3s ease;
 }
 
 .calendar-object:hover {
-    background-color: #e8f4ff;
-    /* Màu nền khi hover */
+  background-color: #e8f4ff;
+  /* Màu nền khi hover */
 }
 
 .description-appointment {
-    font-size: 14px;
-    color: #333;
-    line-height: 1.5;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
 }
 
 .description-appointment:nth-child(1) {
-    font-weight: bold;
-    color: #dc3545;
-    /* Thời gian nổi bật màu đỏ */
+  font-weight: bold;
+  color: #dc3545;
+  /* Thời gian nổi bật màu đỏ */
 }
 
 .description-appointment:nth-child(2) {
-    font-style: italic;
-    /* Dịch vụ in nghiêng */
+  font-style: italic;
+  /* Dịch vụ in nghiêng */
 }
 
 .description-non {
-    font-size: 16px;
-    color: #6c757d;
-    text-align: center;
-    padding: 20px;
-    background-color: #f1f1f1;
-    border-radius: 8px;
+  font-size: 16px;
+  color: #6c757d;
+  text-align: center;
+  padding: 20px;
+  background-color: #f1f1f1;
+  border-radius: 8px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .calendar-object {
-        grid-template-columns: 1fr;
-        /* Chuyển thành cột trên màn hình nhỏ */
-        text-align: left;
-    }
+  .calendar-object {
+    grid-template-columns: 1fr;
+    /* Chuyển thành cột trên màn hình nhỏ */
+    text-align: left;
+  }
 
-    .celendar-button {
-        flex-direction: column;
-        gap: 10px;
-    }
+  .celendar-button {
+    flex-direction: column;
+    gap: 10px;
+  }
 
-    .celendar-real {
-        font-size: 16px;
-    }
+  .celendar-real {
+    font-size: 16px;
+  }
 }

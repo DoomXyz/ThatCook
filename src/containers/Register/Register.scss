@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
 
 // Variables
 $primary-color: #565151;
@@ -10,7 +10,7 @@ $blur-effect: blur(70px);
 * {
   margin: 0;
   padding: 0;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 .body-register {
@@ -18,7 +18,7 @@ $blur-effect: blur(70px);
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-image: url("https://i.imgur.com/Z7pUIfs.png");
+  background-image: url('https://i.imgur.com/Z7pUIfs.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -103,7 +103,6 @@ $blur-effect: blur(70px);
               margin-bottom: -15px;
 
               &:-webkit-autofill {
-
                 &,
                 &:hover,
                 &:focus,
@@ -115,23 +114,23 @@ $blur-effect: blur(70px);
                   transition: background-color 5000s ease-in-out 0s;
                 }
 
-                ~label11 {
+                ~ label11 {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ion-icon {
+                ~ ion-icon {
                   color: $primary-color;
                 }
               }
 
               &:not(:placeholder-shown) {
-                ~label {
+                ~ label {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ion-icon {
+                ~ ion-icon {
                   color: $primary-color;
                 }
               }
@@ -155,8 +154,8 @@ $blur-effect: blur(70px);
               font-size: 1.2rem;
               top: 20px;
 
-              &[name="eye-outline"],
-              &[name="eye-off-outline"] {
+              &[name='eye-outline'],
+              &[name='eye-off-outline'] {
                 cursor: pointer;
 
                 &:hover {
@@ -166,13 +165,13 @@ $blur-effect: blur(70px);
             }
 
             input:focus {
-              ~label {
+              ~ label {
                 top: -5px;
                 /* Label di chuyển lên khi focus */
                 color: $primary-color;
               }
 
-              ~ion-icon {
+              ~ ion-icon {
                 color: $primary-color;
               }
             }
@@ -260,8 +259,7 @@ $blur-effect: blur(70px);
               color: $primary-color;
               margin-bottom: -15px;
 
-              &:not([type="password"]):-webkit-autofill {
-
+              &:not([type='password']):-webkit-autofill {
                 &,
                 &:hover,
                 &:focus,
@@ -273,23 +271,23 @@ $blur-effect: blur(70px);
                   transition: background-color 5000s ease-in-out 0s;
                 }
 
-                ~label {
+                ~ label {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ion-icon {
+                ~ ion-icon {
                   color: $primary-color;
                 }
               }
 
               &:not(:placeholder-shown) {
-                ~label {
+                ~ label {
                   top: -5px;
                   color: $primary-color;
                 }
 
-                ~ion-icon {
+                ~ ion-icon {
                   color: $primary-color;
                 }
               }
@@ -313,8 +311,8 @@ $blur-effect: blur(70px);
               font-size: 1.2rem;
               top: 20px;
 
-              &[name="eye-outline"],
-              &[name="eye-off-outline"] {
+              &[name='eye-outline'],
+              &[name='eye-off-outline'] {
                 cursor: pointer;
 
                 &:hover {
@@ -324,13 +322,13 @@ $blur-effect: blur(70px);
             }
 
             input:focus {
-              ~label {
+              ~ label {
                 top: -5px;
                 /* Label di chuyển lên khi focus */
                 color: $primary-color;
               }
 
-              ~ion-icon {
+              ~ ion-icon {
                 color: $primary-color;
               }
             }

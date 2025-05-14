@@ -1,21 +1,21 @@
-import React, { Component } from "react";
-import { toast } from "react-toastify";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react";
+import React, { Component } from 'react';
+import { toast } from 'react-toastify';
+import { connect } from 'react-redux';
+import { IonIcon } from '@ionic/react';
 
-import { cartOutline, add, remove } from "ionicons/icons";
+import { cartOutline, add, remove } from 'ionicons/icons';
 
-import "./HomeProductModal.scss";
-import Modal from "react-bootstrap/Modal";
+import './HomeProductModal.scss';
+import Modal from 'react-bootstrap/Modal';
 
-import { addToCart } from "../../store/actions";
-import { handleGetSaleProductInfoApi } from "../../services/productServices";
+import { addToCart } from '../../store/actions';
+import { handleGetSaleProductInfoApi } from '../../services/productServices';
 
 class HomeProductModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedImage: "",
+      selectedImage: '',
       quantity: 1,
       loadedProductInfo: null,
       loadedProductDetail: null,
@@ -25,14 +25,14 @@ class HomeProductModal extends Component {
   }
 
   componentDidMount() {
-    const { selectedProductID } = this.props
+    const { selectedProductID } = this.props;
     if (selectedProductID) {
       this.loadProductDetails(selectedProductID);
     }
   }
 
   componentDidUpdate(prevProps) {
-    const { selectedProductID, isOpen } = this.props
+    const { selectedProductID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
       this.setState({
         quantity: 1,
@@ -40,7 +40,7 @@ class HomeProductModal extends Component {
         loadedProductDetail: null,
         loadedProductImage: null,
         selectedProductDetail: null,
-        selectedImage: "",
+        selectedImage: '',
       });
       if (selectedProductID) {
         this.loadProductDetails(selectedProductID);
@@ -55,47 +55,47 @@ class HomeProductModal extends Component {
         const loadedInfo = response.data;
         const loadedProductImage = loadedInfo.Image;
         const loadedProductDetail = loadedInfo.ProductDetail;
-        const loadedProductInfo = ({
+        const loadedProductInfo = {
           ProductID: loadedInfo.ProductID,
           ProductName: loadedInfo.ProductName,
           ProductPrice: loadedInfo.ProductPrice,
           ProductImage: loadedInfo.ProductImage,
-          ProductDescription: loadedInfo.ProductDescription
-        })
+          ProductDescription: loadedInfo.ProductDescription,
+        };
         this.setState({
           loadedProductInfo,
           loadedProductDetail,
           loadedProductImage,
           selectedProductDetail: loadedProductDetail[0] || null,
-          selectedImage: loadedProductInfo.ProductImage || "",
-        })
+          selectedImage: loadedProductInfo.ProductImage || '',
+        });
       } else {
         this.setState({
-          selectedImage: "",
+          selectedImage: '',
           quantity: 1,
           loadedProductInfo: null,
           loadedProductDetail: null,
           loadedProductImage: null,
           selectedProductDetail: null,
         });
-        toast.error("Tải sản phẩm thất bại!", {
-          position: "top-right",
+        toast.error('Tải sản phẩm thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.log("Lỗi khi tải sản phẩm:", e);
+      console.log('Lỗi khi tải sản phẩm:', e);
       this.setState({
-        selectedImage: "",
+        selectedImage: '',
         quantity: 1,
         loadedProductInfo: null,
         loadedProductDetail: null,
         loadedProductImage: null,
         selectedProductDetail: null,
       });
-      toast.error("Lỗi khi tải sản phẩm!", {
-        position: "top-right",
+      toast.error('Lỗi khi tải sản phẩm!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -140,7 +140,7 @@ class HomeProductModal extends Component {
     // Reset state về trạng thái ban đầu
     const firstDetail = this.state.loadedProductDetail[0] || null;
     this.setState({
-      selectedImage: loadedProductInfo.ProductImage || "",
+      selectedImage: loadedProductInfo.ProductImage || '',
       quantity: 1,
       selectedProductDetail: firstDetail,
     });
@@ -155,12 +155,12 @@ class HomeProductModal extends Component {
       ProductDetailID: selectedProductDetail.ProductDetailID,
       ItemPrice: productPrice,
       ItemQuantity: quantity,
-    })
+    });
   };
 
   toggle = () => {
     this.setState({
-      selectedImage: "",
+      selectedImage: '',
       quantity: 1,
       loadedProductInfo: null,
       loadedProductDetail: null,
@@ -175,24 +175,18 @@ class HomeProductModal extends Component {
     const { selectedImage, quantity, selectedProductDetail, loadedProductInfo, loadedProductDetail, loadedProductImage } = this.state;
     if (!loadedProductInfo || !loadedProductDetail) {
       return (
-        <Modal
-          show={isOpen}
-          onHide={this.toggle}
-          className="HomeProductModal"
-          centered
-          backdrop="static"
-        >
+        <Modal show={isOpen} onHide={this.toggle} className="HomeProductModal" centered backdrop="static">
           <Modal.Body>Không tìm thấy thông tin sản phẩm.</Modal.Body>
         </Modal>
-      )
+      );
     }
 
     const basePrice = selectedProductDetail
       ? (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice || 0)) * (1 - parseFloat(selectedProductDetail.Promotion || 0) / 100)
       : parseFloat(loadedProductInfo.ProductPrice);
-    const formattedOriginalPrice = basePrice.toLocaleString("vi-VN");
+    const formattedOriginalPrice = basePrice.toLocaleString('vi-VN');
     const finalPrice = quantity * basePrice;
-    const formattedFinalPrice = finalPrice.toLocaleString("vi-VN");
+    const formattedFinalPrice = finalPrice.toLocaleString('vi-VN');
 
     const handleQuantityChange = (e) => {
       const value = parseInt(e.target.value, 10);
@@ -205,13 +199,7 @@ class HomeProductModal extends Component {
       }
     };
     return (
-      <Modal
-        show={isOpen}
-        onHide={this.toggle}
-        className="HomeProductModal"
-        centered
-        backdrop="static"
-      >
+      <Modal show={isOpen} onHide={this.toggle} className="HomeProductModal" centered backdrop="static">
         <Modal.Header closeButton>
           <Modal.Title>
             <span>Thông tin sản phẩm</span>
@@ -229,17 +217,10 @@ class HomeProductModal extends Component {
                     src={loadedProductInfo.ProductImage}
                     alt="Main Product"
                     onClick={() => this.handleProductImageClick(loadedProductInfo.ProductImage)}
-                    className={selectedImage === loadedProductInfo.ProductImage ? "selected" : ""}
+                    className={selectedImage === loadedProductInfo.ProductImage ? 'selected' : ''}
                   />
                 )}
-                {loadedProductImage && loadedProductImage.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img.Image}
-                    alt={`Thumbnail ${index}`}
-                    onClick={() => this.handleProductImageClick(img.Image)}
-                  />
-                ))}
+                {loadedProductImage && loadedProductImage.map((img, index) => <img key={index} src={img.Image} alt={`Thumbnail ${index}`} onClick={() => this.handleProductImageClick(img.Image)} />)}
               </div>
             </div>
             <div className="product-content-right">
@@ -249,26 +230,21 @@ class HomeProductModal extends Component {
               <div className="product-content-right-price">
                 <p>
                   {formattedOriginalPrice} <sup>đ</sup>
-                  {selectedProductDetail.Promotion && parseFloat(selectedProductDetail.Promotion) > 0 ? ` (${selectedProductDetail.Promotion}%)` : ""}
+                  {selectedProductDetail.Promotion && parseFloat(selectedProductDetail.Promotion) > 0 ? ` (${selectedProductDetail.Promotion}%)` : ''}
                 </p>
               </div>
               <div className="product-content-right-instock">
-                <p>
-                  Kho: {selectedProductDetail ? selectedProductDetail.Stock : "N/A"}
-                </p>
+                <p>Kho: {selectedProductDetail ? selectedProductDetail.Stock : 'N/A'}</p>
               </div>
               <div className="product-content-right-choice">
                 <p>Loại: </p>
                 <div className="choice">
-                  {loadedProductDetail && loadedProductDetail.map((detail) => (
-                    <span
-                      key={detail.ProductDetailID}
-                      className={selectedProductDetail === detail ? "selected" : ""}
-                      onClick={() => this.handleProductDetailChange(detail)}
-                    >
-                      {detail.DetailName}
-                    </span>
-                  ))}
+                  {loadedProductDetail &&
+                    loadedProductDetail.map((detail) => (
+                      <span key={detail.ProductDetailID} className={selectedProductDetail === detail ? 'selected' : ''} onClick={() => this.handleProductDetailChange(detail)}>
+                        {detail.DetailName}
+                      </span>
+                    ))}
                 </div>
               </div>
               <div className="quantity">
@@ -282,8 +258,8 @@ class HomeProductModal extends Component {
                     value={quantity}
                     onChange={handleQuantityChange}
                     min="1"
-                    max={selectedProductDetail ? selectedProductDetail.Stock : ""}
-                    style={{ width: "50px", textAlign: "center" }}
+                    max={selectedProductDetail ? selectedProductDetail.Stock : ''}
+                    style={{ width: '50px', textAlign: 'center' }}
                   />
                   <button onClick={this.handleQuantityIncrease}>
                     <IonIcon icon={add} />
@@ -304,7 +280,7 @@ class HomeProductModal extends Component {
               <div className="product-content-right-bottom">
                 <h1>*Thông tin sản phẩm:</h1>
                 <div className="product-content-right-bottom-content">
-                  <p>{loadedProductInfo.ProductDescription || ""}</p>
+                  <p>{loadedProductInfo.ProductDescription || ''}</p>
                 </div>
               </div>
             </div>

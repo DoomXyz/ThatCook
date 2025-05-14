@@ -1,33 +1,21 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { toast } from "react-toastify";
-import { IonIcon } from "@ionic/react";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { toast } from 'react-toastify';
+import { IonIcon } from '@ionic/react';
 
-import {
-  cart,
-  person,
-  informationCircleOutline,
-  logOutOutline,
-  menuOutline,
-  cartOutline,
-  newspaperOutline,
-} from "ionicons/icons";
+import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline } from 'ionicons/icons';
 
-import "./HomeHeader.scss";
-import "../styles/ToastifyOverride.scss";
+import './HomeHeader.scss';
+import '../styles/ToastifyOverride.scss';
 
-import {
-  handleGetAccountInfoApi,
-  handleLogoutApi,
-} from "../services/accountServices";
-import { handleGetCartApi } from "../services/cartServices";
-import { handleGetAllCodesApi } from "../services/utilitiesServices";
+import { handleGetAccountInfoApi, handleLogoutApi } from '../services/accountServices';
+import { handleGetCartApi } from '../services/cartServices';
+import { handleGetAllCodesApi } from '../services/utilitiesServices';
 
-import { checkLoginStatus } from "../utils/pakage";
-import { userLogin, userLogout, clearCheckOutCart } from "../store/actions/";
+import { checkLoginStatus } from '../utils/pakage';
+import { userLogin, userLogout, clearCheckOutCart } from '../store/actions/';
 
-const defUserImage =
-  "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg";
+const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
 
 class HomeHeader extends Component {
   constructor(props) {
@@ -48,12 +36,6 @@ class HomeHeader extends Component {
     requestAnimationFrame(() => {
       const isScrolled = window.scrollY > 0;
       if (isScrolled !== this.state.isScrolled) {
-        console.log(
-          "Scroll position:",
-          window.scrollY,
-          "isScrolled:",
-          isScrolled
-        );
         this.setState({ isScrolled });
       }
     });
@@ -66,12 +48,12 @@ class HomeHeader extends Component {
       this.countCartItem();
       this.handleLoadInformation();
     }, 0);
-    window.addEventListener("scroll", this.handleScroll, { passive: true });
+    window.addEventListener('scroll', this.handleScroll, { passive: true });
     this.handleScroll();
   }
 
   componentWillUnmount() {
-    window.removeEventListener("scroll", this.handleScroll, { passive: true });
+    window.removeEventListener('scroll', this.handleScroll, { passive: true });
   }
   async componentDidUpdate(prevProps) {
     if (prevProps.userInfo !== this.props.userInfo) {
@@ -82,9 +64,7 @@ class HomeHeader extends Component {
     if (prevProps.triggerCountCartItem !== this.props.triggerCountCartItem) {
       await this.countCartItem();
     }
-    if (
-      prevProps.triggerLoadInformation !== this.props.triggerLoadInformation
-    ) {
+    if (prevProps.triggerLoadInformation !== this.props.triggerLoadInformation) {
       await this.handleLoadInformation();
     }
   }
@@ -109,7 +89,7 @@ class HomeHeader extends Component {
         });
       }
     } catch (e) {
-      console.log("Token not found!");
+      console.log('Token not found!');
     }
   };
 
@@ -129,10 +109,10 @@ class HomeHeader extends Component {
 
   handleLoadPetType = async () => {
     try {
-      const codePetType = await handleGetAllCodesApi("PetType");
+      const codePetType = await handleGetAllCodesApi('PetType');
       if (!codePetType || codePetType.length === 0) {
-        toast.error("Không thể tải danh sách sản phẩm!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách sản phẩm!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -141,9 +121,9 @@ class HomeHeader extends Component {
         codePetType,
       });
     } catch (e) {
-      console.log("Error loading pettype code:", e);
-      toast.error("Lỗi khi tải danh sách sản phẩm!", {
-        position: "top-right",
+      console.log('Error loading pettype code:', e);
+      toast.error('Lỗi khi tải danh sách sản phẩm!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -172,29 +152,29 @@ class HomeHeader extends Component {
         cartItemsCount: count,
       });
     } catch (e) {
-      console.log("Chưa kết nối backend!");
+      console.log('Chưa kết nối backend!');
     }
   };
 
   handlePetTypeFilter = (code) => {
-    this.props.navigate("/home");
-    const formatedCode = "pettype-" + code;
-    console.log("PetType code:", formatedCode);
+    this.props.navigate('/home');
+    const formatedCode = 'pettype-' + code;
+    console.log('PetType code:', formatedCode);
   };
 
   handlePromotionFilter = () => {
-    this.props.navigate("/home");
-    console.log("Promotion product only selected");
+    this.props.navigate('/home');
+    console.log('Promotion product only selected');
   };
 
   handleAccountTypeNavigate = (accounttype) => {
     const navigateMap = {
-      A: "/user/admin",
-      O: "/user/owner",
-      V: "/user/veterinarian",
-      C: "/home",
+      A: '/user/admin',
+      O: '/user/owner',
+      V: '/user/veterinarian',
+      C: '/home',
     };
-    const path = navigateMap[accounttype] || "/login";
+    const path = navigateMap[accounttype] || '/login';
     setTimeout(() => {
       this.props.navigate(path);
     }, 0);
@@ -242,16 +222,16 @@ class HomeHeader extends Component {
           isLoggedIn: false,
           accountInfo: null,
         });
-        this.props.navigate("/home");
-        toast.success("Đăng xuất thành công!", {
-          position: "top-right",
+        this.props.navigate('/home');
+        toast.success('Đăng xuất thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       } catch (e) {
         console.log(e);
-        toast.error("Đăng xuất thất bại. Vui lòng thử lại!", {
-          position: "top-right",
+        toast.error('Đăng xuất thất bại. Vui lòng thử lại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -261,23 +241,15 @@ class HomeHeader extends Component {
   };
 
   render() {
-    const {
-      accountInfo,
-      isLoggedIn,
-      cartItemsCount,
-      userImage,
-      userName,
-      codePetType,
-      isScrolled,
-    } = this.state;
+    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codePetType, isScrolled } = this.state;
     return (
       <div className="body-container">
-        <div className={`header-container ${isScrolled ? "scrolled" : ""}`}>
+        <div className={`header-container ${isScrolled ? 'scrolled' : ''}`}>
           <div className="header-top">
             <div
               className="logo"
               onClick={() => {
-                this.props.navigate("/home");
+                this.props.navigate('/home');
               }}
             ></div>
             <div className="menu">
@@ -289,7 +261,7 @@ class HomeHeader extends Component {
                   <li>
                     <a
                       onClick={() => {
-                        this.props.navigate("/home");
+                        this.props.navigate('/home');
                       }}
                     >
                       <IonIcon icon={cartOutline}></IonIcon>Cửa Hàng
@@ -298,7 +270,7 @@ class HomeHeader extends Component {
                   <li>
                     <a
                       onClick={() => {
-                        this.props.navigate("/user/homeappointment");
+                        this.props.navigate('/user/homeappointment');
                       }}
                     >
                       <IonIcon icon={newspaperOutline}></IonIcon>D.vụ Đặt Lịch
@@ -311,9 +283,7 @@ class HomeHeader extends Component {
                 <ul className="sub-menu">
                   {codePetType.map((type) => (
                     <li key={type.Code}>
-                      <a onClick={() => this.handlePetTypeFilter(type.Code)}>
-                        {type.CodeValueVI}
-                      </a>
+                      <a onClick={() => this.handlePetTypeFilter(type.Code)}>{type.CodeValueVI}</a>
                     </li>
                   ))}
                 </ul>
@@ -328,7 +298,7 @@ class HomeHeader extends Component {
                     <a>
                       <p
                         onClick={() => {
-                          this.props.navigate("/user/genhealthcheck");
+                          this.props.navigate('/user/genhealthcheck');
                         }}
                       >
                         Khám tổng quát
@@ -339,7 +309,7 @@ class HomeHeader extends Component {
                     <a>
                       <p
                         onClick={() => {
-                          this.props.navigate("/user/vaccination");
+                          this.props.navigate('/user/vaccination');
                         }}
                       >
                         Tiêm phòng
@@ -351,7 +321,7 @@ class HomeHeader extends Component {
                     <a>
                       <p
                         onClick={() => {
-                          this.props.navigate("/user/surgery");
+                          this.props.navigate('/user/surgery');
                         }}
                       >
                         Phẫu thuật cơ bản
@@ -362,7 +332,7 @@ class HomeHeader extends Component {
                     <a>
                       <p
                         onClick={() => {
-                          this.props.navigate("/user/test");
+                          this.props.navigate('/user/test');
                         }}
                       >
                         Xét nghiệm
@@ -372,38 +342,24 @@ class HomeHeader extends Component {
                 </ul>
               </li>
               <li>
-                <a onClick={() => this.props.navigate("/user/makeappointment")}>
-                  Đặt lịch
-                </a>
+                <a onClick={() => this.props.navigate('/user/makeappointment')}>Đặt lịch</a>
               </li>
               <li>
-                <a onClick={() => this.props.navigate("/user/showdoctor")}>
-                  Bác sĩ
-                </a>
+                <a onClick={() => this.props.navigate('/user/showdoctor')}>Bác sĩ</a>
               </li>
               {isLoggedIn && accountInfo ? (
-                accountInfo.AccountType === "C" ? (
+                accountInfo.AccountType === 'C' ? (
                   <li>
-                    <a onClick={() => this.props.navigate("/information")}>
-                      Liên hệ
-                    </a>
+                    <a onClick={() => this.props.navigate('/information')}>Liên hệ</a>
                   </li>
                 ) : (
                   <li>
-                    <a
-                      onClick={() =>
-                        this.handleAccountTypeNavigate(accountInfo.AccountType)
-                      }
-                    >
-                      Quản trị
-                    </a>
+                    <a onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}>Quản trị</a>
                   </li>
                 )
               ) : (
                 <li>
-                  <a onClick={() => this.props.navigate("/information")}>
-                    Liên hệ
-                  </a>
+                  <a onClick={() => this.props.navigate('/information')}>Liên hệ</a>
                 </li>
               )}
             </div>
@@ -411,9 +367,7 @@ class HomeHeader extends Component {
               <li>
                 <a href="/cart" className="shopping-bag">
                   <IonIcon icon={cart}></IonIcon>
-                  {cartItemsCount > 0 && (
-                    <span className="cart-bubble">{cartItemsCount}</span>
-                  )}
+                  {cartItemsCount > 0 && <span className="cart-bubble">{cartItemsCount}</span>}
                 </a>
               </li>
               <li>
@@ -423,10 +377,7 @@ class HomeHeader extends Component {
                     <p>{userName}</p>
                     <ul className="sub-menu">
                       <li>
-                        <div
-                          className="f"
-                          onClick={() => this.props.navigate("/user/customer")}
-                        >
+                        <div className="f" onClick={() => this.props.navigate('/user/customer')}>
                           <IonIcon icon={informationCircleOutline}></IonIcon>
                           <a>Thông tin người dùng</a>
                         </div>
@@ -443,11 +394,11 @@ class HomeHeader extends Component {
                   <div className="user-none" id="user-icon">
                     <div className="f">
                       <IonIcon icon={person}></IonIcon>
-                      <a onClick={() => this.props.navigate("/login")}>
+                      <a onClick={() => this.props.navigate('/login')}>
                         <p>Đăng nhập</p>
                       </a>
                       <p>|</p>
-                      <a onClick={() => this.props.navigate("/register")}>
+                      <a onClick={() => this.props.navigate('/register')}>
                         <p>Đăng ký</p>
                       </a>
                     </div>

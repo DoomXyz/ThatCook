@@ -1,39 +1,36 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react"; //import thư viện icon
-import { ToastContainer, toast } from "react-toastify";
-import {} from "ionicons/icons"; //chỉ import các icon cần dùng
-import "./MakeAppointment.scss"; //import scss
-import Header from "../../components/HomeHeader";
-import Footer from "../../components/HomeFooter";
-import { handleCreateAppointmentApi } from "../../services/appointmentServices";
-import {
-  handleGetAllCodesApi,
-  uploadImageToCloudinaryApi,
-} from "../../services/utilitiesServices";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { IonIcon } from '@ionic/react'; //import thư viện icon
+import { ToastContainer, toast } from 'react-toastify';
+import {} from 'ionicons/icons'; //chỉ import các icon cần dùng
+import './MakeAppointment.scss'; //import scss
+import Header from '../../components/HomeHeader';
+import Footer from '../../components/HomeFooter';
+import { handleCreateAppointmentApi } from '../../services/appointmentServices';
+import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
 
-import test from "../../assets/productha/hinhtest3.jpg";
-import { set } from "lodash";
-import { type } from "@testing-library/user-event/dist/type";
+import test from '../../assets/productha/hinhtest3.jpg';
+import { set } from 'lodash';
+import { type } from '@testing-library/user-event/dist/type';
 
 class MakeAppointment extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      customername: "",
-      customerphone: "",
-      customeremail: "",
-      petname: "",
-      pettype: "",
-      age: "",
-      petgender: "",
-      petweight: "",
-      appointmentdate: "",
-      selectedDoctorID: "",
-      selectedServiceID: "",
-      selectedPetID: "",
-      starttime: "",
-      notes: "",
+      customername: '',
+      customerphone: '',
+      customeremail: '',
+      petname: '',
+      pettype: '',
+      age: '',
+      petgender: '',
+      petweight: '',
+      appointmentdate: '',
+      selectedDoctorID: '',
+      selectedServiceID: '',
+      selectedPetID: '',
+      starttime: '',
+      notes: '',
       codePetType: [],
       codeService: [],
       codePetGender: [],
@@ -59,21 +56,21 @@ class MakeAppointment extends Component {
 
   handleLoadCodePetType = async () => {
     try {
-      const codePetType = await handleGetAllCodesApi("PetType");
+      const codePetType = await handleGetAllCodesApi('PetType');
       if (!codePetType || codePetType.length === 0) {
-        toast.error("Không thể tải danh sách loại thú cưng!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách loại thú cưng!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({
         codePetType,
-        pettype: codePetType.length > 0 ? codePetType[0].Code : "",
+        pettype: codePetType.length > 0 ? codePetType[0].Code : '',
       });
     } catch (e) {
-      toast.error("Không thể tải danh sách loại thú cưng!", {
-        position: "top-right",
+      toast.error('Không thể tải danh sách loại thú cưng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -81,18 +78,18 @@ class MakeAppointment extends Component {
   };
   handleLoadCodePetGender = async () => {
     try {
-      const codePetGender = await handleGetAllCodesApi("PetGender");
+      const codePetGender = await handleGetAllCodesApi('PetGender');
       if (!codePetGender || codePetGender.length === 0) {
-        toast.error("Không thể tải danh sách giới tính!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách giới tính!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
       this.setState({ codePetGender });
     } catch (e) {
-      toast.error("Không thể tải danh sách giới tính!", {
-        position: "top-right",
+      toast.error('Không thể tải danh sách giới tính!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -110,12 +107,7 @@ class MakeAppointment extends Component {
     const { codePetType, codePetGender, petgender, pettype } = this.state;
     return (
       <div className="makeappointment-body">
-        <Header
-          navigate={this.props.navigate}
-          cartItems={this.props.cartItems}
-          userInfo={this.props.userInfo}
-          triggerCountCartItem={this.state.triggerCountCartItem}
-        />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <div className="makeappointment-content">
           <h1>Thông tin đặt lịch</h1>
           <div className="makeappointment-content-user-info">
@@ -133,10 +125,7 @@ class MakeAppointment extends Component {
             <input type="text" placeholder="Hãy nhập Tên thú cưng"></input>
             <div className="f">
               <p>Loại: </p>
-              <select
-                value={pettype}
-                onChange={(event) => this.handleOnChangeInput(event, "pettype")}
-              >
+              <select value={pettype} onChange={(event) => this.handleOnChangeInput(event, 'pettype')}>
                 {codePetType.length > 0 ? (
                   codePetType.map((item) => (
                     <option key={item.Code} value={item.Code}>
@@ -148,12 +137,7 @@ class MakeAppointment extends Component {
                 )}
               </select>
               <p>Giới tính:</p>
-              <select
-                value={petgender}
-                onChange={(event) =>
-                  this.handleOnChangeInput(event, "petgender")
-                }
-              >
+              <select value={petgender} onChange={(event) => this.handleOnChangeInput(event, 'petgender')}>
                 {codePetGender.length > 0 ? (
                   codePetGender.map((item) => (
                     <option key={item.Code} value={item.Code}>

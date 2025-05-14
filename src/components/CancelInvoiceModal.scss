@@ -1,87 +1,87 @@
 /* CancelInvoiceModal.scss */
 
 .cancel-invoice-modal {
-    /* Kiểu cho nội dung modal */
-    .modal-content {
-        /* Kiểu cho hướng dẫn văn bản */
-        p {
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #333;
-            font-style: italic;
-        }
-
-        /* Kiểu cho danh sách radio buttons */
-        .reason-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Khoảng cách giữa các radio buttons */
-            margin-bottom: 15px;
-
-            label {
-                display: flex;
-                align-items: center;
-                font-size: 14px;
-                color: #333;
-                cursor: pointer;
-
-                input[type="radio"] {
-                    margin-right: 8px; /* Khoảng cách giữa radio và nhãn */
-                    cursor: pointer;
-                }
-            }
-        }
-
-        /* Kiểu cho textarea nhập lý do tùy chỉnh */
-        textarea {
-            width: 100%; /* Chiếm toàn bộ chiều rộng */
-            min-height: 100px; /* Chiều cao tối thiểu */
-            resize: vertical; /* Cho phép resize theo chiều dọc */
-            padding: 10px; /* Khoảng cách bên trong */
-            border: 1px solid #ccc; /* Viền nhẹ */
-            border-radius: 4px; /* Bo góc */
-            font-size: 14px; /* Kích thước chữ */
-            box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước */
-
-            &:focus {
-                outline: none;
-                border-color: #007bff; /* Viền xanh khi focus */
-                box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); /* Hiệu ứng bóng nhẹ */
-            }
-        }
+  /* Kiểu cho nội dung modal */
+  .modal-content {
+    /* Kiểu cho hướng dẫn văn bản */
+    p {
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #333;
+      font-style: italic;
     }
 
-    /* Kiểu cho footer của modal */
-    .modal-footer {
-        /* Kiểu chung cho các nút */
-        button {
-            padding: 8px 16px; /* Khoảng cách bên trong nút */
-            margin: 0 5px; /* Khoảng cách giữa các nút */
-            border: none; /* Không viền */
-            border-radius: 4px; /* Bo góc */
-            cursor: pointer; /* Con trỏ chuột thành hình bàn tay */
-            transition: background-color 0.3s; /* Hiệu ứng chuyển màu nền */
-            font-size: 14px;
+    /* Kiểu cho danh sách radio buttons */
+    .reason-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px; /* Khoảng cách giữa các radio buttons */
+      margin-bottom: 15px;
 
-            /* Kiểu cho nút "Đóng" (nút thứ nhất) */
-            &:first-child {
-                background-color: #6c757d; /* Màu xám */
-                color: white;
+      label {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
 
-                &:hover {
-                    background-color: #5a6268; /* Màu xám đậm hơn khi hover */
-                }
-            }
-
-            /* Kiểu cho nút "Xác nhận" (nút thứ hai) */
-            &:last-child {
-                background-color: #007bff; /* Màu xanh */
-                color: white;
-
-                &:hover {
-                    background-color: #0056b3; /* Màu xanh đậm hơn khi hover */
-                }
-            }
+        input[type='radio'] {
+          margin-right: 8px; /* Khoảng cách giữa radio và nhãn */
+          cursor: pointer;
         }
+      }
     }
+
+    /* Kiểu cho textarea nhập lý do tùy chỉnh */
+    textarea {
+      width: 100%; /* Chiếm toàn bộ chiều rộng */
+      min-height: 100px; /* Chiều cao tối thiểu */
+      resize: vertical; /* Cho phép resize theo chiều dọc */
+      padding: 10px; /* Khoảng cách bên trong */
+      border: 1px solid #ccc; /* Viền nhẹ */
+      border-radius: 4px; /* Bo góc */
+      font-size: 14px; /* Kích thước chữ */
+      box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước */
+
+      &:focus {
+        outline: none;
+        border-color: #007bff; /* Viền xanh khi focus */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); /* Hiệu ứng bóng nhẹ */
+      }
+    }
+  }
+
+  /* Kiểu cho footer của modal */
+  .modal-footer {
+    /* Kiểu chung cho các nút */
+    button {
+      padding: 8px 16px; /* Khoảng cách bên trong nút */
+      margin: 0 5px; /* Khoảng cách giữa các nút */
+      border: none; /* Không viền */
+      border-radius: 4px; /* Bo góc */
+      cursor: pointer; /* Con trỏ chuột thành hình bàn tay */
+      transition: background-color 0.3s; /* Hiệu ứng chuyển màu nền */
+      font-size: 14px;
+
+      /* Kiểu cho nút "Đóng" (nút thứ nhất) */
+      &:first-child {
+        background-color: #6c757d; /* Màu xám */
+        color: white;
+
+        &:hover {
+          background-color: #5a6268; /* Màu xám đậm hơn khi hover */
+        }
+      }
+
+      /* Kiểu cho nút "Xác nhận" (nút thứ hai) */
+      &:last-child {
+        background-color: #007bff; /* Màu xanh */
+        color: white;
+
+        &:hover {
+          background-color: #0056b3; /* Màu xanh đậm hơn khi hover */
+        }
+      }
+    }
+  }
 }

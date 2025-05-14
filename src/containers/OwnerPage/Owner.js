@@ -1,43 +1,29 @@
-import React, { Component } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react";
-import DatePicker from "react-datepicker";
+import React, { Component } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import { connect } from 'react-redux';
+import { IonIcon } from '@ionic/react';
+import DatePicker from 'react-datepicker';
 
-import {
-  pencil,
-  searchOutline,
-  add,
-  homeOutline,
-  cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline
-} from "ionicons/icons";
+import { pencil, searchOutline, add, homeOutline, cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
 
-import "./Owner.scss";
-import Spinner from "../../components/Spinner";
+import './Owner.scss';
+import Spinner from '../../components/Spinner';
 
-import { handleLogoutApi } from "../../services/accountServices";
-import {
-  handleLoadProductInfoApi,
-  handleCreateProductApi,
-  handleChangeProductInfoApi,
-} from "../../services/productServices";
-import {
-  handleLoadBannerInfoApi,
-  handleCreateBannerApi,
-  handleChangeBannerInfoApi,
-} from "../../services/bannerServices";
-import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from "../../services/invoiceServices";
-import { handleGetAllCodesApi } from "../../services/utilitiesServices";
+import { handleLogoutApi } from '../../services/accountServices';
+import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from '../../services/productServices';
+import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
+import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
-import { checkLoginStatus } from "../../utils/pakage";
-import { userLogin, userLogout } from "../../store/actions";
+import { checkLoginStatus } from '../../utils/pakage';
+import { userLogin, userLogout } from '../../store/actions';
 
-import CreateProductModal from "./CreateProductModal";
-import EditProductModal from "./EditProductModal";
-import ViewInvoiceModal from "./ViewInvoiceModal";
-import CreateBannerModal from "./CreateBannerModal";
-import EditBannerModal from "./EditBannerModal";
-import CancelInvoiceModal from "../../components/CancelInvoiceModal";
+import CreateProductModal from './CreateProductModal';
+import EditProductModal from './EditProductModal';
+import ViewInvoiceModal from './ViewInvoiceModal';
+import CreateBannerModal from './CreateBannerModal';
+import EditBannerModal from './EditBannerModal';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 class Owner extends Component {
   constructor(props) {
@@ -59,14 +45,14 @@ class Owner extends Component {
       loadedBannerStatusFilterValue: [],
       actionPage: 1,
       currentPage: 1,
-      tempCurrentPage: "1",
+      tempCurrentPage: '1',
       limitProductPerQuery: 10,
       limitInvoicePerQuery: 10,
       limitBannerPerQuery: 5,
-      searchValue: "",
-      dateFilterValue: "",
-      filterValue: "ALL",
-      sortValue: "0",
+      searchValue: '',
+      dateFilterValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
       totalProductPages: 1,
       totalInvoicePages: 1,
       totalBannerPages: 1,
@@ -89,14 +75,7 @@ class Owner extends Component {
   }
   async componentDidUpdate(prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const {
-        actionPage,
-        loadedProductTypeFilterValue,
-        loadedPetTypeFilterValue,
-        loadedPaymentStatusFilterValue,
-        loadedShippingStatusFilterValue,
-        loadedBannerStatusFilterValue,
-      } = this.state;
+      const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue, loadedBannerStatusFilterValue } = this.state;
       switch (this.state.actionPage) {
         case 1:
           if (actionPage === 1) {
@@ -136,7 +115,7 @@ class Owner extends Component {
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
-      if (status && accountInfo && accountInfo.AccountType === "O") {
+      if (status && accountInfo && accountInfo.AccountType === 'O') {
         if (!this.props.userInfo) {
           this.props.userLogin(accountInfo);
         }
@@ -151,44 +130,30 @@ class Owner extends Component {
           accountInfo: null,
           isLoggedIn: false,
         });
-        this.props.navigate("/login");
+        this.props.navigate('/login');
       }
     } catch (e) {
-      this.props.navigate("/login");
-      console.log("Token not found!");
+      this.props.navigate('/login');
+      console.log('Token not found!');
     }
     this.setState({
       isLoading: false,
     });
   };
   handleLoadProductInfo = async () => {
-    const {
-      currentPage,
-      limitProductPerQuery,
-      searchValue,
-      filterValue,
-      sortValue,
-    } = this.state;
+    const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
-      const response = await handleLoadProductInfoApi(
-        currentPage,
-        limitProductPerQuery,
-        searchValue,
-        filterValue,
-        sortValue
-      );
+      const response = await handleLoadProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue);
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
-          totalProductPages: Math.ceil(
-            response.totalItems / limitProductPerQuery
-          ),
+          totalProductPages: Math.ceil(response.totalItems / limitProductPerQuery),
         });
       }
     } catch (e) {
-      console.log("Error loading invoiceinfo:", e);
-      toast.error("Lỗi khi load danh sách sản phẩm!", {
-        position: "top-right",
+      console.log('Error loading invoiceinfo:', e);
+      toast.error('Lỗi khi load danh sách sản phẩm!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -196,10 +161,10 @@ class Owner extends Component {
   };
   handleLoadProductTypeFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi("ProductType");
+      const loadedFilterValue = await handleGetAllCodesApi('ProductType');
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error("Không thể tải danh sách lọc!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -208,9 +173,9 @@ class Owner extends Component {
         loadedProductTypeFilterValue: loadedFilterValue,
       });
     } catch (e) {
-      console.log("Error loading pettype code:", e);
-      toast.error("Lỗi khi tải danh sách lọc!", {
-        position: "top-right",
+      console.log('Error loading pettype code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -218,10 +183,10 @@ class Owner extends Component {
   };
   handleLoadPetTypeFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi("PetType");
+      const loadedFilterValue = await handleGetAllCodesApi('PetType');
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error("Không thể tải danh sách lọc!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -230,44 +195,28 @@ class Owner extends Component {
         loadedPetTypeFilterValue: loadedFilterValue,
       });
     } catch (e) {
-      console.log("Error loading pettype code:", e);
-      toast.error("Lỗi khi tải danh sách lọc!", {
-        position: "top-right",
+      console.log('Error loading pettype code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
     }
   };
   handleLoadInvoiceInfo = async () => {
-    const {
-      currentPage,
-      limitInvoicePerQuery,
-      searchValue,
-      filterValue,
-      sortValue,
-      dateFilterValue,
-    } = this.state;
+    const { currentPage, limitInvoicePerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state;
     try {
-      const response = await handleLoadInvoiceInfoApi(
-        currentPage,
-        limitInvoicePerQuery,
-        searchValue,
-        filterValue,
-        sortValue,
-        dateFilterValue
-      );
+      const response = await handleLoadInvoiceInfoApi(currentPage, limitInvoicePerQuery, searchValue, filterValue, sortValue, dateFilterValue);
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
-          totalInvoicePages: Math.ceil(
-            response.totalItems / limitInvoicePerQuery
-          ),
+          totalInvoicePages: Math.ceil(response.totalItems / limitInvoicePerQuery),
         });
       }
     } catch (e) {
-      console.log("Error loading invoiceinfo:", e);
-      toast.error("Lỗi khi load danh sách đơn hàng!", {
-        position: "top-right",
+      console.log('Error loading invoiceinfo:', e);
+      toast.error('Lỗi khi load danh sách đơn hàng!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -275,10 +224,10 @@ class Owner extends Component {
   };
   handleLoadPaymentStatusFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi("PaymentStatus");
+      const loadedFilterValue = await handleGetAllCodesApi('PaymentStatus');
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error("Không thể tải danh sách lọc!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -287,9 +236,9 @@ class Owner extends Component {
         loadedPaymentStatusFilterValue: loadedFilterValue,
       });
     } catch (e) {
-      console.log("Error loading paymentstatus code:", e);
-      toast.error("Lỗi khi tải danh sách lọc!", {
-        position: "top-right",
+      console.log('Error loading paymentstatus code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -297,10 +246,10 @@ class Owner extends Component {
   };
   handleLoadShippingStatusFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi("ShippingStatus");
+      const loadedFilterValue = await handleGetAllCodesApi('ShippingStatus');
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error("Không thể tải danh sách lọc!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -309,44 +258,28 @@ class Owner extends Component {
         loadedShippingStatusFilterValue: loadedFilterValue,
       });
     } catch (e) {
-      console.log("Error loading shippingstatus code:", e);
-      toast.error("Lỗi khi tải danh sách lọc!", {
-        position: "top-right",
+      console.log('Error loading shippingstatus code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
     }
   };
   handleLoadBannerInfo = async () => {
-    const {
-      currentPage,
-      limitBannerPerQuery,
-      searchValue,
-      filterValue,
-      sortValue,
-      dateFilterValue,
-    } = this.state;
+    const { currentPage, limitBannerPerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state;
     try {
-      const response = await handleLoadBannerInfoApi(
-        currentPage,
-        limitBannerPerQuery,
-        searchValue,
-        filterValue,
-        sortValue,
-        dateFilterValue
-      );
+      const response = await handleLoadBannerInfoApi(currentPage, limitBannerPerQuery, searchValue, filterValue, sortValue, dateFilterValue);
       if (response && response.errCode === 0) {
         this.setState({
           loadedBannerInfo: response.data,
-          totalBannerPages: Math.ceil(
-            response.totalItems / limitBannerPerQuery
-          ),
+          totalBannerPages: Math.ceil(response.totalItems / limitBannerPerQuery),
         });
       }
     } catch (e) {
-      console.log("Error loading bannerinfo:", e);
-      toast.error("Lỗi khi load danh sách banner!", {
-        position: "top-right",
+      console.log('Error loading bannerinfo:', e);
+      toast.error('Lỗi khi load danh sách banner!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -354,10 +287,10 @@ class Owner extends Component {
   };
   handleLoadBannerStatusFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi("BannerStatus");
+      const loadedFilterValue = await handleGetAllCodesApi('BannerStatus');
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error("Không thể tải danh sách lọc!", {
-          position: "top-right",
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -366,9 +299,9 @@ class Owner extends Component {
         loadedBannerStatusFilterValue: loadedFilterValue,
       });
     } catch (e) {
-      console.log("Error loading bannerstatus code:", e);
-      toast.error("Lỗi khi tải danh sách lọc!", {
-        position: "top-right",
+      console.log('Error loading bannerstatus code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -453,11 +386,11 @@ class Owner extends Component {
     this.setState(
       {
         currentPage: 1,
-        tempCurrentPage: "1",
-        searchValue: "",
-        dateFilterValue: "",
-        filterValue: "ALL",
-        sortValue: "0",
+        tempCurrentPage: '1',
+        searchValue: '',
+        dateFilterValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
       },
       () => {
         switch (this.state.actionPage) {
@@ -480,8 +413,7 @@ class Owner extends Component {
     this.setState({
       isLoading: true,
     });
-    const { totalProductPages, totalInvoicePages, totalBannerPages } =
-      this.state;
+    const { totalProductPages, totalInvoicePages, totalBannerPages } = this.state;
     let totalPages;
     switch (type) {
       case 1:
@@ -554,14 +486,7 @@ class Owner extends Component {
   handleNextPage = (type) => {
     this.setState(
       (prevState) => {
-        const newPage = Math.min(
-          type === 1
-            ? prevState.totalProductPages
-            : type === 2
-              ? prevState.totalInvoicePages
-              : prevState.totalBannerPages,
-          prevState.currentPage + 1
-        );
+        const newPage = Math.min(type === 1 ? prevState.totalProductPages : type === 2 ? prevState.totalInvoicePages : prevState.totalBannerPages, prevState.currentPage + 1);
         return {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
@@ -594,7 +519,7 @@ class Owner extends Component {
     this.handlePageChange(page, type);
   };
   handlePageKeyDown = (event, type) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       const { tempCurrentPage } = this.state;
       const page = parseInt(tempCurrentPage, 10);
       this.handlePageChange(page, type);
@@ -659,8 +584,8 @@ class Owner extends Component {
     try {
       const response = await handleCreateProductApi(productInfo);
       if (response && response.errCode === 0) {
-        toast.success("Thêm sản phẩm mới thành công!", {
-          position: "top-right",
+        toast.success('Thêm sản phẩm mới thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -669,18 +594,17 @@ class Owner extends Component {
           isShowCreateProductModal: false,
         });
       } else {
-        const errMessage =
-          response?.errMessage || "Thêm sản phẩm mới thất bại!";
+        const errMessage = response?.errMessage || 'Thêm sản phẩm mới thất bại!';
         toast.error(errMessage, {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Create Product:", e);
-      toast.error("Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Create Product:', e);
+      toast.error('Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -692,8 +616,8 @@ class Owner extends Component {
     try {
       const response = await handleChangeProductInfoApi(productInfo);
       if (response && response.errCode === 0) {
-        toast.success("Chỉnh sửa thông tin sản phẩm thành công!", {
-          position: "top-right",
+        toast.success('Chỉnh sửa thông tin sản phẩm thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -702,18 +626,17 @@ class Owner extends Component {
           isShowEditProductModal: false,
         });
       } else {
-        const errMessage =
-          response?.errMessage || "Chỉnh sửa thông tin sản phẩm thất bại!";
+        const errMessage = response?.errMessage || 'Chỉnh sửa thông tin sản phẩm thất bại!';
         toast.error(errMessage, {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Edit:", e);
-      toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Edit:', e);
+      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -725,8 +648,8 @@ class Owner extends Component {
     try {
       const response = await handleCreateBannerApi(bannerInfo);
       if (response && response.errCode === 0) {
-        toast.success("Thêm banner mới thành công!", {
-          position: "top-right",
+        toast.success('Thêm banner mới thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -735,17 +658,17 @@ class Owner extends Component {
           isShowCreateBannerModal: false,
         });
       } else {
-        const errMessage = response?.errMessage || "Thêm banner mới thất bại!";
+        const errMessage = response?.errMessage || 'Thêm banner mới thất bại!';
         toast.error(errMessage, {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Create Banner:", e);
-      toast.error("Xảy ra lỗi khi thêm banner mới, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Create Banner:', e);
+      toast.error('Xảy ra lỗi khi thêm banner mới, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -757,8 +680,8 @@ class Owner extends Component {
     try {
       const response = await handleChangeBannerInfoApi(bannerInfo);
       if (response && response.errCode === 0) {
-        toast.success("Chỉnh sửa thông tin banner thành công!", {
-          position: "top-right",
+        toast.success('Chỉnh sửa thông tin banner thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -767,18 +690,17 @@ class Owner extends Component {
           isShowEditBannerModal: false,
         });
       } else {
-        const errMessage =
-          response?.errMessage || "Chỉnh sửa thông tin banner thất bại!";
+        const errMessage = response?.errMessage || 'Chỉnh sửa thông tin banner thất bại!';
         toast.error(errMessage, {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Edit:", e);
-      toast.error("Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Edit:', e);
+      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -788,10 +710,10 @@ class Owner extends Component {
   handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "CANCELED", cancelreason);
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', cancelreason);
       if (response && response.errCode === 0) {
-        toast.success("Hủy hóa đơn thành công!", {
-          position: "top-right",
+        toast.success('Hủy hóa đơn thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
@@ -801,16 +723,16 @@ class Owner extends Component {
           selectedCancelInvoice: null,
         });
       } else {
-        toast.error(response?.errMessage || "Hủy hóa đơn thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Hủy hóa đơn thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error canceling invoice:", e);
-      toast.error("Lỗi khi hủy hóa đơn, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error canceling invoice:', e);
+      toast.error('Lỗi khi hủy hóa đơn, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -822,11 +744,11 @@ class Owner extends Component {
     this.setState({
       actionPage: 1,
       currentPage: 1,
-      tempCurrentPage: "1",
-      searchValue: "",
-      dateFilterValue: "",
-      filterValue: "ALL",
-      sortValue: "0",
+      tempCurrentPage: '1',
+      searchValue: '',
+      dateFilterValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
     });
   };
   handleFormDanhSachDonHang = (e) => {
@@ -834,11 +756,11 @@ class Owner extends Component {
     this.setState({
       actionPage: 2,
       currentPage: 1,
-      tempCurrentPage: "1",
-      searchValue: "",
-      dateFilterValue: "",
-      filterValue: "ALL",
-      sortValue: "0",
+      tempCurrentPage: '1',
+      searchValue: '',
+      dateFilterValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
     });
   };
   handleFormDanhSachBanner = (e) => {
@@ -846,11 +768,11 @@ class Owner extends Component {
     this.setState({
       actionPage: 3,
       currentPage: 1,
-      tempCurrentPage: "1",
-      searchValue: "",
-      dateFilterValue: "",
-      filterValue: "ALL",
-      sortValue: "0",
+      tempCurrentPage: '1',
+      searchValue: '',
+      dateFilterValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
     });
   };
   handleConfirmPayment = async (invoiceid) => {
@@ -859,14 +781,26 @@ class Owner extends Component {
         toast(
           <div>
             <p>Xác nhận hóa đơn đã thanh toán?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 500, closeOnClick: false }
+          { position: 'top-center', autoClose: 500, closeOnClick: false }
         );
       });
 
@@ -875,25 +809,25 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "PaymentStatus", "PAID", "");
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'PaymentStatus', 'PAID', '');
       if (response && response.errCode === 0) {
-        toast.success("Xác nhận thanh toán thành công!", {
-          position: "top-right",
+        toast.success('Xác nhận thanh toán thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         await this.handleLoadInvoiceInfo();
       } else {
-        toast.error(response?.errMessage || "Xác nhận thanh toán thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Xác nhận thanh toán thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error confirming payment:", e);
-      toast.error("Lỗi khi xác nhận thanh toán, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error confirming payment:', e);
+      toast.error('Lỗi khi xác nhận thanh toán, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -906,14 +840,26 @@ class Owner extends Component {
         toast(
           <div>
             <p>Xác nhận hóa đơn đã giao hàng?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 500, closeOnClick: false }
+          { position: 'top-center', autoClose: 500, closeOnClick: false }
         );
       });
 
@@ -922,25 +868,25 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "DELI", "");
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
       if (response && response.errCode === 0) {
-        toast.success("Xác nhận giao hàng thành công!", {
-          position: "top-right",
+        toast.success('Xác nhận giao hàng thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         await this.handleLoadInvoiceInfo();
       } else {
-        toast.error(response?.errMessage || "Xác nhận giao hàng thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Xác nhận giao hàng thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error confirming delivery:", e);
-      toast.error("Lỗi khi xác nhận giao hàng, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error confirming delivery:', e);
+      toast.error('Lỗi khi xác nhận giao hàng, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -953,14 +899,26 @@ class Owner extends Component {
         toast(
           <div>
             <p>Xác nhận hủy hóa đơn?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 500, closeOnClick: false }
+          { position: 'top-center', autoClose: 500, closeOnClick: false }
         );
       });
 
@@ -969,25 +927,25 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "CANCELED", "");
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', '');
       if (response && response.errCode === 0) {
-        toast.success("Hủy hóa đơn thành công!", {
-          position: "top-right",
+        toast.success('Hủy hóa đơn thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         await this.handleLoadInvoiceInfo();
       } else {
-        toast.error(response?.errMessage || "Hủy hóa đơn thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Hủy hóa đơn thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error canceling invoice:", e);
-      toast.error("Lỗi khi hủy hóa đơn, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error canceling invoice:', e);
+      toast.error('Lỗi khi hủy hóa đơn, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -1000,14 +958,26 @@ class Owner extends Component {
         toast(
           <div>
             <p>Từ chối yêu cầu hủy và tiếp tục hóa đơn?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
               Có
             </button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
               Không
             </button>
           </div>,
-          { position: "top-center", autoClose: 500, closeOnClick: false }
+          { position: 'top-center', autoClose: 500, closeOnClick: false }
         );
       });
 
@@ -1016,25 +986,25 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, "ShippingStatus", "PEND", "");
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
       if (response && response.errCode === 0) {
-        toast.success("Tiếp tục hóa đơn thành công!", {
-          position: "top-right",
+        toast.success('Tiếp tục hóa đơn thành công!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
         await this.handleLoadInvoiceInfo();
       } else {
-        toast.error(response?.errMessage || "Tiếp tục hóa đơn thất bại!", {
-          position: "top-right",
+        toast.error(response?.errMessage || 'Tiếp tục hóa đơn thất bại!', {
+          position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.error("Error denying cancel invoice:", e);
-      toast.error("Lỗi khi tiếp tục hóa đơn, vui lòng thử lại!", {
-        position: "top-right",
+      console.error('Error denying cancel invoice:', e);
+      toast.error('Lỗi khi tiếp tục hóa đơn, vui lòng thử lại!', {
+        position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
@@ -1079,74 +1049,47 @@ class Owner extends Component {
         case 1:
           return (
             <div>
-              <button
-                style={{ display: actionPage === 1 ? "block" : "none" }}
-                onClick={() => this.toggleCreateProductModal()}
-                className="add-product"
-              >
+              <button style={{ display: actionPage === 1 ? 'block' : 'none' }} onClick={() => this.toggleCreateProductModal()} className="add-product">
                 THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
               </button>
               <div className="f">
                 <div className="owner-mid-content-left">
                   <div className="owner-mid-content-left-search-product">
                     <p>Tìm kiếm:</p>
-                    <input
-                      type="text"
-                      placeholder="Nhập tên sản phẩm"
-                      value={searchValue}
-                      onChange={(event) => this.handleSearchChange(event, 1)}
-                    />
+                    <input type="text" placeholder="Nhập tên sản phẩm" value={searchValue} onChange={(event) => this.handleSearchChange(event, 1)} />
                     <IonIcon icon={searchOutline}></IonIcon>
                   </div>
                   <div className="f">
                     <div className="owner-mid-content-left-product-filter">
                       <label>Lọc sản phẩm:</label>
                       <br />
-                      <select
-                        value={filterValue}
-                        onChange={(event) =>
-                          this.handleFilter(event.target.value, 1)
-                        }
-                      >
+                      <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                         <option value="ALL">Tất cả</option>
-                        <option value="PROMOTION">
-                          Sản phẩm có khuyến mãi
-                        </option>
-                        {loadedProductTypeFilterValue &&
-                          loadedProductTypeFilterValue.length > 0 && (
-                            <optgroup label="Loại sản phẩm">
-                              {loadedProductTypeFilterValue.map((item) => (
-                                <option
-                                  key={`producttype-${item.Code}`}
-                                  value={`producttype-${item.Code}`}
-                                >
-                                  {item.CodeValueVI}
-                                </option>
-                              ))}
-                            </optgroup>
-                          )}
-                        {loadedPetTypeFilterValue &&
-                          loadedPetTypeFilterValue.length > 0 && (
-                            <optgroup label="Sản phẩm cho thú cưng">
-                              {loadedPetTypeFilterValue.map((item) => (
-                                <option
-                                  key={`pettype-${item.Code}`}
-                                  value={`pettype-${item.Code}`}
-                                >
-                                  {item.CodeValueVI}
-                                </option>
-                              ))}
-                            </optgroup>
-                          )}
+                        <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
+                        {loadedProductTypeFilterValue && loadedProductTypeFilterValue.length > 0 && (
+                          <optgroup label="Loại sản phẩm">
+                            {loadedProductTypeFilterValue.map((item) => (
+                              <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {loadedPetTypeFilterValue && loadedPetTypeFilterValue.length > 0 && (
+                          <optgroup label="Sản phẩm cho thú cưng">
+                            {loadedPetTypeFilterValue.map((item) => (
+                              <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
                     <div className="owner-mid-content-left-product-sort">
                       <label>Sắp xếp:</label>
                       <br />
-                      <select
-                        value={sortValue}
-                        onChange={(e) => this.handleSort(e.target.value, 1)}
-                      >
+                      <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 1)}>
                         <option value="0">Mặc định</option>
                         <option value="1">Bán chạy</option>
                         <option value="2">Giá bán tăng dần</option>
@@ -1175,45 +1118,21 @@ class Owner extends Component {
                         {loadedProductInfo.length > 0 ? (
                           loadedProductInfo.map((item) => {
                             return (
-                              <tr
-                                key={item.ProductID}
-                                className="owner-mid-content-right-list-product-item"
-                              >
+                              <tr key={item.ProductID} className="owner-mid-content-right-list-product-item">
                                 <td>{item.ProductID}</td>
-                                <td>
-                                  {loadedProductTypeFilterValue.find(
-                                    (filterItem) =>
-                                      filterItem.Code === item.ProductType
-                                  )?.CodeValueVI || item.ProductType}
-                                </td>
+                                <td>{loadedProductTypeFilterValue.find((filterItem) => filterItem.Code === item.ProductType)?.CodeValueVI || item.ProductType}</td>
                                 <td>{item.ProductName}</td>
                                 <td>
-                                  <img
-                                    src={item.ProductImage || ""}
-                                    alt={item.ProductName}
-                                    style={{ width: "50px", height: "50px" }}
-                                  />
+                                  <img src={item.ProductImage || ''} alt={item.ProductName} style={{ width: '50px', height: '50px' }} />
                                 </td>
                                 <td className="f">
-                                  <p>
-                                    {parseFloat(
-                                      item.ProductPrice
-                                    ).toLocaleString("vi-VN")}
-                                  </p>
+                                  <p>{parseFloat(item.ProductPrice).toLocaleString('vi-VN')}</p>
                                   <p>vnđ</p>
                                 </td>
                                 <td>{item.TotalStock || 0}</td>
                                 <td>{item.TotalSold || 0}</td>
-                                <td
-                                  className="f"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <button
-                                    className="btn-edit"
-                                    onClick={() =>
-                                      this.handleSelectedProduct(item.ProductID)
-                                    }
-                                  >
+                                <td className="f" onClick={(e) => e.stopPropagation()}>
+                                  <button className="btn-edit" onClick={() => this.handleSelectedProduct(item.ProductID)}>
                                     <IonIcon icon={pencil}></IonIcon>
                                   </button>
                                 </td>
@@ -1222,9 +1141,7 @@ class Owner extends Component {
                           })
                         ) : (
                           <tr>
-                            <td colSpan="8">
-                              Không tìm thấy sản phẩm phù hợp.
-                            </td>
+                            <td colSpan="8">Không tìm thấy sản phẩm phù hợp.</td>
                           </tr>
                         )}
                       </tbody>
@@ -1232,49 +1149,25 @@ class Owner extends Component {
                     {totalProductPages > 1 && (
                       <div className="page-content">
                         <div className="page-content-item">
-                          <button
-                            className="first"
-                            onClick={() => this.handlePageChange(1, 1)}
-                            disabled={currentPage === 1}
-                          >
-                            {"<<"}
+                          <button className="first" onClick={() => this.handlePageChange(1, 1)} disabled={currentPage === 1}>
+                            {'<<'}
                           </button>
-                          <button
-                            className="prev"
-                            onClick={() => this.handlePrevPage(1)}
-                            disabled={currentPage === 1}
-                          >
-                            {"<"}
+                          <button className="prev" onClick={() => this.handlePrevPage(1)} disabled={currentPage === 1}>
+                            {'<'}
                           </button>
                           <input
                             type="text"
                             value={tempCurrentPage}
-                            onChange={(event) =>
-                              this.handlePageInputChange(event, 1)
-                            }
-                            onKeyDown={(event) =>
-                              this.handlePageKeyDown(event, 1)
-                            }
+                            onChange={(event) => this.handlePageInputChange(event, 1)}
+                            onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
                             onBlur={() => this.handlePageInputBlur(1)}
                           />
-                          <span className="total-pages">
-                            / {totalProductPages}
-                          </span>
-                          <button
-                            className="next"
-                            onClick={() => this.handleNextPage(1)}
-                            disabled={currentPage === totalProductPages}
-                          >
-                            {">"}
+                          <span className="total-pages">/ {totalProductPages}</span>
+                          <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalProductPages}>
+                            {'>'}
                           </button>
-                          <button
-                            className="last"
-                            onClick={() =>
-                              this.handlePageChange(totalProductPages, 1)
-                            }
-                            disabled={currentPage === totalProductPages}
-                          >
-                            {">>"}
+                          <button className="last" onClick={() => this.handlePageChange(totalProductPages, 1)} disabled={currentPage === totalProductPages}>
+                            {'>>'}
                           </button>
                         </div>
                       </div>
@@ -1288,82 +1181,47 @@ class Owner extends Component {
           return (
             <div>
               <div className="f">
-                <div
-                  className="owner-mid-content-left-search-invoice"
-                  style={{ display: actionPage === 2 ? "flex" : "none" }}
-                >
+                <div className="owner-mid-content-left-search-invoice" style={{ display: actionPage === 2 ? 'flex' : 'none' }}>
                   <p>Tìm kiếm:</p>
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm tên hoặc số điện thoại nhận hàng..."
-                    value={searchValue}
-                    onChange={(event) => this.handleSearchChange(event, 2)}
-                  />
+                  <input type="text" placeholder="Tìm kiếm tên hoặc số điện thoại nhận hàng..." value={searchValue} onChange={(event) => this.handleSearchChange(event, 2)} />
                   <IonIcon icon={searchOutline}></IonIcon>
                 </div>
-                <div
-                  style={{ display: actionPage === 2 ? "flex" : "none" }}
-                  className="owner-mid-content-left-invoice-sort-filter"
-                >
+                <div style={{ display: actionPage === 2 ? 'flex' : 'none' }} className="owner-mid-content-left-invoice-sort-filter">
                   <div className="owner-mid-content-left-invoice-filter">
                     <label>Lọc hóa đơn:</label>
                     <br />
-                    <select
-                      value={filterValue}
-                      onChange={(event) =>
-                        this.handleFilter(event.target.value, 2)
-                      }
-                    >
+                    <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 2)}>
                       <option value="ALL">Tất cả</option>
-                      {loadedPaymentStatusFilterValue &&
-                        loadedPaymentStatusFilterValue.length > 0 && (
-                          <optgroup label="Tình trạng thanh toán">
-                            {loadedPaymentStatusFilterValue.map((item) => (
-                              <option
-                                key={`paymentstatus-${item.Code}`}
-                                value={`paymentstatus-${item.Code}`}
-                              >
-                                {item.CodeValueVI}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
-                      {loadedShippingStatusFilterValue &&
-                        loadedShippingStatusFilterValue.length > 0 && (
-                          <optgroup label="Tình trạng giao hàng">
-                            {loadedShippingStatusFilterValue.map((item) => (
-                              <option
-                                key={`shippingstatus-${item.Code}`}
-                                value={`shippingstatus-${item.Code}`}
-                              >
-                                {item.CodeValueVI}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
+                      {loadedPaymentStatusFilterValue && loadedPaymentStatusFilterValue.length > 0 && (
+                        <optgroup label="Tình trạng thanh toán">
+                          {loadedPaymentStatusFilterValue.map((item) => (
+                            <option key={`paymentstatus-${item.Code}`} value={`paymentstatus-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {loadedShippingStatusFilterValue && loadedShippingStatusFilterValue.length > 0 && (
+                        <optgroup label="Tình trạng giao hàng">
+                          {loadedShippingStatusFilterValue.map((item) => (
+                            <option key={`shippingstatus-${item.Code}`} value={`shippingstatus-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                       <optgroup label="Tổng thanh toán">
-                        <option value="totalpayment-0">
-                          500.000 - 1.000.000 VNĐ
-                        </option>
-                        <option value="totalpayment-1">
-                          1.000.000 - 1.500.000 VNĐ
-                        </option>
-                        <option value="totalpayment-2">
-                          1.500.000 - 2.000.000 VNĐ
-                        </option>
-                        <option value="totalpayment-3">
-                          Trên 2.000.000 VNĐ
-                        </option>
+                        <option value="totalpayment-0">500.000 - 1.000.000 VNĐ</option>
+                        <option value="totalpayment-1">1.000.000 - 1.500.000 VNĐ</option>
+                        <option value="totalpayment-2">1.500.000 - 2.000.000 VNĐ</option>
+                        <option value="totalpayment-3">Trên 2.000.000 VNĐ</option>
                       </optgroup>
                     </select>
                   </div>
                   <div className="owner-mid-content-left-invoice-sort">
                     <label>Sắp xếp:</label>
                     <br />
-                    <select
-                      value={sortValue}
-                      onChange={(e) => this.handleSort(e.target.value, 2)}
-                    >
+                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 2)}>
                       <option value="0">Mặc định</option>
                       <option value="1">Mới nhất</option>
                       <option value="2">Cũ nhất</option>
@@ -1374,44 +1232,25 @@ class Owner extends Component {
                     </select>
                   </div>
                 </div>
-                <div
-                  style={{ display: actionPage === 2 ? "block" : "none" }}
-                  className="owner-mid-content-left-invoice-date "
-                >
+                <div style={{ display: actionPage === 2 ? 'block' : 'none' }} className="owner-mid-content-left-invoice-date ">
                   <label>Ngày hóa đơn:</label>
                   <br />
                   <div className="f">
                     <DatePicker
-                      selected={
-                        dateFilterValue
-                          ? new Date(dateFilterValue + "T00:00:00")
-                          : null
-                      }
+                      selected={dateFilterValue ? new Date(dateFilterValue + 'T00:00:00') : null}
                       onChange={(date) => {
-                        const formattedDate = date
-                          ? new Date(
-                            date.getTime() - date.getTimezoneOffset() * 60000
-                          )
-                            .toISOString()
-                            .split("T")[0]
-                          : "";
-                        this.setState(
-                          { dateFilterValue: formattedDate },
-                          () => {
-                            if (this.state.actionPage === 2) {
-                              this.handleLoadInvoiceInfo();
-                            }
+                        const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
+                        this.setState({ dateFilterValue: formattedDate }, () => {
+                          if (this.state.actionPage === 2) {
+                            this.handleLoadInvoiceInfo();
                           }
-                        );
+                        });
                       }}
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
                     />
-                    <button
-                      style={{ marginLeft: "10px" }}
-                      onClick={this.handleResetFilter}
-                    >
+                    <button style={{ marginLeft: '10px' }} onClick={this.handleResetFilter}>
                       Reset
                     </button>
                   </div>
@@ -1444,83 +1283,38 @@ class Owner extends Component {
                           }}
                         >
                           <td>{item.InvoiceID}</td>
-                          <td>
-                            {item.CreatedAt
-                              ? new Date(item.CreatedAt).toLocaleString("vi-VN")
-                              : "N/A"}
-                          </td>
+                          <td>{item.CreatedAt ? new Date(item.CreatedAt).toLocaleString('vi-VN') : 'N/A'}</td>
                           <td>{item.ReceiverName}</td>
                           <td>{item.ReceiverPhone}</td>
                           <td>{item.TotalQuantity}</td>
                           <td className="f">
-                            <p>
-                              {parseFloat(item.TotalPayment).toLocaleString(
-                                "vi-VN"
-                              )}{" "}
-                              vnđ
-                            </p>
+                            <p>{parseFloat(item.TotalPayment).toLocaleString('vi-VN')} vnđ</p>
                           </td>
-                          <td>
-                            {loadedPaymentStatusFilterValue.find(
-                              (filterItem) =>
-                                filterItem.Code === item.PaymentStatus
-                            )?.CodeValueVI || item.PaymentStatus}
-                          </td>
-                          <td>
-                            {loadedShippingStatusFilterValue.find(
-                              (filterItem) =>
-                                filterItem.Code === item.ShippingStatus
-                            )?.CodeValueVI || item.ShippingStatus}
-                          </td>
-                          <td>
-                            {item.CanceledAt
-                              ? new Date(item.CanceledAt).toLocaleString(
-                                "vi-VN"
-                              )
-                              : ""}
-                          </td>
+                          <td>{loadedPaymentStatusFilterValue.find((filterItem) => filterItem.Code === item.PaymentStatus)?.CodeValueVI || item.PaymentStatus}</td>
+                          <td>{loadedShippingStatusFilterValue.find((filterItem) => filterItem.Code === item.ShippingStatus)?.CodeValueVI || item.ShippingStatus}</td>
+                          <td>{item.CanceledAt ? new Date(item.CanceledAt).toLocaleString('vi-VN') : ''}</td>
                           <td className="f" onClick={(e) => e.stopPropagation()}>
-                            {item.PaymentStatus === "PEND" && item.ShippingStatus !== "CANCELED" && item.ShippingStatus !== "PEND_CANCEL" && (
-                              <button
-                                className="btn-confirm-payment"
-                                onClick={() => this.handleConfirmPayment(item.InvoiceID)}
-                                title="Xác nhận thanh toán"
-                              >
+                            {item.PaymentStatus === 'PEND' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
+                              <button className="btn-confirm-payment" onClick={() => this.handleConfirmPayment(item.InvoiceID)} title="Xác nhận thanh toán">
                                 <IonIcon icon={cashOutline}></IonIcon>
                               </button>
                             )}
-                            {item.PaymentStatus === "PAID" && item.ShippingStatus !== "CANCELED" && item.ShippingStatus !== "PEND_CANCEL" && (
-                              <button
-                                className="btn-confirm-delivery"
-                                onClick={() => this.handleConfirmDelivery(item.InvoiceID)}
-                                title="Xác nhận giao hàng"
-                              >
+                            {item.PaymentStatus === 'PAID' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
+                              <button className="btn-confirm-delivery" onClick={() => this.handleConfirmDelivery(item.InvoiceID)} title="Xác nhận giao hàng">
                                 <IonIcon icon={checkmarkCircleOutline}></IonIcon>
                               </button>
                             )}
-                            {item.ShippingStatus === "PEND" && (
-                              <button
-                                className="btn-cancel"
-                                onClick={() => this.handleSelectedCancelInvoice(item.InvoiceID)}
-                                title="Hủy hóa đơn"
-                              >
+                            {item.ShippingStatus === 'PEND' && (
+                              <button className="btn-cancel" onClick={() => this.handleSelectedCancelInvoice(item.InvoiceID)} title="Hủy hóa đơn">
                                 <IonIcon icon={closeCircleOutline}></IonIcon>
                               </button>
                             )}
-                            {item.ShippingStatus === "PEND_CANCEL" && (
+                            {item.ShippingStatus === 'PEND_CANCEL' && (
                               <>
-                                <button
-                                  className="btn-accept-cancel"
-                                  onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)}
-                                  title="Chấp nhận hủy"
-                                >
+                                <button className="btn-accept-cancel" onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)} title="Chấp nhận hủy">
                                   <IonIcon icon={banOutline}></IonIcon>
                                 </button>
-                                <button
-                                  className="btn-deny-cancel"
-                                  onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)}
-                                  title="Từ chối hủy"
-                                >
+                                <button className="btn-deny-cancel" onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)} title="Từ chối hủy">
                                   <IonIcon icon={refreshOutline}></IonIcon>
                                 </button>
                               </>
@@ -1538,45 +1332,25 @@ class Owner extends Component {
                 {totalInvoicePages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
-                      <button
-                        className="first"
-                        onClick={() => this.handlePageChange(1, 2)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<<"}
+                      <button className="first" onClick={() => this.handlePageChange(1, 2)} disabled={currentPage === 1}>
+                        {'<<'}
                       </button>
-                      <button
-                        className="prev"
-                        onClick={() => this.handlePrevPage(2)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<"}
+                      <button className="prev" onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
+                        {'<'}
                       </button>
                       <input
                         type="text"
                         value={tempCurrentPage}
-                        onChange={(event) =>
-                          this.handlePageInputChange(event, 2)
-                        }
+                        onChange={(event) => this.handlePageInputChange(event, 2)}
                         onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
                         onBlur={() => this.handlePageInputBlur(2)}
                       />
                       <span className="total-pages">/ {totalInvoicePages}</span>
-                      <button
-                        className="next"
-                        onClick={() => this.handleNextPage(2)}
-                        disabled={currentPage === totalInvoicePages}
-                      >
-                        {">"}
+                      <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalInvoicePages}>
+                        {'>'}
                       </button>
-                      <button
-                        className="last"
-                        onClick={() =>
-                          this.handlePageChange(totalInvoicePages, 2)
-                        }
-                        disabled={currentPage === totalInvoicePages}
-                      >
-                        {">>"}
+                      <button className="last" onClick={() => this.handlePageChange(totalInvoicePages, 2)} disabled={currentPage === totalInvoicePages}>
+                        {'>>'}
                       </button>
                     </div>
                   </div>
@@ -1587,63 +1361,36 @@ class Owner extends Component {
         case 3:
           return (
             <div>
-              <button
-                style={{ display: actionPage === 3 ? "block" : "none" }}
-                onClick={() => this.toggleCreateBannerModal()}
-                className="add-banner"
-              >
+              <button style={{ display: actionPage === 3 ? 'block' : 'none' }} onClick={() => this.toggleCreateBannerModal()} className="add-banner">
                 THÊM BANNER <IonIcon icon={add}></IonIcon>
               </button>
               <div className="f">
-                <div
-                  className="owner-mid-content-search-banner"
-                  style={{ display: actionPage === 3 ? "flex" : "none" }}
-                >
+                <div className="owner-mid-content-search-banner" style={{ display: actionPage === 3 ? 'flex' : 'none' }}>
                   <p>Tìm kiếm:</p>
-                  <input
-                    type="text"
-                    placeholder="Nhập tên sản phẩm..."
-                    value={searchValue}
-                    onChange={(event) => this.handleSearchChange(event, 3)}
-                  />
+                  <input type="text" placeholder="Nhập tên sản phẩm..." value={searchValue} onChange={(event) => this.handleSearchChange(event, 3)} />
                   <IonIcon icon={searchOutline}></IonIcon>
                 </div>
-                <div
-                  style={{ display: actionPage === 3 ? "flex" : "none" }}
-                  className="owner-mid-content-banner-filter-sort f"
-                >
+                <div style={{ display: actionPage === 3 ? 'flex' : 'none' }} className="owner-mid-content-banner-filter-sort f">
                   <div className="owner-mid-content-banner-filter">
                     <label>Lọc banner:</label>
                     <br />
-                    <select
-                      value={filterValue}
-                      onChange={(event) =>
-                        this.handleFilter(event.target.value, 3)
-                      }
-                    >
+                    <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 3)}>
                       <option value="ALL">Tất cả</option>
-                      {loadedBannerStatusFilterValue &&
-                        loadedBannerStatusFilterValue.length > 0 && (
-                          <optgroup label="Trạng thái">
-                            {loadedBannerStatusFilterValue.map((item) => (
-                              <option
-                                key={`bannerstatus-${item.Code}`}
-                                value={`bannerstatus-${item.Code}`}
-                              >
-                                {item.CodeValueVI}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
+                      {loadedBannerStatusFilterValue && loadedBannerStatusFilterValue.length > 0 && (
+                        <optgroup label="Trạng thái">
+                          {loadedBannerStatusFilterValue.map((item) => (
+                            <option key={`bannerstatus-${item.Code}`} value={`bannerstatus-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   <div className="owner-mid-content-banner-sort">
                     <label>Sắp xếp:</label>
                     <br />
-                    <select
-                      value={sortValue}
-                      onChange={(e) => this.handleSort(e.target.value, 3)}
-                    >
+                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 3)}>
                       <option value="0">Mặc định</option>
                       <option value="1">Mới nhất</option>
                       <option value="2">Cũ nhất</option>
@@ -1652,44 +1399,25 @@ class Owner extends Component {
                     </select>
                   </div>
                 </div>
-                <div
-                  style={{ display: actionPage === 3 ? "block" : "none" }}
-                  className="owner-mid-content-banner-date"
-                >
+                <div style={{ display: actionPage === 3 ? 'block' : 'none' }} className="owner-mid-content-banner-date">
                   <label>Banner hoạt động trong ngày:</label>
                   <br />
                   <div className="f">
                     <DatePicker
-                      selected={
-                        dateFilterValue
-                          ? new Date(dateFilterValue + "T00:00:00")
-                          : null
-                      }
+                      selected={dateFilterValue ? new Date(dateFilterValue + 'T00:00:00') : null}
                       onChange={(date) => {
-                        const formattedDate = date
-                          ? new Date(
-                            date.getTime() - date.getTimezoneOffset() * 60000
-                          )
-                            .toISOString()
-                            .split("T")[0]
-                          : "";
-                        this.setState(
-                          { dateFilterValue: formattedDate },
-                          () => {
-                            if (this.state.actionPage === 2) {
-                              this.handleLoadInvoiceInfo();
-                            }
+                        const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
+                        this.setState({ dateFilterValue: formattedDate }, () => {
+                          if (this.state.actionPage === 2) {
+                            this.handleLoadInvoiceInfo();
                           }
-                        );
+                        });
                       }}
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
                     />
-                    <button
-                      style={{ marginLeft: "10px" }}
-                      onClick={this.handleResetFilter}
-                    >
+                    <button style={{ marginLeft: '10px' }} onClick={this.handleResetFilter}>
                       Reset
                     </button>
                   </div>
@@ -1713,66 +1441,36 @@ class Owner extends Component {
                   <tbody>
                     {loadedBannerInfo.length > 0 ? (
                       loadedBannerInfo.map((item) => (
-                        <tr
-                          key={item.BannerID}
-                          className="owner-mid-content-right-list-banner-item"
-                        >
+                        <tr key={item.BannerID} className="owner-mid-content-right-list-banner-item">
                           <td>
-                            <img
-                              src={item.BannerImage || ""}
-                              alt="Banner"
-                              style={{ width: "50px", height: "50px" }}
-                            />
+                            <img src={item.BannerImage || ''} alt="Banner" style={{ width: '50px', height: '50px' }} />
                           </td>
                           <td>{item.ProductID}</td>
                           <td>{item.ProductName}</td>
                           <td>
-                            <img
-                              src={item.ProductImage || ""}
-                              alt="Sản phẩm"
-                              style={{ width: "50px", height: "50px" }}
-                            />
+                            <img src={item.ProductImage || ''} alt="Sản phẩm" style={{ width: '50px', height: '50px' }} />
                           </td>
-                          <td>
-                            {loadedBannerStatusFilterValue.find(
-                              (filterItem) =>
-                                filterItem.Code === item.BannerStatus
-                            )?.CodeValueVI || item.BannerStatus}
-                          </td>
+                          <td>{loadedBannerStatusFilterValue.find((filterItem) => filterItem.Code === item.BannerStatus)?.CodeValueVI || item.BannerStatus}</td>
                           <td>
                             {item.CreatedAt
-                              ? new Date(item.CreatedAt).toLocaleString(
-                                "vi-VN",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                }
-                              )
-                              : "N/A"}
+                              ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
+                              : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
-                              ? new Date(item.HiddenAt).toLocaleString(
-                                "vi-VN",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                }
-                              )
-                              : "Vô thời hạn"}
+                              ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
+                              : 'Vô thời hạn'}
                           </td>
-                          <td
-                            className="f"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              className="btn-edit"
-                              onClick={() =>
-                                this.handleSelectedBanner(item.BannerID)
-                              }
-                            >
+                          <td className="f" onClick={(e) => e.stopPropagation()}>
+                            <button className="btn-edit" onClick={() => this.handleSelectedBanner(item.BannerID)}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
                           </td>
@@ -1788,45 +1486,25 @@ class Owner extends Component {
                 {totalBannerPages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
-                      <button
-                        className="first"
-                        onClick={() => this.handlePageChange(1, 3)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<<"}
+                      <button className="first" onClick={() => this.handlePageChange(1, 3)} disabled={currentPage === 1}>
+                        {'<<'}
                       </button>
-                      <button
-                        className="prev"
-                        onClick={() => this.handlePrevPage(3)}
-                        disabled={currentPage === 1}
-                      >
-                        {"<"}
+                      <button className="prev" onClick={() => this.handlePrevPage(3)} disabled={currentPage === 1}>
+                        {'<'}
                       </button>
                       <input
                         type="text"
                         value={tempCurrentPage}
-                        onChange={(event) =>
-                          this.handlePageInputChange(event, 3)
-                        }
+                        onChange={(event) => this.handlePageInputChange(event, 3)}
                         onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
                         onBlur={() => this.handlePageInputBlur(3)}
                       />
                       <span className="total-pages">/ {totalBannerPages}</span>
-                      <button
-                        className="next"
-                        onClick={() => this.handleNextPage(3)}
-                        disabled={currentPage === totalBannerPages}
-                      >
-                        {">"}
+                      <button className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalBannerPages}>
+                        {'>'}
                       </button>
-                      <button
-                        className="last"
-                        onClick={() =>
-                          this.handlePageChange(totalBannerPages, 2)
-                        }
-                        disabled={currentPage === totalBannerPages}
-                      >
-                        {">>"}
+                      <button className="last" onClick={() => this.handlePageChange(totalBannerPages, 2)} disabled={currentPage === totalBannerPages}>
+                        {'>>'}
                       </button>
                     </div>
                   </div>
@@ -1841,33 +1519,16 @@ class Owner extends Component {
 
     return (
       <div className="owner-body">
-        <CreateProductModal
-          isOpen={isShowCreateProductModal}
-          toggleFromModal={this.toggleCreateProductModal}
-          handleCreateProductFromModal={this.handleCreateProductFromModal}
-        />
+        <CreateProductModal isOpen={isShowCreateProductModal} toggleFromModal={this.toggleCreateProductModal} handleCreateProductFromModal={this.handleCreateProductFromModal} />
         <EditProductModal
           isOpen={isShowEditProductModal}
           toggleFromModal={this.toggleEditProductModal}
           selectedProductID={selectedProduct}
           handleChangeProductFromModal={this.handleChangeProductFromModal}
         />
-        <CreateBannerModal
-          isOpen={isShowCreateBannerModal}
-          toggleFromModal={this.toggleCreateBannerModal}
-          handleCreateBannerFromModal={this.handleCreateBannerFromModal}
-        />
-        <EditBannerModal
-          isOpen={isShowEditBannerModal}
-          toggleFromModal={this.toggleEditBannerModal}
-          selectedBannerID={selectedBanner}
-          handleChangeBannerFromModal={this.handleChangeBannerFromModal}
-        />
-        <ViewInvoiceModal
-          isOpen={isShowViewInvoiceModal}
-          toggleFromModal={this.toggleViewInvoiceModal}
-          selectedInvoiceID={selectedInvoice}
-        />
+        <CreateBannerModal isOpen={isShowCreateBannerModal} toggleFromModal={this.toggleCreateBannerModal} handleCreateBannerFromModal={this.handleCreateBannerFromModal} />
+        <EditBannerModal isOpen={isShowEditBannerModal} toggleFromModal={this.toggleEditBannerModal} selectedBannerID={selectedBanner} handleChangeBannerFromModal={this.handleChangeBannerFromModal} />
+        <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} />
         <CancelInvoiceModal
           isOpen={isShowCancelInvoiceModal}
           toggleFromModal={this.toggleCancelInvoiceModal}
@@ -1881,10 +1542,7 @@ class Owner extends Component {
           <div className="container">
             <div className="f">
               <h1 className="name">Trang chủ cửa hàng</h1>
-              <button
-                className="home-button"
-                onClick={() => this.props.navigate("/home")}
-              >
+              <button className="home-button" onClick={() => this.props.navigate('/home')}>
                 <IonIcon icon={homeOutline}></IonIcon>
                 <b>Quay về cửa hàng</b>
               </button>
@@ -1892,26 +1550,17 @@ class Owner extends Component {
             <div className="owner-top-content">
               <div className="owner-top-content-menu f">
                 <li>
-                  <a
-                    onClick={this.handleFormDanhSachSanPham}
-                    className={actionPage === 1 ? "active" : ""}
-                  >
+                  <a onClick={this.handleFormDanhSachSanPham} className={actionPage === 1 ? 'active' : ''}>
                     SẢN PHẨM
                   </a>
                 </li>
                 <li>
-                  <a
-                    onClick={this.handleFormDanhSachDonHang}
-                    className={actionPage === 2 ? "active" : ""}
-                  >
+                  <a onClick={this.handleFormDanhSachDonHang} className={actionPage === 2 ? 'active' : ''}>
                     HÓA ĐƠN
                   </a>
                 </li>
                 <li>
-                  <a
-                    onClick={this.handleFormDanhSachBanner}
-                    className={actionPage === 3 ? "active" : ""}
-                  >
+                  <a onClick={this.handleFormDanhSachBanner} className={actionPage === 3 ? 'active' : ''}>
                     BANNER
                   </a>
                 </li>
