@@ -19,6 +19,7 @@ import GenHealthCheck from "../containers/GenHealthCheck/GenHealthCheck";
 import Vaccination from "../containers/Vaccination/Vaccination";
 import Surgery from "../containers/Surgery/Surgery";
 import Test from "../containers/Test/Test";
+import DoctorPage from "../containers/DoctorPage/Doctor";
 // class AppRoutes extends Component {
 //     render() {
 //         const { navigate } = this.props; // Nhận navigate từ props
@@ -47,7 +48,7 @@ const AppRoutes = () => {
       <Route path="/cart" element={<Cart navigate={navigate} />} />
       <Route path="/checkout" element={<CheckOut navigate={navigate} />} />
       <Route path="/bill/:madonhang" element={<Bill navigate={navigate} />} />
-
+      <Route path="/user/doctor" element={<DoctorPage navigate={navigate} />} />
       <Route
         path="/forgotpassword"
         element={<ForgotPassword navigate={navigate} />}
