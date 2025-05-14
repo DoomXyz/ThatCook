@@ -24,6 +24,11 @@ a {
 .cart {
   background-color: rgb(240, 227, 234);
   padding: 130px 0;
+  .header-container {
+    background-color: rgb(255, 255, 255) !important;
+    border-bottom: 1px solid black;
+    height: 5rem;
+  }
   .container-cart {
     .cart-top-warp {
       display: flex;

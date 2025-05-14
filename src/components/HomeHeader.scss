@@ -1,7 +1,8 @@
 $primary-color: rgb(91, 82, 82);
 $border-color: rgba(103, 98, 98, 0.3);
 $white: rgb(255, 255, 255);
-$transition: background-color 0.3s ease;
+$transition: all 0.3s ease;
+
 * {
   margin: 0;
   padding: 0;
@@ -44,10 +45,10 @@ a {
     background-color: transparent;
     z-index: 1000;
     border-bottom: 1px solid $border-color;
-    transition: $transition; // Smooth background transition
+    transition: $transition;
     border: none;
     &.scrolled {
-      background-color: $white !important; // White when scrolled, with !important to ensure override
+      background-color: $white !important;
       border-bottom: 1px solid black;
     }
     li {
@@ -87,57 +88,40 @@ a {
           color: black;
           font-size: 19px;
           font-family: "Quicksand", sans-serif;
+          transition: transform 0.2s ease, border-bottom 0.2s ease;
         }
-        // li:hover .sub-menu {
-        //   z-index: 10;
-        //   display: block;
-        //   visibility: visible;
-        //   top: 70px;
-        // }
+
         li:hover .sub-menu-1,
-        li:hover .sub-menu {
+        li:hover .sub-menu,
+        li:hover .sub-menu-2 {
           z-index: 10;
           display: block;
           visibility: visible;
           top: 45px;
         }
+
         li {
           margin-top: 1rem;
           text-align: center;
           width: 7.5rem;
           height: 2rem;
+
+          &.menu-icon a,
+          a[href="/appointment"],
+          a[href="/information"],
+          a:not([href]):not(.sub-menu a):not(.sub-menu-1 a):not(.sub-menu-2 a) {
+            display: inline-block;
+            &:hover {
+              transform: translateY(-2px);
+              border-bottom: 1px solid black;
+            }
+            &:active {
+              transform: translateY(2px);
+              border-bottom: 1px solid black;
+            }
+          }
+
           .sub-menu {
-            // z-index: 10;
-            // top: 90px;
-            // position: relative;
-            // visibility: hidden;
-            // width: 170px;
-
-            // border-radius: 10px;
-            // position: absolute;
-            // transition: 0.1s;
-            // background-color: rgb(91, 82, 82);
-            // padding: 15px 10px;
-
-            // margin-left: 45px;
-            // padding-left: 5px;
-            // li {
-            //   border-bottom: 2px solid white;
-            //   max-width: 155px;
-            //   text-align: center;
-            //   border-right: none;
-            //   margin-top: 15px;
-            //   cursor: default;
-
-            //   a {
-            //     line-height: 25px;
-            //     font-weight: normal;
-            //     color: white;
-            //   }
-            // }
-            // li:first-of-type {
-            //   margin-top: 0;
-            // }
             border: 2px solid $primary-color;
             z-index: 10;
             top: 90px;
@@ -159,7 +143,6 @@ a {
               width: 7rem;
               text-align: center;
               border-right: none;
-
               cursor: default;
 
               ion-icon {
@@ -210,9 +193,60 @@ a {
                 line-height: 25px;
                 font-weight: normal;
                 color: black;
+                display: inline-block;
+                &:hover {
+                  transform: translateY(-2px);
+                  border-bottom: 1px solid black;
+                }
+                &:active {
+                  transform: translateY(2px);
+                  border-bottom: 1px solid black;
+                }
               }
-              a:hover {
-                border-bottom: 2px solid $primary-color;
+            }
+          }
+          .sub-menu-2 {
+            border: 2px solid $primary-color;
+            z-index: 10;
+            top: 90px;
+            position: relative;
+            visibility: hidden;
+            width: 13.5rem;
+            margin-left: -3rem;
+            border-radius: 10px;
+            position: absolute;
+            transition: 0.2s;
+            background-color: white;
+            padding: 0;
+
+            li {
+              width: 13rem;
+              text-align: center;
+              border-right: none;
+              margin-bottom: 0.5rem;
+              cursor: default;
+
+              ion-icon {
+                margin-bottom: -0.15rem;
+                margin-right: 0.4rem;
+              }
+
+              a {
+                line-height: 25px;
+                font-weight: normal;
+                color: black;
+
+                p {
+                  display: inline-block;
+                  &:hover {
+                    transform: translateY(-2px);
+                    border-bottom: 1px solid black;
+                  }
+                  &:active {
+                    transform: translateY(2px);
+                    border-bottom: 1px solid black;
+                  }
+                }
               }
             }
           }
@@ -264,9 +298,15 @@ a {
               line-height: 25px;
               font-weight: normal;
               color: rgb(91, 82, 82);
-            }
-            a:hover {
-              border-bottom: 2px solid rgb(91, 82, 82);
+              display: inline-block;
+              &:hover {
+                transform: translateY(-2px);
+                border-bottom: 1px solid black;
+              }
+              &:active {
+                transform: translateY(2px);
+                border-bottom: 1px solid black;
+              }
             }
             ion-icon {
               color: rgb(91, 82, 82);

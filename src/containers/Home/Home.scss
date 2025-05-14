@@ -40,6 +40,11 @@ a {
   // background-color: rgb(240, 220, 230);
   background-color: rgb(240, 227, 234);
   overflow-x: hidden;
+  .header-container {
+    background-color: rgb(255, 255, 255) !important;
+    border-bottom: 1px solid black;
+    height: 5rem;
+  }
   .home-banner {
     z-index: 1;
     margin-top: 30px;
@@ -169,7 +174,9 @@ a {
             transform: translateX(0);
           }
           50% {
-            transform: translateX(calc(100vw - 150px)); /* Move to the right edge, adjust for icon width */
+            transform: translateX(
+              calc(100vw - 150px)
+            ); /* Move to the right edge, adjust for icon width */
           }
           100% {
             transform: translateX(0); /* Return to start */
@@ -182,7 +189,9 @@ a {
             transform: translateX(0);
           }
           50% {
-            transform: translateX(calc(-100vw + 150px)); /* Move to the left edge, adjust for icon width */
+            transform: translateX(
+              calc(-100vw + 150px)
+            ); /* Move to the left edge, adjust for icon width */
           }
           100% {
             transform: translateX(0); /* Return to start */

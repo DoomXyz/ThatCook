@@ -17,6 +17,11 @@
   align-items: center; /* Center the modal vertically */
   box-sizing: border-box;
   padding: 20px; /* Optional: padding to avoid content touching edges */
+  .header-container {
+    background-color: rgb(255, 255, 255) !important;
+    border-bottom: 1px solid black;
+    height: 5rem;
+  }
 
   .view-invoice-modal {
     margin-top: 50px;

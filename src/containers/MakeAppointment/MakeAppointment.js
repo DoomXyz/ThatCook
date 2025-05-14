@@ -1,20 +1,113 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { IonIcon } from "@ionic/react"; //import thư viện icon
+import { ToastContainer, toast } from "react-toastify";
 import {} from "ionicons/icons"; //chỉ import các icon cần dùng
 import "./MakeAppointment.scss"; //import scss
 import Header from "../../components/HomeHeader";
 import Footer from "../../components/HomeFooter";
+import { handleCreateAppointmentApi } from "../../services/appointmentServices";
+import {
+  handleGetAllCodesApi,
+  uploadImageToCloudinaryApi,
+} from "../../services/utilitiesServices";
 
 import test from "../../assets/productha/hinhtest3.jpg";
+import { set } from "lodash";
+import { type } from "@testing-library/user-event/dist/type";
 
 class MakeAppointment extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      customername: "",
+      customerphone: "",
+      customeremail: "",
+      petname: "",
+      pettype: "",
+      age: "",
+      petgender: "",
+      petweight: "",
+      appointmentdate: "",
+      selectedDoctorID: "",
+      selectedServiceID: "",
+      selectedPetID: "",
+      starttime: "",
+      notes: "",
+      codePetType: [],
+      codeService: [],
+      codePetGender: [],
+      loadedWorkingTime: [],
+      imageInfo: [],
+      isLoading: true,
+    };
   }
-  componentDidMount() {}
+  async componentDidMount() {
+    await this.handleLoadCodePetType();
+    await this.handleLoadCodePetGender();
+    setTimeout(() => {
+      console.log(this.state.codePetType);
+      console.log(this.state.codePetGender);
+    }, 10);
+  }
+  componentDidUpdate() {
+    setTimeout(() => {
+      console.log(this.state.petgender);
+      console.log(this.state.pettype);
+    }, 10);
+  }
+
+  handleLoadCodePetType = async () => {
+    try {
+      const codePetType = await handleGetAllCodesApi("PetType");
+      if (!codePetType || codePetType.length === 0) {
+        toast.error("Không thể tải danh sách loại thú cưng!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codePetType,
+        pettype: codePetType.length > 0 ? codePetType[0].Code : "",
+      });
+    } catch (e) {
+      toast.error("Không thể tải danh sách loại thú cưng!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleLoadCodePetGender = async () => {
+    try {
+      const codePetGender = await handleGetAllCodesApi("PetGender");
+      if (!codePetGender || codePetGender.length === 0) {
+        toast.error("Không thể tải danh sách giới tính!", {
+          position: "top-right",
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({ codePetGender });
+    } catch (e) {
+      toast.error("Không thể tải danh sách giới tính!", {
+        position: "top-right",
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleOnChangeInput = (event, type) => {
+    let copyState = { ...this.state };
+    copyState[type] = event.target.value;
+    this.setState({
+      ...copyState,
+    });
+  };
+
   render() {
+    const { codePetType, codePetGender, petgender, pettype } = this.state;
     return (
       <div className="makeappointment-body">
         <Header
@@ -40,15 +133,40 @@ class MakeAppointment extends Component {
 
             <input type="text" placeholder="Hãy nhập Tên thú cưng"></input>
             <div className="f">
-              <input type="text" placeholder="Hãy nhập Loài"></input>
+              <select
+                value={pettype}
+                onChange={(event) => this.handleOnChangeInput(event, "pettype")}
+              >
+                {codePetType.length > 0 ? (
+                  codePetType.map((item) => (
+                    <option key={item.Code} value={item.Code}>
+                      {item.CodeValueVI}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Không có dữ liệu loại thú cưng</option>
+                )}
+              </select>
               <input type="text" placeholder="Hãy nhập Tuổi"></input>
             </div>
-            <input
-              type="text"
-              placeholder="Hãy nhập Giống ( Ví dụ: chó Poodle, mèo Ba Tư, v.v. )"
-            ></input>
+
             <div className="f">
-              <input type="text" placeholder="Hãy nhập Giới Tính"></input>
+              <select
+                value={petgender}
+                onChange={(event) =>
+                  this.handleOnChangeInput(event, "petgender")
+                }
+              >
+                {codePetGender.length > 0 ? (
+                  codePetGender.map((item) => (
+                    <option key={item.Code} value={item.Code}>
+                      {item.CodeValueVI}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Không có dữ liệu giới tính</option>
+                )}
+              </select>
               <input type="text" placeholder="Hãy nhập Cân nặng"></input>
             </div>
           </div>

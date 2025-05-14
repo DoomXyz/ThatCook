@@ -47,7 +47,12 @@ class HomeHeader extends Component {
     requestAnimationFrame(() => {
       const isScrolled = window.scrollY > 0;
       if (isScrolled !== this.state.isScrolled) {
-        console.log("Scroll position:", window.scrollY, "isScrolled:", isScrolled);
+        console.log(
+          "Scroll position:",
+          window.scrollY,
+          "isScrolled:",
+          isScrolled
+        );
         this.setState({ isScrolled });
       }
     });
@@ -219,7 +224,11 @@ class HomeHeader extends Component {
               Không
             </button>
           </div>,
-          { autoClose: 1000, closeOnClick: false, onClose: () => resolve(false), }
+          {
+            autoClose: 1000,
+            closeOnClick: false,
+            onClose: () => resolve(false),
+          }
         );
       });
     const isConfirmed = await confirmLogout();
@@ -303,6 +312,53 @@ class HomeHeader extends Component {
                 <a onClick={() => this.props.navigate("/appointment")}>
                   Dịch vụ
                 </a>
+                <ul className="sub-menu-2">
+                  <li>
+                    <a>
+                      <p
+                        onClick={() => {
+                          this.props.navigate("/user/genhealthcheck");
+                        }}
+                      >
+                        Khám tổng quát
+                      </p>
+                    </a>
+                  </li>
+                  <li>
+                    <a>
+                      <p
+                        onClick={() => {
+                          this.props.navigate("/user/vaccination");
+                        }}
+                      >
+                        Tiêm phòng
+                      </p>
+                    </a>
+                  </li>
+
+                  <li>
+                    <a>
+                      <p
+                        onClick={() => {
+                          this.props.navigate("/user/surgery");
+                        }}
+                      >
+                        Phẫu thuật cơ bản
+                      </p>
+                    </a>
+                  </li>
+                  <li>
+                    <a>
+                      <p
+                        onClick={() => {
+                          this.props.navigate("/user/test");
+                        }}
+                      >
+                        Xét nghiệm
+                      </p>
+                    </a>
+                  </li>
+                </ul>
               </li>
               <li>
                 <a>Đặt lịch</a>

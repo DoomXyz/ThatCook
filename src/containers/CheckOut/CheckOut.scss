@@ -15,6 +15,11 @@
 
 .none-logged-body {
   background-color: rgb(240, 227, 234);
+  .header-container {
+    background-color: rgb(255, 255, 255) !important;
+    border-bottom: 1px solid black;
+    height: 5rem;
+  }
   .container-checkout {
     margin: auto;
 
