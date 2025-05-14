@@ -182,22 +182,7 @@ let generateInvoiceID = () => {
   });
 };
 
-let createInvoice = (
-  accountid,
-  receivername,
-  receiverphone,
-  receiveraddress,
-  cartItems,
-  totalquantity,
-  totalprice,
-  discountamount,
-  totalpayment,
-  paymentstatus,
-  shippingstatus,
-  paymenttype,
-  shippingmethod,
-  couponid
-) => {
+let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!receivername || !receiverphone || !receiveraddress || !cartItems || !totalquantity || !totalprice || !totalpayment || !paymentstatus || !shippingstatus || !paymenttype || !shippingmethod) {
@@ -412,20 +397,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
       });
       const invoiceHeader = await db.Invoice.findOne({
         where: { InvoiceID: invoiceid },
-        attributes: [
-          'TotalQuantity',
-          'ReceiverName',
-          'ReceiverPhone',
-          'ReceiverAddress',
-          'TotalPrice',
-          'DiscountAmount',
-          'TotalPayment',
-          'CreatedAt',
-          'PaymentType',
-          'ShippingStatus',
-          'ShippingMethod',
-          'CancelReason',
-        ],
+        attributes: ['TotalQuantity', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalPrice', 'DiscountAmount', 'TotalPayment', 'CreatedAt', 'PaymentType', 'ShippingStatus', 'ShippingMethod', 'CancelReason'],
       });
       if (!invoiceData || !invoiceHeader) {
         resolve({
