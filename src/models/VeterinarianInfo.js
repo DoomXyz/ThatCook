@@ -1,5 +1,5 @@
-"use strict";
-const { Model } = require("sequelize");
+'use strict';
+const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class VeterinarianInfo extends Model {}
@@ -15,7 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-
+      Specialization: {
+        type: DataTypes.CHAR(50),
+        allowNull: true,
+      },
       WorkingStatus: {
         type: DataTypes.CHAR(20), // Liên kết với CodeID từ ALLCODES (Type = 'WorkingStatus')
         allowNull: true,
@@ -23,8 +26,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "VeterinarianInfo",
-      tableName: "VeterinarianInfo",
+      modelName: 'VeterinarianInfo',
+      tableName: 'VeterinarianInfo',
       timestamps: false,
     }
   );

@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // Tạo bảng AllCodes
     await queryInterface.createTable(
-      "AllCodes",
+      'AllCodes',
       {
         CodeID: {
           type: Sequelize.INTEGER,
@@ -30,15 +30,13 @@ module.exports = {
         },
       },
       {
-        indexes: [
-          { unique: true, fields: ["Type", "Code"], name: "unique_type_code" },
-        ],
+        indexes: [{ unique: true, fields: ['Type', 'Code'], name: 'unique_type_code' }],
       }
     );
 
     // Tạo bảng Account
     await queryInterface.createTable(
-      "Account",
+      'Account',
       {
         AccountID: {
           type: Sequelize.CHAR(10),
@@ -48,7 +46,7 @@ module.exports = {
         AccountName: {
           type: Sequelize.CHAR(50),
           allowNull: false,
-          collate: "utf8mb4_bin",
+          collate: 'utf8mb4_bin',
         },
         Email: {
           type: Sequelize.CHAR(100),
@@ -101,14 +99,14 @@ module.exports = {
       },
       {
         indexes: [
-          { unique: true, fields: ["Email"], name: "unique_email" },
-          { fields: ["Phone"], name: "index_phone" },
+          { unique: true, fields: ['Email'], name: 'unique_email' },
+          { fields: ['Phone'], name: 'index_phone' },
         ],
       }
     );
 
     // Tạo bảng Pet
-    await queryInterface.createTable("Pet", {
+    await queryInterface.createTable('Pet', {
       PetID: {
         type: Sequelize.CHAR(10),
         primaryKey: true,
@@ -122,10 +120,10 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Account",
-          key: "AccountID",
+          model: 'Account',
+          key: 'AccountID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       PetType: {
         type: Sequelize.CHAR(20),
@@ -142,7 +140,7 @@ module.exports = {
     });
 
     // Tạo bảng Service
-    await queryInterface.createTable("Service", {
+    await queryInterface.createTable('Service', {
       ServiceID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -168,7 +166,7 @@ module.exports = {
     });
 
     // Tạo bảng Appointment
-    await queryInterface.createTable("Appointment", {
+    await queryInterface.createTable('Appointment', {
       AppointmentID: {
         type: Sequelize.CHAR(10),
         primaryKey: true,
@@ -214,42 +212,42 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Account",
-          key: "AccountID",
+          model: 'Account',
+          key: 'AccountID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       VeterinarianID: {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Account",
-          key: "AccountID",
+          model: 'Account',
+          key: 'AccountID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       ServiceID: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "Service",
-          key: "ServiceID",
+          model: 'Service',
+          key: 'ServiceID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       PetID: {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Pet",
-          key: "PetID",
+          model: 'Pet',
+          key: 'PetID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng AppointmentBill
-    await queryInterface.createTable("AppointmentBill", {
+    await queryInterface.createTable('AppointmentBill', {
       AppointmentBillID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -260,10 +258,10 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Appointment",
-          key: "AppointmentID",
+          model: 'Appointment',
+          key: 'AppointmentID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       PaymentType: {
         type: Sequelize.CHAR(20),
@@ -288,7 +286,7 @@ module.exports = {
     });
 
     // Tạo bảng FuAppointment
-    await queryInterface.createTable("FuAppointment", {
+    await queryInterface.createTable('FuAppointment', {
       FuAppointmentID: {
         type: Sequelize.CHAR(10),
         primaryKey: true,
@@ -298,10 +296,10 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Appointment",
-          key: "AppointmentID",
+          model: 'Appointment',
+          key: 'AppointmentID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       AppointmentDate: {
         type: Sequelize.DATE,
@@ -331,15 +329,15 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "Service",
-          key: "ServiceID",
+          model: 'Service',
+          key: 'ServiceID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng Schedule
-    await queryInterface.createTable("Schedule", {
+    await queryInterface.createTable('Schedule', {
       ScheduleID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -350,39 +348,42 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Account",
-          key: "AccountID",
+          model: 'Account',
+          key: 'AccountID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       AppointmentID: {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Appointment",
-          key: "AppointmentID",
+          model: 'Appointment',
+          key: 'AppointmentID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng VeterinarianInfo
-    await queryInterface.createTable("VeterinarianInfo", {
+    await queryInterface.createTable('VeterinarianInfo', {
       AccountID: {
         type: Sequelize.CHAR(10),
         primaryKey: true,
         allowNull: false,
         references: {
-          model: "Account",
-          key: "AccountID",
+          model: 'Account',
+          key: 'AccountID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       Bio: {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-
+      Specialization: {
+        type: Sequelize.CHAR(50),
+        allowNull: true,
+      },
       WorkingStatus: {
         type: Sequelize.CHAR(20),
         allowNull: true,
@@ -390,7 +391,7 @@ module.exports = {
     });
 
     // Tạo bảng Product
-    await queryInterface.createTable("Product", {
+    await queryInterface.createTable('Product', {
       ProductID: {
         type: Sequelize.CHAR(10),
         primaryKey: true,
@@ -419,7 +420,7 @@ module.exports = {
     });
 
     // Tạo bảng ProductDetail
-    await queryInterface.createTable("ProductDetail", {
+    await queryInterface.createTable('ProductDetail', {
       ProductDetailID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -458,15 +459,15 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Product",
-          key: "ProductID",
+          model: 'Product',
+          key: 'ProductID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng ProductPetType
-    await queryInterface.createTable("ProductPetType", {
+    await queryInterface.createTable('ProductPetType', {
       ProductPetTypeID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -477,10 +478,10 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Product",
-          key: "ProductID",
+          model: 'Product',
+          key: 'ProductID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       PetType: {
         type: Sequelize.CHAR(20),
@@ -489,7 +490,7 @@ module.exports = {
     });
 
     // Tạo bảng Image
-    await queryInterface.createTable("Image", {
+    await queryInterface.createTable('Image', {
       ImageID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -504,24 +505,24 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: true,
         references: {
-          model: "Product",
-          key: "ProductID",
+          model: 'Product',
+          key: 'ProductID',
         },
-        onDelete: "SET NULL",
+        onDelete: 'SET NULL',
       },
       AppointmentID: {
         type: Sequelize.CHAR(10),
         allowNull: true,
         references: {
-          model: "Appointment",
-          key: "AppointmentID",
+          model: 'Appointment',
+          key: 'AppointmentID',
         },
-        onDelete: "SET NULL",
+        onDelete: 'SET NULL',
       },
     });
 
     // Tạo bảng Banner
-    await queryInterface.createTable("Banner", {
+    await queryInterface.createTable('Banner', {
       BannerID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -548,16 +549,16 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Product",
-          key: "ProductID",
+          model: 'Product',
+          key: 'ProductID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng Coupon
     await queryInterface.createTable(
-      "Coupon",
+      'Coupon',
       {
         CouponID: {
           type: Sequelize.INTEGER,
@@ -603,14 +604,12 @@ module.exports = {
         },
       },
       {
-        indexes: [
-          { unique: true, fields: ["CouponCode"], name: "unique_coupon_code" },
-        ],
+        indexes: [{ unique: true, fields: ['CouponCode'], name: 'unique_coupon_code' }],
       }
     );
 
     // Tạo bảng Invoice
-    await queryInterface.createTable("Invoice", {
+    await queryInterface.createTable('Invoice', {
       InvoiceID: {
         type: Sequelize.CHAR(10),
         primaryKey: true,
@@ -676,10 +675,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: "Coupon",
-          key: "CouponID",
+          model: 'Coupon',
+          key: 'CouponID',
         },
-        onDelete: "SET NULL",
+        onDelete: 'SET NULL',
       },
       AccountID: {
         type: Sequelize.CHAR(10),
@@ -688,7 +687,7 @@ module.exports = {
     });
 
     // Tạo bảng InvoiceDetail
-    await queryInterface.createTable("InvoiceDetail", {
+    await queryInterface.createTable('InvoiceDetail', {
       InvoiceDetailID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -707,33 +706,33 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Invoice",
-          key: "InvoiceID",
+          model: 'Invoice',
+          key: 'InvoiceID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       ProductID: {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Product",
-          key: "ProductID",
+          model: 'Product',
+          key: 'ProductID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       ProductDetailID: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "ProductDetail",
-          key: "ProductDetailID",
+          model: 'ProductDetail',
+          key: 'ProductDetailID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng CartItem
-    await queryInterface.createTable("CartItem", {
+    await queryInterface.createTable('CartItem', {
       CartItemID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -752,34 +751,34 @@ module.exports = {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Account",
-          key: "AccountID",
+          model: 'Account',
+          key: 'AccountID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       ProductID: {
         type: Sequelize.CHAR(10),
         allowNull: false,
         references: {
-          model: "Product",
-          key: "ProductID",
+          model: 'Product',
+          key: 'ProductID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
       ProductDetailID: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "ProductDetail",
-          key: "ProductDetailID",
+          model: 'ProductDetail',
+          key: 'ProductDetailID',
         },
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
       },
     });
 
     // Tạo bảng BlacklistToken
     await queryInterface.createTable(
-      "BlacklistToken",
+      'BlacklistToken',
       {
         TokenID: {
           type: Sequelize.INTEGER,
@@ -801,31 +800,31 @@ module.exports = {
         },
       },
       {
-        indexes: [{ fields: ["Token"], name: "index_token" }],
+        indexes: [{ fields: ['Token'], name: 'index_token' }],
       }
     );
   },
 
   down: async (queryInterface, Sequelize) => {
     // Xóa các bảng theo thứ tự ngược lại để tránh lỗi khóa ngoại
-    await queryInterface.dropTable("BlacklistToken");
-    await queryInterface.dropTable("CartItem");
-    await queryInterface.dropTable("InvoiceDetail");
-    await queryInterface.dropTable("Invoice");
-    await queryInterface.dropTable("Coupon");
-    await queryInterface.dropTable("Banner");
-    await queryInterface.dropTable("Image");
-    await queryInterface.dropTable("ProductPetType");
-    await queryInterface.dropTable("ProductDetail");
-    await queryInterface.dropTable("Product");
-    await queryInterface.dropTable("VeterinarianInfo");
-    await queryInterface.dropTable("Schedule");
-    await queryInterface.dropTable("FuAppointment");
-    await queryInterface.dropTable("AppointmentBill");
-    await queryInterface.dropTable("Appointment");
-    await queryInterface.dropTable("Service");
-    await queryInterface.dropTable("Pet");
-    await queryInterface.dropTable("Account");
-    await queryInterface.dropTable("AllCodes");
+    await queryInterface.dropTable('BlacklistToken');
+    await queryInterface.dropTable('CartItem');
+    await queryInterface.dropTable('InvoiceDetail');
+    await queryInterface.dropTable('Invoice');
+    await queryInterface.dropTable('Coupon');
+    await queryInterface.dropTable('Banner');
+    await queryInterface.dropTable('Image');
+    await queryInterface.dropTable('ProductPetType');
+    await queryInterface.dropTable('ProductDetail');
+    await queryInterface.dropTable('Product');
+    await queryInterface.dropTable('VeterinarianInfo');
+    await queryInterface.dropTable('Schedule');
+    await queryInterface.dropTable('FuAppointment');
+    await queryInterface.dropTable('AppointmentBill');
+    await queryInterface.dropTable('Appointment');
+    await queryInterface.dropTable('Service');
+    await queryInterface.dropTable('Pet');
+    await queryInterface.dropTable('Account');
+    await queryInterface.dropTable('AllCodes');
   },
 };

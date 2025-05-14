@@ -1,4 +1,4 @@
-import appointmentService from "../services/appointmentService";
+import appointmentService from '../services/appointmentService';
 
 let handleCreateAppointment = async (req, res) => {
   try {
@@ -36,7 +36,7 @@ let handleCreateAppointment = async (req, res) => {
     console.log(e);
     return res.status(500).json({
       errCode: 3,
-      errMessage: "Lỗi từ server: " + e.message,
+      errMessage: 'Lỗi từ server: ' + e.message,
       data: null,
     });
   }

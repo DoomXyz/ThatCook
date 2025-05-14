@@ -1,19 +1,19 @@
-import { Op, where } from "sequelize";
-import db from "../models/index.js";
-import Appointment from "../models/Appointment.js";
+import { Op, where } from 'sequelize';
+import db from '../models/index.js';
+import Appointment from '../models/Appointment.js';
 
 let validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo || Object.keys(appointmentInfo).length === 0) {
     return {
       errCode: -1,
-      errMessage: "Thiếu thông tin đặt lịch!",
+      errMessage: 'Thiếu thông tin đặt lịch!',
       data: null,
     };
   }
   if (!appointmentInfo.customername) {
     return {
       errCode: -1,
-      errMessage: "Tên người dùng trống!",
+      errMessage: 'Tên người dùng trống!',
       data: null,
     };
   } else {
@@ -22,7 +22,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
     if (!customerNameRegex.test(customerName)) {
       return {
         errCode: 1,
-        errMessage: "Tên người dùng sai định dạng!",
+        errMessage: 'Tên người dùng sai định dạng!',
         data: null,
       };
     }
@@ -30,7 +30,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo.customeremail) {
     return {
       errCode: -1,
-      errMessage: "Email trống!",
+      errMessage: 'Email trống!',
       data: null,
     };
   } else {
@@ -39,7 +39,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
     if (!emailRegex.test(customeremail)) {
       return {
         errCode: 1,
-        errMessage: "Email sai định dạng!",
+        errMessage: 'Email sai định dạng!',
         data: null,
       };
     }
@@ -47,7 +47,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo.customerphone) {
     return {
       errCode: -1,
-      errMessage: "Số điện thoại trống!",
+      errMessage: 'Số điện thoại trống!',
       data: null,
     };
   } else {
@@ -56,7 +56,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
     if (!phoneRegex.test(phoneNumber)) {
       return {
         errCode: 1,
-        errMessage: "Số điện thoại không hợp lệ!",
+        errMessage: 'Số điện thoại không hợp lệ!',
         data: null,
       };
     }
@@ -64,7 +64,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo.appointmentdate) {
     return {
       errCode: -1,
-      errMessage: "Chưa nhập ngày hẹn!",
+      errMessage: 'Chưa nhập ngày hẹn!',
       data: null,
     };
   } else {
@@ -72,7 +72,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
     if (isNaN(dateCheck.getTime())) {
       return {
         errCode: 1,
-        errMessage: "Ngày hẹn không hợp lệ!",
+        errMessage: 'Ngày hẹn không hợp lệ!',
         data: null,
       };
     }
@@ -83,7 +83,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
 let generateAppointmentID = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const prefix = "A"; // Chỉ lấy A, O, V, hoặc C
+      const prefix = 'A'; // Chỉ lấy A, O, V, hoặc C
       // Lấy timestamp
       const timestamp = Date.now().toString();
       // Lấy 9 chữ số từ timestamp
@@ -107,7 +107,7 @@ let generateAppointmentID = () => {
       if (attempts >= 5) {
         resolve({
           errCode: 1,
-          errMessage: "Tạo mã lịch hẹn thất bại!",
+          errMessage: 'Tạo mã lịch hẹn thất bại!',
           data: null,
         });
       }
@@ -116,7 +116,7 @@ let generateAppointmentID = () => {
       console.log(e);
       resolve({
         errCode: 3,
-        errMessage: "Lỗi khi tạo mã lịch hẹn " + e.message,
+        errMessage: 'Lỗi khi tạo mã lịch hẹn ' + e.message,
         data: null,
       });
     }
@@ -137,18 +137,10 @@ let createAppointment = (
 ) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (
-        !customername ||
-        !customeremail ||
-        !customerphone ||
-        !appointmentdate ||
-        !starttime ||
-        !serviceid ||
-        !petid
-      ) {
+      if (!customername || !customeremail || !customerphone || !appointmentdate || !starttime || !serviceid || !petid) {
         resolve({
           errCode: -1,
-          errMessage: "Thiếu tham số!",
+          errMessage: 'Thiếu tham số!',
           data: null,
         });
         return;
@@ -181,7 +173,7 @@ let createAppointment = (
         if (!isAccountIDExist) {
           resolve({
             errCode: 2,
-            errMessage: "Tài khoản không tồn tại trong hệ thống!",
+            errMessage: 'Tài khoản không tồn tại trong hệ thống!',
             data: null,
           });
           return;
@@ -196,7 +188,7 @@ let createAppointment = (
         if (!isVeterinarianIDExist) {
           resolve({
             errCode: 2,
-            errMessage: "Bác sĩ không tồn tại trong hệ thống!",
+            errMessage: 'Bác sĩ không tồn tại trong hệ thống!',
             data: null,
           });
           return;
@@ -209,7 +201,7 @@ let createAppointment = (
       if (!isPetIDExist) {
         resolve({
           errCode: 2,
-          errMessage: "Thú cưng không tồn tại trong hệ thống!",
+          errMessage: 'Thú cưng không tồn tại trong hệ thống!',
           data: null,
         });
         return;
@@ -221,14 +213,14 @@ let createAppointment = (
       if (!isServiceExist) {
         resolve({
           errCode: 2,
-          errMessage: "Dịch vụ không tồn tại trong hệ thống!",
+          errMessage: 'Dịch vụ không tồn tại trong hệ thống!',
           data: null,
         });
         return;
       }
       const endTime = null;
       const appointmentID = await generateAppointmentID();
-      if (typeof appointmentID === "object" && appointmentID.errCode) {
+      if (typeof appointmentID === 'object' && appointmentID.errCode) {
         resolve(appointmentID);
         return;
       }
@@ -247,18 +239,18 @@ let createAppointment = (
         ServiceID: serviceid,
         PetID: petid,
         CreatedAt: createdAt,
-        AppointmentStatus: "PEND",
+        AppointmentStatus: 'PEND',
       });
       resolve({
         errCode: 0,
-        errMessage: "Đăng ký lịch hẹn thành công!",
+        errMessage: 'Đăng ký lịch hẹn thành công!',
         data: null,
       });
     } catch (e) {
       console.log(e);
       resolve({
         errCode: 3,
-        errMessage: "Lỗi khi đăng ký: " + e.message,
+        errMessage: 'Lỗi khi đăng ký: ' + e.message,
         data: null,
       });
     }
