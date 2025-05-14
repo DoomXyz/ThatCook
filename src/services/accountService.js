@@ -403,13 +403,11 @@ let userRegister = (userInfo) => {
       }
       let isValidateInput = await validateUserInput(userInfo);
       if (isValidateInput) {
-        //có trả lỗi về -> dữ liệu nhập vào không hợp lệ
         resolve(isValidateInput);
         return;
       }
       let isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
       if (isAccountNameExist) {
-        //tên tài khoản đã tồn tại
         resolve({
           errCode: 1,
           errMessage: 'Tên tài khoản đã tồn tại trong hệ thống!',
@@ -419,7 +417,6 @@ let userRegister = (userInfo) => {
       }
       let isEmailExist = await checkEmailExist(userInfo.email);
       if (isEmailExist) {
-        //email đã tồn tại
         resolve({
           errCode: 1,
           errMessage: 'Email đã tồn tại trong hệ thống!',
@@ -436,7 +433,6 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      //pass hết mọi điều kiện = 4 hàm trên không trả về lỗi -> tạo các trường cần thiết -> lưu vào db
       const accountID = await generateAccountID(userInfo.accounttype);
       if (typeof accountID === 'object' && accountID.errCode) {
         resolve(accountID);
@@ -464,6 +460,15 @@ let userRegister = (userInfo) => {
         AccountStatus: 'ACT',
         AccountType: userInfo.accounttype || 'C',
       });
+      if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
+        const { bio, specialization, workingStatus } = userInfo.veterinarianInfo;
+        await db.VeterinarianInfo.create({
+          AccountID: accountID,
+          Bio: bio || null,
+          Specialization: specialization || null,
+          WorkingStatus: workingStatus || null,
+        });
+      }
       resolve({
         errCode: 0,
         errMessage: 'Đăng ký người dùng thành công!',
@@ -917,7 +922,6 @@ let changeAccountInfo = (userInfo) => {
       }
       let isValidateInput = await validateUserEdit(userInfo);
       if (isValidateInput) {
-        //trả về lỗi = ko hợp lệ
         resolve(isValidateInput);
         return;
       }
@@ -934,7 +938,7 @@ let changeAccountInfo = (userInfo) => {
         return;
       }
       if (userInfo.accountname && userInfo.accountname !== account.AccountName) {
-        let isAccountNameExist = await checkEmailExist(userInfo.accountname);
+        let isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
         if (typeof isAccountNameExist === 'object' && isAccountNameExist.errCode !== 0) {
           resolve(isAccountNameExist);
           return;
@@ -1003,6 +1007,28 @@ let changeAccountInfo = (userInfo) => {
       if (userInfo.accountname) {
         account.AccountName = userInfo.accountname;
         isUpdated = true;
+      }
+      if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
+        const { bio, specialization, workingStatus } = userInfo.veterinarianInfo;
+        let vetInfo = await db.VeterinarianInfo.findOne({
+          where: { AccountID: userInfo.accountid },
+          raw: false,
+        });
+        if (vetInfo) {
+          vetInfo.Bio = bio || null;
+          vetInfo.Specialization = specialization || null;
+          vetInfo.WorkingStatus = workingStatus || null;
+          await vetInfo.save();
+          isUpdated = true;
+        } else {
+          await db.VeterinarianInfo.create({
+            AccountID: userInfo.accountid,
+            Bio: bio || null,
+            Specialization: specialization || null,
+            WorkingStatus: workingStatus || null,
+          });
+          isUpdated = true;
+        }
       }
       if (isUpdated) {
         await account.save();
@@ -1142,6 +1168,46 @@ let getPaymentInfo = (accountid) => {
   });
 };
 
+let getVeterinarianInfo = (accountid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!accountid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const vetInfo = await db.VeterinarianInfo.findOne({
+        where: { AccountID: accountid },
+        attributes: ['Bio', 'Specialization', 'WorkingStatus'],
+        raw: true,
+      });
+      if (vetInfo) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Lấy thông tin bác sĩ thú y thành công!',
+          data: vetInfo,
+        });
+      } else {
+        resolve({
+          errCode: 2,
+          errMessage: 'Không tìm thấy thông tin bác sĩ thú y!',
+          data: null,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
 module.exports = {
   userRegister,
   userLogin,
@@ -1153,4 +1219,5 @@ module.exports = {
   changeAccountInfo,
   changePassword,
   getPaymentInfo,
+  getVeterinarianInfo,
 };

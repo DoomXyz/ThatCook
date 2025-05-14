@@ -257,4 +257,65 @@ let createAppointment = (
   });
 };
 
-export default { createAppointment };
+let getServiceInfo = (serviceid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!serviceid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      let data = null;
+      if (serviceid === 'ALL') {
+        const services = await db.Service.findAll({
+          attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
+          raw: true,
+        });
+        if (!services || services.length === 0) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Không tìm thấy dịch vụ nào!',
+            data: [],
+          });
+          return;
+        }
+        data = services;
+      } else {
+        const service = await db.Service.findOne({
+          where: { ServiceID: serviceid },
+          attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
+          raw: true,
+        });
+        if (!service) {
+          resolve({
+            errCode: 2,
+            errMessage: 'Dịch vụ không tồn tại!',
+            data: null,
+          });
+          return;
+        }
+        data = service;
+      }
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin dịch vụ thành công!',
+        data,
+      });
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy thông tin dịch vụ: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+export default {
+  createAppointment,
+  getServiceInfo
+};

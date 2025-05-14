@@ -158,6 +158,19 @@ let handleGetPaymentInfo = async (req, res) => {
     });
   }
 };
+let handleGetVeterinarianInfo = async (req, res) => {
+  try {
+    let response = await accountService.getVeterinarianInfo(req.query.accountid);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
 
 module.exports = {
   handleRegister,
@@ -170,4 +183,5 @@ module.exports = {
   handleChangeAccountInfo,
   handleChangePassword,
   handleGetPaymentInfo,
+  handleGetVeterinarianInfo,
 };
