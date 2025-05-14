@@ -422,7 +422,8 @@ let getInvoiceDetailInfo = (invoiceid) => {
                     "CreatedAt",
                     "PaymentType",
                     "ShippingStatus",
-                    "ShippingMethod"
+                    "ShippingMethod",
+                    "CancelReason"
                 ],
             });
             if (!invoiceData || !invoiceHeader) {
@@ -445,6 +446,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
                 PaymentType: invoiceHeader.PaymentType,
                 ShippingMethod: invoiceHeader.ShippingMethod,
                 ShippingStatus: invoiceHeader.ShippingStatus,
+                CancelReason: invoiceHeader.CancelReason,
                 ProductList: []
             };
             for (let i = 0; i < invoiceData.length; i++) {
