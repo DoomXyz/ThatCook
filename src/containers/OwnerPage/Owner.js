@@ -73,7 +73,7 @@ class Owner extends Component {
     await this.handleLoadProductTypeFilterValue();
     await this.handleLoadPetTypeFilterValue();
   }
-  async componentDidUpdate(prevState) {
+  async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
       const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue, loadedBannerStatusFilterValue } = this.state;
       switch (this.state.actionPage) {
@@ -614,6 +614,7 @@ class Owner extends Component {
   handleChangeProductFromModal = async (productInfo) => {
     this.setState({ isLoading: true });
     try {
+      console.log(productInfo)
       const response = await handleChangeProductInfoApi(productInfo);
       if (response && response.errCode === 0) {
         toast.success('Chỉnh sửa thông tin sản phẩm thành công!', {
@@ -1442,19 +1443,19 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'Vô thời hạn'}
                           </td>
                           <td className="f" onClick={(e) => e.stopPropagation()}>

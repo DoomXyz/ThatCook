@@ -23,9 +23,6 @@ class ViewInvoiceModal extends Component {
     if (this.props.selectedInvoiceID) {
       await this.handleLoadInvoiceDetails(this.props.selectedInvoiceID);
     }
-    setTimeout(() => {
-      console.log(this.state.loadedInvoiceDetails);
-    });
   }
 
   async componentDidUpdate(prevProps) {
@@ -163,13 +160,13 @@ class ViewInvoiceModal extends Component {
                         Thời gian:{' '}
                         {loadedInvoiceDetails.CreatedAt
                           ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })
                           : 'N/A'}
                       </p>
                     </div>
