@@ -5,6 +5,7 @@ import productController from '../controllers/productController';
 import cartController from '../controllers/cartController';
 import invoiceController from '../controllers/invoiceController';
 import appointmentController from '../controllers/appointmentController';
+import petController from '../controllers/petController'
 import utilitiesController from '../controllers/utilitiesController';
 import { checkAdminJWT, checkOwnerJWT, checkCustomerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 let router = express.Router();

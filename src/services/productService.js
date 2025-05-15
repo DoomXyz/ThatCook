@@ -355,12 +355,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
         }
         where.ProductID = { [Op.in]: productIds };
       }
-
-      // Lọc sản phẩm có ít nhất một ProductDetail hợp lệ
       const validProducts = await db.ProductDetail.findAll({
-        where: {
-          Stock: { [Op.gt]: 0 },
-        },
         attributes: ['ProductID'],
         raw: true,
       });
@@ -406,25 +401,19 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
       });
       const productIds = rows.map((p) => p.ProductID);
       const stockData = await db.ProductDetail.findAll({
-        where: {
-          ProductID: { [Op.in]: productIds },
-          Stock: { [Op.gt]: 0 },
-        },
+        where: { ProductID: { [Op.in]: productIds } },
         attributes: ['ProductID', [db.sequelize.fn('SUM', db.sequelize.col('Stock')), 'TotalStock']],
         group: ['ProductID'],
         raw: true,
       });
       const stockMap = stockData.reduce((map, item) => {
-        map[item.ProductID] = {
-          TotalStock: parseInt(item.TotalStock),
-        };
+        map[item.ProductID] = { TotalStock: parseInt(item.TotalStock) || 0 };
         return map;
       }, {});
 
       const soldData = await db.ProductDetail.findAll({
         where: {
           ProductID: { [Op.in]: productIds },
-          SoldCount: { [Op.gt]: 0 },
         },
         attributes: ['ProductID', [db.sequelize.fn('SUM', db.sequelize.col('SoldCount')), 'TotalSold']],
         group: ['ProductID'],
@@ -432,7 +421,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
       });
       const soldMap = soldData.reduce((map, item) => {
         map[item.ProductID] = {
-          TotalSold: parseInt(item.TotalSold),
+          TotalSold: parseInt(item.TotalSold) || 0
         };
         return map;
       }, {});
@@ -440,10 +429,8 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
       // Kết hợp dữ liệu
       const data = rows
         .map((item) => {
-          const stockInfo = stockMap[item.ProductID];
-          if (!stockInfo) return null;
-          const soldInfo = soldMap[item.ProductID];
-          if (!soldInfo) return null;
+          const stockInfo = stockMap[item.ProductID] || { TotalStock: 0 };
+          const soldInfo = soldMap[item.ProductID] || { TotalSold: 0 };
           return {
             ProductID: item.ProductID,
             ProductName: item.ProductName,
@@ -910,7 +897,6 @@ let getSaleProductInfo = (productid) => {
             Image: image,
           };
         }
-
         resolve({
           errCode: data ? 0 : 2,
           errMessage: data ? 'Lấy thông tin sản phẩm thành công!' : 'Sản phẩm không tồn tại!',
@@ -1142,18 +1128,19 @@ let changeProductInfo = (productInfo) => {
             });
             if (existingDetail) {
               existingDetail.DetailName = detail.DetailName.trim();
-              existingDetail.Stock = parseInt(detail.Stock);
-              existingDetail.SoldCount = detail.SoldCount || existingDetail.SoldCount;
+              existingDetail.Stock = parseInt(detail.Stock, 10) || 0;
+              existingDetail.SoldCount = parseInt(detail.SoldCount, 10) || existingDetail.SoldCount;
               existingDetail.ExtraPrice = parseFloat(detail.ExtraPrice);
               existingDetail.Promotion = parseFloat(detail.Promotion);
               existingDetail.DetailStatus = detail.DetailStatus;
+              await existingDetail.save();
               isUpdated = true;
             }
           } else {
             await db.ProductDetail.create({
               DetailName: detail.DetailName.trim(),
-              Stock: parseInt(detail.Stock),
-              SoldCount: detail.SoldCount || 0,
+              Stock: parseInt(detail.Stock, 10) || 0,
+              SoldCount: parseInt(detail.SoldCount, 10) || 0,
               ExtraPrice: parseFloat(detail.ExtraPrice),
               Promotion: parseFloat(detail.Promotion),
               CreatedAt: createdAt,
