@@ -47,9 +47,12 @@ let initAPIRoutes = (app) => {
     router.post('/api/login', accountController.handleLogin);
     router.get('/api/logout', accountController.handleLogout);
     router.get('/api/get-accountinfo', accountController.handleGetAccountInfo);
+    router.get('/api/get-veterinarianinfo', accountController.handleGetVeterinarianInfo);
     router.get('/api/verify-token', accountController.handleVerifyToken);
     router.put('/api/change-accountinfo', accountController.handleChangeAccountInfo);
     router.put('/api/change-password', accountController.handleChangePassword);
+    router.post('/api/send-forgot-token', accountController.handleSendForgotToken);
+    router.post('/api/verify-forgot-token', accountController.handleVerifyForgotToken);
 
     router.get('/api/get-sale-bannerinfo', bannerController.handleGetSaleBannerInfo);
 
@@ -73,6 +76,7 @@ let initAPIRoutes = (app) => {
 
     router.post('/api/create-appointment', appointmentController.handleCreateAppointment);
     router.get('/api/get-serviceinfo', appointmentController.handleGetServiceInfo);
+    router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes)
     //admin
     router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
     router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

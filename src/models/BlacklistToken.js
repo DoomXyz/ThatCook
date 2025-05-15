@@ -2,7 +2,7 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class BlacklistToken extends Model {}
+  class BlacklistToken extends Model { }
 
   BlacklistToken.init(
     {
@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
       Token: {
         type: DataTypes.TEXT,
         allowNull: false,
+      },
+      ExtraValue: {
+        type: DataTypes.CHAR(10),
+        allowNull: true,
       },
       CreatedAt: {
         type: DataTypes.DATE,

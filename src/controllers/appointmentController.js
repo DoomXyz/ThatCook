@@ -42,6 +42,21 @@ let handleCreateAppointment = async (req, res) => {
   }
 };
 
+let handleGetAvailableTimes = async (req, res) => {
+  try {
+    const { appointmentDate, veterinarianID, serviceID } = req.query;
+    let response = await appointmentService.getAvailableTimes(appointmentDate, veterinarianID, serviceID);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
+
 let handleGetServiceInfo = async (req, res) => {
   try {
     const { serviceid } = req.query;
@@ -59,5 +74,6 @@ let handleGetServiceInfo = async (req, res) => {
 
 module.exports = {
   handleCreateAppointment,
-  handleGetServiceInfo,
+  handleGetAvailableTimes,
+  handleGetServiceInfo
 };

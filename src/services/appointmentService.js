@@ -207,18 +207,63 @@ let createAppointment = (
         return;
       }
 
-      const isServiceExist = await db.Service.findOne({
-        where: { ServiceID: serviceid },
-      });
-      if (!isServiceExist) {
+      const service = await db.Service.findOne({ where: { ServiceID: serviceid } });
+      if (!service) {
         resolve({
           errCode: 2,
-          errMessage: 'Dịch vụ không tồn tại trong hệ thống!',
+          errMessage: 'Dịch vụ không tồn tại!',
           data: null,
         });
         return;
       }
-      const endTime = null;
+      const duration = service.Duration;
+      const [startHours, startMinutes] = starttime.split(':').map(Number);
+      const startDateTime = new Date(appointmentdate);
+      startDateTime.setHours(startHours, startMinutes);
+      const endTime = new Date(startDateTime.getTime() + duration * 60000);
+      const appointments = await db.Appointment.findAll({
+        where: { AppointmentDate: appointmentdate },
+        include: [{ model: db.Schedule, as: 'Schedules' }],
+      });
+      if (veterinarianid) {
+        const isConflict = appointments.some((app) => {
+          const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
+          const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
+          return (
+            app.Schedules.some((sch) => sch.VeterinarianID === veterinarianid) &&
+            startDateTime < appEnd &&
+            endTime > appStart
+          );
+        });
+        if (isConflict) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Khung giờ đã được đặt bởi bác sĩ này!',
+            data: null,
+          });
+          return;
+        }
+      } else {
+        const veterinarians = await db.VeterinarianInfo.findAll();
+        const hasAvailableVet = veterinarians.some((vet) => {
+          const vetAppointments = appointments.filter((app) =>
+            app.Schedules.some((sch) => sch.VeterinarianID === vet.AccountID)
+          );
+          return !vetAppointments.some((app) => {
+            const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
+            const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
+            return startDateTime < appEnd && endTime > appStart;
+          });
+        });
+        if (!hasAvailableVet) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Tất cả bác sĩ đều bận trong khung giờ này!',
+            data: null,
+          });
+          return;
+        }
+      }
       const appointmentID = await generateAppointmentID();
       if (typeof appointmentID === 'object' && appointmentID.errCode) {
         resolve(appointmentID);
@@ -232,7 +277,7 @@ let createAppointment = (
         CustomerPhone: customerphone,
         AppointmentDate: appointmentdate,
         StartTime: starttime,
-        EndTime: endTime,
+        EndTime: endTime.toTimeString().slice(0, 5),
         Notes: notes,
         AccountID: accountid,
         VeterinarianID: veterinarianid,
@@ -251,6 +296,129 @@ let createAppointment = (
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi đăng ký: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!appointmentDate || !serviceID) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+
+      let duration;
+      if (serviceID === 'ALL') {
+        const services = await db.Service.findAll({
+          attributes: [[db.sequelize.fn('MIN', db.sequelize.col('Duration')), 'minDuration']],
+          raw: true,
+        });
+        if (!services || services.length === 0 || !services[0].minDuration) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Không tìm thấy dịch vụ nào!',
+            data: null,
+          });
+          return;
+        }
+        duration = services[0].minDuration;
+      } else {
+        const service = await db.Service.findOne({ where: { ServiceID: serviceID } });
+        if (!service) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Dịch vụ không tồn tại!',
+            data: null,
+          });
+          return;
+        }
+        duration = service.Duration;
+      }
+
+      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00'];
+      let availableTimes = [...fixedTimes];
+
+      // Lấy danh sách Schedule theo ngày và bác sĩ (nếu có)
+      let scheduleWhere = {};
+      if (veterinarianID && veterinarianID !== 'ALL') {
+        scheduleWhere.VeterinarianID = veterinarianID;
+      }
+      const schedules = await db.Schedule.findAll({
+        where: scheduleWhere,
+        attributes: ['AppointmentID', 'VeterinarianID'],
+        raw: true,
+      });
+
+      // Lấy danh sách Appointment tương ứng
+      const appointmentIDs = schedules.map((sch) => sch.AppointmentID);
+      const appointments = await db.Appointment.findAll({
+        where: {
+          AppointmentID: { [Op.in]: appointmentIDs },
+          AppointmentDate: appointmentDate,
+        },
+        attributes: ['AppointmentID', 'AppointmentDate', 'StartTime', 'EndTime'],
+        raw: true,
+      });
+
+      // Tạo map để ánh xạ AppointmentID với VeterinarianID
+      const scheduleMap = schedules.reduce((map, sch) => {
+        map[sch.AppointmentID] = sch.VeterinarianID;
+        return map;
+      }, {});
+
+      if (veterinarianID && veterinarianID !== 'ALL') {
+        // Lọc khung giờ khả dụng cho bác sĩ cụ thể
+        availableTimes = fixedTimes.filter((time) => {
+          const [hours, minutes] = time.split(':').map(Number);
+          const startTime = new Date(appointmentDate);
+          startTime.setHours(hours, minutes);
+          const endTime = new Date(startTime.getTime() + duration * 60000);
+          return !appointments.some((app) => {
+            if (scheduleMap[app.AppointmentID] !== veterinarianID) return false;
+            const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
+            const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
+            return startTime < appEnd && endTime > appStart;
+          });
+        });
+      } else {
+        // Lọc khung giờ khả dụng khi không chọn bác sĩ
+        const veterinarians = await db.VeterinarianInfo.findAll({
+          attributes: ['AccountID'],
+          raw: true,
+        });
+        availableTimes = fixedTimes.filter((time) => {
+          const [hours, minutes] = time.split(':').map(Number);
+          const startTime = new Date(appointmentDate);
+          startTime.setHours(hours, minutes);
+          const endTime = new Date(startTime.getTime() + duration * 60000);
+          return veterinarians.some((vet) => {
+            const vetAppointments = appointments.filter((app) => scheduleMap[app.AppointmentID] === vet.AccountID);
+            return !vetAppointments.some((app) => {
+              const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
+              const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
+              return startTime < appEnd && endTime > appStart;
+            });
+          });
+        });
+      }
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy khung giờ thành công!',
+        data: availableTimes,
+      });
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy khung giờ: ' + e.message,
         data: null,
       });
     }
@@ -317,5 +485,6 @@ let getServiceInfo = (serviceid) => {
 
 export default {
   createAppointment,
-  getServiceInfo
+  getAvailableTimes,
+  getServiceInfo,
 };

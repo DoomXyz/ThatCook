@@ -790,6 +790,10 @@ module.exports = {
           type: Sequelize.TEXT,
           allowNull: false,
         },
+        ExtraValue: {
+          type: Sequelize.CHAR(10),
+          allowNull: true,
+        },
         CreatedAt: {
           type: Sequelize.DATE,
           allowNull: true,

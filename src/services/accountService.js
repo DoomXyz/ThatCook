@@ -1,5 +1,6 @@
 import db from '../models/index';
 import bcrypt from 'bcrypt';
+import nodemailer from 'nodemailer';
 import { Op } from 'sequelize';
 import { checkGender, checkAccountType, checkAccountStatus } from './utilitiesService';
 import { verifyJWT } from '../middleware/jwtController';
@@ -461,12 +462,12 @@ let userRegister = (userInfo) => {
         AccountType: userInfo.accounttype || 'C',
       });
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
-        const { bio, specialization, workingStatus } = userInfo.veterinarianInfo;
+        const { bio, specialization, workingstatus } = userInfo.veterinarianInfo;
         await db.VeterinarianInfo.create({
           AccountID: accountID,
           Bio: bio || null,
           Specialization: specialization || null,
-          WorkingStatus: workingStatus || null,
+          WorkingStatus: workingstatus || null,
         });
       }
       resolve({
@@ -1009,7 +1010,7 @@ let changeAccountInfo = (userInfo) => {
         isUpdated = true;
       }
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
-        const { bio, specialization, workingStatus } = userInfo.veterinarianInfo;
+        const { bio, specialization, workingstatus } = userInfo.veterinarianInfo;
         let vetInfo = await db.VeterinarianInfo.findOne({
           where: { AccountID: userInfo.accountid },
           raw: false,
@@ -1017,7 +1018,7 @@ let changeAccountInfo = (userInfo) => {
         if (vetInfo) {
           vetInfo.Bio = bio || null;
           vetInfo.Specialization = specialization || null;
-          vetInfo.WorkingStatus = workingStatus || null;
+          vetInfo.WorkingStatus = workingstatus || null;
           await vetInfo.save();
           isUpdated = true;
         } else {
@@ -1025,7 +1026,7 @@ let changeAccountInfo = (userInfo) => {
             AccountID: userInfo.accountid,
             Bio: bio || null,
             Specialization: specialization || null,
-            WorkingStatus: workingStatus || null,
+            WorkingStatus: workingstatus || null,
           });
           isUpdated = true;
         }
@@ -1058,7 +1059,7 @@ let changeAccountInfo = (userInfo) => {
 let changePassword = (accountid, password, newpassword) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountid || !password || !newpassword) {
+      if (!accountid || !newpassword) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -1078,14 +1079,16 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      let checkPassword = bcrypt.compareSync(password, account.Password);
-      if (!checkPassword) {
-        resolve({
-          errCode: 2,
-          errMessage: 'Mật khẩu cũ không đúng!',
-          data: null,
-        });
-        return;
+      if (password !== 'forgot_password') {
+        let checkPassword = bcrypt.compareSync(password, account.Password);
+        if (!checkPassword) {
+          resolve({
+            errCode: 2,
+            errMessage: 'Mật khẩu cũ không đúng!',
+            data: null,
+          });
+          return;
+        }
       }
       const checkNewPassword = newpassword.trim();
       const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
@@ -1097,7 +1100,7 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      if (password === newpassword) {
+      if (password !== 'forgot_password' && password === newpassword) {
         resolve({
           errCode: 1,
           errMessage: 'Mật khẩu mới không được trùng với mật khẩu cũ!',
@@ -1208,6 +1211,156 @@ let getVeterinarianInfo = (accountid) => {
   });
 };
 
+let sendVerificationEmail = async (email, code) => {
+  try {
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    let mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Mã xác nhận đặt lại mật khẩu',
+      text: `Mã xác nhận của bạn là: ${code}. Mã này có hiệu lực trong 30 phút.`,
+    };
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
+
+let sendForgotToken = (email) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!email) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Email không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      const account = await db.Account.findOne({
+        where: { Email: email },
+        attributes: ['AccountID'],
+        raw: true,
+      });
+      if (!account) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Email không tồn tại trong hệ thống!',
+          data: null,
+        });
+        return;
+      }
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const currentTime = new Date();
+      const expiredAt = new Date(currentTime.getTime() + 30 * 60 * 1000);
+      await db.BlacklistToken.destroy({
+        where: {
+          ExpiredAt: {
+            [Op.lt]: currentTime,
+          },
+        },
+      });
+      await db.BlacklistToken.create({
+        Token: code,
+        ExtraValue: account.AccountID,
+        CreatedAt: currentTime,
+        ExpiredAt: expiredAt,
+      });
+      const emailSent = await sendVerificationEmail(email, code);
+      if (!emailSent) {
+        resolve({
+          errCode: 3,
+          errMessage: 'Lỗi khi gửi email xác nhận!',
+          data: null,
+        });
+        return;
+      }
+      resolve({
+        errCode: 0,
+        errMessage: 'Mã xác nhận đã được gửi!',
+        data: account.AccountID,
+      });
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi xử lý email: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let verifyForgotToken = (accountid, token) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!accountid || !token) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const currentTime = new Date();
+      const tokenRecord = await db.BlacklistToken.findOne({
+        where: {
+          Token: token,
+          ExtraValue: accountid,
+        },
+      });
+      if (!tokenRecord) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Mã xác nhận không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      if (tokenRecord.ExpiredAt < currentTime) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Mã xác nhận đã hết hạn!',
+          data: null,
+        });
+        return;
+      }
+      await db.BlacklistToken.destroy({
+        where: { Token: token, ExtraValue: accountid },
+      });
+      resolve({
+        errCode: 0,
+        errMessage: 'Xác nhận mã thành công!',
+        data: null,
+      });
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi xác minh mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
 module.exports = {
   userRegister,
   userLogin,
@@ -1220,4 +1373,6 @@ module.exports = {
   changePassword,
   getPaymentInfo,
   getVeterinarianInfo,
+  sendForgotToken,
+  verifyForgotToken,
 };

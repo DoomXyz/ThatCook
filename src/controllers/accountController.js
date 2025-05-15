@@ -171,6 +171,32 @@ let handleGetVeterinarianInfo = async (req, res) => {
     });
   }
 };
+let handleSendForgotToken = async (req, res) => {
+  try {
+    let response = await accountService.sendForgotToken(req.body.email);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
+let handleVerifyForgotToken = async (req, res) => {
+  try {
+    let response = await accountService.verifyForgotToken(req.body.accountid, req.body.token);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
 
 module.exports = {
   handleRegister,
@@ -184,4 +210,6 @@ module.exports = {
   handleChangePassword,
   handleGetPaymentInfo,
   handleGetVeterinarianInfo,
+  handleSendForgotToken,
+  handleVerifyForgotToken,
 };
