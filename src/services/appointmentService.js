@@ -222,15 +222,19 @@ let createAppointment = (
       startDateTime.setHours(startHours, startMinutes);
       const endTime = new Date(startDateTime.getTime() + duration * 60000);
       const appointments = await db.Appointment.findAll({
-        where: { AppointmentDate: appointmentdate },
-        include: [{ model: db.Schedule, as: 'Schedules' }],
+        where: {
+          AppointmentDate: appointmentdate,
+          VeterinarianID: veterinarianid ? veterinarianid : { [Op.ne]: null },
+        },
+        attributes: ['AppointmentID', 'AppointmentDate', 'StartTime', 'EndTime', 'VeterinarianID'],
+        raw: true,
       });
       if (veterinarianid) {
         const isConflict = appointments.some((app) => {
           const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
           const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
           return (
-            app.Schedules.some((sch) => sch.VeterinarianID === veterinarianid) &&
+            app.VeterinarianID === veterinarianid &&
             startDateTime < appEnd &&
             endTime > appStart
           );
@@ -244,11 +248,12 @@ let createAppointment = (
           return;
         }
       } else {
-        const veterinarians = await db.VeterinarianInfo.findAll();
+        const veterinarians = await db.VeterinarianInfo.findAll({
+          attributes: ['AccountID'],
+          raw: true,
+        });
         const hasAvailableVet = veterinarians.some((vet) => {
-          const vetAppointments = appointments.filter((app) =>
-            app.Schedules.some((sch) => sch.VeterinarianID === vet.AccountID)
-          );
+          const vetAppointments = appointments.filter((app) => app.VeterinarianID === vet.AccountID);
           return !vetAppointments.some((app) => {
             const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
             const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
