@@ -60,7 +60,6 @@ class CreateBannerModal extends Component {
       codePetType: this.state.codePetType,
       bannerimage: '',
       hiddenat: null,
-      bannerstatus: this.state.codeBannerStatus.length > 0 ? this.state.codeBannerStatus[0].Code : '',
       productid: '',
       productname: '',
       producttype: 'ALL',

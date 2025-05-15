@@ -201,7 +201,7 @@ class Login extends Component {
                   <a
                     className="forgot-password"
                     onClick={() => {
-                      this.props.navigate('/user/forgotpassword');
+                      this.props.navigate('/forgotpassword');
                     }}
                   >
                     Quên mật khẩu?

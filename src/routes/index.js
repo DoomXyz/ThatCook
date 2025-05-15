@@ -48,7 +48,7 @@ const AppRoutes = () => {
       <Route path="/cart" element={<Cart navigate={navigate} />} />
       <Route path="/checkout" element={<CheckOut navigate={navigate} />} />
       <Route path="/bill/:madonhang" element={<Bill navigate={navigate} />} />
-      <Route path="/user/doctor" element={<DoctorPage navigate={navigate} />} />
+      <Route path="/user/veterinarian" element={<DoctorPage navigate={navigate} />} />
       <Route path="/forgotpassword" element={<ForgotPassword navigate={navigate} />} />
       <Route path="/user/customer" element={<UserPage navigate={navigate} />} />
       <Route path="/user/owner" element={<OwnerPage navigate={navigate} />} />

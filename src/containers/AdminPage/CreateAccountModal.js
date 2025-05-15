@@ -23,7 +23,7 @@ class CreateAccountModal extends Component {
       confirmPassword: '',
       bio: '',
       specialization: '',
-      workingStatus: '',
+      workingstatus: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       codeGender: [],
@@ -98,7 +98,7 @@ class CreateAccountModal extends Component {
       }
       this.setState({
         codeWorkingStatus,
-        workingStatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
+        workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
       });
     } catch (e) {
       console.log('Error loading working status code:', e);
@@ -110,10 +110,7 @@ class CreateAccountModal extends Component {
     }
   };
 
-  toggle = async () => {
-    await this.handleLoadCodeGender();
-    await this.handleLoadCodeAccountType();
-    await this.handleLoadCodeWorkingStatus();
+  resetState = () => {
     this.setState({
       accountname: '',
       email: '',
@@ -124,10 +121,13 @@ class CreateAccountModal extends Component {
       confirmPassword: '',
       bio: '',
       specialization: '',
-      workingStatus: this.state.codeWorkingStatus.length > 0 ? this.state.codeWorkingStatus[0].Code : '',
       isTogglePassword1: false,
       isTogglePassword2: false,
     });
+  };
+
+  toggle = async () => {
+    this.resetState();
     this.props.toggleFromModal();
   };
 
@@ -187,7 +187,7 @@ class CreateAccountModal extends Component {
   handleCreateAccount = () => {
     let isValidateInput = this.checkValidateInput();
     if (isValidateInput.errCode === 0) {
-      const { accounttype, accountname, email, password, username, phone, address, gender, bio, specialization, workingStatus } = this.state;
+      const { accounttype, accountname, email, password, username, phone, address, gender, bio, specialization, workingstatus } = this.state;
       const userInfo = {
         accounttype,
         accountname,
@@ -202,7 +202,7 @@ class CreateAccountModal extends Component {
         userInfo.veterinarianInfo = {
           bio: bio || null,
           specialization: specialization || null,
-          workingStatus: workingStatus || null,
+          workingstatus: workingstatus || null,
         };
       }
       this.props.handleCreateAccountFromModal(userInfo);
@@ -217,7 +217,7 @@ class CreateAccountModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingStatus, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus } = this.state;
+    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingstatus, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus } = this.state;
     return (
       <Modal show={isOpen} onHide={this.toggle} className="create-user-modal" centered backdrop="static">
         <Modal.Header closeButton>
@@ -260,7 +260,7 @@ class CreateAccountModal extends Component {
               </div>
               <div className="selectbox">
                 <label>Trạng thái làm việc</label>
-                <select value={workingStatus} onChange={(event) => this.handleOnChangeInput(event, 'workingStatus')}>
+                <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
                   {codeWorkingStatus.length > 0 ? (
                     codeWorkingStatus.map((item) => (
                       <option key={item.Code} value={item.Code}>

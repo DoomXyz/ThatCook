@@ -154,18 +154,17 @@ class BillClass extends Component {
     const address = '136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM';
     doc.text(address, 14, 34);
 
-    const dateText = `Thời gian: ${
-      loadedInvoiceDetails.CreatedAt
-        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          })
-        : 'N/A'
-    }`;
+    const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
+      ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+      : 'N/A'
+      }`;
     doc.text(dateText, 14, 42);
     doc.text(`Mã hóa đơn: ${this.props.madonhang}`, 150, 42, {
       align: 'right',
@@ -174,9 +173,8 @@ class BillClass extends Component {
     const customerText = `Khách hàng: ${loadedInvoiceDetails.ReceiverName}\nSĐT: ${loadedInvoiceDetails.ReceiverPhone}\nĐịa chỉ: ${loadedInvoiceDetails.ReceiverAddress}`;
     doc.text(customerText, 14, 50);
 
-    const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${
-      codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus
-    }`;
+    const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod}\nTrạng thái giao hàng: ${codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus
+      }`;
     doc.text(statusText, 14, 70);
 
     doc.setLineWidth(0.5);
@@ -438,13 +436,13 @@ class BillClass extends Component {
                         Thời gian:{' '}
                         {loadedInvoiceDetails.CreatedAt
                           ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })
                           : 'N/A'}
                       </p>
                     </div>
@@ -523,13 +521,16 @@ class BillClass extends Component {
                           <sup>đ</sup>
                         </td>
                       </tr>
-                      <tr>
-                        <td colSpan="5">Giảm giá:</td>
-                        <td className="cen">
-                          -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}
-                          <sup>đ</sup>
-                        </td>
-                      </tr>
+                      {loadedInvoiceDetails.DiscountAmount > 0 ? (
+                        <tr>
+                          <td colSpan="5">Giảm giá:</td>
+                          <td className="cen">
+                            -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}
+                            <sup>đ</sup>
+                          </td>
+                        </tr>
+                      ) : ""
+                      }
                       <tr>
                         <td colSpan="5">
                           <b>Tổng thanh toán:</b>

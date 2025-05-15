@@ -923,7 +923,7 @@ class User extends Component {
                 <div className="user-content-right-img-content">
                   <div className="user-content-img-description">Ảnh đại diện</div>
                   <div className="user-content-img-info">
-                    <img className="user-content-img-info" src={userimage} alt="User avatar" />
+                    <img className="user-content-img-info" src={userimage} alt="" />
                   </div>
                 </div>
                 <div className="user-content-img-button">
@@ -1239,9 +1239,9 @@ class User extends Component {
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString('vi-VN', {
-                                style: 'currency',
-                                currency: 'VND',
-                              })
+                              style: 'currency',
+                              currency: 'VND',
+                            })
                             : 'N/A'}
                         </div>
                       </div>
@@ -1293,9 +1293,9 @@ class User extends Component {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
                     return shipping
                       ? parseFloat(shipping.ExtraValue).toLocaleString('vi-VN', {
-                          style: 'currency',
-                          currency: 'VND',
-                        })
+                        style: 'currency',
+                        currency: 'VND',
+                      })
                       : '0 ₫';
                   })()}
                 </div>

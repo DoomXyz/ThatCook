@@ -37,6 +37,14 @@ const handleGetVeterinarianInfoApi = (accountid) => {
   return axios.get(`/api/get-veterinarianinfo?accountid=${accountid}`);
 };
 
+const handleSendForgotTokenApi = (email) => {
+  return axios.post('/api/send-forgot-token', { email });
+};
+
+const handleVerifyForgotTokenApi = (accountid, token) => {
+  return axios.post('/api/verify-forgot-token', { accountid, token });
+};
+
 export {
   handleRegisterApi,
   handleLoginApi,
@@ -47,5 +55,7 @@ export {
   handleChangeAccountStatusApi,
   handleChangeAccountInfoApi,
   handleChangePasswordApi,
-  handleGetVeterinarianInfoApi
+  handleGetVeterinarianInfoApi,
+  handleSendForgotTokenApi,
+  handleVerifyForgotTokenApi,
 };

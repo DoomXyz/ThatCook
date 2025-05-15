@@ -27,7 +27,7 @@ class EditAccountModal extends Component {
       gender: '',
       bio: '',
       specialization: '',
-      workingStatus: '',
+      workingstatus: '',
       codeGender: [],
       codeAccountType: [],
       codeWorkingStatus: [],
@@ -48,24 +48,28 @@ class EditAccountModal extends Component {
       await this.handleLoadCodeGender();
       await this.handleLoadCodeAccountType();
       await this.handleLoadCodeWorkingStatus();
-      this.setState({
-        loadedAccountInfo: null,
-        accounttype: '',
-        accountname: '',
-        email: '',
-        username: '',
-        phone: '',
-        address: '',
-        gender: '',
-        bio: '',
-        specialization: '',
-        workingStatus: '',
-      });
+      this.resetState();
       if (selectedAccountID) {
         this.loadAccountInfo(selectedAccountID);
       }
     }
   }
+  resetState = () => {
+    this.setState({
+      loadedAccountInfo: null,
+      selectedAccountID: null,
+      accounttype: '',
+      accountname: '',
+      email: '',
+      username: '',
+      phone: '',
+      address: '',
+      gender: '',
+      bio: '',
+      specialization: '',
+      workingstatus: '',
+    });
+  };
   loadAccountInfo = async (accountid) => {
     try {
       const [accountResponse, vetResponse] = await Promise.all([
@@ -87,22 +91,10 @@ class EditAccountModal extends Component {
           gender: accountInfo.Gender,
           bio: vetInfo ? vetInfo.Bio || '' : '',
           specialization: vetInfo ? vetInfo.Specialization || '' : '',
-          workingStatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
+          workingstatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
         });
       } else {
-        this.setState({
-          loadedAccountInfo: null,
-          accounttype: '',
-          accountname: '',
-          email: '',
-          username: '',
-          phone: '',
-          address: '',
-          gender: '',
-          bio: '',
-          specialization: '',
-          workingStatus: '',
-        });
+        this.resetState();
         toast.error('Tải tài khoản thất bại!', {
           position: 'top-right',
           autoClose: 500,
@@ -110,20 +102,7 @@ class EditAccountModal extends Component {
         });
       }
     } catch (e) {
-      console.log('Lỗi khi tải tài khoản:', e);
-      this.setState({
-        loadedAccountInfo: null,
-        accounttype: '',
-        accountname: '',
-        email: '',
-        username: '',
-        phone: '',
-        address: '',
-        gender: '',
-        bio: '',
-        specialization: '',
-        workingStatus: '',
-      });
+      this.resetState();
       toast.error('Lỗi khi tải tài khoản!', {
         position: 'top-right',
         autoClose: 500,
@@ -189,7 +168,7 @@ class EditAccountModal extends Component {
       }
       this.setState({
         codeWorkingStatus,
-        workingStatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
+        workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
       });
     } catch (e) {
       console.log('Error loading working status code:', e);
@@ -201,21 +180,7 @@ class EditAccountModal extends Component {
     }
   };
   toggle = async () => {
-    await this.handleLoadCodeGender();
-    await this.handleLoadCodeAccountType();
-    await this.handleLoadCodeWorkingStatus();
-    this.setState({
-      accounttype: '',
-      accountname: '',
-      email: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: '',
-      bio: '',
-      specialization: '',
-      workingStatus: '',
-    });
+    this.resetState();
     this.props.toggleFromModal();
   };
   handleOnChangeInput = (event, type) => {
@@ -283,7 +248,7 @@ class EditAccountModal extends Component {
     if (isConfirmed) {
       let isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode === 0) {
-        const { selectedAccountID, accounttype, accountname, username, phone, address, gender, bio, specialization, workingStatus } = this.state;
+        const { selectedAccountID, accounttype, accountname, username, phone, address, gender, bio, specialization, workingstatus } = this.state;
         const userInfo = {
           accountid: selectedAccountID,
           accounttype,
@@ -297,7 +262,7 @@ class EditAccountModal extends Component {
           userInfo.veterinarianInfo = {
             bio: bio || null,
             specialization: specialization || null,
-            workingStatus: workingStatus || null,
+            workingstatus: workingstatus || null,
           };
         }
         this.props.handleEditAccountFromModal(userInfo);
@@ -312,7 +277,7 @@ class EditAccountModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType, codeWorkingStatus, bio, specialization, workingStatus } = this.state;
+    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType, codeWorkingStatus, bio, specialization, workingstatus } = this.state;
     if (!loadedAccountInfo) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="edit-user-modal" centered backdrop="static">
@@ -361,7 +326,7 @@ class EditAccountModal extends Component {
               </div>
               <div className="selectbox">
                 <label>Trạng thái làm việc</label>
-                <select value={workingStatus} onChange={(event) => this.handleOnChangeInput(event, 'workingStatus')}>
+                <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
                   {codeWorkingStatus.length > 0 ? (
                     codeWorkingStatus.map((item) => (
                       <option key={item.Code} value={item.Code}>

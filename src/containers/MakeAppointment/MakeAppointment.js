@@ -1,17 +1,17 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
+import DatePicker from 'react-datepicker';
 import { ToastContainer, toast } from 'react-toastify';
-import {} from 'ionicons/icons'; //chỉ import các icon cần dùng
+import { } from 'ionicons/icons'; //chỉ import các icon cần dùng
 import './MakeAppointment.scss'; //import scss
 import Header from '../../components/HomeHeader';
+import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
-import { handleCreateAppointmentApi } from '../../services/appointmentServices';
+import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
-
 import test from '../../assets/productha/hinhtest3.jpg';
-import { set } from 'lodash';
-import { type } from '@testing-library/user-event/dist/type';
+
 
 class MakeAppointment extends Component {
   constructor(props) {
@@ -25,7 +25,7 @@ class MakeAppointment extends Component {
       age: '',
       petgender: '',
       petweight: '',
-      appointmentdate: '',
+      appointmentDateTime: null,
       selectedDoctorID: '',
       selectedServiceID: '',
       selectedPetID: '',
@@ -37,14 +37,15 @@ class MakeAppointment extends Component {
       loadedWorkingTime: [],
       imageInfo: [],
       isLoading: true,
+      availableTimes: [],
     };
   }
   async componentDidMount() {
     await this.handleLoadCodePetType();
     await this.handleLoadCodePetGender();
+    await this.handleLoadCodeService();
     setTimeout(() => {
-      console.log(this.state.codePetType);
-      console.log(this.state.codePetGender);
+      this.setState({ isLoading: false })
     }, 10);
   }
   componentDidUpdate() {
@@ -95,112 +96,286 @@ class MakeAppointment extends Component {
       });
     }
   };
+  handleLoadCodeService = async () => {
+    try {
+      const response = await handleGetServiceInfoApi('ALL');
+      console.log(response);
+      if (response.errCode !== 0 || !response.data || response.data.length === 0) {
+        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({
+          codeService: [],
+          selectedServiceID: '',
+        });
+        return;
+      }
+      this.setState({
+        codeService: response.data,
+        selectedServiceID: response.data.length > 0 ? response.data[0].ServiceID : '',
+      });
+    } catch (e) {
+      toast.error('Lỗi khi tải danh sách dịch vụ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
-    this.setState({
-      ...copyState,
-    });
+    this.setState(
+      { ...copyState },
+      () => {
+        if (['selectedDoctorID', 'selectedServiceID'].includes(type)) {
+          const { appointmentDateTime, selectedServiceID } = this.state;
+          if (appointmentDateTime && selectedServiceID) {
+            this.handleLoadAvailableTimes();
+          } else {
+            this.setState({ availableTimes: [], starttime: '' });
+          }
+        }
+      }
+    );
+  };
+  handleOnChangeDateInput = (date) => {
+    this.setState(
+      { appointmentDateTime: date },
+      () => {
+        const { appointmentDateTime, selectedServiceID } = this.state;
+        if (appointmentDateTime && selectedServiceID) {
+          this.handleLoadAvailableTimes();
+        } else {
+          this.setState({ availableTimes: [], starttime: '' });
+        }
+      }
+    );
+  };
+  handleLoadAvailableTimes = async () => {
+    try {
+      const { appointmentDateTime, selectedDoctorID, selectedServiceID } = this.state;
+      if (!appointmentDateTime || !selectedServiceID) {
+        this.setState({ availableTimes: [], starttime: '' });
+        return;
+      }
+      const formattedDate = appointmentDateTime.toISOString().split('T')[0];
+      const vetID = selectedDoctorID || 'ALL';
+      const response = await handleGetAvailableTimesApi(formattedDate, vetID, selectedServiceID);
+      console.log(response);
+      if (response.errCode === 0) {
+        this.setState({ availableTimes: response.data, starttime: response.data[0] || '' });
+      } else {
+        toast.error(response.errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({ availableTimes: [], starttime: '' });
+      }
+    } catch (e) {
+      toast.error('Lỗi khi tải khung giờ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      this.setState({ availableTimes: [], starttime: '' });
+    }
+  };
+  handleSubmitAppointment = async () => {
+    try {
+      this.setState({ isLoading: true });
+      const {
+        customername,
+        customerphone,
+        customeremail,
+        petname,
+        pettype,
+        petgender,
+        age,
+        petweight,
+        appointmentDateTime,
+        selectedDoctorID,
+        selectedServiceID,
+        starttime,
+        notes,
+        selectedPetID,
+      } = this.state;
+      const appointmentdate = appointmentDateTime ? appointmentDateTime.toISOString().split('T')[0] : '';
+      const response = await handleCreateAppointmentApi({
+        customername,
+        customerphone,
+        customeremail,
+        petname,
+        pettype,
+        petgender,
+        age,
+        petweight,
+        appointmentdate,
+        starttime,
+        notes,
+        accountid: this.props.userInfo?.AccountID || null,
+        veterinarianid: selectedDoctorID,
+        serviceid: selectedServiceID,
+        petid: selectedPetID,
+      });
+      if (response.errCode === 0) {
+        toast.success('Đặt lịch thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.props.navigate('/home');
+      } else {
+        toast.error(response.errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      toast.error('Lỗi khi đặt lịch!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    } finally {
+      this.setState({ isLoading: false });
+    }
   };
 
   render() {
-    const { codePetType, codePetGender, petgender, pettype } = this.state;
+    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime,
+      selectedServiceID, codeService, starttime, availableTimes, notes } = this.state;
     return (
       <div className="makeappointment-body">
-        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
-        <div className="makeappointment-content">
-          <h1>Thông tin đặt lịch</h1>
-          <div className="makeappointment-content-user-info">
-            <b>*Thông tin Khách hàng</b>
-            <input type="text" placeholder="Hãy nhập Họ và Tên"></input>
-            <input type="text" placeholder="Hãy nhập Số điện thoại"></input>
-            <input type="text" placeholder="Hãy nhập Email"></input>
-          </div>
-          <div className="makeappointment-content-pet">
-            <button>Xem danh sách thú cưng</button>
-          </div>
-          <div className="makeappointment-content-pet-info">
-            <b>*Thông tin Thú cưng</b>
-
-            <input type="text" placeholder="Hãy nhập Tên thú cưng"></input>
-            <div className="f">
-              <p>Loại: </p>
-              <select value={pettype} onChange={(event) => this.handleOnChangeInput(event, 'pettype')}>
-                {codePetType.length > 0 ? (
-                  codePetType.map((item) => (
-                    <option key={item.Code} value={item.Code}>
-                      {item.CodeValueVI}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Không có dữ liệu loại thú cưng</option>
-                )}
-              </select>
-              <p>Giới tính:</p>
-              <select value={petgender} onChange={(event) => this.handleOnChangeInput(event, 'petgender')}>
-                {codePetGender.length > 0 ? (
-                  codePetGender.map((item) => (
-                    <option key={item.Code} value={item.Code}>
-                      {item.CodeValueVI}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Không có dữ liệu giới tính</option>
-                )}
-              </select>
-            </div>
-
-            <div className="f">
-              <input type="text" placeholder="Hãy nhập Tuổi"></input>
-              <input type="text" placeholder="Hãy nhập Cân nặng"></input>
-            </div>
-          </div>
-          <div className="makeappointment-content-doctor">
-            <div className="f">
-              <button>Chọn bác sĩ</button>
-              <p>*Không bắt buộc</p>
-            </div>
-          </div>
-          <div className="makeappointment-content-date">
-            <div className="f">
-              <button>Chọn lịch</button>
-              <button>Reset</button>
-            </div>
-          </div>
-          <div className="f">
-            <div className="makeappointment-content-service">
-              <p>
-                <b>*Dịch vụ</b>
-              </p>
-              <select>
-                <option>1234234234</option>
-              </select>
-            </div>
-            <div className="makeappointment-content-time">
-              <p>
-                <b>*Khung giờ</b>
-              </p>
-              <select>
-                <option>1223422344</option>
-              </select>
-            </div>
-          </div>
-          <textarea placeholder="Mô tả tình trạng thú cưng"></textarea>
-          <div className="makeappointment-content-petimgs">
-            <p>
-              <b>*Thêm hình ảnh ( tối đa 4 )</b>
-            </p>
-            <div className="makeappointment-content-petimgs-block">
-              <div className="makeappointment-content-petimgs-item">
-                <img src={test} />
-                <button>X</button>
+        <ToastContainer />
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <div>
+            <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} />
+            <div className="makeappointment-content">
+              <h1>Thông tin đặt lịch</h1>
+              <div className="makeappointment-content-user-info">
+                <b>*Thông tin Khách hàng</b>
+                <input type="text" placeholder="Hãy nhập Họ và Tên" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
+                <input type="text" placeholder="Hãy nhập Số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
+                <input type="text" placeholder="Hãy nhập Email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
-
-              <button className="add">+</button>
+              <div className="makeappointment-content-pet">
+                <button>Xem danh sách thú cưng</button>
+              </div>
+              <div className="makeappointment-content-pet-info">
+                <b>*Thông tin Thú cưng</b>
+                <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} />
+                <div className="f">
+                  <p>Loại: </p>
+                  <select value={pettype} onChange={(event) => this.handleOnChangeInput(event, 'pettype')}>
+                    {codePetType.length > 0 ? (
+                      codePetType.map((item) => (
+                        <option key={item.Code} value={item.Code}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có dữ liệu loại thú cưng</option>
+                    )}
+                  </select>
+                  <p>Giới tính:</p>
+                  <select value={petgender} onChange={(event) => this.handleOnChangeInput(event, 'petgender')}>
+                    {codePetGender.length > 0 ? (
+                      codePetGender.map((item) => (
+                        <option key={item.Code} value={item.Code}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có dữ liệu giới tính</option>
+                    )}
+                  </select>
+                </div>
+                <div className="f">
+                  <input type="text" placeholder="Hãy nhập Tuổi" value={age} onChange={(event) => this.handleOnChangeInput(event, 'age')} />
+                  <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} />
+                </div>
+              </div>
+              <div className="makeappointment-content-doctor">
+                <div className="f">
+                  <button>Chọn bác sĩ</button>
+                  <p>*Không bắt buộc</p>
+                </div>
+              </div>
+              <div className="makeappointment-content-date">
+                <div className="f">
+                  <DatePicker
+                    selected={appointmentDateTime}
+                    onChange={this.handleOnChangeDateInput}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="dd/mm/yyyy"
+                    className="date-picker"
+                  />
+                  <button onClick={() => this.handleOnChangeDateInput(null)}>
+                    Reset
+                  </button>
+                </div>
+              </div>
+              <div className="f">
+                <div className="makeappointment-content-service">
+                  <p>
+                    <b>*Dịch vụ</b>
+                  </p>
+                  <select value={selectedServiceID} onChange={(event) => this.handleOnChangeInput(event, 'selectedServiceID')}>
+                    {codeService.length > 0 ? (
+                      codeService.map((item) => (
+                        <option key={item.ServiceID} value={item.ServiceID}>
+                          {item.ServiceName}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có dữ liệu dịch vụ</option>
+                    )}
+                  </select>
+                </div>
+                <div className="makeappointment-content-time">
+                  <p>
+                    <b>*Khung giờ</b>
+                  </p>
+                  <select value={starttime} onChange={(event) => this.handleOnChangeInput(event, 'starttime')}>
+                    {availableTimes.length > 0 ? (
+                      availableTimes.map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có khung giờ</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+              <textarea placeholder="Mô tả tình trạng thú cưng" value={notes} onChange={(event) => this.handleOnChangeInput(event, 'notes')} />
+              <div className="makeappointment-content-petimgs">
+                <p>
+                  <b>*Thêm hình ảnh ( tối đa 3 ảnh )</b>
+                </p>
+                <div className="makeappointment-content-petimgs-block">
+                  <div className="makeappointment-content-petimgs-item">
+                    <img src={test} alt="Pet" />
+                    <button>X</button>
+                  </div>
+                  <button className="add">+</button>
+                </div>
+              </div>
+              <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
+                Gửi yêu cầu
+              </button>
             </div>
+            <Footer />
           </div>
-          <button className="makeapp">Gửi yêu cầu</button>
-        </div>
+        )}
       </div>
     );
   }

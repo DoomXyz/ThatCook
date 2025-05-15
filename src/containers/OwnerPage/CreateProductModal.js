@@ -113,7 +113,6 @@ class CreateProductModal extends Component {
   resetState = () => {
     this.setState({
       productname: '',
-      producttype: this.state.codeProductType.length > 0 ? this.state.codeProductType[0].Code : '',
       pettype: [],
       productprice: '',
       productdescription: '',
