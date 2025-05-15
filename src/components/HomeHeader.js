@@ -26,7 +26,6 @@ class HomeHeader extends Component {
       accountInfo: null,
       userImage: null,
       userName: null,
-      codePetType: [],
       codeService: [],
       cartItemsCount: 0,
       isScrolled: false,
@@ -45,7 +44,6 @@ class HomeHeader extends Component {
 
   async componentDidMount() {
     await this.handleIsLogin();
-    await this.handleLoadPetType();
     await this.handleLoadService();
     setTimeout(() => {
       this.countCartItem();
@@ -110,28 +108,6 @@ class HomeHeader extends Component {
     }
   };
 
-  handleLoadPetType = async () => {
-    try {
-      const codePetType = await handleGetAllCodesApi('PetType');
-      if (!codePetType || codePetType.length === 0) {
-        toast.error('Không thể tải danh sách sản phẩm!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codePetType,
-      });
-    } catch (e) {
-      console.log('Error loading pettype code:', e);
-      toast.error('Lỗi khi tải danh sách sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
   handleLoadService = async () => {
     try {
       const response = await handleGetServiceInfoApi('ALL');
@@ -191,18 +167,6 @@ class HomeHeader extends Component {
       console.log('Chưa kết nối backend!');
     }
   };
-
-  handlePetTypeFilter = (code) => {
-    this.props.navigate('/home');
-    const formatedCode = 'pettype-' + code;
-    console.log('PetType code:', formatedCode);
-  };
-
-  handlePromotionFilter = () => {
-    this.props.navigate('/home');
-    console.log('Promotion product only selected');
-  };
-
   handleAccountTypeNavigate = (accounttype) => {
     const navigateMap = {
       A: '/user/admin',
@@ -313,19 +277,6 @@ class HomeHeader extends Component {
                     </a>
                   </li>
                 </ul>
-              </li>
-              <li>
-                <a>Sản phẩm</a>
-                <ul className="sub-menu">
-                  {codePetType.map((type) => (
-                    <li key={type.Code}>
-                      <a onClick={() => this.handlePetTypeFilter(type.Code)}>{type.CodeValueVI}</a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li>
-                <a onClick={() => this.handlePromotionFilter()}>Ưu đãi</a>
               </li>
               <li>
                 <a>Dịch vụ</a>

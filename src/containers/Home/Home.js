@@ -35,7 +35,8 @@ class Home extends Component {
       accountInfo: null,
       loadedProductInfo: [],
       loadedBannerInfo: [],
-      loadedFilterValue: [],
+      loadedProductTypeFilterValue: [],
+      loadedPetTypeFilterValue: [],
       currentPage: 1,
       tempCurrentPage: '1',
       limitProductPerQuery: 20,
@@ -56,7 +57,8 @@ class Home extends Component {
     await this.handleIsLogin();
     await this.handleLoadProductInfo();
     await this.handleGetBannerInfo();
-    await this.handleLoadFilterValue();
+    await this.handleLoadProductTypeFilterValue();
+    await this.handleLoadPetTypeFilterValue();
     this.bannerInterval = setInterval(() => {
       this.setState((prevState) => {
         if (prevState.loadedBannerInfo.length === 0) return { currentBannerIndex: 0 };
@@ -108,6 +110,7 @@ class Home extends Component {
     const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
       const response = await handleLoadSaleProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue);
+      console.log(Math.ceil(response.totalItems / limitProductPerQuery))
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
@@ -142,10 +145,10 @@ class Home extends Component {
     }
   };
 
-  handleLoadFilterValue = async () => {
+  handleLoadProductTypeFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetAllCodesApi('ProductType');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+      const loadedProductTypeFilterValue = await handleGetAllCodesApi('ProductType');
+      if (!loadedProductTypeFilterValue || loadedProductTypeFilterValue.length === 0) {
         toast.error('Không thể tải danh sách lọc!', {
           position: 'top-right',
           autoClose: 500,
@@ -153,11 +156,33 @@ class Home extends Component {
         });
       }
       this.setState({
-        loadedFilterValue,
+        loadedProductTypeFilterValue,
       });
     } catch (e) {
       console.log('Error loading pettype code:', e);
       toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleLoadPetTypeFilterValue = async () => {
+    try {
+      const loadedPetTypeFilterValue = await handleGetAllCodesApi('PetType');
+      if (!loadedPetTypeFilterValue || loadedPetTypeFilterValue.length === 0) {
+        toast.error('Không thể tải danh sách loại thú cưng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedPetTypeFilterValue,
+      });
+    } catch (e) {
+      console.log('Error loading pettype code:', e);
+      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
@@ -374,18 +399,19 @@ class Home extends Component {
       {
         filterValue: value,
         currentPage: 1,
+        tempCurrentPage: '1',
       },
       () => {
         this.handleLoadProductInfo();
       }
     );
   };
-
   handleSortProduct = (value) => {
     this.setState(
       {
         sortValue: value,
         currentPage: 1,
+        tempCurrentPage: '1',
       },
       () => {
         this.handleLoadProductInfo();
@@ -399,6 +425,7 @@ class Home extends Component {
       {
         searchValue: value,
         currentPage: 1,
+        tempCurrentPage: '1',
       },
       () => {
         if (this.debounceTimeout) {
@@ -412,7 +439,8 @@ class Home extends Component {
   };
 
   render() {
-    const { isLoading, loadedBannerInfo, loadedProductInfo, loadedFilterValue, searchValue, filterValue, sortValue, currentPage, totalPages, isShowHomeProductModal, currentBannerIndex, selectedProduct, tempCurrentPage } = this.state;
+    const { isLoading, loadedBannerInfo, loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue, searchValue, filterValue, sortValue,
+      currentPage, totalPages, isShowHomeProductModal, currentBannerIndex, selectedProduct, tempCurrentPage } = this.state;
     return (
       <div className="home-body">
         <HomeProductModal isOpen={isShowHomeProductModal} toggleFromModal={this.toggleHomeProductModal} selectedProductID={selectedProduct} handleBuyNowFromModal={this.handleBuyNowFromModal} handleAddToCart={this.handleAddToCart} />
@@ -460,14 +488,26 @@ class Home extends Component {
                       <div>
                         <label>Lọc sản phẩm:</label>
                         <select value={filterValue} onChange={(event) => this.handleFilterProduct(event.target.value)}>
-                          <option value="ALL">Tất cả</option>
-                          {loadedFilterValue &&
-                            loadedFilterValue.length > 0 &&
-                            loadedFilterValue.map((item) => (
-                              <option key={item.Code} value={'producttype-' + item.Code}>
-                                {item.CodeValueVI}
-                              </option>
-                            ))}
+                          <option value="ALL">Tất cả sản phẩm</option>
+                          <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
+                          {loadedProductTypeFilterValue && loadedProductTypeFilterValue.length > 0 && (
+                            <optgroup label="Loại sản phẩm">
+                              {loadedProductTypeFilterValue.map((item) => (
+                                <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
+                                  {item.CodeValueVI}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {loadedPetTypeFilterValue && loadedPetTypeFilterValue.length > 0 && (
+                            <optgroup label="Loại thú cưng">
+                              {loadedPetTypeFilterValue.map((item) => (
+                                <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
+                                  Sản phẩm dành cho {item.CodeValueVI}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
                         </select>
                       </div>
                     </div>

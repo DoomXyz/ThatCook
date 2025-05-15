@@ -12,5 +12,7 @@ const actionTypes = Object.freeze({
   CLEAR_CART: 'CLEAR_CART',
   SAVE_CART_FOR_CHECKOUT: 'SAVE_CART_FOR_CHECKOUT',
   CLEAR_CHECKOUT_CART: 'CLEAR_CHECKOUT_CART',
+  //filter
+  SET_FILTER_VALUE: 'SET_FILTER_VALUE',
 });
 export default actionTypes;

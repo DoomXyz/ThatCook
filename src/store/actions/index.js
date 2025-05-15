@@ -3,6 +3,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // Sử dụng localStorage
 import userReducer from '../reducers/userReducer'; // Import reducer
 import cartReducer from '../reducers/cartReducer';
+import filterReducer from '../reducers/filterReducer';
 
 // Cấu hình persist
 const persistConfig = {
@@ -14,6 +15,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   user: userReducer, // Gắn reducer "user" vào store
   cart: cartReducer,
+  filter: filterReducer,
 });
 // Tạo persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -29,3 +31,4 @@ export { store, persistor };
 
 export * from './userActions';
 export * from './cartActions';
+export * from './filterActions';
