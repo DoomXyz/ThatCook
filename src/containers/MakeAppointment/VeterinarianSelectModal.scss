@@ -1,0 +1,42 @@
+.veterinarian-select-modal {
+    .modal-content {
+        padding: 20px;
+    }
+    .veterinarian-select-table {
+        max-height: 400px;
+        overflow-y: auto;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            thead {
+                tr {
+                    th {
+                        padding: 10px;
+                        background: #f0f0f0;
+                        text-align: left;
+                        border-bottom: 1px solid #ddd;
+                    }
+                }
+            }
+            tbody {
+                tr {
+                    td {
+                        padding: 10px;
+                        border-bottom: 1px solid #ddd;
+                    }
+                    .select-btn {
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 5px 10px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        &:hover {
+                            background: #0056b3;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
