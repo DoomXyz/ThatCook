@@ -351,7 +351,7 @@ class MakeAppointment extends Component {
                         </option>
                       ))
                     ) : (
-                      <option value="">Không có khung giờ</option>
+                      <option value="">Chưa có giờ</option>
                     )}
                   </select>
                 </div>

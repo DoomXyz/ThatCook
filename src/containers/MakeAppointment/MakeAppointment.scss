@@ -15,22 +15,16 @@ f {
     border-bottom: 1px solid black;
     height: 5rem;
   }
-  button {
-    background-color: #00b5f1;
-    border-radius: 0.3rem;
-    color: white;
-    font-weight: bold;
-    border: none;
-    padding: 0.4rem 0.3rem;
-  }
+  
   justify-content: center;
   .makeappointment-content {
     margin-top: 6rem;
     width: 40rem;
+    margin-left: 27rem;
 
     h1 {
       font-weight: bold;
-      color: #00b5f1;
+      color: #4dc9f2;
       text-align: center;
       margin-bottom: 2rem;
     }
@@ -86,7 +80,7 @@ f {
         }
         select {
           margin-top: 1rem;
-          background-color: #00b5f1;
+          background-color: #4dc9f2;
           color: white;
           font-weight: bold;
           padding: 0.4rem;
@@ -112,6 +106,12 @@ f {
       margin-top: 1rem;
       margin-left: 5rem;
       button {
+        background-color: #4dc9f2;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
         width: 10rem;
       }
       p {
@@ -121,12 +121,24 @@ f {
     .makeappointment-content-date {
       margin-top: 1rem;
       margin-left: 5rem;
-      button {
-        width: 10rem;
-      }
+     
       button:last-child {
+        background-color: #4dc9f2;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
         width: 5rem;
         margin-left: 1rem;
+      }
+      input{  
+        width: 10rem;
+        padding: 0.4rem 0.3rem;
+        border-radius: 0.3rem;
+      border: none;
+      color: white;
+      background-color: #4dc9f2;
       }
     }
     .makeappointment-content-service {
@@ -137,24 +149,42 @@ f {
         margin-bottom: 0.7rem;
       }
       select {
-        width: 7rem;
+        background-color: #4dc9f2;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
+        width: 10rem;
       }
     }
     .makeappointment-content-time {
       margin-top: 1rem;
-      margin-left: 9rem;
+      margin-left: 1rem;
       p {
         margin: 0;
         margin-bottom: 0.7rem;
       }
       select {
-        width: 7rem;
+        background-color: #4dc9f2;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
+        width: 10rem;
       }
     }
     .makeappointment-content-pet {
       margin-bottom: 1.5rem;
       margin-left: 5rem;
       button {
+        background-color: #4dc9f2;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
         width: 13rem;
       }
     }
@@ -205,6 +235,12 @@ f {
       }
     }
     .makeapp {
+      background-color: #4dc9f2;
+      border-radius: 0.3rem;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 0.4rem 0.3rem;
       width: 7rem;
 
       margin-top: 2rem;
