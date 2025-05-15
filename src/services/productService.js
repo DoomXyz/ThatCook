@@ -404,7 +404,6 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
         order,
         raw: true,
       });
-
       const productIds = rows.map((p) => p.ProductID);
       const stockData = await db.ProductDetail.findAll({
         where: {
@@ -797,7 +796,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
           };
         })
         .filter((item) => item !== null); // Lọc bỏ sản phẩm null
-      const totalItems = await db.Product.count();
+      const totalItems = count;
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách sản phẩm thành công!',
