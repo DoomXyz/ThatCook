@@ -114,7 +114,7 @@
         ion-icon {
           position: absolute;
           margin-top: 12px;
-          left: 29rem;
+          left: 31.5rem;
         }
       }
       .owner-mid-content-left-invoice-sort-filter {
@@ -181,20 +181,91 @@
       }
       .owner-mid-content-mid-list-img {
         table {
+          margin-top: 1rem;
+          table-layout: fixed; // Enforce fixed column widths
+          width: 100%; // Ensure the table fits its container
           text-align: center;
-          margin-top: 25px;
+          border-left: 1px solid black;
+          border-right: 1px solid black;
+          th {
+            white-space: nowrap;
+            min-width: 80px;
+            padding: 8px;
+            border: 1px solid #333;
+            border-bottom: 2px solid #e9ecef;
+            text-align: center;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          td {
+            white-space: normal;
+            word-wrap: break-word;
+            min-width: 80px;
+            max-width: 300px;
+            padding: 8px;
+            border-bottom: 1px solid black;
+            color: #555;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
           thead {
             tr {
-              th {
-                padding-bottom: 10px;
+              th:first-child {
+                width: 9%;
+              }
+              th:nth-child(2) {
+                width: 10%;
+              }
+              th:nth-child(3) {
+                width: 15%;
+              }
+              th:nth-child(4) {
+                width: 15%;
+              }
+              th:nth-child(5) {
+                width: 12%;
+              } // Tổng tiền hàng
+              th:nth-child(6) {
+                width: 12.5%;
+              } // Tình trạng thanh toán
+              th:nth-child(7) {
+                width: 12.5%;
+              }
+              th:nth-child(8) {
+                width: 10%;
               }
             }
           }
           tbody {
-            .owner-mid-content-right-list-invoice-item {
-              td:nth-child(5) {
-                margin-top: 16.5px;
+            .owner-mid-content-right-list-banner-item {
+              td:nth-child(1) {
+                img {
+                  max-height: 50px;
+                }
+              }
+              td:nth-child(8) {
                 justify-content: center;
+                height: 4.999rem;
+                button {
+                  margin: 0;
+                  margin-top: 1rem;
+                  border-radius: 7px;
+                  width: 40px;
+                  height: 40px;
+
+                  ion-icon {
+                    padding-top: 5px;
+                    width: 25px;
+                    height: 25px;
+                  }
+                }
               }
             }
           }
@@ -249,113 +320,7 @@
           }
         }
       }
-      .owner-mid-content-mid-list-img {
-        table {
-          table-layout: fixed; // Enforce fixed column widths
-          width: 100%; // Ensure the table fits its container
 
-          thead {
-            tr {
-              th:first-child {
-                width: 5%;
-              }
-              th:nth-child(2) {
-                width: 23%;
-              }
-              th:nth-child(3) {
-                width: 10%;
-              }
-              th:nth-child(4) {
-                width: 15%;
-              }
-              th:nth-child(5) {
-                width: 12%;
-              } // Tổng tiền hàng
-              th:nth-child(6) {
-                width: 12.5%;
-              } // Tình trạng thanh toán
-              th:nth-child(7) {
-                width: 12.5%;
-              }
-              th:nth-child(8) {
-                width: 10%;
-              }
-            }
-          }
-          tbody {
-            .owner-mid-content-mid-list-img-item {
-              td {
-                height: 130px;
-              }
-              td:first-child {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                .active {
-                  width: 30px;
-                  height: 30px;
-                  border-radius: 5px;
-                  background: rgb(0, 199, 0);
-                  ion-icon {
-                    color: white;
-                    font-size: 24px;
-                  }
-                }
-                .unactive {
-                  width: 30px;
-                  height: 30px;
-                  border-radius: 5px;
-                  background: rgb(234, 0, 0);
-                  ion-icon {
-                    margin-top: 1px;
-                    color: white;
-                    font-size: 24px;
-                  }
-                }
-              }
-              td:nth-child(2) {
-                width: 300px;
-                img {
-                  max-width: 300px;
-                }
-              }
-              td:nth-child(5) {
-                width: 100px;
-                img {
-                  max-width: 100px;
-                }
-              }
-              td:nth-child(8) {
-                justify-content: center;
-                button {
-                  border-radius: 7px;
-                  width: 40px;
-                  height: 40px;
-                  margin-right: 10px;
-                  ion-icon {
-                    padding-top: 5px;
-                    width: 25px;
-                    height: 25px;
-                  }
-                }
-                button {
-                  background-color: rgb(255, 0, 0);
-                  ion-icon {
-                    color: white;
-                  }
-                }
-
-                button:hover {
-                  ion-icon {
-                    width: 22px;
-                    height: 22px;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
       .owner-mid-content-right-list-invoice {
         table {
           table-layout: fixed; // Enforce fixed column widths
@@ -364,6 +329,7 @@
           width: 100%;
           border-collapse: collapse;
           margin-top: 1rem;
+          margin-bottom: 1rem;
           th {
             white-space: nowrap;
             min-width: 80px;
@@ -376,66 +342,65 @@
             color: #333;
             font-size: 14px;
             text-transform: uppercase;
+          }
 
-            white-space: nowrap;
-          }
-          td {
-            white-space: normal;
-            word-wrap: break-word;
-            min-width: 80px;
-            max-width: 300px;
-            border-bottom: 1px solid black;
-          }
           thead {
             tr {
               th:first-child {
                 width: 6.7%;
               } // Mã hóa đơn
               th:nth-child(2) {
-                width: 9.5%;
+                width: 9%;
               } // Thời gian tạo
               th:nth-child(3) {
                 width: 9.5%;
               } // Tên Khách Hàng
               th:nth-child(4) {
                 width: 8.5%;
-              } // Tổng số hàng
+              } // Số điện thoại nhận hàng
               th:nth-child(5) {
                 width: 10.5%;
-              } // Tổng tiền hàng
+              } // Số lượng mặt hàng
               th:nth-child(6) {
                 width: 9.5%;
-              } // Tình trạng thanh toán
+              } // Tổng thanh toán
               th:nth-child(7) {
                 width: 13%;
-              }
+              } // Tình trạng thanh toán
               th:nth-child(8) {
                 width: 12%;
-              }
+              } // Tình trạng giao hàng
               th:nth-child(9) {
                 width: 6.5%;
-              }
+              } // Đã hủy lúc
               th:nth-child(10) {
                 width: 5%;
-              }
+              } // Action
             }
           }
           tbody {
             .owner-mid-content-right-list-invoice-item {
+              td {
+                border-bottom: 1px solid black;
+                text-align: center;
+              }
               td:nth-child(6) {
                 justify-content: center;
+                height: 4.999rem;
+                p {
+                  margin-top: 1.75rem;
+                }
               }
               td:nth-child(10) {
                 display: flex;
                 justify-content: center;
-                align-items: center;
-                height: 4rem;
+                height: 4.89rem;
+                // Ensure consistent height
                 button {
                   width: 40px;
                   height: 40px;
-                  padding: 0.4rem;
-                  margin: 0 0.3rem;
-                  border-radius: 5px;
+                  margin-top: 1rem;
+                  border-radius: 7px;
                   border: none;
                   background-color: transparent;
                   cursor: pointer;
@@ -451,6 +416,13 @@
                   }
                 }
                 .btn-confirm-payment {
+                  color: #28a745;
+                  &:hover {
+                    background-color: #e6f4ea;
+                    color: #218838;
+                  }
+                }
+                .btn-confirm-delivery {
                   color: #28a745;
                   &:hover {
                     background-color: #e6f4ea;
@@ -561,7 +533,7 @@
           ion-icon {
             position: absolute;
             margin-top: 6px;
-            left: 370px;
+            left: 400px;
           }
         }
         .owner-mid-content-left-product-filter {
@@ -709,8 +681,6 @@
               color: #333;
               font-size: 14px;
               text-transform: uppercase;
-
-              white-space: nowrap;
             }
 
             td {
@@ -765,7 +735,3 @@
 }
 
 @import '~react-datepicker/dist/react-datepicker.css';
-
-// Style cho owner-mid-content-left-invoice-date
-
-// Tùy chỉnh style của react-datepicker

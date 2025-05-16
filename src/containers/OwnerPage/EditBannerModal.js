@@ -386,17 +386,17 @@ class EditBannerModal extends Component {
       label: product.ProductName,
     }));
     return (
-      <Modal show={this.props.isOpen} onHide={this.toggle} centered backdrop="static">
+      <Modal show={this.props.isOpen} onHide={this.toggle} centered backdrop="static" className="edit-banner-modal">
         <Modal.Header closeButton>
           <Modal.Title>Chỉnh sửa thông tin Banner</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="modal-content">
-            <div className="modal-content-add-img">
+            <div className="modal-content-edit-img">
               <p>Hình ảnh banner (tối đa 1):</p>
               <div className="f">
                 {imagePreview && (
-                  <div className="modal-content-add-img-item f">
+                  <div className="modal-content-edit-img-item f">
                     <img src={imagePreview} alt="Banner" />
                     <button className="delete-img" onClick={this.handleRemoveImage}>
                       <IonIcon icon={trashOutline}></IonIcon>
@@ -407,7 +407,7 @@ class EditBannerModal extends Component {
                   <div className="add-img">
                     <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
                     <label htmlFor="upload-image" className="add-img-label">
-                      +
+                      <p>+</p>
                     </label>
                   </div>
                 )}
@@ -415,7 +415,7 @@ class EditBannerModal extends Component {
             </div>
             <div className="modal-content-add-product">
               <div className="f">
-                <div className="modal-content-add-category">
+                <div className="modal-content-add-category f">
                   <p>Loại sản phẩm:</p>
                   <select value={producttype} onChange={(e) => this.handleSelectChange(e, 'producttype')}>
                     <option value="ALL">Tất cả</option>
@@ -426,7 +426,7 @@ class EditBannerModal extends Component {
                     ))}
                   </select>
                 </div>
-                <div className="modal-content-add-pettype">
+                <div className="modal-content-add-pettype f">
                   <p>Loại thú cưng:</p>
                   <div className="pettype-checkboxes f">
                     {codePetType.map((type) => (
@@ -440,7 +440,7 @@ class EditBannerModal extends Component {
               </div>
               <div className="modal-content-add-product-select">
                 <p>Sản phẩm:</p>
-                <Select options={productOptions} value={productid ? { value: productid, label: productname } : null} onChange={this.handleProductChange} placeholder="Chọn sản phẩm" isClearable />
+                <Select className="product-select" options={productOptions} value={productid ? { value: productid, label: productname } : null} onChange={this.handleProductChange} placeholder="Chọn sản phẩm" isClearable />
               </div>
             </div>
             <div className="modal-content-add-dates">

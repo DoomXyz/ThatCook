@@ -1305,14 +1305,14 @@ class Owner extends Component {
                               </button>
                             )}
                             {item.ShippingStatus === 'PEND_CANCEL' && (
-                              <>
+                              <div>
                                 <button className="btn-accept-cancel" onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)} title="Chấp nhận hủy">
                                   <IonIcon icon={banOutline}></IonIcon>
                                 </button>
                                 <button className="btn-deny-cancel" onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)} title="Từ chối hủy">
                                   <IonIcon icon={refreshOutline}></IonIcon>
                                 </button>
-                              </>
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -1432,7 +1432,7 @@ class Owner extends Component {
                       loadedBannerInfo.map((item) => (
                         <tr key={item.BannerID} className="owner-mid-content-right-list-banner-item">
                           <td>
-                            <img src={item.BannerImage || ''} alt="Banner" style={{ width: '50px', height: '50px' }} />
+                            <img src={item.BannerImage || ''} alt="Banner" />
                           </td>
                           <td>{item.ProductID}</td>
                           <td>{item.ProductName}</td>

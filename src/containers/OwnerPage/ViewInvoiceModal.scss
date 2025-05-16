@@ -33,7 +33,15 @@
       .view-invoice-modal-content-top-cusname {
         margin-left: 10px;
         text-align: left;
-        margin-bottom: 35px;
+        .f {
+          p:first-child {
+            margin-right: 8.6rem;
+          }
+        }
+      }
+      .view-invoice-modal-content-top-status {
+        text-align: left;
+        margin-left: 0.5rem;
       }
     }
     .view-invoice-modal-content-mid {

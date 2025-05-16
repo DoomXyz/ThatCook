@@ -459,7 +459,7 @@ class CreateProductModal extends Component {
               </div>
               <div className="modal-content-add-pettype">
                 <p>Loại thú cưng:</p>
-                <div className="pettype-checkboxes">
+                <div className="pettype-checkboxes ">
                   {codePetType.map((type) => (
                     <label key={type.Code} className="pettype-checkbox">
                       <input type="checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
