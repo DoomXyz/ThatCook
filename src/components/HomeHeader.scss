@@ -64,7 +64,7 @@ a {
         margin-left: 2.5rem;
         margin-right: 2.5rem;
         margin-bottom: 5px;
-        flex: 1.2;
+        flex: 1.5;
         background-image: url('../assets/images/logo1.png');
         height: 55px;
         background-size: contain;
@@ -105,7 +105,7 @@ a {
         li {
           margin-top: 1rem;
           text-align: center;
-          width: 10rem;
+          width: 9rem;
           height: 2rem;
 
           &.menu-icon a,
@@ -274,7 +274,7 @@ a {
 
       .others {
         display: flex;
-        flex: 1.7;
+        flex: 2;
         position: relative;
         p:hover {
           border-bottom: 2px solid rgb(91, 82, 82);
