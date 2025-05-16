@@ -114,6 +114,7 @@ a {
           a[href='/information'],
           a:not([href]):not(.sub-menu a):not(.sub-menu-1 a):not(.sub-menu-2 a) {
             display: inline-block;
+            cursor: pointer;
             &:hover {
               transform: translateY(-2px);
               border-bottom: 1px solid black;
@@ -243,6 +244,7 @@ a {
               }
 
               a {
+                cursor: pointer;
                 line-height: 25px;
                 font-weight: normal;
                 color: black;

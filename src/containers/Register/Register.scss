@@ -363,7 +363,7 @@ $blur-effect: blur(70px);
         }
 
         button {
-          margin-top: 50px;
+          margin-top: 0.5rem;
           margin-left: 227px;
           width: 100%;
           max-width: 200px;
@@ -386,6 +386,7 @@ $blur-effect: blur(70px);
           background-color: $primary-color;
           color: rgb(255, 255, 255);
         }
+
       }
     }
 

@@ -1,22 +1,24 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+.f {
+  display: flex;
+}
 
 .create-user-modal {
   .modal-dialog {
-    max-width: 900px; /* Tăng chiều rộng modal */
+    max-width: 810px; /* Tăng chiều rộng modal */
   }
 
   .modal-header {
     .btn-close {
-      margin-left: 300px; /* Điều chỉnh vị trí nút đóng */
+      margin-left: 250px; /* Điều chỉnh vị trí nút đóng */
     }
 
     .modal-title {
-      margin-left: 350px; /* Điều chỉnh vị trí tiêu đề */
+      margin-left: 265px; /* Điều chỉnh vị trí tiêu đề */
     }
   }
 
   .modal-body {
-    height: 700px; /* Tăng chiều cao modal */
     align-items: flex-start; /* Căn chỉnh nội dung lên trên */
     padding: 20px;
 
@@ -100,8 +102,8 @@
           font-size: 1.2rem;
           top: 15px;
 
-          &[name="eye-outline"],
-          &[name="eye-off-outline"] {
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
             cursor: pointer;
 
             &:hover {
@@ -205,19 +207,6 @@
           width: 100%;
           max-width: 720px; /* Tăng chiều rộng cho veterinarian-info */
 
-          textarea {
-            width: 100%;
-            height: 100px;
-            resize: vertical;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 1rem;
-            padding: 10px 35px 10px 5px;
-            color: black;
-            margin-bottom: -10px;
-          }
-
           input {
             width: 100%;
             height: 50px;
@@ -233,25 +222,42 @@
         }
 
         .selectbox {
-          width: 100%;
-          max-width: 720px;
+          height: 1.95rem;
+          border-bottom: 2px solid black;
 
+          margin-left: 2rem;
+          margin-top: 1.9rem;
+          label {
+            display: inline-block;
+            position: absolute;
+            top: 20%;
+            transform: translateY(-50%);
+            color: #706464;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: all 0.5s ease-in-out;
+          }
           select {
-            height: 50px;
+            min-width: 350px;
+            border: none;
           }
         }
       }
-
-      .inputbox {
+      .inputbox-2 {
         position: relative;
-        margin: 20px 15px;
+        margin: 20px 0;
         border-bottom: 2px solid black;
         color: black;
-        width: 720px; /* Tăng chiều rộng input trong R2 */
+
+        .toggle-password {
+          ion-icon {
+            cursor: pointer;
+          }
+        }
 
         input {
-          width: 100%;
-          height: 50px;
+          width: 350px;
+          height: 50px; /* Giảm chiều cao input */
           background: transparent;
           border: none;
           outline: none;
@@ -260,7 +266,7 @@
           color: black;
           margin-bottom: -10px;
 
-          &:not([type="password"]):-webkit-autofill {
+          &:-webkit-autofill {
             &,
             &:hover,
             &:focus,
@@ -312,8 +318,242 @@
           font-size: 1.2rem;
           top: 15px;
 
-          &[name="eye-outline"],
-          &[name="eye-off-outline"] {
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
+            cursor: pointer;
+
+            &:hover {
+              color: #333;
+            }
+          }
+        }
+
+        .error-message {
+          display: none;
+          font-size: 0.7rem;
+          color: #ff0000;
+          margin-top: 5px;
+          position: absolute;
+          bottom: -20px;
+          left: 5px;
+        }
+
+        input:focus {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+
+        &:hover {
+          border-bottom: 2px solid #333;
+
+          label {
+            top: -5px;
+            color: black;
+          }
+
+          ion-icon {
+            color: black;
+          }
+        }
+      }
+
+      .inputbox-1 {
+        position: relative;
+        margin: 20px 0px;
+        border-bottom: 2px solid black;
+        color: black;
+        width: 730px;
+        textarea {
+          width: 700px;
+          height: 40px;
+          resize: vertical;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+          padding: 10px 35px 10px 5px;
+          color: black;
+          margin-bottom: -10px;
+          line-height: 1rem;
+        }
+        input {
+          width: 100%;
+          width: 750px;
+          height: 50px;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+
+          color: black;
+          margin-bottom: -10px;
+
+          &:not([type='password']):-webkit-autofill {
+            &,
+            &:hover,
+            &:focus,
+            &:active {
+              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+              -webkit-text-fill-color: black !important;
+              border: none !important;
+              background: transparent !important;
+              transition: background-color 5000s ease-in-out 0s;
+            }
+
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+
+          &:not(:placeholder-shown) {
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+        }
+
+        label {
+          position: absolute;
+          top: 50%;
+          left: 5px;
+          transform: translateY(-50%);
+          color: black;
+          font-size: 1rem;
+          pointer-events: none;
+          transition: all 0.5s ease-in-out;
+        }
+
+        ion-icon {
+          position: absolute;
+          right: 8px;
+          color: black;
+          font-size: 1.2rem;
+          top: 15px;
+
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
+            cursor: pointer;
+
+            &:hover {
+              color: #333;
+            }
+          }
+        }
+
+        input:focus {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+
+        &:hover {
+          border-bottom: 2px solid #333;
+
+          label {
+            top: -5px;
+            color: black;
+          }
+
+          ion-icon {
+            color: black;
+          }
+        }
+      }
+      .inputbox-address {
+        position: relative;
+        margin: 20px 0px;
+        border-bottom: 2px solid black;
+        color: black;
+        width: 730px;
+        margin-left: 1rem;
+
+        input {
+          width: 100%;
+          width: 700px;
+          height: 50px;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+
+          color: black;
+          margin-bottom: -10px;
+
+          &:not([type='password']):-webkit-autofill {
+            &,
+            &:hover,
+            &:focus,
+            &:active {
+              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+              -webkit-text-fill-color: black !important;
+              border: none !important;
+              background: transparent !important;
+              transition: background-color 5000s ease-in-out 0s;
+            }
+
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+
+          &:not(:placeholder-shown) {
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+        }
+
+        label {
+          position: absolute;
+          top: 50%;
+          left: 5px;
+          transform: translateY(-50%);
+          color: black;
+          font-size: 1rem;
+          pointer-events: none;
+          transition: all 0.5s ease-in-out;
+        }
+
+        ion-icon {
+          position: absolute;
+          right: 8px;
+          color: black;
+          font-size: 1.2rem;
+          top: 15px;
+
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
             cursor: pointer;
 
             &:hover {
@@ -358,16 +598,6 @@
   }
 
   .modal-footer {
-    button:first-child {
-      position: absolute;
-      bottom: 20px;
-      right: 33px;
-    }
-
-    button:last-child {
-      position: absolute;
-      bottom: 20px;
-      left: 27px;
-    }
+    justify-content: space-between;
   }
 }

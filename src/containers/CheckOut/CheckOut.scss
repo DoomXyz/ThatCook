@@ -23,6 +23,20 @@
   .container-checkout {
     margin: auto;
 
+    .delivery-content-left-button {
+      display: flex;
+
+      a p,
+      ion-icon {
+        color: rgb(91, 82, 82);
+        font-weight: bold;
+
+        font-size: 18px;
+      }
+      ion-icon {
+        margin-top: 0.3rem;
+      }
+    }
     .pay-top-warp {
       margin-top: 80px;
       display: flex;
@@ -193,17 +207,6 @@
             width: 330px;
           }
         }
-
-        .delivery-content-left-button {
-          margin-top: 40px;
-          display: flex;
-
-          a p {
-            color: rgb(91, 82, 82);
-            font-weight: bold;
-            margin-top: 14px;
-          }
-        }
       }
 
       .pay-content-left {
@@ -329,7 +332,7 @@
             input {
               width: 10px;
               text-align: center;
-              margin-left: 5px;
+
               border: none !important;
               background-color: transparent;
               color: rgb(91, 85, 85);
@@ -344,6 +347,7 @@
             }
 
             button {
+              margin-top: 1.7rem;
               width: 30px;
               height: 30px;
               margin-left: 5px;
@@ -362,13 +366,16 @@
                 opacity: 0.5 !important;
                 cursor: not-allowed !important;
               }
+              p {
+              }
             }
           }
         }
 
-        button {
+        .pay-content-right-button {
           margin-top: 30px;
           padding: 0 18px;
+          margin-left: 0.4rem;
           height: 35px;
           border-radius: 5px;
           border: 2px solid rgb(91, 82, 82);

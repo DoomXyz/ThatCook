@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
+import { IonIcon } from '@ionic/react';
+
+import { cogOutline } from 'ionicons/icons';
 
 import './Cart.scss';
 import Spinner from '../../components/Spinner';
@@ -536,6 +539,18 @@ class Cart extends Component {
           <div className="cart">
             <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
             <div className="container-cart">
+              <div className="check-content ">
+                <div className="check-content-option f">
+                  <IonIcon icon={cogOutline}></IonIcon>
+                  <p>Cài đặt giỏ hàng: </p>
+                </div>
+                <div className="check-btn f">
+                  <input type="radio" className="turn-off-save-delete " />
+                  <p>Tắt thông báo xóa</p>
+                  <input type="radio" className="turn-off-save-merge " />
+                  <p>Tắt thông gộp sản phẩm</p>
+                </div>
+              </div>
               <div className="cart-top-warp">
                 <div className="cart-top">
                   <div className="cart-top-cart cart-top-item">
@@ -589,11 +604,13 @@ class Cart extends Component {
                               </select>
                             </td>
                             <td>
-                              <button onClick={() => this.handleDecreaseQuantity(item.ProductID, item.ProductDetailID, item.ItemQuantity - 1)} disabled={disabledRemoveButton}>
+                              <button className="minus" onClick={() => this.handleDecreaseQuantity(item.ProductID, item.ProductDetailID, item.ItemQuantity - 1)} disabled={disabledRemoveButton}>
                                 -
                               </button>
                               <input type="text" value={item.ItemQuantity} onChange={(e) => this.handleQuantityInputChange(item.ProductID, item.ProductDetailID, e)} min="1" />
-                              <button onClick={() => this.handleAddQuantity(item.ProductID, item.ProductDetailID, item.ItemQuantity + 1)}>+</button>
+                              <button className="plus" onClick={() => this.handleAddQuantity(item.ProductID, item.ProductDetailID, item.ItemQuantity + 1)}>
+                                +
+                              </button>
                             </td>
                             <td>
                               <div className="f">

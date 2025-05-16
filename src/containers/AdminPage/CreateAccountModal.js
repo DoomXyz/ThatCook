@@ -248,29 +248,31 @@ class CreateAccountModal extends Component {
           </div>
           {accounttype === 'V' && (
             <div className="R2 veterinarian-info">
-              <div className="inputbox">
-                <IonIcon icon={informationCircleOutline}></IonIcon>
-                <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
-                <label>Chuyên môn</label>
+              <div className="f">
+                <div className="inputbox-2">
+                  <IonIcon icon={informationCircleOutline}></IonIcon>
+                  <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
+                  <label>Chuyên môn</label>
+                </div>
+                <div className="selectbox">
+                  <label>Trạng thái làm việc:</label>
+                  <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
+                    {codeWorkingStatus.length > 0 ? (
+                      codeWorkingStatus.map((item) => (
+                        <option key={item.Code} value={item.Code}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có dữ liệu trạng thái</option>
+                    )}
+                  </select>
+                </div>
               </div>
-              <div className="inputbox">
+              <div className="inputbox-1">
                 <IonIcon icon={informationCircleOutline}></IonIcon>
                 <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} />
                 <label>Tiểu sử</label>
-              </div>
-              <div className="selectbox">
-                <label>Trạng thái làm việc</label>
-                <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
-                  {codeWorkingStatus.length > 0 ? (
-                    codeWorkingStatus.map((item) => (
-                      <option key={item.Code} value={item.Code}>
-                        {item.CodeValueVI}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Không có dữ liệu trạng thái</option>
-                  )}
-                </select>
               </div>
             </div>
           )}
@@ -325,9 +327,9 @@ class CreateAccountModal extends Component {
             </div>
           </div>
           <div className="R2">
-            <div className="inputbox">
+            <div className="inputbox-address">
               <IonIcon icon={location}></IonIcon>
-              <input type="text" placeholder="" value={address} onChange={(event) => this.handleOnChangeInput(event, 'address')} />
+              <input className="address" type="text" placeholder="" value={address} onChange={(event) => this.handleOnChangeInput(event, 'address')} />
               <label>Địa chỉ</label>
             </div>
           </div>

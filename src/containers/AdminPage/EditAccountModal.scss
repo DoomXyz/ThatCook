@@ -1,39 +1,47 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+.f {
+  display: flex;
+}
 
 .edit-user-modal {
   .modal-dialog {
-    max-width: 900px;
+    max-width: 810px; /* Tăng chiều rộng modal */
   }
+
   .modal-header {
     .btn-close {
-      margin-left: 300px;
+      margin-left: 250px; /* Điều chỉnh vị trí nút đóng */
     }
+
     .modal-title {
-      margin-left: 350px;
+      margin-left: 265px; /* Điều chỉnh vị trí tiêu đề */
     }
   }
 
   .modal-body {
-    height: 700px;
-    align-items: flex-start;
+    align-items: flex-start; /* Căn chỉnh nội dung lên trên */
     padding: 20px;
+
     .R1 {
       display: flex;
-      margin-bottom: 10px;
+      margin-bottom: 10px; /* Giảm khoảng cách giữa các hàng */
+
       .inputbox {
         position: relative;
         margin: 20px 15px;
         border-bottom: 2px solid black;
         color: black;
-        width: 350px;
+        width: 350px; /* Tăng chiều rộng input */
+
         .toggle-password {
           ion-icon {
             cursor: pointer;
           }
         }
+
         input {
           width: 100%;
-          height: 50px;
+          height: 50px; /* Giảm chiều cao input */
           background: transparent;
           border: none;
           outline: none;
@@ -94,19 +102,13 @@
           font-size: 1.2rem;
           top: 15px;
 
-          &[name="eye-outline"],
-          &[name="eye-off-outline"] {
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
             cursor: pointer;
 
             &:hover {
               color: #333;
             }
-          }
-        }
-        .selectbox {
-          width: 350px;
-          select {
-            height: 50px;
           }
         }
 
@@ -116,8 +118,19 @@
           color: #ff0000;
           margin-top: 5px;
           position: absolute;
-          bottom: -25px;
+          bottom: -20px;
           left: 5px;
+        }
+
+        input:focus {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
         }
 
         &:hover {
@@ -136,12 +149,10 @@
 
       .selectbox {
         position: relative;
-        margin: 30px 15px;
+        margin: 20px 15px;
         border-bottom: 2px solid black;
         color: black;
-        width: 100%;
-        max-width: 500px;
-        width: 300px;
+        width: 350px; /* Tăng chiều rộng select */
 
         label {
           position: absolute;
@@ -156,7 +167,7 @@
 
         select {
           width: 100%;
-          height: 60px;
+          height: 50px; /* Giảm chiều cao select */
           background: transparent;
           border: none;
           outline: none;
@@ -166,7 +177,7 @@
           appearance: none;
           cursor: pointer;
           box-sizing: border-box;
-          margin-bottom: -15px;
+          margin-bottom: -10px;
         }
 
         option {
@@ -184,64 +195,78 @@
         }
       }
     }
+
     .R2 {
       &.veterinarian-info {
         display: flex;
         flex-direction: column;
         gap: 10px;
         margin: 20px 15px;
+
         .inputbox {
           width: 100%;
-          max-width: 720px;
-          textarea {
-            width: 100%;
-            height: 100px;
-            resize: vertical;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 1rem;
-            padding: 10px 35px 10px 5px;
-            color: black;
-            margin-bottom: -10px;
-          }
+          max-width: 720px; /* Tăng chiều rộng cho veterinarian-info */
+
           input {
             width: 100%;
             height: 50px;
           }
+
           label {
-            top: 20px;
+            top: 20px; /* Điều chỉnh vị trí label cho textarea */
           }
+
           ion-icon {
             top: 15px;
           }
         }
+
         .selectbox {
-          width: 100%;
-          max-width: 720px;
+          height: 1.95rem;
+          border-bottom: 2px solid black;
+
+          margin-left: 2rem;
+          margin-top: 1.9rem;
+          label {
+            display: inline-block;
+            position: absolute;
+            top: 23.5%;
+            transform: translateY(-50%);
+            color: #706464;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: all 0.5s ease-in-out;
+          }
           select {
-            height: 50px;
+            min-width: 350px;
+            border: none;
           }
         }
       }
-      .inputbox {
+      .inputbox-2 {
         position: relative;
-        margin: 30px 15px;
+        margin: 20px 0;
         border-bottom: 2px solid black;
         color: black;
 
+        .toggle-password {
+          ion-icon {
+            cursor: pointer;
+          }
+        }
+
         input {
-          width: 100%;
-          height: 60px;
+          width: 350px;
+          height: 50px; /* Giảm chiều cao input */
           background: transparent;
           border: none;
           outline: none;
           font-size: 1rem;
           padding: 0 35px 0 5px;
           color: black;
-          margin-bottom: -15px;
+          margin-bottom: -10px;
 
-          &:not([type="password"]):-webkit-autofill {
+          &:-webkit-autofill {
             &,
             &:hover,
             &:focus,
@@ -291,10 +316,138 @@
           right: 8px;
           color: black;
           font-size: 1.2rem;
-          top: 20px;
+          top: 15px;
 
-          &[name="eye-outline"],
-          &[name="eye-off-outline"] {
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
+            cursor: pointer;
+
+            &:hover {
+              color: #333;
+            }
+          }
+        }
+
+        .error-message {
+          display: none;
+          font-size: 0.7rem;
+          color: #ff0000;
+          margin-top: 5px;
+          position: absolute;
+          bottom: -20px;
+          left: 5px;
+        }
+
+        input:focus {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+
+        &:hover {
+          border-bottom: 2px solid #333;
+
+          label {
+            top: -5px;
+            color: black;
+          }
+
+          ion-icon {
+            color: black;
+          }
+        }
+      }
+
+      .inputbox-1 {
+        position: relative;
+        margin: 20px 0px;
+        border-bottom: 2px solid black;
+        color: black;
+        width: 730px;
+        textarea {
+          width: 700px;
+          height: 40px;
+          resize: vertical;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+          padding: 10px 35px 10px 5px;
+          color: black;
+          margin-bottom: -10px;
+          line-height: 1rem;
+        }
+        input {
+          width: 100%;
+          width: 750px;
+          height: 50px;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+
+          color: black;
+          margin-bottom: -10px;
+
+          &:not([type='password']):-webkit-autofill {
+            &,
+            &:hover,
+            &:focus,
+            &:active {
+              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+              -webkit-text-fill-color: black !important;
+              border: none !important;
+              background: transparent !important;
+              transition: background-color 5000s ease-in-out 0s;
+            }
+
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+
+          &:not(:placeholder-shown) {
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+        }
+
+        label {
+          position: absolute;
+          top: 50%;
+          left: 5px;
+          transform: translateY(-50%);
+          color: black;
+          font-size: 1rem;
+          pointer-events: none;
+          transition: all 0.5s ease-in-out;
+        }
+
+        ion-icon {
+          position: absolute;
+          right: 8px;
+          color: black;
+          font-size: 1.2rem;
+          top: 15px;
+
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
             cursor: pointer;
 
             &:hover {
@@ -306,7 +459,112 @@
         input:focus {
           ~ label {
             top: -5px;
-            /* Label di chuyển lên khi focus */
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+
+        &:hover {
+          border-bottom: 2px solid #333;
+
+          label {
+            top: -5px;
+            color: black;
+          }
+
+          ion-icon {
+            color: black;
+          }
+        }
+      }
+      .inputbox-address {
+        position: relative;
+        margin: 20px 0px;
+        border-bottom: 2px solid black;
+        color: black;
+        width: 730px;
+        margin-left: 1rem;
+
+        input {
+          width: 100%;
+          width: 700px;
+          height: 50px;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+
+          color: black;
+          margin-bottom: -10px;
+
+          &:not([type='password']):-webkit-autofill {
+            &,
+            &:hover,
+            &:focus,
+            &:active {
+              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+              -webkit-text-fill-color: black !important;
+              border: none !important;
+              background: transparent !important;
+              transition: background-color 5000s ease-in-out 0s;
+            }
+
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+
+          &:not(:placeholder-shown) {
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+
+            ~ ion-icon {
+              color: black;
+            }
+          }
+        }
+
+        label {
+          position: absolute;
+          top: 50%;
+          left: 5px;
+          transform: translateY(-50%);
+          color: black;
+          font-size: 1rem;
+          pointer-events: none;
+          transition: all 0.5s ease-in-out;
+        }
+
+        ion-icon {
+          position: absolute;
+          right: 8px;
+          color: black;
+          font-size: 1.2rem;
+          top: 15px;
+
+          &[name='eye-outline'],
+          &[name='eye-off-outline'] {
+            cursor: pointer;
+
+            &:hover {
+              color: #333;
+            }
+          }
+        }
+
+        input:focus {
+          ~ label {
+            top: -5px;
             color: black;
           }
 
@@ -332,28 +590,14 @@
       .error-message {
         color: red;
         font-size: 1rem;
-        margin-top: -20px;
-        margin-bottom: -20px;
+        margin-top: -10px;
+        margin-bottom: -10px;
         margin-left: 15px;
-        // opacity: 0;
-        // transition: opacity 0.3s ease;
-
-        &.active {
-          opacity: 1;
-        }
       }
     }
   }
+
   .modal-footer {
-    button:first-child {
-      position: absolute;
-      bottom: 30px;
-      right: 28px;
-    }
-    button:last-child {
-      position: absolute;
-      bottom: 30px;
-      left: 26px;
-    }
+    justify-content: space-between;
   }
 }

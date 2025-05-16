@@ -7,6 +7,10 @@ import Spinner from '../../components/Spinner';
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
 
+import { IonIcon } from '@ionic/react';
+
+import { chevronBackOutline } from 'ionicons/icons';
+
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleGetCartDetailApi } from '../../services/cartServices';
 import { handleCreateInvoiceApi } from '../../services/invoiceServices';
@@ -593,6 +597,19 @@ class CheckOut extends Component {
                   </div>
                 </div>
               </div>
+              <div className="delivery-content-left-button row">
+                <a href="/cart" className="f">
+                  <IonIcon icon={chevronBackOutline}></IonIcon>
+                  <p
+                    style={{
+                      color: 'rgba(91, 82, 82)',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    TRỞ LẠI
+                  </p>
+                </a>
+              </div>
             </div>
             <div className="pay" style={{ marginBottom: '100px' }}>
               <div className="container-checkout">
@@ -619,18 +636,6 @@ class CheckOut extends Component {
                           <button onClick={this.handleApplyCouponCode}>Áp dụng</button>
                         </div>
                       </div>
-                    </div>
-                    <div className="delivery-content-left-button row">
-                      <a href="/cart">
-                        <p
-                          style={{
-                            color: 'rgba(91, 82, 82)',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          *Quay lại trang giỏ hàng
-                        </p>
-                      </a>
                     </div>
                   </div>
                   <div className="pay-content-left">
@@ -821,18 +826,18 @@ class CheckOut extends Component {
                       <div className="page-content">
                         <div className="page-content-item">
                           <button className="first" onClick={this.handleFirstPage} disabled={currentPage === 1}>
-                            {'<<'}
+                            <p> {'<<'}</p>
                           </button>
                           <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
-                            {'<'}
+                            <p> {'<'}</p>
                           </button>
                           <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
                           <span className="total-pages">/ {totalPages}</span>
                           <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
-                            {'>'}
+                            <p>{'>'}</p>
                           </button>
                           <button className="last" onClick={this.handleLastPage} disabled={currentPage === totalPages}>
-                            {'>>'}
+                            <p>{'>>'}</p>
                           </button>
                         </div>
                       </div>
@@ -840,7 +845,7 @@ class CheckOut extends Component {
                     <div>
                       {!isPlaced && loadedCheckOutCartDetailInfo.length > 0 ? (
                         <button className="pay-content-right-button" onClick={this.handleCompleteOrder} disabled={isLoading} style={{ opacity: isLoading ? 0.5 : 1 }}>
-                          {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
+                          {isLoading ? 'Đang xử lý...' : 'Hoàn tất thanh toán'}
                         </button>
                       ) : (
                         <div style={{ color: 'green', fontWeight: 'bold' }}>{loadedCheckOutCartDetailInfo.length === 0 ? 'Giỏ hàng trống, vui lòng chọn lại sản phẩm!' : 'Đơn hàng đã được đặt thành công!'}</div>

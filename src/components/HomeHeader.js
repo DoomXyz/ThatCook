@@ -273,7 +273,7 @@ class HomeHeader extends Component {
                         this.props.navigate('/homeappointment');
                       }}
                     >
-                      <IonIcon icon={newspaperOutline}></IonIcon>D.vụ Đặt Lịch
+                      <IonIcon icon={newspaperOutline}></IonIcon>Đặt Lịch
                     </a>
                   </li>
                 </ul>
@@ -285,9 +285,7 @@ class HomeHeader extends Component {
                     codeService.map((service) => (
                       <li key={service.ServiceID}>
                         <a>
-                          <p onClick={() => this.handleServiceNavigate(service.ServiceID)}>
-                            {service.ServiceName}
-                          </p>
+                          <p onClick={() => this.handleServiceNavigate(service.ServiceID)}>{service.ServiceName}</p>
                         </a>
                       </li>
                     ))

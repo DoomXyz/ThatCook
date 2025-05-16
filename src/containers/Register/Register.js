@@ -178,11 +178,12 @@ class Register extends Component {
               <div className="register-content">
                 <h1>ĐĂNG KÝ</h1>
                 <div className="single">
-                  <div className="inputbox">
-                    <IonIcon icon={keyOutline}></IonIcon>
-                    <input type="text" placeholder="" value={accountname} onChange={(event) => this.handleOnChangeInput(event, 'accountname')} />
-                    <label>Tên tài khoản</label>
+                <div className="inputbox">
+                    <IonIcon icon={mailOutline}></IonIcon>
+                    <input type="email" placeholder="" value={email} onChange={(event) => this.handleOnChangeInput(event, 'email')} />
+                    <label>Email</label>
                   </div>
+                  
                 </div>
                 <div className="R1">
                   <div className="inputbox">
@@ -197,10 +198,10 @@ class Register extends Component {
                   </div>
                 </div>
                 <div className="R1">
-                  <div className="inputbox">
-                    <IonIcon icon={mailOutline}></IonIcon>
-                    <input type="email" placeholder="" value={email} onChange={(event) => this.handleOnChangeInput(event, 'email')} />
-                    <label>Email</label>
+                <div className="inputbox">
+                    <IonIcon icon={keyOutline}></IonIcon>
+                    <input type="text" placeholder="" value={accountname} onChange={(event) => this.handleOnChangeInput(event, 'accountname')} />
+                    <label>Tên tài khoản</label>
                   </div>
                   <div className="inputbox">
                     <div className="toggle-password">
