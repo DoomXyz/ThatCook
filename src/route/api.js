@@ -79,8 +79,9 @@ let initAPIRoutes = (app) => {
     router.get('/api/get-serviceinfo', appointmentController.handleGetServiceInfo);
     router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes)
 
-    router.get('/api/get-petinfo', petController.handleGetPetInfo);
+    router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
     router.post('/api/save-petinfo', petController.handleSavePetInfo);
+    router.put('/api/change-petinfo', petController.handleChangePetInfo);
     //admin
     router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
     router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

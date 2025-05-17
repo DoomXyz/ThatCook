@@ -125,7 +125,7 @@ let generatePetID = () => {
     });
 };
 
-let getPetInfo = (accountid) => {
+let getAccountPetInfo = (accountid) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!accountid) {
@@ -136,33 +136,21 @@ let getPetInfo = (accountid) => {
                 });
                 return;
             }
+            const account = await db.Account.findOne({
+                where: { AccountID: accountid },
+                raw: false,
+            });
             let data
-            if (accountid !== "ALL") {
-                const account = await db.Account.findOne({
-                    where: { AccountID: accountid },
-                    raw: false,
-                });
-                if (!account) {
-                    resolve({
-                        errCode: 2,
-                        errMessage: 'Người dùng không tồn tại!',
-                        data: null,
-                    });
-                    return;
-                }
+            if (account) {
                 data = await db.Pet.findAll({
-                    where: { AccountID: accountid },
                     attributes: {
                         exclude: ['AccountID'],
                     },
                     raw: true
                 })
             } else {
-                data = await db.Pet.findAll({
-                    attributes: {
-                        exclude: ['AccountID'],
-                    },
-                    raw: true
+                data = await db.Pet.findOne({
+                    where: ({ AccountID: accountid })
                 })
             }
             if (!data) {
@@ -248,7 +236,69 @@ let savePetInfo = (accountid, petInfo) => {
     });
 };
 
+let changePetInfo = (petid, petInfo) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!petid || !petInfo) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu tham số!',
+                    data: null,
+                });
+                return;
+            }
+            let isValidateInput = await validatePetInput(petInfo);
+            if (isValidateInput) {
+                resolve(isValidateInput);
+                return;
+            }
+            let updatePetInfo = await db.Pet.findOne({
+                where: ({ PetID: petid }),
+                raw: false
+            })
+            if (updatePetInfo.PetName !== petInfo.petname) {
+                await db.Pet.update({
+                    PetName: petInfo.petname
+                }, { where: { PetID: petid } });
+            }
+            if (updatePetInfo.PetType !== petInfo.pettype) {
+                await db.Pet.update({
+                    PetType: petInfo.pettype
+                }, { where: { PetID: petid } });
+            }
+            if (updatePetInfo.PetGender !== petInfo.petgender) {
+                await db.Pet.update({
+                    PetGender: petInfo.petgender
+                }, { where: { PetID: petid } });
+            }
+            if (updatePetInfo.Age !== petInfo.age) {
+                await db.Pet.update({
+                    Age: petInfo.age
+                }, { where: { PetID: petid } });
+            }
+            if (updatePetInfo.PetWeight !== petInfo.petweight) {
+                await db.Pet.update({
+                    PetWeight: petInfo.petweight
+                }, { where: { PetID: petid } });
+            }
+            resolve({
+                errCode: 0,
+                errMessage: 'Cập nhật thông tin thú cưng thành công!',
+                data: null
+            });
+        } catch (e) {
+            console.log('Error in updatePet: ', e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi cập nhật thông tin: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
 module.exports = {
-    getPetInfo,
+    getAccountPetInfo,
     savePetInfo,
+    changePetInfo
 };

@@ -1,8 +1,8 @@
 import petService from '../services/petService';
 
-let handleGetPetInfo = async (req, res) => {
+let handleGetAccountPetInfo = async (req, res) => {
     try {
-        let response = await petService.getPetInfo(req.query.accountid);
+        let response = await petService.getAccountPetInfo(req.query.accountid);
         return res.status(200).json(response);
     } catch (e) {
         console.log('Error in handleGetPetInfo: ', e);
@@ -29,7 +29,23 @@ let handleSavePetInfo = async (req, res) => {
     }
 };
 
+let handleChangePetInfo = async (req, res) => {
+    try {
+        const { petid, petInfo } = req.body
+        let response = await petService.changePetInfo(petid, petInfo);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: 'Lỗi từ server: ' + e.message,
+            data: null,
+        });
+    }
+};
+
 module.exports = {
-    handleGetPetInfo,
-    handleSavePetInfo
+    handleGetAccountPetInfo,
+    handleSavePetInfo,
+    handleChangePetInfo,
 };

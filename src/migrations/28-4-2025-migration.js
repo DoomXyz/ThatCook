@@ -119,11 +119,6 @@ module.exports = {
       AccountID: {
         type: Sequelize.CHAR(10),
         allowNull: false,
-        references: {
-          model: 'Account',
-          key: 'AccountID',
-        },
-        onDelete: 'CASCADE',
       },
       PetType: {
         type: Sequelize.CHAR(20),
