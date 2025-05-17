@@ -178,6 +178,35 @@ let checkPetType = (petType) => {
   });
 };
 
+let checkPetGender = (petGender) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!petGender) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'PetGender',
+          Code: petGender,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
 let checkDetailStatus = (detailStatus) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -474,6 +503,7 @@ module.exports = {
   checkAccountStatus,
   checkProductType,
   checkPetType,
+  checkPetGender,
   checkDetailStatus,
   checkBannerStatus,
   checkPaymentStatus,

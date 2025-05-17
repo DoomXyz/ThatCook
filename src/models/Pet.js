@@ -2,7 +2,7 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Pet extends Model {}
+  class Pet extends Model { }
 
   Pet.init(
     {
@@ -23,13 +23,17 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'PetType')
         allowNull: false,
       },
+      PetWeight: {
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: false,
+      },
       Age: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       PetGender: {
         type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'PetGender')
-        allowNull: true,
+        allowNull: false,
       },
     },
     {

@@ -129,13 +129,17 @@ module.exports = {
         type: Sequelize.CHAR(20),
         allowNull: false,
       },
+      PetWeight: {
+        type: Sequelize.DECIMAL(5, 2),
+        allowNull: false,
+      },
       Age: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       PetGender: {
         type: Sequelize.CHAR(20),
-        allowNull: true,
+        allowNull: false,
       },
     });
 
