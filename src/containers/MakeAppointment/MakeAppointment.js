@@ -10,10 +10,9 @@ import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
-import { handleGetAccountPetInfo, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices'
+import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
 import { checkLoginStatus } from '../../utils/pakage';
-
 
 import PetSelectModal from './PetSelectModal';
 import VeterinarianSelectModal from './VeterinarianSelectModal';
@@ -81,7 +80,7 @@ class MakeAppointment extends Component {
         if (!this.props.userInfo) {
           this.props.userLogin(accountInfo);
         }
-        await this.handleLoadAccountInfo(accountInfo.AccountID)
+        await this.handleLoadAccountInfo(accountInfo.AccountID);
         this.setState({
           isLoggedIn: true,
           guestID: '',
@@ -92,7 +91,7 @@ class MakeAppointment extends Component {
         this.setState({
           accountInfo: null,
           isLoggedIn: false,
-          guestID: ''
+          guestID: '',
         });
       }
     } catch (e) {
@@ -107,8 +106,8 @@ class MakeAppointment extends Component {
       const response = await handleGetAccountInfoApi(accountid);
       if (response || response.errCode === 0) {
         this.setState({
-          accountInfo: response.data
-        })
+          accountInfo: response.data,
+        });
       } else {
         toast.error('Không thể tải thông tin người dùng!', {
           position: 'top-right',
@@ -123,16 +122,16 @@ class MakeAppointment extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
   handleLoadAppointmentInfo = async () => {
-    const { isLoggedIn, accountInfo } = this.state
+    const { isLoggedIn, accountInfo } = this.state;
     if (isLoggedIn) {
       try {
-        const response = await handleGetAccountPetInfo(accountInfo.AccountID);
-        if (response || response.errCode === 0) {
+        const response = await handleGetAccountPetInfoApi(accountInfo.AccountID);
+        if (response && response.errCode === 0) {
           this.setState({
-            loadedPetList: response.data
-          })
+            loadedPetList: response.data,
+          });
         }
       } catch (e) {
         toast.error('Lỗi khi tải danh sách thú cưng của người dùng!', {
@@ -145,9 +144,9 @@ class MakeAppointment extends Component {
         customername: accountInfo.UserName,
         customerphone: accountInfo.Phone,
         customeremail: accountInfo.Email,
-      })
+      });
     }
-  }
+  };
   handleLoadCodePetType = async () => {
     try {
       const codePetType = await handleGetAllCodesApi('PetType');
@@ -220,17 +219,16 @@ class MakeAppointment extends Component {
     }
   };
   handleSavePetInfo = async () => {
-    const { loadedPetList, isLoggedIn, accountInfo, guestID, petname, pettype, petgender, age, petweight } = this.state
-    console.log(loadedPetList)
+    const { loadedPetList, isLoggedIn, accountInfo, guestID, petname, pettype, petgender, age, petweight } = this.state;
+    console.log(loadedPetList);
     const newPetInfo = {
       petname,
       pettype,
       petgender,
       age: age ? parseInt(age) : 0,
       petweight: petweight ? parseFloat(petweight) : 0,
-    }
-    const isValidPetInfo = loadedPetList.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype &&
-      item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight)
+    };
+    const isValidPetInfo = loadedPetList.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype && item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight);
     if (isValidPetInfo) {
       toast.info('Đã tự chọn thú cưng trong danh sách!', {
         position: 'top-right',
@@ -238,8 +236,8 @@ class MakeAppointment extends Component {
         closeOnClick: true,
       });
       this.setState({
-        selectedPetID: isValidPetInfo.PetID
-      })
+        selectedPetID: isValidPetInfo.PetID,
+      });
       return;
     } else {
       if (!newPetInfo.petname || !newPetInfo.age || !newPetInfo.petweight) {
@@ -261,9 +259,9 @@ class MakeAppointment extends Component {
         }
       }
       try {
-        let accountid = null
+        let accountid = null;
         if (isLoggedIn) {
-          accountid = accountInfo.AccountID
+          accountid = accountInfo.AccountID;
         }
         if (!guestID) {
           const response = await handleSavePetInfoApi(accountid, newPetInfo);
@@ -273,15 +271,15 @@ class MakeAppointment extends Component {
               autoClose: 500,
               closeOnClick: true,
             });
-            const { isLoggedIn } = this.state
+            const { isLoggedIn } = this.state;
             if (!isLoggedIn) {
               this.setState({
-                guestID: response.data.guestID
-              })
+                guestID: response.data.guestID,
+              });
             }
             this.setState({
-              selectedPetID: response.data.PetID
-            })
+              selectedPetID: response.data.PetID,
+            });
           } else {
             toast.error('Lưu thông tin thú cưng thất bại!', {
               position: 'top-right',
@@ -290,13 +288,12 @@ class MakeAppointment extends Component {
             });
           }
         } else {
-          const response = await handleGetAccountPetInfo(guestID)
+          const response = await handleGetAccountPetInfoApi(guestID);
           if (response && response.errCode === 0) {
-            const guestPetInfo = [response.data]
-            const isValidPetInfo = guestPetInfo.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype &&
-              item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight)
+            const guestPetInfo = [response.data];
+            const isValidPetInfo = guestPetInfo.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype && item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight);
             if (!isValidPetInfo) {
-              const updatePetInfo = await handleChangePetInfoApi(response.data.PetID, newPetInfo)
+              const updatePetInfo = await handleChangePetInfoApi(response.data.PetID, newPetInfo);
               if (updatePetInfo && updatePetInfo.errCode !== 0) {
                 toast.error(updatePetInfo.errMessage, {
                   position: 'top-right',
@@ -314,7 +311,7 @@ class MakeAppointment extends Component {
           }
         }
       } catch (e) {
-        console.log(e)
+        console.log(e);
         toast.error('Lỗi khi lưu thông tin thú cưng!', {
           position: 'top-right',
           autoClose: 500,
@@ -322,7 +319,7 @@ class MakeAppointment extends Component {
         });
       }
     }
-  }
+  };
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -528,9 +525,7 @@ class MakeAppointment extends Component {
     this.setState({ selectedDoctorID: vetID });
   };
   render() {
-    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight,
-      appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal,
-      selectedPetID, selectedDoctorID, loadedPetList } = this.state;
+    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedDoctorID, loadedPetList } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
@@ -551,12 +546,11 @@ class MakeAppointment extends Component {
               </div>
               {loadedPetList.length > 0 ? (
                 <div className="makeappointment-content-pet">
-                  <button
-                    onClick={this.togglePetSelectModal}
-                  >Xem danh sách thú cưng
-                  </button>
+                  <button onClick={this.togglePetSelectModal}>Xem danh sách thú cưng</button>
                 </div>
-              ) : ""}
+              ) : (
+                ''
+              )}
               <div className="makeappointment-content-pet-info">
                 <b>*Thông tin Thú cưng</b>
                 <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} />
@@ -592,10 +586,7 @@ class MakeAppointment extends Component {
                 </div>
               </div>
               <div className="makeappointment-save-petinfo-button">
-                <button
-                  onClick={this.handleSavePetInfo}
-                >Lưu
-                </button>
+                <button onClick={this.handleSavePetInfo}>Lưu</button>
               </div>
               <div className="makeappointment-content-doctor">
                 <div className="f">
@@ -678,7 +669,6 @@ class MakeAppointment extends Component {
     );
   }
 }
-
 
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
