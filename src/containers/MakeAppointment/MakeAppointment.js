@@ -10,7 +10,7 @@ import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
-import { handleGetPetInfoApi, handleSavePetInfoApi } from '../../services/petServices'
+import { handleGetAccountPetInfo, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices'
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
 import { checkLoginStatus } from '../../utils/pakage';
 
@@ -84,7 +84,7 @@ class MakeAppointment extends Component {
         await this.handleLoadAccountInfo(accountInfo.AccountID)
         this.setState({
           isLoggedIn: true,
-          guestID: ''
+          guestID: '',
         });
       } else {
         await handleLogoutApi();
@@ -128,7 +128,7 @@ class MakeAppointment extends Component {
     const { isLoggedIn, accountInfo } = this.state
     if (isLoggedIn) {
       try {
-        const response = await handleGetPetInfoApi(accountInfo.AccountID);
+        const response = await handleGetAccountPetInfo(accountInfo.AccountID);
         if (response || response.errCode === 0) {
           this.setState({
             loadedPetList: response.data
@@ -220,7 +220,7 @@ class MakeAppointment extends Component {
     }
   };
   handleSavePetInfo = async () => {
-    const { loadedPetList, accountInfo, petname, pettype, petgender, age, petweight } = this.state
+    const { loadedPetList, isLoggedIn, accountInfo, guestID, petname, pettype, petgender, age, petweight } = this.state
     console.log(loadedPetList)
     const newPetInfo = {
       petname,
@@ -242,29 +242,79 @@ class MakeAppointment extends Component {
       })
       return;
     } else {
-      try {
-        const response = await handleSavePetInfoApi(accountInfo.AccountID, newPetInfo);
-        if (response && response.errCode === 0) {
-          toast.success('Đã chọn thông tin cưng!', {
+      if (!newPetInfo.petname || !newPetInfo.age || !newPetInfo.petweight) {
+        toast.error('Thông tin thú cưng không được để trống!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      } else {
+        const petName = newPetInfo.petname.trim();
+        const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+        if (!petNameRegex.test(petName)) {
+          toast.error('Tên thú cưng không hợp lệ!', {
             position: 'top-right',
             autoClose: 500,
             closeOnClick: true,
           });
-          console.log(response)
-          const { isLoggedIn } = this.state
-          if (isLoggedIn) {
-
+          return;
+        }
+      }
+      try {
+        let accountid = null
+        if (isLoggedIn) {
+          accountid = accountInfo.AccountID
+        }
+        if (!guestID) {
+          const response = await handleSavePetInfoApi(accountid, newPetInfo);
+          if (response && response.errCode === 0) {
+            toast.success('Đã chọn thông tin cưng!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+            const { isLoggedIn } = this.state
+            if (!isLoggedIn) {
+              this.setState({
+                guestID: response.data.guestID
+              })
+            }
+            this.setState({
+              selectedPetID: response.data.PetID
+            })
           } else {
-
+            toast.error('Lưu thông tin thú cưng thất bại!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
           }
         } else {
-          toast.error('Lưu thông tin thú cưng thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          const response = await handleGetAccountPetInfo(guestID)
+          if (response && response.errCode === 0) {
+            const guestPetInfo = [response.data]
+            const isValidPetInfo = guestPetInfo.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype &&
+              item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight)
+            if (!isValidPetInfo) {
+              const updatePetInfo = await handleChangePetInfoApi(response.data.PetID, newPetInfo)
+              if (updatePetInfo && updatePetInfo.errCode !== 0) {
+                toast.error(updatePetInfo.errMessage, {
+                  position: 'top-right',
+                  autoClose: 500,
+                  closeOnClick: true,
+                });
+              }
+            }
+          } else {
+            toast.error('Lấy thông tin thú cưng thất bại!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+          }
         }
       } catch (e) {
+        console.log(e)
         toast.error('Lỗi khi lưu thông tin thú cưng!', {
           position: 'top-right',
           autoClose: 500,

@@ -1,7 +1,7 @@
 import axios from '../axios';
 
-const handleGetPetInfoApi = (accountid) => {
-    return axios.get(`/api/get-petinfo?accountid=${accountid}`);
+const handleGetAccountPetInfo = (accountid) => {
+    return axios.get(`/api/get-account-petinfo?accountid=${accountid}`);
 };
 
 const handleSavePetInfoApi = (accountid, petInfo) => {
@@ -9,7 +9,12 @@ const handleSavePetInfoApi = (accountid, petInfo) => {
     return axios.post('/api/save-petinfo', { accountid, petInfo });
 };
 
+const handleChangePetInfoApi = (petid, petInfo) => {
+    return axios.put('/api/change-petinfo', { petid, petInfo });
+};
+
 export {
-    handleGetPetInfoApi,
-    handleSavePetInfoApi
+    handleGetAccountPetInfo,
+    handleSavePetInfoApi,
+    handleChangePetInfoApi
 }
