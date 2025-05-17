@@ -1,7 +1,12 @@
 f {
   display: flex;
 }
-
+input {
+  outline: none;
+}
+textarea {
+  outline: none;
+}
 .makeappointment-body {
   background-color: white;
   background-image: url('../../assets/doctor-imgs/bg-ck.png');
@@ -15,7 +20,7 @@ f {
     border-bottom: 1px solid black;
     height: 5rem;
   }
-  
+
   justify-content: center;
   .makeappointment-content {
     margin-top: 6rem;
@@ -121,7 +126,13 @@ f {
     .makeappointment-content-date {
       margin-top: 1rem;
       margin-left: 5rem;
-     
+      .date-picker {
+        &::placeholder {
+          color: white;
+          font-weight: bold;
+          padding-left: 0.15rem;
+        }
+      }
       button:last-child {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -132,13 +143,13 @@ f {
         width: 5rem;
         margin-left: 1rem;
       }
-      input{  
+      input {
         width: 10rem;
         padding: 0.4rem 0.3rem;
         border-radius: 0.3rem;
-      border: none;
-      color: white;
-      background-color: #4dc9f2;
+        border: none;
+        color: white;
+        background-color: #4dc9f2;
       }
     }
     .makeappointment-content-service {
@@ -211,26 +222,38 @@ f {
           display: inline-block;
           margin: 1rem 0;
           img {
-            margin-left: 1.7rem;
-            max-width: 12rem;
+            margin-left: 0.7rem;
+            max-width: 9rem;
           }
           button {
-            margin: 1rem 0;
             background-color: red;
             position: absolute;
             color: white;
             width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 0.3rem;
+            border-top-right-radius: 0;
+            border: none;
             transform: translateX(-1.5rem);
+            ion-icon {
+              margin-top: 0.25rem;
+            }
           }
         }
 
-        .add {
-          margin-left: 1.7rem;
-          width: 10rem;
-          height: 10rem;
+        .add-img {
+          border-radius: 0.3rem;
+          margin-top: 1rem;
+          margin-left: 0.7rem;
+          width: 9rem;
+          height: 9rem;
           background-color: rgb(212, 212, 212);
-          font-size: 1rem;
+          font-size: 4rem;
           color: black;
+          label {
+            margin-left: 3.4rem;
+            margin-top: 1.3rem;
+          }
         }
       }
     }

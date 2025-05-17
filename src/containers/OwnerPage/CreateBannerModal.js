@@ -360,7 +360,7 @@ class CreateBannerModal extends Component {
                   <div className="add-img">
                     <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
                     <label htmlFor="upload-image" className="add-img-label">
-                      +
+                      <p>+</p>
                     </label>
                   </div>
                 )}
@@ -368,7 +368,7 @@ class CreateBannerModal extends Component {
             </div>
             <div className="modal-content-add-product">
               <div className="f">
-                <div className="modal-content-add-category">
+                <div className="modal-content-add-category f">
                   <p>Loại sản phẩm:</p>
                   <select value={producttype} onChange={(e) => this.handleSelectChange(e, 'producttype')}>
                     <option value="ALL">Tất cả</option>
@@ -379,7 +379,7 @@ class CreateBannerModal extends Component {
                     ))}
                   </select>
                 </div>
-                <div className="modal-content-add-pettype">
+                <div className="modal-content-add-pettype f">
                   <p>Loại thú cưng:</p>
                   <div className="pettype-checkboxes f">
                     {codePetType.map((type) => (
@@ -393,7 +393,7 @@ class CreateBannerModal extends Component {
               </div>
               <div className="modal-content-add-product-select">
                 <p>Sản phẩm:</p>
-                <Select options={productOptions} value={productid ? { value: productid, label: productname } : null} onChange={this.handleProductChange} placeholder="Chọn sản phẩm" isClearable />
+                <Select className="product-select" options={productOptions} value={productid ? { value: productid, label: productname } : null} onChange={this.handleProductChange} placeholder="Chọn sản phẩm" isClearable />
               </div>
             </div>
             <div className="modal-content-add-dates">

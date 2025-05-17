@@ -28,7 +28,7 @@ class Vaccination extends Component {
               <li>
                 <p
                   onClick={() => {
-                    this.props.navigate('/user/genhealthcheck');
+                    this.props.navigate('/service/genhealthcheck');
                   }}
                 >
                   Khám Tổng Quát
@@ -37,7 +37,7 @@ class Vaccination extends Component {
               <li>
                 <p
                   onClick={() => {
-                    this.props.navigate('/user/vaccination');
+                    this.props.navigate('/service/vaccination');
                   }}
                 >
                   Tiêm Phòng
@@ -46,7 +46,7 @@ class Vaccination extends Component {
               <li>
                 <p
                   onClick={() => {
-                    this.props.navigate('/user/surgery');
+                    this.props.navigate('/service/surgery');
                   }}
                 >
                   Phẫu Thuật Cơ Bản
@@ -55,7 +55,7 @@ class Vaccination extends Component {
               <li>
                 <p
                   onClick={() => {
-                    this.props.navigate('/user/test');
+                    this.props.navigate('/service/test');
                   }}
                 >
                   Xét Nghiệm
@@ -91,6 +91,7 @@ class Vaccination extends Component {
             <button>Đặt lịch khám ngay !</button>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }

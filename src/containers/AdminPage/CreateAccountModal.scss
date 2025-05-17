@@ -59,7 +59,6 @@
           margin-bottom: -10px;
 
           &:-webkit-autofill {
-
             &,
             &:hover,
             &:focus,
@@ -71,23 +70,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
@@ -132,12 +131,12 @@
         }
 
         input:focus {
-          ~label {
+          ~ label {
             top: -5px;
             color: black;
           }
 
-          ~ion-icon {
+          ~ ion-icon {
             color: black;
           }
         }
@@ -239,7 +238,7 @@
           margin: 20px 15px;
           border-bottom: 2px solid black;
           color: black;
-          width: 350px;
+
           /* Tăng chiều rộng select */
 
           label {
@@ -254,7 +253,7 @@
           }
 
           select {
-            width: 100%;
+            width: 350px;
             height: 50px;
             /* Giảm chiều cao select */
             background: transparent;
@@ -290,6 +289,7 @@
         margin: 20px 0;
         border-bottom: 2px solid black;
         color: black;
+        margin-right: 1rem;
 
         .toggle-password {
           ion-icon {
@@ -310,7 +310,6 @@
           margin-bottom: -10px;
 
           &:-webkit-autofill {
-
             &,
             &:hover,
             &:focus,
@@ -322,23 +321,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
@@ -383,12 +382,12 @@
         }
 
         input:focus {
-          ~label {
+          ~ label {
             top: -5px;
             color: black;
           }
 
-          ~ion-icon {
+          ~ ion-icon {
             color: black;
           }
         }
@@ -426,6 +425,19 @@
           color: black;
           margin-bottom: -10px;
           line-height: 1rem;
+          &:focus {
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+          }
+
+          &.filled {
+            ~ label {
+              top: -5px;
+              color: black;
+            }
+          }
         }
 
         input {
@@ -441,7 +453,6 @@
           margin-bottom: -10px;
 
           &:not([type='password']):-webkit-autofill {
-
             &,
             &:hover,
             &:focus,
@@ -453,23 +464,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
@@ -504,12 +515,12 @@
         }
 
         input:focus {
-          ~label {
+          ~ label {
             top: -5px;
             color: black;
           }
 
-          ~ion-icon {
+          ~ ion-icon {
             color: black;
           }
         }
@@ -549,7 +560,6 @@
           margin-bottom: -10px;
 
           &:not([type='password']):-webkit-autofill {
-
             &,
             &:hover,
             &:focus,
@@ -561,23 +571,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~label {
+            ~ label {
               top: -5px;
               color: black;
             }
 
-            ~ion-icon {
+            ~ ion-icon {
               color: black;
             }
           }
@@ -612,12 +622,12 @@
         }
 
         input:focus {
-          ~label {
+          ~ label {
             top: -5px;
             color: black;
           }
 
-          ~ion-icon {
+          ~ ion-icon {
             color: black;
           }
         }

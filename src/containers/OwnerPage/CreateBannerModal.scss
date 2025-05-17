@@ -3,28 +3,177 @@
 }
 .create-banner-modal {
   .modal-dialog {
-    max-width: 700px;
+    max-width: 650px;
   }
+  .modal-body {
+    .modal-content {
+      border: none;
+      width: 100%;
+      .modal-content-add-img {
+        p {
+          margin: 0;
+          margin-bottom: 0.5rem;
+        }
+        .modal-content-add-img-item {
+          margin-bottom: 1rem;
+          img {
+            max-width: 600px;
+          }
+          .delete-img {
+            position: absolute;
+            border: none;
+            padding: 0.3rem;
+            border-radius: 1rem;
+            width: 2.1rem;
+            background-color: red;
+            color: white;
+          }
+        }
+        .add-img {
+          margin-bottom: 0.5rem;
+          .add-img-label {
+            border-radius: 0.3rem;
+            text-align: center;
+            width: 6rem;
+            height: 6rem;
+            background-color: rgb(183, 183, 183);
+            p {
+              margin-top: 2.2rem;
+            }
+          }
+        }
+      }
+      .modal-content-add-product {
+        .modal-content-add-category {
+          p {
+            margin-top: 0.2rem;
+            margin-right: 0.5rem;
+          }
+          select {
+            border-radius: 0.3rem;
+            height: 2rem;
+          }
+        }
+        .modal-content-add-pettype {
+          p {
+            margin: 0 0.5rem;
+            margin-top: 0.2rem;
+          }
+          select {
+            border-radius: 0.3rem;
+            height: 2rem;
+          }
+          .pettype-checkboxes {
+            margin-right: 1rem;
+            .custom-checkbox {
+              // Ẩn checkbox mặc định
+              appearance: none;
+              -webkit-appearance: none;
+              -moz-appearance: none;
+              width: 2rem; // Kích thước checkbox lớn hơn
+              height: 2rem;
+              margin: 0 8px 0 0; // Khoảng cách với label
+              position: relative;
+              outline: none;
+              cursor: pointer;
 
-  .modal-content {
-    border: none;
-    .modal-content-add-img {
-      margin-bottom: 15px;
-      img {
-        max-width: 320px;
-        margin-right: 15px;
+              // Tạo hình checkbox tùy chỉnh
+              &:before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: 2px solid #ccc; // Viền checkbox
+                border-radius: 4px; // Bo góc
+                background-color: #fff;
+                box-sizing: border-box;
+                transition: all 0.2s ease;
+              }
+
+              // Khi checkbox được chọn
+              &:checked:before {
+                border-color: #007bff; // Màu viền khi checked
+                background-color: #007bff; // Màu nền khi checked
+              }
+
+              // Tạo dấu check
+              &:checked:after {
+                content: '\2713'; // Ký tự dấu check (✓)
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #fff; // Màu dấu check
+                font-size: 16px; // Kích thước dấu check
+                font-weight: bold;
+              }
+
+              // Hover state
+              &:hover:before {
+                border-color: #0056b3; // Màu viền khi hover
+              }
+
+              // Focus state
+              &:focus:before {
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); // Hiệu ứng khi focus
+              }
+
+              // Disabled state
+              &:disabled:before {
+                border-color: #ddd;
+                background-color: #f5f5f5;
+                cursor: not-allowed;
+              }
+            }
+
+            // Style cho container nếu cần (ví dụ: chứa checkbox và label)
+            .checkbox-container {
+              display: inline-flex;
+              align-items: center;
+              cursor: pointer;
+              font-size: 16px;
+            }
+            label {
+              margin-right: 1rem;
+            }
+            label:last-of-type {
+              margin: 0;
+            }
+          }
+        }
+        .modal-content-add-product-select {
+          p {
+            margin: 0;
+            margin-bottom: 0.5rem;
+          }
+          .product-select {
+            margin-bottom: 0.5rem;
+            width: 600px;
+          }
+        }
       }
-      button {
-        width: 110px;
-        height: 110px;
-        background-color: aliceblue;
+      .modal-content-add-dates {
+        p {
+          margin: 0;
+          margin-bottom: 0.5rem;
+        }
+        .date-picker {
+          margin-bottom: 0.5rem;
+          border-radius: 0.3rem;
+          height: 2rem;
+        }
       }
-    }
-    .modal-content-add-source {
-      input {
-        padding: 5px;
-        width: 320px;
-        border-radius: 5px;
+      .modal-content-add-status {
+        p {
+          margin: 0;
+          margin-bottom: 0.5rem;
+        }
+        select {
+          border-radius: 0.3rem;
+          height: 2rem;
+        }
       }
     }
   }

@@ -50,7 +50,7 @@ class MakeAppointment extends Component {
     await this.handleLoadCodePetGender();
     await this.handleLoadCodeService();
     setTimeout(() => {
-      this.setState({ isLoading: false })
+      this.setState({ isLoading: false });
     }, 10);
   }
 
@@ -131,24 +131,8 @@ class MakeAppointment extends Component {
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
-    this.setState(
-      { ...copyState },
-      () => {
-        if (['selectedDoctorID', 'selectedServiceID'].includes(type)) {
-          const { appointmentDateTime, selectedServiceID } = this.state;
-          if (appointmentDateTime && selectedServiceID) {
-            this.handleLoadAvailableTimes();
-          } else {
-            this.setState({ availableTimes: [], starttime: '' });
-          }
-        }
-      }
-    );
-  };
-  handleOnChangeDateInput = (date) => {
-    this.setState(
-      { appointmentDateTime: date },
-      () => {
+    this.setState({ ...copyState }, () => {
+      if (['selectedDoctorID', 'selectedServiceID'].includes(type)) {
         const { appointmentDateTime, selectedServiceID } = this.state;
         if (appointmentDateTime && selectedServiceID) {
           this.handleLoadAvailableTimes();
@@ -156,7 +140,17 @@ class MakeAppointment extends Component {
           this.setState({ availableTimes: [], starttime: '' });
         }
       }
-    );
+    });
+  };
+  handleOnChangeDateInput = (date) => {
+    this.setState({ appointmentDateTime: date }, () => {
+      const { appointmentDateTime, selectedServiceID } = this.state;
+      if (appointmentDateTime && selectedServiceID) {
+        this.handleLoadAvailableTimes();
+      } else {
+        this.setState({ availableTimes: [], starttime: '' });
+      }
+    });
   };
   handleLoadAvailableTimes = async () => {
     try {
@@ -191,24 +185,7 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const {
-        customername,
-        customerphone,
-        customeremail,
-        petname,
-        pettype,
-        petgender,
-        age,
-        petweight,
-        appointmentDateTime,
-        selectedDoctorID,
-        selectedServiceID,
-        starttime,
-        notes,
-        selectedPetID,
-        allImages,
-        isUploading,
-      } = this.state;
+      const { customername, customerphone, customeremail, petname, pettype, petgender, age, petweight, appointmentDateTime, selectedDoctorID, selectedServiceID, starttime, notes, selectedPetID, allImages, isUploading } = this.state;
 
       if (isUploading) {
         toast.info('Đang tải ảnh, vui lòng chờ!', {
@@ -356,21 +333,12 @@ class MakeAppointment extends Component {
     this.setState({ selectedDoctorID: vetID });
   };
   render() {
-    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime,
-      selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedDoctorID, } = this.state;
+    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedDoctorID } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
-        <PetSelectModal
-          isOpen={isShowPetSelectModal}
-          toggleFromModal={this.togglePetSelectModal}
-          handleSelectPetFromModal={this.handleSelectPetFromModal}
-        />
-        <VeterinarianSelectModal
-          isOpen={isShowVeterinarianSelectModal}
-          toggleFromModal={this.toggleVeterinarianSelectModal}
-          handleSelectVeterinarianFromModal={this.handleSelectVeterinarianFromModal}
-        />
+        <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} handleSelectPetFromModal={this.handleSelectPetFromModal} />
+        <VeterinarianSelectModal isOpen={isShowVeterinarianSelectModal} toggleFromModal={this.toggleVeterinarianSelectModal} handleSelectVeterinarianFromModal={this.handleSelectVeterinarianFromModal} />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -380,24 +348,9 @@ class MakeAppointment extends Component {
               <h1>Thông tin đặt lịch</h1>
               <div className="makeappointment-content-user-info">
                 <b>*Thông tin Khách hàng</b>
-                <input
-                  type="text"
-                  placeholder="Hãy nhập Họ và Tên"
-                  value={customername}
-                  onChange={(event) => this.handleOnChangeInput(event, 'customername')}
-                />
-                <input
-                  type="text"
-                  placeholder="Hãy nhập Số điện thoại"
-                  value={customerphone}
-                  onChange={(event) => this.handleOnChangeInput(event, 'customerphone')}
-                />
-                <input
-                  type="text"
-                  placeholder="Hãy nhập Email"
-                  value={customeremail}
-                  onChange={(event) => this.handleOnChangeInput(event, 'customeremail')}
-                />
+                <input type="text" placeholder="Hãy nhập Họ và Tên" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
+                <input type="text" placeholder="Hãy nhập Số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
+                <input type="text" placeholder="Hãy nhập Email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
               <div className="makeappointment-content-pet">
                 <button onClick={this.togglePetSelectModal}>Xem danh sách thú cưng</button>
@@ -405,12 +358,7 @@ class MakeAppointment extends Component {
               </div>
               <div className="makeappointment-content-pet-info">
                 <b>*Thông tin Thú cưng</b>
-                <input
-                  type="text"
-                  placeholder="Hãy nhập Tên thú cưng"
-                  value={petname}
-                  onChange={(event) => this.handleOnChangeInput(event, 'petname')}
-                />
+                <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} />
                 <div className="f">
                   <p>Loại: </p>
                   <select value={pettype} onChange={(event) => this.handleOnChangeInput(event, 'pettype')}>
@@ -438,18 +386,8 @@ class MakeAppointment extends Component {
                   </select>
                 </div>
                 <div className="f">
-                  <input
-                    type="text"
-                    placeholder="Hãy nhập Tuổi"
-                    value={age}
-                    onChange={(event) => this.handleOnChangeInput(event, 'age')}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Hãy nhập Cân nặng"
-                    value={petweight}
-                    onChange={(event) => this.handleOnChangeInput(event, 'petweight')}
-                  />
+                  <input type="text" placeholder="Hãy nhập Tuổi" value={age} onChange={(event) => this.handleOnChangeInput(event, 'age')} />
+                  <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} />
                 </div>
               </div>
               <div className="makeappointment-content-doctor">
@@ -461,13 +399,7 @@ class MakeAppointment extends Component {
               </div>
               <div className="makeappointment-content-date">
                 <div className="f">
-                  <DatePicker
-                    selected={appointmentDateTime}
-                    onChange={this.handleOnChangeDateInput}
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="dd/mm/yyyy"
-                    className="date-picker"
-                  />
+                  <DatePicker selected={appointmentDateTime} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
                   <button onClick={() => this.handleOnChangeDateInput(null)}>Reset</button>
                 </div>
               </div>
@@ -476,10 +408,7 @@ class MakeAppointment extends Component {
                   <p>
                     <b>*Dịch vụ</b>
                   </p>
-                  <select
-                    value={selectedServiceID}
-                    onChange={(event) => this.handleOnChangeInput(event, 'selectedServiceID')}
-                  >
+                  <select value={selectedServiceID} onChange={(event) => this.handleOnChangeInput(event, 'selectedServiceID')}>
                     {codeService.length > 0 ? (
                       codeService.map((item) => (
                         <option key={item.ServiceID} value={item.ServiceID}>
@@ -495,10 +424,7 @@ class MakeAppointment extends Component {
                   <p>
                     <b>*Khung giờ</b>
                   </p>
-                  <select
-                    value={starttime}
-                    onChange={(event) => this.handleOnChangeInput(event, 'starttime')}
-                  >
+                  <select value={starttime} onChange={(event) => this.handleOnChangeInput(event, 'starttime')}>
                     {availableTimes.length > 0 ? (
                       availableTimes.map((time) => (
                         <option key={time} value={time}>
@@ -511,18 +437,14 @@ class MakeAppointment extends Component {
                   </select>
                 </div>
               </div>
-              <textarea
-                placeholder="Mô tả tình trạng thú cưng"
-                value={notes}
-                onChange={(event) => this.handleOnChangeInput(event, 'notes')}
-              />
+              <textarea placeholder="Mô tả tình trạng thú cưng" value={notes} onChange={(event) => this.handleOnChangeInput(event, 'notes')} />
               <div className="makeappointment-content-petimgs">
                 <p>
                   <b>*Thêm hình ảnh (tối đa 3 ảnh):</b>
                 </p>
                 <div className="makeappointment-content-petimgs-block f">
                   {allImages.map((img, index) => (
-                    <div key={img.ImageID} className="makeappointment-content-petimgs-item f">
+                    <div key={img.ImageID} className="makeappointment-content-petimgs-item ">
                       <img src={img.Image} alt={`Hình ảnh ${index + 1}`} />
                       <button className="delete-img" onClick={() => this.handleRemoveImage(img.ImageID)}>
                         <IonIcon icon={closeOutline}></IonIcon>
@@ -531,13 +453,7 @@ class MakeAppointment extends Component {
                   ))}
                   {allImages.length < 3 && (
                     <div className="add-img">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={this.handleAddImage}
-                        style={{ display: 'none' }}
-                        id="upload-image"
-                      />
+                      <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
                       <label htmlFor="upload-image" className="add-img-label">
                         +
                       </label>
@@ -545,11 +461,7 @@ class MakeAppointment extends Component {
                   )}
                 </div>
               </div>
-              <button
-                className="makeapp"
-                onClick={this.handleSubmitAppointment}
-                disabled={isLoading}
-              >
+              <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
                 Gửi yêu cầu
               </button>
             </div>

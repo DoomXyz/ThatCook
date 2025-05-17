@@ -1,15 +1,18 @@
 .f {
   display: flex;
 }
-
+select,
+input {
+  outline: none;
+}
 .owner-body {
   background-color: white;
   .container {
     max-width: 1450px !important;
     .name {
       margin-top: 15px;
-      margin-left: 490px;
-      margin-right: 255px;
+      margin-left: 32.5rem;
+      margin-right: 20.5rem;
     }
     .home-button {
       border-radius: 10px;
