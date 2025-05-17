@@ -4,7 +4,7 @@ import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 
-import { trashOutline } from 'ionicons/icons';
+import { closeOutline } from 'ionicons/icons';
 
 import './CreateBannerModal.scss';
 import Modal from 'react-bootstrap/Modal';
@@ -352,7 +352,7 @@ class CreateBannerModal extends Component {
                   <div className="modal-content-add-img-item f">
                     <img src={imagePreview} alt="Banner" />
                     <button className="delete-img" onClick={this.handleRemoveImage}>
-                      <IonIcon icon={trashOutline}></IonIcon>
+                      <IonIcon icon={closeOutline}></IonIcon>
                     </button>
                   </div>
                 )}

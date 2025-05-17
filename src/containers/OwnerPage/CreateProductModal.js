@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { trashOutline } from 'ionicons/icons';
+import { closeOutline } from 'ionicons/icons';
 
 import './CreateProductModal.scss';
 import Modal from 'react-bootstrap/Modal';
@@ -428,7 +428,7 @@ class CreateProductModal extends Component {
                   <div key={img.ImageID} className="modal-content-add-img-item f">
                     <img src={img.Image} alt={`Hình ảnh ${index === 0 ? 'chính' : 'phụ'}`} />
                     <button className="delete-img" onClick={() => this.handleRemoveImage(img.ImageID)}>
-                      <IonIcon icon={trashOutline}></IonIcon>
+                      <IonIcon icon={closeOutline}></IonIcon>
                     </button>
                   </div>
                 ))}
