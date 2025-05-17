@@ -230,7 +230,7 @@ class MakeAppointment extends Component {
     };
     const isValidPetInfo = loadedPetList.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype && item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight);
     if (isValidPetInfo) {
-      toast.info('Đã tự chọn thú cưng trong danh sách!', {
+      toast.info('Đã chọn thú cưng trong danh sách!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
@@ -246,6 +246,7 @@ class MakeAppointment extends Component {
           autoClose: 500,
           closeOnClick: true,
         });
+        return;
       } else {
         const petName = newPetInfo.petname.trim();
         const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;

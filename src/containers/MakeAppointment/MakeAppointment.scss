@@ -107,6 +107,15 @@ textarea {
         }
       }
     }
+    .makeappointment-save-petinfo-button {
+      text-align: end;
+      margin-right: 5rem;
+      button {
+        padding: 0.3rem;
+        width: 4rem;
+        border-radius: 0.3rem;
+      }
+    }
     .makeappointment-content-doctor {
       margin-top: 1rem;
       margin-left: 5rem;
@@ -216,7 +225,7 @@ textarea {
       .makeappointment-content-petimgs-block {
         min-width: 30rem;
         max-width: 30rem;
-        min-height: 15rem;
+        min-height: 11rem;
         border: 1px solid black;
         .makeappointment-content-petimgs-item {
           display: inline-block;
@@ -250,9 +259,12 @@ textarea {
           background-color: rgb(212, 212, 212);
           font-size: 4rem;
           color: black;
+          text-align: center;
           label {
-            margin-left: 3.4rem;
-            margin-top: 1.3rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            width: 9rem;
+            height: 9rem;
           }
         }
       }
