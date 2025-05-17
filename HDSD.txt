@@ -49,7 +49,6 @@ npx sequelize-cli db:migrate:undo:all
 2 ~ 401 = Tài khoản không tồn tại, sai mật khẩu, tài khoản bị khóa, vượt quá số lần đăng nhập, token không hợp lệ, token hết hạn, token bị vô hiệu hóa.
 3 ~ 500 = Lỗi cơ sở dữ liệu, lỗi mã hóa JWT, lỗi xác minh token, ngoại lệ không xử lý được, khóa bí mật JWT không được cấu hình.
 ----------------Set dữ liệu hình ảnh---------------------
-bảng banner:
 UPDATE Banner 
 SET BannerImage = ELT(
     FLOOR(1 + RAND() * 3),
@@ -57,7 +56,6 @@ SET BannerImage = ELT(
     'https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/defaultbanner_p9kvda.webp',
     'https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/1_hto4q9.jpg'
 );
-bảng Product:
 UPDATE Product 
 SET ProductImage = ELT(
     FLOOR(1 + RAND() * 3),
@@ -65,7 +63,6 @@ SET ProductImage = ELT(
     'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558125/ls9e3xebscd1bmaneny8.jpg',
     'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558126/fsbxdr20pi2pjxebxrht.jpg'
 );
-bảng Image
 UPDATE Image
 SET Image = ELT(
     FLOOR(1 + RAND() * 3),

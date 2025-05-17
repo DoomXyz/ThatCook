@@ -63,6 +63,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(10),
         allowNull: false,
       },
+      AppointmentType:{
+        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'AppointmentType')
+        allowNull: false,
+      },
+      PrevAppointmentID: {
+        type: DataTypes.CHAR(10),
+        allowNull: true,
+      },
     },
     {
       sequelize,

@@ -243,6 +243,14 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
+      AppointmentType:{
+        type: Sequelize.CHAR(20),
+        allowNull: false,
+      },
+      PrevAppointmentID: {
+        type: Sequelize.CHAR(10),
+        allowNull: true,
+      },
     });
 
     // Tạo bảng AppointmentBill
@@ -284,56 +292,8 @@ module.exports = {
       },
     });
 
-    // Tạo bảng FuAppointment
-    await queryInterface.createTable('FuAppointment', {
-      FuAppointmentID: {
-        type: Sequelize.CHAR(10),
-        primaryKey: true,
-        allowNull: false,
-      },
-      AppointmentID: {
-        type: Sequelize.CHAR(10),
-        allowNull: false,
-        references: {
-          model: 'Appointment',
-          key: 'AppointmentID',
-        },
-        onDelete: 'CASCADE',
-      },
-      AppointmentDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      StartTime: {
-        type: Sequelize.TIME,
-        allowNull: false,
-      },
-      EndTime: {
-        type: Sequelize.TIME,
-        allowNull: false,
-      },
-      Notes: {
-        type: Sequelize.TEXT,
-        allowNull: true,
-      },
-      CreatedAt: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
-      FuAppointmentStatus: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
-      },
-      ServiceID: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Service',
-          key: 'ServiceID',
-        },
-        onDelete: 'CASCADE',
-      },
-    });
+
+    
 
     // Tạo bảng Schedule
     await queryInterface.createTable('Schedule', {
@@ -775,6 +735,37 @@ module.exports = {
       },
     });
 
+     // Tạo bảng ProductPetType
+     await queryInterface.createTable('VeterinarianService', {
+      VeterinarianServiceID: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+      },
+      VeterinarianID: {
+        type: Sequelize.CHAR(10),
+        allowNull: false,
+        references: {
+          model: 'VeterinarianInFo',
+          key: 'AccountID',
+        },
+        onDelete: 'CASCADE',
+      },
+      ServiceID: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Service',
+          key: 'ServiceID',
+        },
+        onDelete: 'CASCADE',
+      },
+
+    });
+
+
+
     // Tạo bảng BlacklistToken
     await queryInterface.createTable(
       'BlacklistToken',
@@ -822,7 +813,6 @@ module.exports = {
     await queryInterface.dropTable('Product');
     await queryInterface.dropTable('VeterinarianInfo');
     await queryInterface.dropTable('Schedule');
-    await queryInterface.dropTable('FuAppointment');
     await queryInterface.dropTable('AppointmentBill');
     await queryInterface.dropTable('Appointment');
     await queryInterface.dropTable('Service');
