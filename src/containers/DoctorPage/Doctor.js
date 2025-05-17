@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import { chevronBack, pencil, eyeOutline, eyeOffOutline, chevronForwardOutline, chevronBackOutline } from 'ionicons/icons';
@@ -98,7 +99,7 @@ class Doctor extends Component {
     };
   }
 
-  async componentDidMount() {}
+  async componentDidMount() { }
 
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
@@ -347,6 +348,7 @@ class Doctor extends Component {
     const { actionPage } = this.state;
     return (
       <div className="doctor-page">
+        <ToastContainer />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} />
         <div className="doctor-container">
           <div className="doctor-action-form">

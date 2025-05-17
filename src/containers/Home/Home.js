@@ -110,7 +110,6 @@ class Home extends Component {
     const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
       const response = await handleLoadSaleProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue);
-      console.log(Math.ceil(response.totalItems / limitProductPerQuery))
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,

@@ -8,9 +8,13 @@ import './MakeAppointment.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
+import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
+import { handleGetPetInfoApi, handleSavePetInfoApi } from '../../services/petServices'
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
-import test from '../../assets/productha/hinhtest3.jpg';
+import { checkLoginStatus } from '../../utils/pakage';
+
+
 import PetSelectModal from './PetSelectModal';
 import VeterinarianSelectModal from './VeterinarianSelectModal';
 
@@ -18,6 +22,10 @@ class MakeAppointment extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      isLoggedIn: false,
+      accountInfo: null,
+      guestID: '',
+      loadedPetList: [],
       customername: '',
       customerphone: '',
       customeremail: '',
@@ -46,20 +54,100 @@ class MakeAppointment extends Component {
     };
   }
   async componentDidMount() {
+    await this.handleIsLogin();
     await this.handleLoadCodePetType();
     await this.handleLoadCodePetGender();
     await this.handleLoadCodeService();
     setTimeout(() => {
+      this.handleLoadAppointmentInfo();
       this.setState({ isLoading: false });
     }, 10);
   }
 
+  async componentDidUpdate(prevProps) {
+    if (prevProps.userInfo !== this.props.userInfo) {
+      await this.handleIsLogin();
+    }
+  }
   componentWillUnmount() {
     this.state.allImages.forEach((img) => {
       if (img.Image && img.file) URL.revokeObjectURL(img.Image);
     });
   }
-
+  handleIsLogin = async () => {
+    try {
+      const { status, accountInfo } = await checkLoginStatus();
+      if (status && accountInfo) {
+        if (!this.props.userInfo) {
+          this.props.userLogin(accountInfo);
+        }
+        await this.handleLoadAccountInfo(accountInfo.AccountID)
+        this.setState({
+          isLoggedIn: true,
+          guestID: ''
+        });
+      } else {
+        await handleLogoutApi();
+        this.props.userLogout();
+        this.setState({
+          accountInfo: null,
+          isLoggedIn: false,
+          guestID: ''
+        });
+      }
+    } catch (e) {
+      console.log('Token not found!');
+    }
+    this.setState({
+      isLoading: false,
+    });
+  };
+  handleLoadAccountInfo = async (accountid) => {
+    try {
+      const response = await handleGetAccountInfoApi(accountid);
+      if (response || response.errCode === 0) {
+        this.setState({
+          accountInfo: response.data
+        })
+      } else {
+        toast.error('Không thể tải thông tin người dùng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      toast.error('Lỗi khi tải người dùng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  }
+  handleLoadAppointmentInfo = async () => {
+    const { isLoggedIn, accountInfo } = this.state
+    if (isLoggedIn) {
+      try {
+        const response = await handleGetPetInfoApi(accountInfo.AccountID);
+        if (response || response.errCode === 0) {
+          this.setState({
+            loadedPetList: response.data
+          })
+        }
+      } catch (e) {
+        toast.error('Lỗi khi tải danh sách thú cưng của người dùng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        customername: accountInfo.UserName,
+        customerphone: accountInfo.Phone,
+        customeremail: accountInfo.Email,
+      })
+    }
+  }
   handleLoadCodePetType = async () => {
     try {
       const codePetType = await handleGetAllCodesApi('PetType');
@@ -92,7 +180,10 @@ class MakeAppointment extends Component {
           closeOnClick: true,
         });
       }
-      this.setState({ codePetGender });
+      this.setState({
+        codePetGender,
+        petgender: codePetGender.length > 0 ? codePetGender[0].Code : '',
+      });
     } catch (e) {
       toast.error('Không thể tải danh sách giới tính!', {
         position: 'top-right',
@@ -128,6 +219,60 @@ class MakeAppointment extends Component {
       });
     }
   };
+  handleSavePetInfo = async () => {
+    const { loadedPetList, accountInfo, petname, pettype, petgender, age, petweight } = this.state
+    console.log(loadedPetList)
+    const newPetInfo = {
+      petname,
+      pettype,
+      petgender,
+      age: age ? parseInt(age) : 0,
+      petweight: petweight ? parseFloat(petweight) : 0,
+    }
+    const isValidPetInfo = loadedPetList.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype &&
+      item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight)
+    if (isValidPetInfo) {
+      toast.info('Đã tự chọn thú cưng trong danh sách!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      this.setState({
+        selectedPetID: isValidPetInfo.PetID
+      })
+      return;
+    } else {
+      try {
+        const response = await handleSavePetInfoApi(accountInfo.AccountID, newPetInfo);
+        if (response && response.errCode === 0) {
+          toast.success('Đã chọn thông tin cưng!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+          console.log(response)
+          const { isLoggedIn } = this.state
+          if (isLoggedIn) {
+
+          } else {
+
+          }
+        } else {
+          toast.error('Lưu thông tin thú cưng thất bại!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
+      } catch (e) {
+        toast.error('Lỗi khi lưu thông tin thú cưng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    }
+  }
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -333,7 +478,9 @@ class MakeAppointment extends Component {
     this.setState({ selectedDoctorID: vetID });
   };
   render() {
-    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedDoctorID } = this.state;
+    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight,
+      appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal,
+      selectedPetID, selectedDoctorID, loadedPetList } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
@@ -348,14 +495,18 @@ class MakeAppointment extends Component {
               <h1>Thông tin đặt lịch</h1>
               <div className="makeappointment-content-user-info">
                 <b>*Thông tin Khách hàng</b>
-                <input type="text" placeholder="Hãy nhập Họ và Tên" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
-                <input type="text" placeholder="Hãy nhập Số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
-                <input type="text" placeholder="Hãy nhập Email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
+                <input type="text" placeholder="Hãy nhhập tên khách hàng" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
+                <input type="text" placeholder="Hãy nhập số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
+                <input type="text" placeholder="Hãy nhập email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
-              <div className="makeappointment-content-pet">
-                <button onClick={this.togglePetSelectModal}>Xem danh sách thú cưng</button>
-                {selectedPetID && <p>Thú cưng đã chọn: {selectedPetID}</p>}
-              </div>
+              {loadedPetList.length > 0 ? (
+                <div className="makeappointment-content-pet">
+                  <button
+                    onClick={this.togglePetSelectModal}
+                  >Xem danh sách thú cưng
+                  </button>
+                </div>
+              ) : ""}
               <div className="makeappointment-content-pet-info">
                 <b>*Thông tin Thú cưng</b>
                 <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} />
@@ -390,11 +541,16 @@ class MakeAppointment extends Component {
                   <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} />
                 </div>
               </div>
+              <div className="makeappointment-save-petinfo-button">
+                <button
+                  onClick={this.handleSavePetInfo}
+                >Lưu
+                </button>
+              </div>
               <div className="makeappointment-content-doctor">
                 <div className="f">
                   <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
                   <p>*Không bắt buộc</p>
-                  {selectedDoctorID && <p>Bác sĩ đã chọn: {selectedDoctorID}</p>}
                 </div>
               </div>
               <div className="makeappointment-content-date">
@@ -473,7 +629,10 @@ class MakeAppointment extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
+
+const mapStateToProps = (state) => ({
+  userInfo: state.user.userInfo,
+});
 
 const mapDispatchToProps = {};
 export default connect(mapStateToProps, mapDispatchToProps)(MakeAppointment);
