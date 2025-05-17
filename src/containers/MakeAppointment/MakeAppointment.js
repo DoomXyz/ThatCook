@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 import DatePicker from 'react-datepicker';
 import { ToastContainer, toast } from 'react-toastify';
-import { } from 'ionicons/icons'; //chỉ import các icon cần dùng
+import { closeOutline } from 'ionicons/icons';
 import './MakeAppointment.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Spinner from '../../components/Spinner';
@@ -518,14 +518,31 @@ class MakeAppointment extends Component {
               />
               <div className="makeappointment-content-petimgs">
                 <p>
-                  <b>*Thêm hình ảnh ( tối đa 3 ảnh )</b>
+                  <b>*Thêm hình ảnh (tối đa 3 ảnh):</b>
                 </p>
-                <div className="makeappointment-content-petimgs-block">
-                  <div className="makeappointment-content-petimgs-item">
-                    <img src={test} alt="Pet" />
-                    <button>X</button>
-                  </div>
-                  <button className="add">+</button>
+                <div className="makeappointment-content-petimgs-block f">
+                  {allImages.map((img, index) => (
+                    <div key={img.ImageID} className="makeappointment-content-petimgs-item f">
+                      <img src={img.Image} alt={`Hình ảnh ${index + 1}`} />
+                      <button className="delete-img" onClick={() => this.handleRemoveImage(img.ImageID)}>
+                        <IonIcon icon={closeOutline}></IonIcon>
+                      </button>
+                    </div>
+                  ))}
+                  {allImages.length < 3 && (
+                    <div className="add-img">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={this.handleAddImage}
+                        style={{ display: 'none' }}
+                        id="upload-image"
+                      />
+                      <label htmlFor="upload-image" className="add-img-label">
+                        +
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
               <button
