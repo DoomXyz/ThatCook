@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 
-import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline, informationCircleOutline } from 'ionicons/icons';
+import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline, informationCircleOutline, idCardOutline, invertModeOutline } from 'ionicons/icons';
 
 import './EditAccountModal.scss';
 import Button from 'react-bootstrap/Button';
@@ -313,9 +313,9 @@ class EditAccountModal extends Component {
             <div className="R2 veterinarian-info">
               <div className="f">
                 <div className="inputbox-2">
-                  <IonIcon icon={informationCircleOutline}></IonIcon>
+                  <IonIcon icon={idCardOutline}></IonIcon>
                   <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
-                  <label>Chuyên môn</label>
+                  <label>Chuyên khoa</label>
                 </div>
                 <div className="selectbox">
                   <label>Trạng thái làm việc</label>
@@ -330,6 +330,8 @@ class EditAccountModal extends Component {
                       <option value="">Không có dữ liệu trạng thái</option>
                     )}
                   </select>
+                  <IonIcon icon={invertModeOutline}></IonIcon>
+
                 </div>
               </div>
               <div className="inputbox-1">

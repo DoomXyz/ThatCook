@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
-import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline, informationCircleOutline } from 'ionicons/icons';
+import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline, informationCircleOutline, idCardOutline, invertModeOutline } from 'ionicons/icons';
 import './CreateAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
@@ -250,12 +250,12 @@ class CreateAccountModal extends Component {
             <div className="R2 veterinarian-info">
               <div className="f">
                 <div className="inputbox-2">
-                  <IonIcon icon={informationCircleOutline}></IonIcon>
+                  <IonIcon icon={idCardOutline}></IonIcon>
                   <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
-                  <label>Chuyên môn</label>
+                  <label>Chuyên khoa</label>
                 </div>
                 <div className="selectbox">
-                  <label>Trạng thái làm việc:</label>
+                  <label>Trạng thái làm việc</label>
                   <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
                     {codeWorkingStatus.length > 0 ? (
                       codeWorkingStatus.map((item) => (
@@ -267,6 +267,7 @@ class CreateAccountModal extends Component {
                       <option value="">Không có dữ liệu trạng thái</option>
                     )}
                   </select>
+                  <IonIcon icon={invertModeOutline}></IonIcon>
                 </div>
               </div>
               <div className="inputbox-1">

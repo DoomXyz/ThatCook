@@ -1,37 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
 .f {
   display: flex;
 }
 
 .create-user-modal {
   .modal-dialog {
-    max-width: 810px; /* Tăng chiều rộng modal */
+    max-width: 810px;
+    /* Tăng chiều rộng modal */
   }
 
   .modal-header {
     .btn-close {
-      margin-left: 250px; /* Điều chỉnh vị trí nút đóng */
+      margin-left: 250px;
+      /* Điều chỉnh vị trí nút đóng */
     }
 
     .modal-title {
-      margin-left: 265px; /* Điều chỉnh vị trí tiêu đề */
+      margin-left: 265px;
+      /* Điều chỉnh vị trí tiêu đề */
     }
   }
 
   .modal-body {
-    align-items: flex-start; /* Căn chỉnh nội dung lên trên */
+    align-items: flex-start;
+    /* Căn chỉnh nội dung lên trên */
     padding: 20px;
 
     .R1 {
       display: flex;
-      margin-bottom: 10px; /* Giảm khoảng cách giữa các hàng */
+      margin-bottom: 10px;
+      /* Giảm khoảng cách giữa các hàng */
 
       .inputbox {
         position: relative;
         margin: 20px 15px;
         border-bottom: 2px solid black;
         color: black;
-        width: 350px; /* Tăng chiều rộng input */
+        width: 350px;
+        /* Tăng chiều rộng input */
 
         .toggle-password {
           ion-icon {
@@ -41,7 +48,8 @@
 
         input {
           width: 100%;
-          height: 50px; /* Giảm chiều cao input */
+          height: 50px;
+          /* Giảm chiều cao input */
           background: transparent;
           border: none;
           outline: none;
@@ -51,6 +59,7 @@
           margin-bottom: -10px;
 
           &:-webkit-autofill {
+
             &,
             &:hover,
             &:focus,
@@ -62,23 +71,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
@@ -123,12 +132,12 @@
         }
 
         input:focus {
-          ~ label {
+          ~label {
             top: -5px;
             color: black;
           }
 
-          ~ ion-icon {
+          ~ion-icon {
             color: black;
           }
         }
@@ -152,7 +161,8 @@
         margin: 20px 15px;
         border-bottom: 2px solid black;
         color: black;
-        width: 350px; /* Tăng chiều rộng select */
+        width: 350px;
+        /* Tăng chiều rộng select */
 
         label {
           position: absolute;
@@ -167,7 +177,8 @@
 
         select {
           width: 100%;
-          height: 50px; /* Giảm chiều cao select */
+          height: 50px;
+          /* Giảm chiều cao select */
           background: transparent;
           border: none;
           outline: none;
@@ -205,7 +216,8 @@
 
         .inputbox {
           width: 100%;
-          max-width: 720px; /* Tăng chiều rộng cho veterinarian-info */
+          max-width: 720px;
+          /* Tăng chiều rộng cho veterinarian-info */
 
           input {
             width: 100%;
@@ -213,7 +225,8 @@
           }
 
           label {
-            top: 20px; /* Điều chỉnh vị trí label cho textarea */
+            top: 20px;
+            /* Điều chỉnh vị trí label cho textarea */
           }
 
           ion-icon {
@@ -222,27 +235,56 @@
         }
 
         .selectbox {
-          height: 1.95rem;
+          position: relative;
+          margin: 20px 15px;
           border-bottom: 2px solid black;
+          color: black;
+          width: 350px;
+          /* Tăng chiều rộng select */
 
-          margin-left: 2rem;
-          margin-top: 1.9rem;
           label {
-            display: inline-block;
             position: absolute;
-            top: 20%;
+            top: -10%;
+            left: 5px;
             transform: translateY(-50%);
             color: #706464;
             font-size: 1rem;
             pointer-events: none;
             transition: all 0.5s ease-in-out;
           }
+
           select {
-            min-width: 350px;
+            width: 100%;
+            height: 50px;
+            /* Giảm chiều cao select */
+            background: transparent;
             border: none;
+            outline: none;
+            font-size: 1rem;
+            padding: 0 35px 0 5px;
+            color: black;
+            appearance: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            margin-bottom: -10px;
+          }
+
+          option {
+            background-color: rgb(248, 245, 245);
+          }
+
+          ion-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: black;
+            pointer-events: none;
           }
         }
       }
+
       .inputbox-2 {
         position: relative;
         margin: 20px 0;
@@ -257,7 +299,8 @@
 
         input {
           width: 350px;
-          height: 50px; /* Giảm chiều cao input */
+          height: 50px;
+          /* Giảm chiều cao input */
           background: transparent;
           border: none;
           outline: none;
@@ -267,6 +310,7 @@
           margin-bottom: -10px;
 
           &:-webkit-autofill {
+
             &,
             &:hover,
             &:focus,
@@ -278,23 +322,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
@@ -339,12 +383,12 @@
         }
 
         input:focus {
-          ~ label {
+          ~label {
             top: -5px;
             color: black;
           }
 
-          ~ ion-icon {
+          ~ion-icon {
             color: black;
           }
         }
@@ -369,6 +413,7 @@
         border-bottom: 2px solid black;
         color: black;
         width: 730px;
+
         textarea {
           width: 700px;
           height: 40px;
@@ -382,6 +427,7 @@
           margin-bottom: -10px;
           line-height: 1rem;
         }
+
         input {
           width: 100%;
           width: 750px;
@@ -395,6 +441,7 @@
           margin-bottom: -10px;
 
           &:not([type='password']):-webkit-autofill {
+
             &,
             &:hover,
             &:focus,
@@ -406,23 +453,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
@@ -457,12 +504,12 @@
         }
 
         input:focus {
-          ~ label {
+          ~label {
             top: -5px;
             color: black;
           }
 
-          ~ ion-icon {
+          ~ion-icon {
             color: black;
           }
         }
@@ -480,6 +527,7 @@
           }
         }
       }
+
       .inputbox-address {
         position: relative;
         margin: 20px 0px;
@@ -501,6 +549,7 @@
           margin-bottom: -10px;
 
           &:not([type='password']):-webkit-autofill {
+
             &,
             &:hover,
             &:focus,
@@ -512,23 +561,23 @@
               transition: background-color 5000s ease-in-out 0s;
             }
 
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
 
           &:not(:placeholder-shown) {
-            ~ label {
+            ~label {
               top: -5px;
               color: black;
             }
 
-            ~ ion-icon {
+            ~ion-icon {
               color: black;
             }
           }
@@ -563,12 +612,12 @@
         }
 
         input:focus {
-          ~ label {
+          ~label {
             top: -5px;
             color: black;
           }
 
-          ~ ion-icon {
+          ~ion-icon {
             color: black;
           }
         }
