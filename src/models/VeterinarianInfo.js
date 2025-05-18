@@ -2,12 +2,17 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class VeterinarianInfo extends Model {}
+  class VeterinarianInfo extends Model {
+    static associate(models) {
+      VeterinarianInfo.belongsTo(models.Account, { foreignKey: 'AccountID' });
+      VeterinarianInfo.hasMany(models.VeterinarianService, { foreignKey: 'VeterinarianID' });
+    }
+  }
 
   VeterinarianInfo.init(
     {
       AccountID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
@@ -16,12 +21,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       Specialization: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: true,
       },
       WorkingStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với CodeID từ ALLCODES (Type = 'WorkingStatus')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'WorkingStatus')
       },
     },
     {

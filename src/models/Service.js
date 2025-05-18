@@ -2,7 +2,12 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Service extends Model {}
+  class Service extends Model {
+    static associate(models) {
+      Service.hasMany(models.Appointment, { foreignKey: 'ServiceID' });
+      Service.hasMany(models.VeterinarianService, { foreignKey: 'ServiceID' });
+    }
+  }
 
   Service.init(
     {
@@ -13,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       ServiceName: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
       },
       Price: {
@@ -34,6 +39,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Service',
       tableName: 'Service',
       timestamps: false,
+      indexes: [
+        { fields: ['ServiceName'], name: 'index_service_name' },
+      ],
     }
   );
 

@@ -2,9 +2,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class AllCode extends Model {}
+  class AllCodes extends Model {
+    static associate(models) {
+      // Không có mối quan hệ trực tiếp, nhưng được tham chiếu bởi nhiều bảng
+    }
+  }
 
-  AllCode.init(
+  AllCodes.init(
     {
       CodeID: {
         type: DataTypes.INTEGER,
@@ -13,15 +17,15 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       Type: {
-        type: DataTypes.CHAR(30),
+        type: DataTypes.STRING(30),
         allowNull: false,
       },
       Code: {
-        type: DataTypes.CHAR(20),
+        type: DataTypes.STRING(20),
         allowNull: false,
       },
       CodeValueVI: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
       },
       ExtraValue: {
@@ -32,10 +36,14 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'AllCodes',
-      tableName: 'ALLCODES',
+      tableName: 'AllCodes',
       timestamps: false,
+      indexes: [
+        { unique: true, fields: ['Type', 'Code'], name: 'unique_type_code' },
+        { fields: ['Type'], name: 'index_type' },
+      ],
     }
   );
 
-  return AllCode;
+  return AllCodes;
 };

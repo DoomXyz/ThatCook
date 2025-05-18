@@ -2,7 +2,12 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Image extends Model {}
+  class Image extends Model {
+    static associate(models) {
+      Image.belongsTo(models.Product, { foreignKey: 'ReferenceID', constraints: false, scope: { ReferenceType: 'Product' } });
+      Image.belongsTo(models.Appointment, { foreignKey: 'ReferenceID', constraints: false, scope: { ReferenceType: 'Appointment' } });
+    }
+  }
 
   Image.init(
     {
@@ -16,13 +21,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      ProductID: {
-        type: DataTypes.CHAR(10),
-        allowNull: true,
+      ReferenceType: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
       },
-      AppointmentID: {
-        type: DataTypes.CHAR(10),
-        allowNull: true,
+      ReferenceID: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
       },
     },
     {
@@ -30,6 +35,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Image',
       tableName: 'Image',
       timestamps: false,
+      indexes: [
+        { fields: ['ReferenceType', 'ReferenceID'], name: 'index_reference' },
+      ],
     }
   );
 

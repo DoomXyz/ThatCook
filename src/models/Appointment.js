@@ -2,25 +2,34 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Appointment extends Model {}
+  class Appointment extends Model {
+    static associate(models) {
+      Appointment.belongsTo(models.Account, { foreignKey: 'AccountID' });
+      Appointment.belongsTo(models.Account, { foreignKey: 'VeterinarianID', as: 'Veterinarian' });
+      Appointment.belongsTo(models.Service, { foreignKey: 'ServiceID' });
+      Appointment.belongsTo(models.Pet, { foreignKey: 'PetID' });
+      Appointment.hasOne(models.AppointmentBill, { foreignKey: 'AppointmentID' });
+      Appointment.hasMany(models.Image, { foreignKey: 'ReferenceID', constraints: false, scope: { ReferenceType: 'Appointment' } });
+    }
+  }
 
   Appointment.init(
     {
       AppointmentID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       CustomerName: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
       },
       CustomerEmail: {
-        type: DataTypes.CHAR(100),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       CustomerPhone: {
-        type: DataTypes.CHAR(11),
+        type: DataTypes.STRING(11),
         allowNull: false,
       },
       AppointmentDate: {
@@ -44,31 +53,33 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       AppointmentStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'AppointmentStatus')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'AppointmentStatus')
       },
       AccountID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       VeterinarianID: {
-        type: DataTypes.CHAR(10),
-        allowNull: false,
+        type: DataTypes.STRING(10),
+        allowNull: true,
       },
       ServiceID: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
       PetID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
-      AppointmentType:{
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'AppointmentType')
+      AppointmentType: {
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'AppointmentType')
       },
       PrevAppointmentID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: true,
       },
     },
@@ -77,6 +88,13 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Appointment',
       tableName: 'Appointment',
       timestamps: false,
+      indexes: [
+        { fields: ['AccountID'], name: 'index_account_id' },
+        { fields: ['VeterinarianID'], name: 'index_veterinarian_id' },
+        { fields: ['ServiceID'], name: 'index_service_id' },
+        { fields: ['PetID'], name: 'index_pet_id' },
+        { fields: ['AppointmentDate'], name: 'index_appointment_date' },
+      ],
     }
   );
 

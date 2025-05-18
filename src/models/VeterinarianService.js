@@ -2,7 +2,12 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class VeterinarianService extends Model {}
+  class VeterinarianService extends Model {
+    static associate(models) {
+      VeterinarianService.belongsTo(models.Account, { foreignKey: 'AccountID' });
+      VeterinarianService.belongsTo(models.Service, { foreignKey: 'ServiceID' });
+    }
+  }
 
   VeterinarianService.init(
     {
@@ -13,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       VeterinarianID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       ServiceID: {
@@ -26,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'VeterinarianService',
       tableName: 'VeterinarianService',
       timestamps: false,
+      indexes: [
+        { fields: ['VeterinarianID'], name: 'index_veterinarian_id' },
+        { fields: ['ServiceID'], name: 'index_service_id' },
+      ],
     }
   );
 

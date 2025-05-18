@@ -2,7 +2,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class InvoiceDetail extends Model {}
+  class InvoiceDetail extends Model {
+    static associate(models) {
+      InvoiceDetail.belongsTo(models.Invoice, { foreignKey: 'InvoiceID' });
+      InvoiceDetail.belongsTo(models.Product, { foreignKey: 'ProductID' });
+      InvoiceDetail.belongsTo(models.ProductDetail, { foreignKey: 'ProductDetailID' });
+    }
+  }
 
   InvoiceDetail.init(
     {
@@ -21,11 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       InvoiceID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       ProductID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       ProductDetailID: {
@@ -38,6 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'InvoiceDetail',
       tableName: 'InvoiceDetail',
       timestamps: false,
+      indexes: [
+        { fields: ['InvoiceID'], name: 'index_invoice_id' },
+        { fields: ['ProductID'], name: 'index_product_id' },
+        { fields: ['ProductDetailID'], name: 'index_product_detail_id' },
+      ],
     }
   );
 

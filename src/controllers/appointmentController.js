@@ -2,35 +2,8 @@ import appointmentService from '../services/appointmentService';
 
 let handleCreateAppointment = async (req, res) => {
   try {
-    const {
-      customername,
-      customeremail,
-      customerphone,
-      appointmentdate,
-      starttime,
-
-      notes,
-      accountid,
-      veterinarianid,
-      serviceid,
-      petid,
-      imageInfo,
-    } = req.body;
-
-    let response = await appointmentService.createAppointment(
-      customername,
-      customeremail,
-      customerphone,
-      appointmentdate,
-      starttime,
-
-      notes,
-      accountid,
-      veterinarianid,
-      serviceid,
-      petid,
-      imageInfo
-    );
+    const { customername, customeremail, customerphone, appointmentdate, starttime, notes, accountid, veterinarianid, serviceid, petid, imageInfo, type, prevappointmentid } = req.body;
+    let response = await appointmentService.createAppointment(customername, customeremail, customerphone, appointmentdate, starttime, notes, accountid, veterinarianid, serviceid, petid, imageInfo, type, prevappointmentid);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);

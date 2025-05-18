@@ -5,6 +5,20 @@ let handleGetAccountPetInfo = async (req, res) => {
         let response = await petService.getAccountPetInfo(req.query.accountid);
         return res.status(200).json(response);
     } catch (e) {
+        console.log('Error in handleGetAccountPetInfo: ', e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: `Lỗi từ server: ${e.message}`,
+            data: null,
+        });
+    }
+};
+
+let handleGetPetInfo = async (req, res) => {
+    try {
+        let response = await petService.getPetInfo(req.query.petid);
+        return res.status(200).json(response);
+    } catch (e) {
         console.log('Error in handleGetPetInfo: ', e);
         return res.status(500).json({
             errCode: 3,
@@ -46,6 +60,7 @@ let handleChangePetInfo = async (req, res) => {
 
 module.exports = {
     handleGetAccountPetInfo,
+    handleGetPetInfo,
     handleSavePetInfo,
     handleChangePetInfo,
 };

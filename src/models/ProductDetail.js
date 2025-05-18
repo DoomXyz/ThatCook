@@ -2,7 +2,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class ProductDetail extends Model {}
+  class ProductDetail extends Model {
+    static associate(models) {
+      ProductDetail.belongsTo(models.Product, { foreignKey: 'ProductID' });
+      ProductDetail.hasMany(models.InvoiceDetail, { foreignKey: 'ProductDetailID' });
+      ProductDetail.hasMany(models.CartItem, { foreignKey: 'ProductDetailID' });
+    }
+  }
 
   ProductDetail.init(
     {
@@ -13,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       DetailName: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
       },
       Stock: {
@@ -37,11 +43,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       DetailStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'DetailStatus')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'DetailStatus')
       },
       ProductID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
     },
@@ -50,6 +57,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'ProductDetail',
       tableName: 'ProductDetail',
       timestamps: false,
+      indexes: [
+        { fields: ['ProductID'], name: 'index_product_id' },
+      ],
     }
   );
 

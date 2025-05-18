@@ -13,15 +13,15 @@ module.exports = {
           allowNull: false,
         },
         Type: {
-          type: Sequelize.CHAR(30),
+          type: Sequelize.STRING(30),
           allowNull: false,
         },
         Code: {
-          type: Sequelize.CHAR(20),
+          type: Sequelize.STRING(20),
           allowNull: false,
         },
         CodeValueVI: {
-          type: Sequelize.CHAR(50),
+          type: Sequelize.STRING(50),
           allowNull: false,
         },
         ExtraValue: {
@@ -30,7 +30,10 @@ module.exports = {
         },
       },
       {
-        indexes: [{ unique: true, fields: ['Type', 'Code'], name: 'unique_type_code' }],
+        indexes: [
+          { unique: true, fields: ['Type', 'Code'], name: 'unique_type_code' },
+          { fields: ['Type'], name: 'index_type' },
+        ],
       }
     );
 
@@ -39,17 +42,17 @@ module.exports = {
       'Account',
       {
         AccountID: {
-          type: Sequelize.CHAR(10),
+          type: Sequelize.STRING(10),
           primaryKey: true,
           allowNull: false,
         },
         AccountName: {
-          type: Sequelize.CHAR(50),
+          type: Sequelize.STRING(50),
           allowNull: false,
           collate: 'utf8mb4_bin',
         },
         Email: {
-          type: Sequelize.CHAR(100),
+          type: Sequelize.STRING(100),
           allowNull: false,
         },
         Password: {
@@ -57,7 +60,7 @@ module.exports = {
           allowNull: false,
         },
         UserName: {
-          type: Sequelize.CHAR(50),
+          type: Sequelize.STRING(50),
           allowNull: false,
         },
         UserImage: {
@@ -65,16 +68,16 @@ module.exports = {
           allowNull: true,
         },
         Phone: {
-          type: Sequelize.CHAR(11),
+          type: Sequelize.STRING(11),
           allowNull: true,
         },
         Address: {
-          type: Sequelize.CHAR(100),
+          type: Sequelize.STRING(100),
           allowNull: true,
         },
         Gender: {
-          type: Sequelize.CHAR(20),
-          allowNull: true,
+          type: Sequelize.STRING(20),
+          allowNull: false,
         },
         LoginAttempt: {
           type: Sequelize.INTEGER,
@@ -89,11 +92,11 @@ module.exports = {
           allowNull: true,
         },
         AccountStatus: {
-          type: Sequelize.CHAR(20),
-          allowNull: true,
+          type: Sequelize.STRING(20),
+          allowNull: false,
         },
         AccountType: {
-          type: Sequelize.CHAR(20),
+          type: Sequelize.STRING(20),
           allowNull: false,
         },
       },
@@ -101,6 +104,7 @@ module.exports = {
         indexes: [
           { unique: true, fields: ['Email'], name: 'unique_email' },
           { fields: ['Phone'], name: 'index_phone' },
+          { fields: ['UserName'], name: 'index_username' },
         ],
       }
     );
@@ -108,20 +112,20 @@ module.exports = {
     // Tạo bảng Pet
     await queryInterface.createTable('Pet', {
       PetID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       PetName: {
-        type: Sequelize.CHAR(50),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       AccountID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
       },
       PetType: {
-        type: Sequelize.CHAR(20),
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
       PetWeight: {
@@ -133,7 +137,7 @@ module.exports = {
         allowNull: false,
       },
       PetGender: {
-        type: Sequelize.CHAR(20),
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
     });
@@ -147,7 +151,7 @@ module.exports = {
         allowNull: false,
       },
       ServiceName: {
-        type: Sequelize.CHAR(50),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       Price: {
@@ -162,25 +166,29 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-    });
-
+    },
+      {
+        indexes: [
+          { fields: ['ServiceName'], name: 'index_service_name' },
+        ],
+      });
     // Tạo bảng Appointment
     await queryInterface.createTable('Appointment', {
       AppointmentID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       CustomerName: {
-        type: Sequelize.CHAR(50),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       CustomerEmail: {
-        type: Sequelize.CHAR(100),
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
       CustomerPhone: {
-        type: Sequelize.CHAR(11),
+        type: Sequelize.STRING(11),
         allowNull: false,
       },
       AppointmentDate: {
@@ -204,54 +212,49 @@ module.exports = {
         allowNull: true,
       },
       AppointmentStatus: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
       AccountID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Account',
-          key: 'AccountID',
-        },
-        onDelete: 'CASCADE',
       },
       VeterinarianID: {
-        type: Sequelize.CHAR(10),
-        allowNull: false,
-        references: {
-          model: 'Account',
-          key: 'AccountID',
-        },
+        type: Sequelize.STRING(10),
+        allowNull: true,
+        references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
       },
       ServiceID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'Service',
-          key: 'ServiceID',
-        },
+        references: { model: 'Service', key: 'ServiceID' },
         onDelete: 'CASCADE',
       },
       PetID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Pet',
-          key: 'PetID',
-        },
+        references: { model: 'Pet', key: 'PetID' },
         onDelete: 'CASCADE',
       },
-      AppointmentType:{
-        type: Sequelize.CHAR(20),
+      AppointmentType: {
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
       PrevAppointmentID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: true,
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['AccountID'], name: 'index_account_id' },
+          { fields: ['VeterinarianID'], name: 'index_veterinarian_id' },
+          { fields: ['ServiceID'], name: 'index_service_id' },
+          { fields: ['PetID'], name: 'index_pet_id' },
+          { fields: ['AppointmentDate'], name: 'index_appointment_date' },
+        ],
+      });
 
     // Tạo bảng AppointmentBill
     await queryInterface.createTable('AppointmentBill', {
@@ -262,16 +265,13 @@ module.exports = {
         allowNull: false,
       },
       AppointmentID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Appointment',
-          key: 'AppointmentID',
-        },
+        references: { model: 'Appointment', key: 'AppointmentID' },
         onDelete: 'CASCADE',
       },
       PaymentType: {
-        type: Sequelize.CHAR(20),
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
       ServicePrice: {
@@ -290,10 +290,12 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-    });
-
-
-    
+    },
+      {
+        indexes: [
+          { fields: ['AppointmentID'], name: 'index_appointment_id' },
+        ],
+      });
 
     // Tạo bảng Schedule
     await queryInterface.createTable('Schedule', {
@@ -304,35 +306,42 @@ module.exports = {
         allowNull: false,
       },
       VeterinarianID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Account',
-          key: 'AccountID',
-        },
+        references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
       },
-      AppointmentID: {
-        type: Sequelize.CHAR(10),
+      Date: {
+        type: Sequelize.DATEONLY,
         allowNull: false,
-        references: {
-          model: 'Appointment',
-          key: 'AppointmentID',
-        },
-        onDelete: 'CASCADE',
       },
-    });
+      StartTime: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      EndTime: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      ScheduleStatus: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
+    },
+      {
+        indexes: [
+          { fields: ['VeterinarianID'], name: 'index_veterinarian_id' },
+          { fields: ['Date'], name: 'index_date' },
+        ],
+      });
 
     // Tạo bảng VeterinarianInfo
     await queryInterface.createTable('VeterinarianInfo', {
       AccountID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         primaryKey: true,
         allowNull: false,
-        references: {
-          model: 'Account',
-          key: 'AccountID',
-        },
+        references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
       },
       Bio: {
@@ -340,28 +349,28 @@ module.exports = {
         allowNull: true,
       },
       Specialization: {
-        type: Sequelize.CHAR(50),
+        type: Sequelize.STRING(50),
         allowNull: true,
       },
       WorkingStatus: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
     });
 
     // Tạo bảng Product
     await queryInterface.createTable('Product', {
       ProductID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       ProductType: {
-        type: Sequelize.CHAR(20),
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
       ProductName: {
-        type: Sequelize.CHAR(100),
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
       ProductPrice: {
@@ -376,7 +385,13 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['ProductName'], name: 'index_product_name' },
+          { fields: ['ProductType'], name: 'index_product_type' },
+        ],
+      });
 
     // Tạo bảng ProductDetail
     await queryInterface.createTable('ProductDetail', {
@@ -387,7 +402,7 @@ module.exports = {
         allowNull: false,
       },
       DetailName: {
-        type: Sequelize.CHAR(50),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       Stock: {
@@ -411,19 +426,21 @@ module.exports = {
         allowNull: true,
       },
       DetailStatus: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
       ProductID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Product',
-          key: 'ProductID',
-        },
+        references: { model: 'Product', key: 'ProductID' },
         onDelete: 'CASCADE',
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['ProductID'], name: 'index_product_id' },
+        ],
+      });
 
     // Tạo bảng ProductPetType
     await queryInterface.createTable('ProductPetType', {
@@ -434,19 +451,21 @@ module.exports = {
         allowNull: false,
       },
       ProductID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Product',
-          key: 'ProductID',
-        },
+        references: { model: 'Product', key: 'ProductID' },
         onDelete: 'CASCADE',
       },
       PetType: {
-        type: Sequelize.CHAR(20),
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['ProductID'], name: 'index_product_id' },
+        ],
+      });
 
     // Tạo bảng Image
     await queryInterface.createTable('Image', {
@@ -460,25 +479,20 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
-      ProductID: {
-        type: Sequelize.CHAR(10),
-        allowNull: true,
-        references: {
-          model: 'Product',
-          key: 'ProductID',
-        },
-        onDelete: 'SET NULL',
+      ReferenceType: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
-      AppointmentID: {
-        type: Sequelize.CHAR(10),
-        allowNull: true,
-        references: {
-          model: 'Appointment',
-          key: 'AppointmentID',
-        },
-        onDelete: 'SET NULL',
+      ReferenceID: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['ReferenceType', 'ReferenceID'], name: 'index_reference' },
+        ],
+      });
 
     // Tạo bảng Banner
     await queryInterface.createTable('Banner', {
@@ -501,19 +515,21 @@ module.exports = {
         allowNull: true,
       },
       BannerStatus: {
-        type: Sequelize.CHAR(20),
+        type: Sequelize.STRING(20),
         allowNull: false,
       },
       ProductID: {
-        type: Sequelize.CHAR(10),
-        allowNull: false,
-        references: {
-          model: 'Product',
-          key: 'ProductID',
-        },
-        onDelete: 'CASCADE',
+        type: Sequelize.STRING(10),
+        allowNull: true,
+        references: { model: 'Product', key: 'ProductID' },
+        onDelete: 'SET NULL',
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['ProductID'], name: 'index_product_id' },
+        ],
+      });
 
     // Tạo bảng Coupon
     await queryInterface.createTable(
@@ -526,7 +542,7 @@ module.exports = {
           allowNull: false,
         },
         CouponCode: {
-          type: Sequelize.CHAR(100),
+          type: Sequelize.STRING(100),
           allowNull: false,
         },
         CouponDescription: {
@@ -554,36 +570,39 @@ module.exports = {
           allowNull: false,
         },
         DiscountType: {
-          type: Sequelize.CHAR(20),
+          type: Sequelize.STRING(20),
           allowNull: false,
         },
         CouponStatus: {
-          type: Sequelize.CHAR(20),
+          type: Sequelize.STRING(20),
           allowNull: false,
         },
       },
       {
-        indexes: [{ unique: true, fields: ['CouponCode'], name: 'unique_coupon_code' }],
+        indexes: [
+          { unique: true, fields: ['CouponCode'], name: 'unique_coupon_code' },
+          { fields: ['StartDate', 'EndDate'], name: 'index_date_range' },
+        ],
       }
     );
 
     // Tạo bảng Invoice
     await queryInterface.createTable('Invoice', {
       InvoiceID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       ReceiverName: {
-        type: Sequelize.CHAR(50),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       ReceiverPhone: {
-        type: Sequelize.CHAR(11),
+        type: Sequelize.STRING(11),
         allowNull: false,
       },
       ReceiverAddress: {
-        type: Sequelize.CHAR(100),
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
       TotalQuantity: {
@@ -611,39 +630,42 @@ module.exports = {
         allowNull: true,
       },
       CancelReason: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(20),
         allowNull: true,
       },
       PaymentStatus: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
       ShippingStatus: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
       PaymentType: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
       ShippingMethod: {
-        type: Sequelize.CHAR(20),
-        allowNull: true,
+        type: Sequelize.STRING(20),
+        allowNull: false,
       },
       CouponID: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: 'Coupon',
-          key: 'CouponID',
-        },
+        references: { model: 'Coupon', key: 'CouponID' },
         onDelete: 'SET NULL',
       },
       AccountID: {
-        type: Sequelize.CHAR(10),
-        allowNull: false,
+        type: Sequelize.STRING(10),
+        allowNull: true, // Cho khách vãng lai
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['CouponID'], name: 'index_coupon_id' },
+          { fields: ['AccountID'], name: 'index_account_id' },
+        ],
+      });
 
     // Tạo bảng InvoiceDetail
     await queryInterface.createTable('InvoiceDetail', {
@@ -662,33 +684,31 @@ module.exports = {
         allowNull: false,
       },
       InvoiceID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Invoice',
-          key: 'InvoiceID',
-        },
+        references: { model: 'Invoice', key: 'InvoiceID' },
         onDelete: 'CASCADE',
       },
       ProductID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Product',
-          key: 'ProductID',
-        },
+        references: { model: 'Product', key: 'ProductID' },
         onDelete: 'CASCADE',
       },
       ProductDetailID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'ProductDetail',
-          key: 'ProductDetailID',
-        },
+        references: { model: 'ProductDetail', key: 'ProductDetailID' },
         onDelete: 'CASCADE',
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['InvoiceID'], name: 'index_invoice_id' },
+          { fields: ['ProductID'], name: 'index_product_id' },
+          { fields: ['ProductDetailID'], name: 'index_product_detail_id' },
+        ],
+      });
 
     // Tạo bảng CartItem
     await queryInterface.createTable('CartItem', {
@@ -707,36 +727,34 @@ module.exports = {
         allowNull: false,
       },
       AccountID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Account',
-          key: 'AccountID',
-        },
+        references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
       },
       ProductID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'Product',
-          key: 'ProductID',
-        },
+        references: { model: 'Product', key: 'ProductID' },
         onDelete: 'CASCADE',
       },
       ProductDetailID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'ProductDetail',
-          key: 'ProductDetailID',
-        },
+        references: { model: 'ProductDetail', key: 'ProductDetailID' },
         onDelete: 'CASCADE',
       },
-    });
+    },
+      {
+        indexes: [
+          { fields: ['AccountID'], name: 'index_account_id' },
+          { fields: ['ProductID'], name: 'index_product_id' },
+          { fields: ['ProductDetailID'], name: 'index_product_detail_id' },
+        ],
+      });
 
-     // Tạo bảng ProductPetType
-     await queryInterface.createTable('VeterinarianService', {
+    // Tạo bảng VeterinarianService
+    await queryInterface.createTable('VeterinarianService', {
       VeterinarianServiceID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -744,63 +762,56 @@ module.exports = {
         allowNull: false,
       },
       VeterinarianID: {
-        type: Sequelize.CHAR(10),
+        type: Sequelize.STRING(10),
         allowNull: false,
-        references: {
-          model: 'VeterinarianInFo',
-          key: 'AccountID',
-        },
+        references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
       },
       ServiceID: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'Service',
-          key: 'ServiceID',
-        },
+        references: { model: 'Service', key: 'ServiceID' },
         onDelete: 'CASCADE',
       },
-
-    });
-
-
+    },
+      {
+        indexes: [
+          { fields: ['VeterinarianID'], name: 'index_veterinarian_id' },
+          { fields: ['ServiceID'], name: 'index_service_id' },
+        ],
+      });
 
     // Tạo bảng BlacklistToken
-    await queryInterface.createTable(
-      'BlacklistToken',
-      {
-        TokenID: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-          allowNull: false,
-        },
-        Token: {
-          type: Sequelize.TEXT,
-          allowNull: false,
-        },
-        ExtraValue: {
-          type: Sequelize.CHAR(10),
-          allowNull: true,
-        },
-        CreatedAt: {
-          type: Sequelize.DATE,
-          allowNull: true,
-        },
-        ExpiredAt: {
-          type: Sequelize.DATE,
-          allowNull: true,
-        },
+    await queryInterface.createTable('BlacklistToken', {
+      TokenID: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
+      Token: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      ExtraValue: {
+        type: Sequelize.STRING(10),
+        allowNull: true,
+      },
+      CreatedAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      ExpiredAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+    },
       {
         indexes: [{ fields: ['Token'], name: 'index_token' }],
-      }
-    );
+      });
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Xóa các bảng theo thứ tự ngược lại để tránh lỗi khóa ngoại
     await queryInterface.dropTable('BlacklistToken');
     await queryInterface.dropTable('CartItem');
     await queryInterface.dropTable('InvoiceDetail');
@@ -811,6 +822,7 @@ module.exports = {
     await queryInterface.dropTable('ProductPetType');
     await queryInterface.dropTable('ProductDetail');
     await queryInterface.dropTable('Product');
+    await queryInterface.dropTable('VeterinarianService');
     await queryInterface.dropTable('VeterinarianInfo');
     await queryInterface.dropTable('Schedule');
     await queryInterface.dropTable('AppointmentBill');

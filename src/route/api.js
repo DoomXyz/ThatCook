@@ -54,6 +54,7 @@ let initAPIRoutes = (app) => {
     router.put('/api/change-password', accountController.handleChangePassword);
     router.post('/api/send-forgot-token', accountController.handleSendForgotToken);
     router.post('/api/verify-forgot-token', accountController.handleVerifyForgotToken);
+    router.get('/api/load-veterinarianinfo', accountController.handleLoadVeterinarianInfo);
 
     router.get('/api/get-sale-bannerinfo', bannerController.handleGetSaleBannerInfo);
 
@@ -80,6 +81,7 @@ let initAPIRoutes = (app) => {
     router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes)
 
     router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
+    router.get('/api/get-petinfo', petController.handleGetPetInfo);
     router.post('/api/save-petinfo', petController.handleSavePetInfo);
     router.put('/api/change-petinfo', petController.handleChangePetInfo);
     //admin

@@ -1,8 +1,207 @@
-import { Op } from 'sequelize';
+import { Op, literal } from 'sequelize';
 import db from '../models/index.js';
 import { checkPaymentStatus, checkShippingStatus, checkPaymentType, checkShippingMethod } from './utilitiesService';
 
-let validateInvoiceInput = async (accountid, receivername, receiverphone, couponid) => {
+let validateInvoiceInput = async (invoiceInfo) => {
+  if (!invoiceInfo || Object.keys(invoiceInfo).length === 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Thiếu thông tin hóa đơn!',
+      data: null,
+    };
+  }
+  const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
+    discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, } = invoiceInfo;
+  if (!receivername?.trim()) {
+    return {
+      errCode: -1,
+      errMessage: 'Tên người nhận không được để trống!',
+      data: null,
+    };
+  }
+  const userName = receivername.trim();
+  const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+  if (!userNameRegex.test(userName)) {
+    return {
+      errCode: 1,
+      errMessage: 'Tên người nhận hàng sai định dạng!',
+      data: null,
+    };
+  }
+  if (!receiverphone?.trim()) {
+    return {
+      errCode: -1,
+      errMessage: 'Số điện thoại không được để trống!',
+      data: null,
+    };
+  } else {
+    const phoneNumber = receiverphone.trim();
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return {
+        errCode: 1,
+        errMessage: 'Số điện thoại nhận hàng không hợp lệ!',
+        data: null,
+      };
+    }
+  }
+  if (!receiveraddress?.trim() || receiveraddress.trim().length > 255) {
+    return {
+      errCode: -1,
+      errMessage: 'Địa chỉ nhận hàng trống hoặc vượt quá 255 ký tự!',
+      data: null,
+    };
+  }
+  if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Giỏ hàng trống hoặc không hợp lệ!',
+      data: null,
+    };
+  }
+  for (let i = 0; i < cartItems.length; i++) {
+    const item = cartItems[i];
+    if (!item.productid || !item.productdetailid || !item.itemquantity || !item.itemprice) {
+      return {
+        errCode: -1,
+        errMessage: `Thiếu thông tin sản phẩm tại dòng ${i + 1}!`,
+        data: null,
+      };
+    }
+    if (isNaN(item.itemquantity) || item.itemquantity <= 0) {
+      return {
+        errCode: 1,
+        errMessage: `Số lượng sản phẩm tại dòng ${i + 1} không hợp lệ!`,
+        data: null,
+      };
+    }
+    if (isNaN(item.itemprice) || item.itemprice < 0) {
+      return {
+        errCode: 1,
+        errMessage: `Giá sản phẩm tại dòng ${i + 1} không hợp lệ!`,
+        data: null,
+      };
+    }
+    const validProduct = await db.Product.findOne({
+      where: { ProductID: item.productid },
+    });
+    if (!validProduct) {
+      return {
+        errCode: 2,
+        errMessage: `Sản phẩm ${item.productid} tại dòng ${i + 1} không tồn tại!`,
+        data: null,
+      };
+    }
+    const validDetail = await db.ProductDetail.findOne({
+      where: { ProductDetailID: item.productdetailid },
+    });
+    if (!validDetail) {
+      return {
+        errCode: 2,
+        errMessage: `Chi tiết sản phẩm ${item.productdetailid} tại dòng ${i + 1} không tồn tại!`,
+        data: null,
+      };
+    }
+    if (validDetail.Stock < item.itemquantity) {
+      return {
+        errCode: 2,
+        errMessage: `Sản phẩm ${validProduct.ProductName} (${validDetail.DetailName}) tại dòng ${i + 1} không đủ tồn kho!`,
+        data: null,
+      };
+    }
+  }
+  if (!totalquantity || isNaN(totalquantity) || totalquantity <= 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Tổng số lượng sản phẩm không hợp lệ!',
+      data: null,
+    };
+  }
+  if (!totalprice || isNaN(totalprice) || totalprice < 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Tổng giá trị đơn hàng không hợp lệ!',
+      data: null,
+    };
+  }
+  if (discountamount && (isNaN(discountamount) || discountamount < 0)) {
+    return {
+      errCode: -1,
+      errMessage: 'Số tiền giảm giá không hợp lệ!',
+      data: null,
+    };
+  }
+  if (!totalpayment || isNaN(totalpayment) || totalpayment < 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Tổng thanh toán không hợp lệ!',
+      data: null,
+    };
+  }
+  if (!paymentstatus) {
+    return {
+      errCode: -1,
+      errMessage: 'Trạng thái thanh toán không được để trống!',
+      data: null,
+    };
+  } else {
+    const validPaymentStatus = await checkPaymentStatus(paymentstatus);
+    if (!validPaymentStatus) {
+      return {
+        errCode: 1,
+        errMessage: 'Trạng thái thanh toán không hợp lệ!',
+        data: null,
+      };
+    }
+  }
+  if (!shippingstatus) {
+    return {
+      errCode: -1,
+      errMessage: 'Trạng thái giao hàng không được để trống!',
+      data: null,
+    };
+  } else {
+    const validShippingStatus = await checkShippingStatus(shippingstatus);
+    if (!validShippingStatus) {
+      return {
+        errCode: 1,
+        errMessage: 'Trạng thái giao hàng không hợp lệ!',
+        data: null,
+      };
+    }
+  }
+  if (!paymenttype) {
+    return {
+      errCode: -1,
+      errMessage: 'Phương thức thanh toán không được để trống!',
+      data: null,
+    };
+  } else {
+    const validPaymentType = await checkPaymentType(paymenttype);
+    if (!validPaymentType) {
+      return {
+        errCode: 1,
+        errMessage: 'Phương thức thanh toán không hợp lệ!',
+        data: null,
+      };
+    }
+  }
+  if (!shippingmethod) {
+    return {
+      errCode: -1,
+      errMessage: 'Phương thức giao hàng không được để trống!',
+      data: null,
+    };
+  } else {
+    const validShippingMethod = await checkShippingMethod(shippingmethod);
+    if (!validShippingMethod) {
+      return {
+        errCode: 1,
+        errMessage: 'Phương thức giao hàng không hợp lệ!',
+        data: null,
+      };
+    }
+  }
   if (accountid) {
     const check = await checkAccountExist(accountid);
     if (!check) {
@@ -13,30 +212,12 @@ let validateInvoiceInput = async (accountid, receivername, receiverphone, coupon
       };
     }
   }
-  const userName = receivername.trim();
-  const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/; //chứa chữ cái, số hoặc khoảng trắng, dài từ 2-50 ký tự
-  if (!userNameRegex.test(userName)) {
-    return {
-      errCode: 1,
-      errMessage: 'Tên người nhận hàng sai định dạng!',
-      data: null,
-    };
-  }
-  const phoneNumber = receiverphone.trim();
-  const phoneRegex = /^[0-9]{10,11}$/;
-  if (!phoneRegex.test(phoneNumber)) {
-    return {
-      errCode: 1,
-      errMessage: 'Số điện thoại nhận hàng không hợp lệ!',
-      data: null,
-    };
-  }
   if (couponid) {
     const check = await checkCouponExist(couponid);
     if (!check) {
       return {
         errCode: 1,
-        errMessage: 'Thông tin giảm giá không tồn tại trong hệ thống!',
+        errMessage: 'Mã giảm giá không tồn tại trong hệ thống!',
         data: null,
       };
     }
@@ -60,7 +241,7 @@ let checkAccountExist = (accountID) => {
       });
       resolve(exist ? true : false);
     } catch (e) {
-      console.log(e);
+      console.log('Error in checkAccountExist: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi kiểm tra accountid: ' + e.message,
@@ -86,7 +267,7 @@ let checkCouponExist = (couponID) => {
       });
       resolve(exist ? true : false);
     } catch (e) {
-      console.log(e);
+      console.log('Error in checkCouponExist: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi kiểm tra couponid: ' + e.message,
@@ -184,91 +365,45 @@ let generateInvoiceID = () => {
 
 let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
-      if (!receivername || !receiverphone || !receiveraddress || !cartItems || !totalquantity || !totalprice || !totalpayment || !paymentstatus || !shippingstatus || !paymenttype || !shippingmethod) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      const validPaymentStatus = await checkPaymentStatus(paymentstatus);
-      if (!validPaymentStatus) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Trạng thái thanh toán không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-      const validShippingStatus = await checkShippingStatus(shippingstatus);
-      if (!validShippingStatus) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Trạng thái giao hàng không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-      const validPaymentType = await checkPaymentType(paymenttype);
-      if (!validPaymentType) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Phương thức thanh toán không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-      const validShippingMethod = await checkShippingMethod(shippingmethod);
-      if (!validShippingMethod) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Cách thức giao hàng không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-      let isValidateInput = await validateInvoiceInput(accountid, receivername, receiverphone, couponid);
+      const invoiceInfo = {
+        accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
+        discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid,
+      };
+
+      const isValidateInput = await validateInvoiceInput(invoiceInfo);
       if (isValidateInput) {
+        await transaction.rollback();
         resolve(isValidateInput);
         return;
       }
-      for (let item of cartItems) {
-        const validProduct = await db.Product.findOne({
-          where: { ProductID: item.productid },
-        });
-        if (!validProduct) {
-          resolve({
-            errCode: 2,
-            errMessage: 'Sản phẩm không tồn tại trong hệ thống!',
-          });
-          return;
-        }
-        const validDetail = await db.ProductDetail.findOne({
-          where: { ProductDetailID: item.productdetailid },
-        });
-        if (!validDetail) {
-          resolve({
-            errCode: 2,
-            errMessage: 'Chi tiết sản phẩm không tồn tại trong hệ thống!',
-          });
-          return;
-        }
-        if (validDetail.Stock < item.itemquantity) {
-          resolve({
-            errCode: 2,
-            errMessage: 'Sản phẩm không đủ tồn kho!',
-          });
-          return;
-        }
-      }
-      let AccountID;
-      if (accountid) {
-        AccountID = accountid;
-      } else {
+      const invoiceData = {
+        accountid,
+        receivername: receivername.trim(),
+        receiverphone: receiverphone.trim(),
+        receiveraddress: receiveraddress.trim(),
+        cartItems: cartItems.map(item => ({
+          productid: item.productid,
+          productdetailid: item.productdetailid,
+          itemprice: item.itemprice,
+          itemquantity: parseInt(item.itemquantity),
+        })),
+        totalquantity: parseInt(totalquantity),
+        totalprice,
+        discountamount: discountamount || '0.00',
+        totalpayment,
+        paymentstatus,
+        shippingstatus,
+        paymenttype,
+        shippingmethod,
+        couponid: couponid || null,
+      };
+      let AccountID = invoiceData.accountid;
+      if (!AccountID) {
         const GuestID = await generateGuestID();
         if (typeof GuestID === 'object' && GuestID.errCode) {
+          await transaction.rollback();
           resolve(GuestID);
           return;
         }
@@ -276,60 +411,68 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
       }
       const InvoiceID = await generateInvoiceID();
       if (typeof InvoiceID === 'object' && InvoiceID.errCode) {
+        await transaction.rollback();
         resolve(InvoiceID);
         return;
       }
-      await db.Invoice.create({
-        InvoiceID,
-        AccountID,
-        ReceiverName: receivername,
-        ReceiverPhone: receiverphone,
-        ReceiverAddress: receiveraddress,
-        TotalQuantity: totalquantity,
-        TotalPrice: totalprice,
-        DiscountAmount: discountamount,
-        TotalPayment: totalpayment,
-        CreatedAt: new Date(),
-        CanceledAt: null,
-        CancelReason: null,
-        PaymentStatus: paymentstatus,
-        ShippingStatus: shippingstatus,
-        PaymentType: paymenttype,
-        ShippingMethod: shippingmethod,
-        CouponID: couponid,
-      });
-      for (let item of cartItems) {
-        await db.InvoiceDetail.create({
+      await db.Invoice.create(
+        {
           InvoiceID,
-          ProductID: item.productid,
-          ProductDetailID: item.productdetailid,
-          ItemPrice: item.itemprice,
-          ItemQuantity: item.itemquantity,
-        });
-        const detail = await db.ProductDetail.findOne({
-          where: { ProductDetailID: item.productdetailid },
-        });
+          AccountID,
+          ReceiverName: invoiceData.receivername,
+          ReceiverPhone: invoiceData.receiverphone,
+          ReceiverAddress: invoiceData.receiveraddress,
+          TotalQuantity: invoiceData.totalquantity,
+          TotalPrice: invoiceData.totalprice,
+          DiscountAmount: invoiceData.discountamount,
+          TotalPayment: invoiceData.totalpayment,
+          CreatedAt: new Date(),
+          CanceledAt: null,
+          CancelReason: null,
+          PaymentStatus: invoiceData.paymentstatus,
+          ShippingStatus: invoiceData.shippingstatus,
+          PaymentType: invoiceData.paymenttype,
+          ShippingMethod: invoiceData.shippingmethod,
+          CouponID: invoiceData.couponid,
+        },
+        { transaction }
+      );
+      for (const item of invoiceData.cartItems) {
+        await db.InvoiceDetail.create(
+          {
+            InvoiceID,
+            ProductID: item.productid,
+            ProductDetailID: item.productdetailid,
+            ItemPrice: item.itemprice,
+            ItemQuantity: item.itemquantity,
+          },
+          { transaction }
+        );
         await db.ProductDetail.update(
           {
-            Stock: detail.Stock - item.itemquantity,
+            Stock: literal(`Stock - ${item.itemquantity}`),
           },
           {
             where: { ProductDetailID: item.productdetailid },
+            transaction,
           }
         );
       }
-      if (accountid) {
+      if (invoiceData.accountid) {
         await db.CartItem.destroy({
-          where: { AccountID: accountid },
+          where: { AccountID: invoiceData.accountid },
+          transaction,
         });
       }
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Tạo đơn hàng thành công!',
-        data: InvoiceID,
+        data: { InvoiceID },
       });
     } catch (e) {
-      console.log(e);
+      await transaction.rollback();
+      console.log('Error in createInvoice: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi tạo đơn hàng: ' + e,
@@ -350,27 +493,36 @@ let getAccountInvoiceInfo = (accountid) => {
         });
         return;
       }
+      const accountExists = await checkAccountExist(accountid);
+      if (!accountExists) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Tài khoản không tồn tại!',
+          data: null,
+        });
+        return;
+      }
       const data = await db.Invoice.findAll({
         where: { AccountID: accountid },
         attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalQuantity', 'TotalPayment', 'CreatedAt', 'CanceledAt', 'PaymentStatus', 'ShippingStatus'],
         order: [['CreatedAt', 'DESC']],
         raw: true,
       });
-      if (data) {
+      if (!data || data.length === 0) {
         resolve({
           errCode: 0,
-          errMessage: 'Lấy thông tin đơn hàng của người dùng thành công!',
-          data,
+          errMessage: 'Không tìm thấy đơn hàng nào!',
+          data: [],
         });
-      } else {
-        resolve({
-          errCode: 2,
-          errMessage: 'Thông tin đơn hàng của người dùng không tồn tại!',
-          data: null,
-        });
+        return;
       }
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin đơn hàng thành công!',
+        data,
+      });
     } catch (e) {
-      console.log(e);
+      console.log('Error in getAccountInvoiceInfo: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi lấy thông tin đơn hàng: ' + e,
@@ -391,15 +543,38 @@ let getInvoiceDetailInfo = (invoiceid) => {
         });
         return;
       }
-      const invoiceData = await db.InvoiceDetail.findAll({
+      const invoice = await db.Invoice.findOne({
         where: { InvoiceID: invoiceid },
-        attributes: ['ProductID', 'ProductDetailID', 'ItemQuantity'],
+        attributes: [
+          'TotalQuantity',
+          'ReceiverName',
+          'ReceiverPhone',
+          'ReceiverAddress',
+          'TotalPrice',
+          'DiscountAmount',
+          'TotalPayment',
+          'CreatedAt',
+          'PaymentType',
+          'ShippingStatus',
+          'ShippingMethod',
+          'CancelReason',
+        ],
+        raw: true,
       });
-      const invoiceHeader = await db.Invoice.findOne({
+      if (!invoice) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Hóa đơn không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+      const invoiceDetails = await db.InvoiceDetail.findAll({
         where: { InvoiceID: invoiceid },
-        attributes: ['TotalQuantity', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalPrice', 'DiscountAmount', 'TotalPayment', 'CreatedAt', 'PaymentType', 'ShippingStatus', 'ShippingMethod', 'CancelReason'],
+        attributes: ['ProductID', 'ProductDetailID', 'ItemQuantity', 'ItemPrice'],
+        raw: true,
       });
-      if (!invoiceData || !invoiceHeader) {
+      if (!invoiceDetails || invoiceDetails.length === 0) {
         resolve({
           errCode: 2,
           errMessage: 'Chi tiết đơn hàng không tồn tại!',
@@ -407,47 +582,46 @@ let getInvoiceDetailInfo = (invoiceid) => {
         });
         return;
       }
-      let data = {
-        ReceiverName: invoiceHeader.ReceiverName,
-        ReceiverPhone: invoiceHeader.ReceiverPhone,
-        ReceiverAddress: invoiceHeader.ReceiverAddress,
-        TotalQuantity: invoiceHeader.TotalQuantity,
-        TotalPrice: invoiceHeader.TotalPrice,
-        DiscountAmount: invoiceHeader.DiscountAmount,
-        TotalPayment: invoiceHeader.TotalPayment,
-        CreatedAt: invoiceHeader.CreatedAt,
-        PaymentType: invoiceHeader.PaymentType,
-        ShippingMethod: invoiceHeader.ShippingMethod,
-        ShippingStatus: invoiceHeader.ShippingStatus,
-        CancelReason: invoiceHeader.CancelReason,
+      const data = {
+        ReceiverName: invoice.ReceiverName,
+        ReceiverPhone: invoice.ReceiverPhone,
+        ReceiverAddress: invoice.ReceiverAddress,
+        TotalQuantity: invoice.TotalQuantity,
+        TotalPrice: invoice.TotalPrice,
+        DiscountAmount: invoice.DiscountAmount,
+        TotalPayment: invoice.TotalPayment,
+        CreatedAt: invoice.CreatedAt,
+        PaymentType: invoice.PaymentType,
+        ShippingMethod: invoice.ShippingMethod,
+        ShippingStatus: invoice.ShippingStatus,
+        CancelReason: invoice.CancelReason,
         ProductList: [],
       };
-      for (let i = 0; i < invoiceData.length; i++) {
-        const productid = invoiceData[i].ProductID;
-        const productdetailid = invoiceData[i].ProductDetailID;
-        const productData = await db.Product.findOne({
-          where: { ProductID: productid },
+      for (const detail of invoiceDetails) {
+        const product = await db.Product.findOne({
+          where: { ProductID: detail.ProductID },
           attributes: ['ProductName', 'ProductPrice', 'ProductImage'],
+          raw: true,
         });
-        const productdetailData = await db.ProductDetail.findOne({
-          where: { ProductDetailID: productdetailid },
+        const productDetail = await db.ProductDetail.findOne({
+          where: { ProductDetailID: detail.ProductDetailID },
           attributes: ['DetailName', 'ExtraPrice', 'Promotion'],
+          raw: true,
         });
-        if (!productData || !productdetailData) {
+        if (!product || !productDetail) {
           resolve({
             errCode: 2,
-            errMessage: 'Dữ liệu sản phẩm không tồn tại!',
+            errMessage: `Dữ liệu sản phẩm ${detail.ProductID} hoặc chi tiết ${detail.ProductDetailID} không tồn tại!`,
             data: null,
           });
           return;
         }
-        const itemPrice = (parseFloat(productData.ProductPrice) + parseFloat(productdetailData.ExtraPrice)) * (1 - parseFloat(productdetailData.Promotion) / 100);
         data.ProductList.push({
-          ProductName: productData.ProductName,
-          DetailName: productdetailData.DetailName,
-          ProductImage: productData.ProductImage,
-          ItemPrice: itemPrice,
-          ItemQuantity: invoiceData[i].ItemQuantity,
+          ProductName: product.ProductName,
+          DetailName: productDetail.DetailName,
+          ProductImage: product.ProductImage,
+          ItemPrice: detail.ItemPrice,
+          ItemQuantity: detail.ItemQuantity,
         });
       }
       resolve({
@@ -499,9 +673,12 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
 
       // Tìm kiếm theo ReceiverName hoặc ReceiverPhone
       if (search) {
-        where[Op.or] = [{ ReceiverName: { [Op.like]: `%${search}%` } }, { ReceiverPhone: { [Op.like]: `%${search}%` } }];
+        const searchTerm = search.trim().substring(0, 50);
+        where[Op.or] = [
+          { ReceiverName: { [Op.like]: `%${searchTerm}%` } },
+          { ReceiverPhone: { [Op.like]: `%${searchTerm}%` } },
+        ];
       }
-
       // Lọc theo ngày (bỏ qua giờ)
       if (date) {
         const startOfDay = new Date(date);
@@ -514,14 +691,13 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
           return;
         }
         startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(date);
+        const endOfDay = new Date(startOfDay);
         endOfDay.setHours(23, 59, 59, 999);
         where.CreatedAt = {
           [Op.gte]: startOfDay,
           [Op.lte]: endOfDay,
         };
       }
-
       // Lọc theo paymentstatus, shippingstatus hoặc totalpayment
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
@@ -569,6 +745,13 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
               });
               return;
           }
+        } else {
+          resolve({
+            errCode: 1,
+            errMessage: 'Tham số filter không hợp lệ!',
+            data: null,
+          });
+          return;
         }
       }
 
@@ -593,33 +776,44 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
           order.push(['TotalQuantity', 'DESC']);
           break;
         default: // Mặc định (0)
+          order.push(['CreatedAt', 'DESC']);
           break;
       }
 
       // Lấy danh sách hóa đơn
       const { count, rows } = await db.Invoice.findAndCountAll({
         where,
-        attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'TotalQuantity', 'TotalPayment', 'CreatedAt', 'CanceledAt', 'PaymentStatus', 'ShippingStatus'],
-        limit,
+        attributes: [
+          'InvoiceID',
+          'ReceiverName',
+          'ReceiverPhone',
+          'TotalQuantity',
+          'TotalPayment',
+          'CreatedAt',
+          'CanceledAt',
+          'PaymentStatus',
+          'ShippingStatus',
+        ],
+        limit: parseInt(limit),
         offset,
         order,
         raw: true,
+        distinct: true,
       });
-      const data = rows.map((item) => ({
-        InvoiceID: item.InvoiceID,
-        ReceiverName: item.ReceiverName,
-        ReceiverPhone: item.ReceiverPhone,
-        TotalQuantity: parseInt(item.TotalQuantity),
-        TotalPayment: parseFloat(item.TotalPayment),
-        CreatedAt: item.CreatedAt,
-        CanceledAt: item.CanceledAt,
-        PaymentStatus: item.PaymentStatus,
-        ShippingStatus: item.ShippingStatus,
-      }));
+      if (!rows || rows.length === 0) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Không tìm thấy đơn hàng nào!',
+          data: [],
+          totalItems: 0,
+        });
+        return;
+      }
+
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách đơn hàng thành công!',
-        data,
+        data: rows,
         totalItems: count,
       });
     } catch (e) {
@@ -635,8 +829,10 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
 
 let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!invoiceid || !type || !status) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -644,7 +840,22 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         });
         return;
       }
+      const invoice = await db.Invoice.findOne({
+        where: { InvoiceID: invoiceid },
+        raw: false,
+        transaction,
+      });
+      if (!invoice) {
+        await transaction.rollback();
+        resolve({
+          errCode: 2,
+          errMessage: 'Hóa đơn không tồn tại!',
+          data: null,
+        });
+        return;
+      }
       if (!['PaymentStatus', 'ShippingStatus'].includes(type)) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Loại trạng thái không hợp lệ!',
@@ -652,106 +863,83 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         });
         return;
       }
-      let invoiceData = await db.Invoice.findOne({
-        where: { InvoiceID: invoiceid },
-        raw: false,
-      });
-
-      if (invoiceData) {
-        let currentStatus = type === 'PaymentStatus' ? invoiceData.PaymentStatus : invoiceData.ShippingStatus;
-        if (currentStatus !== status) {
-          let validStatus = type === 'PaymentStatus' ? await checkPaymentStatus(status) : await checkShippingStatus(status);
-          if (typeof validStatus === 'object' && validStatus.errCode !== 0) {
-            resolve({
-              errCode: 1,
-              errMessage: validStatus.errMessage,
-              data: null,
-            });
-            return;
-          }
-          if (!validStatus) {
-            resolve({
-              errCode: 1,
-              errMessage: `Mã trạng thái ${type === 'PaymentStatus' ? 'thanh toán' : 'giao hàng'} không tồn tại!`,
-              data: null,
-            });
-            return;
-          }
-          if (type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(status)) {
-            if (status === 'PEND_CANCEL' && !cancelReason) {
-              resolve({
-                errCode: 1,
-                errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái chờ hủy!',
-                data: null,
-              });
-              return;
-            }
-            if (status === 'CANCELED') {
-              if (!cancelReason && !invoiceData.CancelReason) {
-                resolve({
-                  errCode: 1,
-                  errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái đã hủy!',
-                  data: null,
-                });
-                return;
-              }
-              if (!cancelReason && invoiceData.CancelReason) {
-                cancelReason = invoiceData.CancelReason;
-              }
-            }
-          }
-          if (type === 'PaymentStatus') {
-            invoiceData.PaymentStatus = status;
-          } else {
-            invoiceData.ShippingStatus = status;
-            if (['PEND_CANCEL', 'CANCELED'].includes(status)) {
-              invoiceData.CancelReason = cancelReason;
-            }
-            if (status === 'CANCELED') {
-              invoiceData.CanceledAt = new Date();
-              const invoiceDetails = await db.InvoiceDetail.findAll({
-                where: { InvoiceID: invoiceid },
-                attributes: ['ProductDetailID', 'ItemQuantity'],
-              });
-              for (let detail of invoiceDetails) {
-                const productDetail = await db.ProductDetail.findOne({
-                  where: { ProductDetailID: detail.ProductDetailID },
-                  raw: false,
-                });
-                if (!productDetail) {
-                  resolve({
-                    errCode: 2,
-                    errMessage: `Chi tiết sản phẩm ${detail.ProductDetailID} không tồn tại!`,
-                    data: null,
-                  });
-                  return;
-                }
-                productDetail.Stock += detail.ItemQuantity;
-                await productDetail.save();
-              }
-            }
-          }
-          await invoiceData.save();
-          resolve({
-            errCode: 0,
-            errMessage: 'Thay đổi trạng thái hóa đơn thành công!',
-            data: null,
-          });
-        } else {
-          resolve({
-            errCode: 1,
-            errMessage: 'Trạng thái không thay đổi!',
-            data: null,
-          });
-        }
-      } else {
+      const currentStatus = type === 'PaymentStatus' ? invoice.PaymentStatus : invoice.ShippingStatus;
+      if (currentStatus === status) {
+        await transaction.rollback();
         resolve({
-          errCode: 2,
-          errMessage: 'Hóa đơn không tồn tại!',
+          errCode: 1,
+          errMessage: 'Trạng thái không thay đổi!',
           data: null,
         });
+        return;
       }
+      const validStatus = type === 'PaymentStatus' ? await checkPaymentStatus(status) : await checkShippingStatus(status);
+      if (!validStatus) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: `Trạng thái ${type === 'PaymentStatus' ? 'thanh toán' : 'giao hàng'} không hợp lệ!`,
+          data: null,
+        });
+        return;
+      }
+      if (type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(status)) {
+        if (status === 'PEND_CANCEL' && !cancelReason?.trim()) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái chờ hủy!',
+            data: null,
+          });
+          return;
+        }
+        if (status === 'CANCELED' && !cancelReason?.trim() && !invoice.CancelReason) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Thiếu lý do hủy khi chuyển sang trạng thái đã hủy!',
+            data: null,
+          });
+          return;
+        }
+      }
+      if (type === 'PaymentStatus') {
+        invoice.PaymentStatus = status;
+      } else {
+        invoice.ShippingStatus = status;
+        if (['PEND_CANCEL', 'CANCELED'].includes(status)) {
+          invoice.CancelReason = cancelReason?.trim() || invoice.CancelReason;
+        }
+        if (status === 'CANCELED') {
+          invoice.CanceledAt = new Date();
+          const invoiceDetails = await db.InvoiceDetail.findAll({
+            where: { InvoiceID: invoiceid },
+            attributes: ['ProductDetailID', 'ItemQuantity'],
+            raw: true,
+            transaction,
+          });
+          for (const detail of invoiceDetails) {
+            await db.ProductDetail.update(
+              {
+                Stock: literal(`Stock + ${detail.ItemQuantity}`),
+              },
+              {
+                where: { ProductDetailID: detail.ProductDetailID },
+                transaction,
+              }
+            );
+          }
+        }
+      }
+      await invoice.save({ transaction });
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Thay đổi trạng thái hóa đơn thành công!',
+        data: null,
+      });
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,

@@ -2,25 +2,31 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Invoice extends Model {}
+  class Invoice extends Model {
+    static associate(models) {
+      Invoice.belongsTo(models.Coupon, { foreignKey: 'CouponID' });
+      Invoice.belongsTo(models.Account, { foreignKey: 'AccountID' });
+      Invoice.hasMany(models.InvoiceDetail, { foreignKey: 'InvoiceID' });
+    }
+  }
 
   Invoice.init(
     {
       InvoiceID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       ReceiverName: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
       },
       ReceiverPhone: {
-        type: DataTypes.CHAR(11),
+        type: DataTypes.STRING(11),
         allowNull: false,
       },
       ReceiverAddress: {
-        type: DataTypes.CHAR(100),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       TotalQuantity: {
@@ -32,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       DiscountAmount: {
-        type: DataTypes.DECIMAL(5, 2),
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: true,
       },
       TotalPayment: {
@@ -48,32 +54,37 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       CancelReason: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(20),
         allowNull: true,
+        // Liên kết với Code từ ALLCODES (Type = 'CancelReason')
       },
       PaymentStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'PaymentStatus')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'PaymentStatus')
       },
       ShippingStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'ShippingStatus')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'ShippingStatus')
       },
       PaymentType: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'PaymentType')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'PaymentType')
       },
       ShippingMethod: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'ShippingMethod')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'ShippingMethod')
       },
       CouponID: {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
       AccountID: {
-        type: DataTypes.CHAR(10),
-        allowNull: false,
+        type: DataTypes.STRING(10),
+        allowNull: true,
       },
     },
     {
@@ -81,7 +92,12 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Invoice',
       tableName: 'Invoice',
       timestamps: false,
+      indexes: [
+        { fields: ['CouponID'], name: 'index_coupon_id' },
+        { fields: ['AccountID'], name: 'index_account_id' },
+      ],
     }
   );
+
   return Invoice;
 };

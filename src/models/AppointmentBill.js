@@ -2,7 +2,11 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class AppointmentBill extends Model {}
+  class AppointmentBill extends Model {
+    static associate(models) {
+      AppointmentBill.belongsTo(models.Appointment, { foreignKey: 'AppointmentID' });
+    }
+  }
 
   AppointmentBill.init(
     {
@@ -13,12 +17,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       AppointmentID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       PaymentType: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'PaymentType')
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'PaymentType')
       },
       ServicePrice: {
         type: DataTypes.DECIMAL(10, 2),
@@ -42,6 +47,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'AppointmentBill',
       tableName: 'AppointmentBill',
       timestamps: false,
+      indexes: [
+        { fields: ['AppointmentID'], name: 'index_appointment_id' },
+      ],
     }
   );
 

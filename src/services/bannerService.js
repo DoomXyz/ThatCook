@@ -1,61 +1,68 @@
 import db from '../models/index';
 import { Op } from 'sequelize';
 import { checkBannerStatus } from './utilitiesService';
+import { raw } from 'body-parser';
 
 let validateBannerInput = async (bannerInfo) => {
-  if (!bannerInfo.BannerImage || !bannerInfo.BannerImage.trim()) {
+  if (!bannerInfo || Object.keys(bannerInfo).length === 0) {
     return {
-      errCode: 1,
-      errMessage: 'Hình ảnh banner không được để trống!',
+      errCode: -1,
+      errMessage: 'Thiếu thông tin banner!',
       data: null,
     };
   }
-  if (!bannerInfo.BannerStatus) {
+  const { BannerImage, HiddenAt, BannerStatus, ProductID } = bannerInfo;
+  if (!BannerImage?.trim() || BannerImage.trim().length > 2048) {
     return {
       errCode: 1,
+      errMessage: 'Hình ảnh banner không hợp lệ hoặc vượt quá 2048 ký tự!',
+      data: null,
+    };
+  }
+  if (HiddenAt !== undefined && HiddenAt !== null) {
+    const hiddenAtDate = new Date(HiddenAt);
+    if (isNaN(hiddenAtDate.getTime()) || hiddenAtDate <= new Date()) {
+      return {
+        errCode: 1,
+        errMessage: 'Ngày ẩn không hợp lệ hoặc phải lớn hơn thời gian hiện tại!',
+        data: null,
+      };
+    }
+  }
+  if (!BannerStatus) {
+    return {
+      errCode: -1,
       errMessage: 'Trạng thái banner không được để trống!',
       data: null,
     };
   } else {
-    const validBannerStatus = await checkBannerStatus(bannerInfo.BannerStatus);
+    const validBannerStatus = await checkBannerStatus(BannerStatus);
     if (!validBannerStatus) {
       return {
         errCode: 1,
-        errMessage: `Trạng thái banner ${bannerInfo.BannerStatus} không hợp lệ!`,
+        errMessage: `Trạng thái banner ${BannerStatus} không hợp lệ!`,
         data: null,
       };
     }
   }
-  if (!bannerInfo.ProductID) {
-    return {
-      errCode: 1,
-      errMessage: 'Mã sản phẩm không được để trống!',
-      data: null,
-    };
-  } else {
+  if (ProductID) {
     const product = await db.Product.findOne({
-      where: { ProductID: bannerInfo.ProductID },
+      where: { ProductID },
     });
     if (!product) {
       return {
         errCode: 1,
-        errMessage: `Sản phẩm ${bannerInfo.ProductID} không tồn tại!`,
+        errMessage: `Sản phẩm ${ProductID} không tồn tại!`,
         data: null,
       };
     }
-  }
-  if (bannerInfo.HiddenAt && isNaN(new Date(bannerInfo.HiddenAt).getTime())) {
-    return {
-      errCode: 1,
-      errMessage: 'Ngày ẩn không hợp lệ!',
-      data: null,
-    };
   }
   return null;
 };
 
 let updateHideBanner = () => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       const updated = await db.Banner.update(
         { BannerStatus: 'HIDE' },
@@ -67,14 +74,17 @@ let updateHideBanner = () => {
               [Op.lte]: new Date(),
             },
           },
+          transaction,
         }
       );
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Cập nhật trạng thái banner thành công!',
         data: { updatedCount: updated[0] },
       });
     } catch (e) {
+      await transaction.rollback();
       console.log('Error in updateHideBanner: ', e);
       resolve({
         errCode: 3,
@@ -96,32 +106,78 @@ let getBannerSaleInfo = (productid) => {
         });
         return;
       }
+
       await updateHideBanner();
+
       let data = null;
       if (productid === 'ALL') {
         data = await db.Banner.findAll({
-          where: {
-            BannerStatus: 'SHOW',
-          },
-          attributes: { exclude: ['CreatedAt', 'HiddenAt', 'BannerStatus'] },
+          where: { BannerStatus: 'SHOW' },
+          attributes: ['BannerID', 'BannerImage', 'ProductID'],
+          include: [
+            {
+              model: db.Product,
+              attributes: ['ProductName', 'ProductImage'],
+              required: false,
+            },
+          ],
+          raw: true,
         });
+        if (!data || data.length === 0) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Không tìm thấy banner nào!',
+            data: [],
+          });
+          return;
+        }
+        data = data.map(item => ({
+          BannerID: item.BannerID,
+          BannerImage: item.BannerImage,
+          ProductID: item.ProductID,
+          ProductName: item['Product.ProductName'] || null,
+          ProductImage: item['Product.ProductImage'] || null,
+        }));
       } else {
         data = await db.Banner.findOne({
           where: {
             ProductID: productid,
             BannerStatus: 'SHOW',
           },
-          attributes: { exclude: ['CreatedAt', 'HiddenAt', 'BannerStatus'] },
+          attributes: ['BannerID', 'BannerImage', 'ProductID'],
+          include: [
+            {
+              model: db.Product,
+              attributes: ['ProductName', 'ProductImage'],
+              required: false,
+            },
+          ],
           raw: true,
         });
+        if (!data) {
+          resolve({
+            errCode: 2,
+            errMessage: 'Banner không tồn tại!',
+            data: null,
+          });
+          return;
+        }
+        data = {
+          BannerID: data.BannerID,
+          BannerImage: data.BannerImage,
+          ProductID: data.ProductID,
+          ProductName: data['Product.ProductName'] || null,
+          ProductImage: data['Product.ProductImage'] || null,
+        };
       }
+
       resolve({
-        errCode: data ? 0 : 2,
-        errMessage: data ? 'Lấy thông tin banner thành công!' : 'Thông tin banner không tồn tại!',
-        data: data || (productid === 'ALL' ? [] : null),
+        errCode: 0,
+        errMessage: 'Lấy thông tin banner thành công!',
+        data,
       });
     } catch (e) {
-      console.log('Error in getBannerInfo: ', e);
+      console.log('Error in getBannerSaleInfo: ', e);
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi lấy thông tin banner: ${e.message}`,
@@ -142,6 +198,7 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
         });
         return;
       }
+
       if (filter !== 'ALL' && !filter.includes('-')) {
         resolve({
           errCode: 1,
@@ -150,6 +207,7 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
         });
         return;
       }
+
       if (sort && !['0', '1', '2', '3', '4'].includes(sort)) {
         resolve({
           errCode: 1,
@@ -158,15 +216,17 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
         });
         return;
       }
+
       await updateHideBanner();
+
       const offset = (page - 1) * limit;
       let where = {};
       let order = [];
 
-      // Tìm kiếm theo ProductName
-      if (search) {
+      if (search?.trim()) {
+        const searchTerm = search.trim().substring(0, 100);
         const products = await db.Product.findAll({
-          where: { ProductName: { [Op.like]: `%${search}%` } },
+          where: { ProductName: { [Op.like]: `%${searchTerm}%` } },
           attributes: ['ProductID'],
           raw: true,
         });
@@ -183,7 +243,6 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
         where.ProductID = { [Op.in]: productIds };
       }
 
-      // Lọc theo ngày (banner hoạt động trong ngày)
       if (date) {
         const startOfDay = new Date(date);
         if (isNaN(startOfDay.getTime())) {
@@ -195,13 +254,15 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
           return;
         }
         startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(date);
+        const endOfDay = new Date(startOfDay);
         endOfDay.setHours(23, 59, 59, 999);
         where.CreatedAt = { [Op.lte]: endOfDay };
-        where[Op.or] = [{ HiddenAt: { [Op.gte]: startOfDay } }, { HiddenAt: null }];
+        where[Op.or] = [
+          { HiddenAt: { [Op.gte]: startOfDay } },
+          { HiddenAt: null },
+        ];
       }
 
-      // Lọc theo filter
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
         if (field === 'bannerstatus') {
@@ -215,64 +276,71 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
             return;
           }
           where.BannerStatus = value;
+        } else {
+          resolve({
+            errCode: 1,
+            errMessage: 'Tham số filter không hợp lệ!',
+            data: null,
+          });
+          return;
         }
       }
 
-      // Sắp xếp
       switch (sort) {
-        case '1': // Thời gian tạo mới nhất
+        case '1':
           order.push(['CreatedAt', 'DESC']);
           break;
-        case '2': // Thời gian tạo cũ nhất
+        case '2':
           order.push(['CreatedAt', 'ASC']);
           break;
-        case '3': // Thời gian hết hạn gần nhất
-          order.push([db.sequelize.literal('HiddenAt IS NULL'), 'ASC']);
-          order.push(['HiddenAt', 'ASC']);
+        case '3':
+          order.push([literal('HiddenAt IS NULL'), 'ASC'], ['HiddenAt', 'ASC']);
           break;
-        case '4': // Thời gian hết hạn trễ nhất
-          order.push([db.sequelize.literal('HiddenAt IS NULL'), 'DESC']);
-          order.push(['HiddenAt', 'DESC']);
+        case '4':
+          order.push([literal('HiddenAt IS NULL'), 'DESC'], ['HiddenAt', 'DESC']);
           break;
-        default: // Mặc định
+        default:
+          order.push(['CreatedAt', 'DESC']);
           break;
       }
 
-      // Lấy danh sách banner
       const { count, rows } = await db.Banner.findAndCountAll({
         where,
         attributes: ['BannerID', 'BannerImage', 'CreatedAt', 'HiddenAt', 'BannerStatus', 'ProductID'],
-        limit,
+        limit: parseInt(limit),
         offset,
         order,
+        include: [
+          {
+            model: db.Product,
+            attributes: ['ProductName', 'ProductImage'],
+            required: false,
+          },
+        ],
         raw: true,
       });
-      // Lấy ProductName và ProductImage
-      const productIds = [...new Set(rows.map((item) => item.ProductID))];
-      const products = await db.Product.findAll({
-        where: { ProductID: { [Op.in]: productIds } },
-        attributes: ['ProductID', 'ProductName', 'ProductImage'],
-        raw: true,
-      });
-      const productMap = products.reduce((map, item) => {
-        map[item.ProductID] = {
-          ProductName: item.ProductName,
-          ProductImage: item.ProductImage,
-        };
-        return map;
-      }, {});
 
-      // Chuẩn hóa dữ liệu
-      const data = rows.map((item) => ({
+      if (!rows || rows.length === 0) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Không tìm thấy banner nào!',
+          data: [],
+          totalItems: 0,
+        });
+        return;
+      }
+
+      const data = rows.map(item => ({
         BannerID: item.BannerID,
         BannerImage: item.BannerImage,
         CreatedAt: item.CreatedAt,
-        HiddenAt: item.HiddenAt,
+        HiddenAt: item.HiddenAt ? new Date(item.HiddenAt).toISOString() : null,
         BannerStatus: item.BannerStatus,
         ProductID: item.ProductID,
-        ProductName: productMap[item.ProductID]?.ProductName || 'N/A',
-        ProductImage: productMap[item.ProductID]?.ProductImage || null,
+        ProductName: item['Product.ProductName'] || 'N/A',
+        ProductImage: item['Product.ProductImage'] || null,
       }));
+
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách banner thành công!',
@@ -303,6 +371,21 @@ let getBannerInfo = (bannerid) => {
       }
       const banner = await db.Banner.findOne({
         where: { BannerID: bannerid },
+        attributes: ['BannerID', 'BannerImage', 'CreatedAt', 'HiddenAt', 'BannerStatus', 'ProductID'],
+        include: [
+          {
+            model: db.Product,
+            attributes: ['ProductName', 'ProductType'],
+            required: false,
+            include: [
+              {
+                model: db.ProductPetType,
+                attributes: ['PetType'],
+                required: false,
+              },
+            ],
+          },
+        ],
         raw: true,
       });
       if (!banner) {
@@ -313,33 +396,18 @@ let getBannerInfo = (bannerid) => {
         });
         return;
       }
-      let product = null;
-      if (banner.ProductID) {
-        product = await db.Product.findOne({
-          where: { ProductID: banner.ProductID },
-          attributes: ['ProductName', 'ProductType'],
-          raw: true,
-        });
-      }
-      let petTypes = null;
-      if (banner.ProductID) {
-        petTypes = await db.ProductPetType.findAll({
-          where: { ProductID: banner.ProductID },
-          attributes: ['PetType'],
-          raw: true,
-        });
-      }
       const data = {
         BannerID: banner.BannerID,
         BannerImage: banner.BannerImage,
         CreatedAt: banner.CreatedAt,
-        HiddenAt: banner.HiddenAt,
+        HiddenAt: banner.HiddenAt ? new Date(banner.HiddenAt).toISOString() : null,
         BannerStatus: banner.BannerStatus,
         ProductID: banner.ProductID,
-        ProductName: product ? product.ProductName : null,
-        ProductType: product ? product.ProductType : null,
-        PetTypes: petTypes ? petTypes.map((pt) => pt.PetType) : [],
+        ProductName: banner['Product.ProductName'] || null,
+        ProductType: banner['Product.ProductType'] || null,
+        PetTypes: banner['Product.ProductPetTypes']?.map(pt => pt.PetType) || [],
       };
+
       resolve({
         errCode: 0,
         errMessage: 'Lấy thông tin banner thành công!',
@@ -358,34 +426,38 @@ let getBannerInfo = (bannerid) => {
 
 let createBanner = (bannerInfo) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!bannerInfo) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
-          errMessage: 'Thiếu tham số!',
+          errMessage: 'Thiếu thông tin banner!',
           data: null,
         });
         return;
       }
-
-      let isValidateInput = await validateBannerInput(bannerInfo);
+      const isValidateInput = await validateBannerInput(bannerInfo);
       if (isValidateInput) {
+        await transaction.rollback();
         resolve(isValidateInput);
         return;
       }
       const banner = await db.Banner.create({
         BannerImage: bannerInfo.BannerImage.trim(),
         CreatedAt: new Date(),
-        HiddenAt: bannerInfo.HiddenAt ? new Date(bannerInfo.HiddenAt) : null,
+        HiddenAt: bannerInfo.HiddenAt ? new Date(bannerInfo.HiddenAt).toISOString() : null,
         BannerStatus: bannerInfo.BannerStatus,
-        ProductID: bannerInfo.ProductID,
-      });
+        ProductID: bannerInfo.ProductID || null,
+      }, { transaction });
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Tạo banner thành công!',
-        data: null,
+        data: { BannerID: banner.BannerID },
       });
     } catch (e) {
+      await transaction.rollback();
       console.log('Error in createBanner: ', e);
       resolve({
         errCode: 3,
@@ -398,8 +470,10 @@ let createBanner = (bannerInfo) => {
 
 let changeBannerInfo = (bannerInfo) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!bannerInfo || !bannerInfo.BannerID) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -407,16 +481,18 @@ let changeBannerInfo = (bannerInfo) => {
         });
         return;
       }
-      let isValidateInput = await validateBannerInput(bannerInfo);
+      const isValidateInput = await validateBannerInput(bannerInfo);
       if (isValidateInput) {
+        await transaction.rollback();
         resolve(isValidateInput);
         return;
       }
-      let banner = await db.Banner.findOne({
+      const banner = await db.Banner.findOne({
         where: { BannerID: bannerInfo.BannerID },
-        raw: false,
+        transaction,
       });
       if (!banner) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Banner không tồn tại!',
@@ -433,29 +509,43 @@ let changeBannerInfo = (bannerInfo) => {
         banner.BannerStatus = bannerInfo.BannerStatus;
         isUpdated = true;
       }
-      if (bannerInfo.ProductID && bannerInfo.ProductID !== banner.ProductID) {
-        banner.ProductID = bannerInfo.ProductID;
+      if (bannerInfo.ProductID !== undefined && bannerInfo.ProductID !== banner.ProductID) {
+        banner.ProductID = bannerInfo.ProductID || null;
         isUpdated = true;
       }
       if (bannerInfo.HiddenAt !== undefined) {
-        banner.HiddenAt = bannerInfo.HiddenAt ? new Date(bannerInfo.HiddenAt) : null;
-        isUpdated = true;
+        const newHiddenAt = bannerInfo.HiddenAt ? new Date(bannerInfo.HiddenAt).toISOString() : null;
+        if (newHiddenAt !== banner.HiddenAt) {
+          banner.HiddenAt = newHiddenAt;
+          isUpdated = true;
+        }
       }
-      if (isUpdated) {
-        await banner.save();
-        resolve({
-          errCode: 0,
-          errMessage: 'Cập nhật thông tin banner thành công!',
-          data: null,
-        });
-      } else {
+      if (!isUpdated) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Không có thông tin nào để cập nhật!',
           data: null,
         });
+        return;
       }
+      await db.Banner.update(
+        {
+          BannerImage: banner.BannerImage,
+          BannerStatus: banner.BannerStatus,
+          ProductID: banner.ProductID,
+          HiddenAt: banner.HiddenAt,
+        },
+        { where: { BannerID: bannerInfo.BannerID }, transaction }
+      );
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Cập nhật thông tin banner thành công!',
+        data: null,
+      });
     } catch (e) {
+      await transaction.rollback();
       console.log('Error in changeBannerInfo: ', e);
       resolve({
         errCode: 3,

@@ -2,7 +2,11 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Coupon extends Model {}
+  class Coupon extends Model {
+    static associate(models) {
+      Coupon.hasMany(models.Invoice, { foreignKey: 'CouponID' });
+    }
+  }
 
   Coupon.init(
     {
@@ -13,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       CouponCode: {
-        type: DataTypes.CHAR(100),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       CouponDescription: {
@@ -41,12 +45,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       DiscountType: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'DiscountType')
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'DiscountType')
       },
       CouponStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'CouponStatus')
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'CouponStatus')
       },
     },
     {
@@ -54,6 +60,10 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Coupon',
       tableName: 'Coupon',
       timestamps: false,
+      indexes: [
+        { unique: true, fields: ['CouponCode'], name: 'unique_coupon_code' },
+        { fields: ['StartDate', 'EndDate'], name: 'index_date_range' },
+      ],
     }
   );
 

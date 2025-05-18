@@ -2,11 +2,11 @@ import db from '../models/index';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { Op } from 'sequelize';
-import { checkGender, checkAccountType, checkAccountStatus } from './utilitiesService';
+import { checkGender, checkAccountType, checkAccountStatus, checkWorkingStatus } from './utilitiesService';
 import { verifyJWT } from '../middleware/jwtController';
 //bcrypt
 let saltRounds = 10;
-let validateUserInput = async (userInfo) => {
+let validateAccountInput = async (userInfo) => {
   if (!userInfo || Object.keys(userInfo).length === 0) {
     return {
       errCode: -1,
@@ -14,14 +14,15 @@ let validateUserInput = async (userInfo) => {
       data: null,
     };
   }
-  if (!userInfo.accountname) {
+  const { accountname, email, password, username, phone, address, gender, accounttype } = userInfo;
+  if (!accountname) {
     return {
       errCode: -1,
-      errMessage: 'Tên tài khoản trống!',
+      errMessage: 'Tên tài khoản không được để trống!',
       data: null,
     };
   } else {
-    const accountName = userInfo.accountname.trim();
+    const accountName = accountname.trim();
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     if (!accountNameRegex.test(accountName)) {
       return {
@@ -31,16 +32,16 @@ let validateUserInput = async (userInfo) => {
       };
     }
   }
-  if (!userInfo.email) {
+  if (!email) {
     return {
       errCode: -1,
-      errMessage: 'Email trống!',
+      errMessage: 'Email không được để trống!',
       data: null,
     };
   } else {
-    const email = userInfo.email.trim();
+    const emailTrimmed = email.trim();
     const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(emailTrimmed)) {
       return {
         errCode: 1,
         errMessage: 'Email sai định dạng!',
@@ -48,17 +49,17 @@ let validateUserInput = async (userInfo) => {
       };
     }
   }
-  if (!userInfo.password) {
+  if (!password) {
     return {
       errCode: -1,
-      errMessage: 'Mật khẩu trống!',
+      errMessage: 'Mật khẩu không được để trống!',
       data: null,
     };
   } else {
-    const password = userInfo.password.trim();
-    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/; //cần ít nhất 8 ký tự
+    const passwordTrimmed = password.trim();
+    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;  //cần ít nhất 8 ký tự
     // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,}$/; //cần ít nhất 8 ký tự, bao gồm chữ cái và số để tăng tính bảo mật
-    if (!passwordRegex.test(password)) {
+    if (!passwordRegex.test(passwordTrimmed)) {
       return {
         errCode: 1,
         errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)',
@@ -66,15 +67,15 @@ let validateUserInput = async (userInfo) => {
       };
     }
   }
-  if (!userInfo.username) {
+  if (!username) {
     return {
       errCode: -1,
-      errMessage: 'Tên người dùng trống!',
+      errMessage: 'Tên người dùng không được để trống!',
       data: null,
     };
   } else {
-    const userName = userInfo.username.trim();
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/; //chứa chữ cái, số hoặc khoảng trắng, dài từ 2-50 ký tự
+    const userName = username.trim();
+    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
     if (!userNameRegex.test(userName)) {
       return {
         errCode: 1,
@@ -83,15 +84,15 @@ let validateUserInput = async (userInfo) => {
       };
     }
   }
-  if (!userInfo.phone) {
+  if (!phone) {
     return {
       errCode: -1,
-      errMessage: 'Số điện thoại trống!',
+      errMessage: 'Số điện thoại không được để trống!',
       data: null,
     };
   } else {
-    const phoneNumber = userInfo.phone.trim();
-    const phoneRegex = /^[0-9]{10,11}$/; //chỉ chứa số và có độ dài từ 10-11 ký tự
+    const phoneNumber = phone.trim();
+    const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(phoneNumber)) {
       return {
         errCode: 1,
@@ -100,21 +101,21 @@ let validateUserInput = async (userInfo) => {
       };
     }
   }
-  if (!userInfo.address) {
+  if (!address || !address.trim() || address.trim().length > 100) {
     return {
       errCode: -1,
-      errMessage: 'Địa chỉ trống!',
+      errMessage: 'Địa chỉ không hợp lệ hoặc vượt quá 100 ký tự!',
       data: null,
     };
   }
-  if (!userInfo.gender) {
+  if (!gender) {
     return {
       errCode: -1,
-      errMessage: 'Giới tính không tồn tại!',
+      errMessage: 'Giới tính không được để trống!',
       data: null,
     };
   } else {
-    let validGender = await checkGender(userInfo.gender);
+    const validGender = await checkGender(gender);
     if (!validGender) {
       return {
         errCode: 1,
@@ -123,14 +124,14 @@ let validateUserInput = async (userInfo) => {
       };
     }
   }
-  if (!userInfo.accounttype) {
+  if (!accounttype) {
     return {
       errCode: -1,
-      errMessage: 'Quyền hạn không tồn tại!',
+      errMessage: 'Quyền hạn không được để trống!',
       data: null,
     };
   } else {
-    let validAccountType = await checkAccountType(userInfo.accounttype);
+    const validAccountType = await checkAccountType(accounttype);
     if (!validAccountType) {
       return {
         errCode: 1,
@@ -141,20 +142,17 @@ let validateUserInput = async (userInfo) => {
   }
   return null;
 };
-let validateUserEdit = async (userInfo) => {
-  if (userInfo.username) {
-    const userName = userInfo.username.trim();
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    if (!userNameRegex.test(userName)) {
-      return {
-        errCode: 1,
-        errMessage: 'Tên người dùng không hợp lệ!',
-        data: null,
-      };
-    }
+let validateAccountEdit = async (userInfo) => {
+  if (!userInfo || Object.keys(userInfo).length === 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Thiếu thông tin chỉnh sửa!',
+      data: null,
+    };
   }
-  if (userInfo.accountname) {
-    const accountName = userInfo.accountname.trim();
+  const { accountname, username, phone, address, gender, accounttype } = userInfo;
+  if (accountname) {
+    const accountName = accountname.trim();
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     if (!accountNameRegex.test(accountName)) {
       return {
@@ -164,8 +162,19 @@ let validateUserEdit = async (userInfo) => {
       };
     }
   }
-  if (userInfo.phone) {
-    const phoneNumber = userInfo.phone.trim();
+  if (username) {
+    const userName = username.trim();
+    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+    if (!userNameRegex.test(userName)) {
+      return {
+        errCode: 1,
+        errMessage: 'Tên người dùng không hợp lệ!',
+        data: null,
+      };
+    }
+  }
+  if (phone) {
+    const phoneNumber = phone.trim();
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(phoneNumber)) {
       return {
@@ -175,22 +184,18 @@ let validateUserEdit = async (userInfo) => {
       };
     }
   }
-  if (userInfo.address && !userInfo.address.trim()) {
-    return {
-      errCode: 1,
-      errMessage: 'Địa chỉ không hợp lệ!',
-      data: null,
-    };
-  }
-  if (userInfo.gender) {
-    let validGender = await checkGender(userInfo.gender);
-    if (typeof validGender === 'object' && validGender.errCode !== 0) {
+  if (address) {
+    const addressTrimmed = address.trim();
+    if (!addressTrimmed || addressTrimmed.length > 100) {
       return {
         errCode: 1,
-        errMessage: validGender.errMessage,
+        errMessage: 'Địa chỉ không hợp lệ hoặc vượt quá 100 ký tự!',
         data: null,
       };
     }
+  }
+  if (gender) {
+    const validGender = await checkGender(gender);
     if (!validGender) {
       return {
         errCode: 1,
@@ -199,15 +204,8 @@ let validateUserEdit = async (userInfo) => {
       };
     }
   }
-  if (userInfo.accounttype) {
-    let validAccountType = await checkAccountType(userInfo.accounttype);
-    if (typeof validAccountType === 'object' && validAccountType.errCode !== 0) {
-      return {
-        errCode: 1,
-        errMessage: validAccountType.errMessage,
-        data: null,
-      };
-    }
+  if (accounttype) {
+    const validAccountType = await checkAccountType(accounttype);
     if (!validAccountType) {
       return {
         errCode: 1,
@@ -390,11 +388,35 @@ let firstNavigate = (accountType) => {
       return '/login';
   }
 };
+let sendVerificationEmail = async (email, code) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Mã xác nhận đặt lại mật khẩu',
+      text: `Mã xác nhận của bạn là: ${code}. Mã này có hiệu lực trong 30 phút.`,
+    };
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (e) {
+    console.log('Error in sendVerificationEmail: ', e);
+    return false;
+  }
+};
 //đăng ký
 let userRegister = (userInfo) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!userInfo) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu thông tin người dùng!',
@@ -402,13 +424,15 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      let isValidateInput = await validateUserInput(userInfo);
+      const isValidateInput = await validateAccountInput(userInfo);
       if (isValidateInput) {
+        await transaction.rollback();
         resolve(isValidateInput);
         return;
       }
-      let isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
+      const isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
       if (isAccountNameExist) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Tên tài khoản đã tồn tại trong hệ thống!',
@@ -416,8 +440,9 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      let isEmailExist = await checkEmailExist(userInfo.email);
+      const isEmailExist = await checkEmailExist(userInfo.email);
       if (isEmailExist) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Email đã tồn tại trong hệ thống!',
@@ -425,8 +450,9 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      let isPhoneExist = await checkPhoneExist(userInfo.phone);
+      const isPhoneExist = await checkPhoneExist(userInfo.phone);
       if (isPhoneExist) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Số điện thoại đã tồn tại trong hệ thống!',
@@ -436,11 +462,13 @@ let userRegister = (userInfo) => {
       }
       const accountID = await generateAccountID(userInfo.accounttype);
       if (typeof accountID === 'object' && accountID.errCode) {
+        await transaction.rollback();
         resolve(accountID);
         return;
       }
       const hashedPassword = await hashPassword(userInfo.password);
-      if (typeof hashedPassword === 'object' && hashedPassword.errCode !== 0) {
+      if (typeof hashedPassword === 'object' && hashedPassword.errCode) {
+        await transaction.rollback();
         resolve(hashedPassword);
         return;
       }
@@ -460,22 +488,33 @@ let userRegister = (userInfo) => {
         CreatedAt: createdAt,
         AccountStatus: 'ACT',
         AccountType: userInfo.accounttype || 'C',
-      });
+      }, { transaction });
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
         const { bio, specialization, workingstatus } = userInfo.veterinarianInfo;
+        if (!workingstatus) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Trạng thái làm việc của bác sĩ không được để trống!',
+            data: null,
+          });
+          return;
+        }
         await db.VeterinarianInfo.create({
           AccountID: accountID,
-          Bio: bio || null,
-          Specialization: specialization || null,
-          WorkingStatus: workingstatus || null,
-        });
+          Bio: bio?.trim() || null,
+          Specialization: specialization?.trim() || null,
+          WorkingStatus: workingstatus.trim(),
+        }, { transaction });
       }
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Đăng ký người dùng thành công!',
-        data: null,
+        data: { AccountID: accountID },
       });
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,
@@ -488,8 +527,10 @@ let userRegister = (userInfo) => {
 //đăng nhập
 let userLogin = (userInfo) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
-      if (!userInfo || Object.keys(userInfo).length === 0) {
+      if (!userInfo) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu thông tin đăng nhập!',
@@ -497,81 +538,80 @@ let userLogin = (userInfo) => {
         });
         return;
       }
-      let userAccountName = userInfo.accountname;
-      let userPassword = userInfo.password;
-      if (!userAccountName || !userPassword) {
+      const { accountname, password } = userInfo;
+      if (!accountname || !password) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
-          errMessage: 'Tên tài khoản hoặc mật khẩu không được bỏ trống!',
+          errMessage: 'Tên tài khoản hoặc mật khẩu không được để trống!',
           data: null,
         });
         return;
       }
-      let userData = {};
-      let existedAccount = await db.Account.findOne({
+      const existedAccount = await db.Account.findOne({
         attributes: ['AccountID', 'AccountName', 'Password', 'UserName', 'UserImage', 'LoginAttempt', 'LockUntil', 'AccountStatus', 'AccountType'],
-        where: {
-          AccountName: {
-            [Op.eq]: userAccountName,
-          },
-        },
+        where: { AccountName: accountname },
         raw: true,
+        transaction,
       });
       if (!existedAccount) {
-        userData.errCode = 2;
-        userData.errMessage = 'Tên tài khoản không tồn tại!';
-        userData.data = null;
-        resolve(userData);
+        await transaction.rollback();
+        resolve({
+          errCode: 2,
+          errMessage: 'Tên tài khoản không tồn tại!',
+          data: null,
+        });
         return;
       }
       const currentTime = new Date();
       if (existedAccount.LockUntil && new Date(existedAccount.LockUntil) > currentTime) {
-        userData.errCode = 2;
-        userData.errMessage = 'Tài khoản đang bị khóa. Vui lòng thử lại sau!';
-        userData.data = null;
-        resolve(userData);
+        await transaction.rollback();
+        resolve({
+          errCode: 2,
+          errMessage: 'Tài khoản đang bị khóa. Vui lòng thử lại sau!',
+          data: null,
+        });
         return;
       }
-      let checkValidPasword = bcrypt.compareSync(userPassword, existedAccount.Password);
-      if (checkValidPasword) {
-        if (existedAccount.AccountStatus === 'ACT') {
-          userData.errCode = 0;
-          userData.errMessage = 'Đúng mật khẩu!';
-          delete existedAccount.Password;
-          userData.data = existedAccount;
-          userData.navigate = firstNavigate(existedAccount.AccountType);
-          await db.Account.update({ LoginAttempt: 0, LockUntil: null }, { where: { AccountName: userAccountName } });
-        } else {
-          userData.errCode = 2;
-          userData.errMessage = 'Tài khoản đăng nhập đã bị khóa!';
-          userData.data = null;
-        }
+      const isPasswordValid = bcrypt.compareSync(password, existedAccount.Password);
+      if (isPasswordValid && existedAccount.AccountStatus === 'ACT') {
+        delete existedAccount.Password;
+        await db.Account.update(
+          { LoginAttempt: 0, LockUntil: null },
+          { where: { AccountName: accountname }, transaction }
+        );
+        await transaction.commit();
+        resolve({
+          errCode: 0,
+          errMessage: 'Đăng nhập thành công!',
+          data: {
+            ...existedAccount,
+            navigate: firstNavigate(existedAccount.AccountType),
+          },
+        });
       } else {
-        //tăng bộ đếm nếu đăng nhập sai mật khẩu
         let newLoginAttempts = (existedAccount.LoginAttempt || 0) + 1;
         let lockUntilTime = null;
         if (newLoginAttempts >= 5) {
-          //khóa tài khoản 5 phút
           lockUntilTime = new Date(currentTime.getTime() + 5 * 60 * 1000);
-          newLoginAttempts = 0; //cho attempt về không
-          userData.errCode = 2;
-          userData.errMessage = 'Đã vượt quá số lần đăng nhập. Tài khoản bị khóa 5 phút!';
-          userData.data = null;
-        } else {
-          userData.errCode = 2;
-          userData.errMessage = 'Sai mật khẩu!';
-          userData.data = null;
+          newLoginAttempts = 0;
         }
         await db.Account.update(
-          {
-            LoginAttempt: newLoginAttempts,
-            LockUntil: lockUntilTime,
-          },
-          { where: { AccountName: userAccountName } }
+          { LoginAttempt: newLoginAttempts, LockUntil: lockUntilTime },
+          { where: { AccountName: accountname }, transaction }
         );
+        await transaction.commit();
+        resolve({
+          errCode: 2,
+          errMessage:
+            newLoginAttempts === 0
+              ? 'Đã vượt quá số lần đăng nhập. Tài khoản bị khóa 5 phút!'
+              : 'Sai mật khẩu!',
+          data: null,
+        });
       }
-      resolve(userData);
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,
@@ -599,28 +639,38 @@ let getAccountInfo = (accountid) => {
           attributes: {
             exclude: ['Password', 'LoginAttempt'],
           },
+          raw: true,
         });
+        if (!userData || userData.length === 0) {
+          resolve({
+            errCode: 1,
+            errMessage: 'Không tìm thấy tài khoản nào!',
+            data: [],
+          });
+          return;
+        }
       } else {
         userData = await db.Account.findOne({
           where: { AccountID: accountid },
           attributes: {
             exclude: ['Password', 'LoginAttempt'],
           },
+          raw: true,
         });
+        if (!userData) {
+          resolve({
+            errCode: 2,
+            errMessage: 'Tài khoản không tồn tại!',
+            data: null,
+          });
+          return;
+        }
       }
-      if (userData !== null) {
-        resolve({
-          errCode: 0,
-          errMessage: 'Lấy dữ liệu thành công!',
-          data: userData,
-        });
-      } else {
-        resolve({
-          errCode: 2,
-          errMessage: 'Tài khoản không tồn tại!',
-          data: null,
-        });
-      }
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin tài khoản thành công!',
+        data: userData,
+      });
     } catch (e) {
       console.log(e);
       resolve({
@@ -663,8 +713,13 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
       let where = {};
       let order = [];
       // Tìm kiếm
-      if (search) {
-        where[Op.or] = [{ Email: { [Op.like]: `%${search}%` } }, { UserName: { [Op.like]: `%${search}%` } }, { Phone: { [Op.like]: `%${search}%` } }];
+      if (search && search.trim()) {
+        const searchTerm = search.trim().substring(0, 100);
+        where[Op.or] = [
+          { Email: { [Op.like]: `%${searchTerm}%` } },
+          { UserName: { [Op.like]: `%${searchTerm}%` } },
+          { Phone: { [Op.like]: `%${searchTerm}%` } },
+        ];
       }
       // Lọc
       if (filter !== 'ALL') {
@@ -680,8 +735,7 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
             return;
           }
           where.AccountType = value;
-        }
-        if (field === 'gender') {
+        } else if (field === 'gender') {
           const validGender = await checkGender(value);
           if (!validGender) {
             resolve({
@@ -692,8 +746,7 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
             return;
           }
           where.Gender = value;
-        }
-        if (field === 'accountstatus') {
+        } else if (field === 'accountstatus') {
           const validAccountStatus = await checkAccountStatus(value);
           if (!validAccountStatus) {
             resolve({
@@ -704,6 +757,13 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
             return;
           }
           where.AccountStatus = value;
+        } else {
+          resolve({
+            errCode: 1,
+            errMessage: 'Tham số filter không hợp lệ!',
+            data: null,
+          });
+          return;
         }
       }
       // Sắp xếp
@@ -730,6 +790,7 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
           order.push(['CreatedAt', 'ASC']);
           break;
         default:
+          order.push(['CreatedAt', 'DESC']);
           break;
       }
       const { count, rows } = await db.Account.findAndCountAll({
@@ -740,6 +801,15 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
         order,
         raw: true,
       });
+      if (!rows || rows.length === 0) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Không tìm thấy tài khoản nào!',
+          data: [],
+          totalItems: 0,
+        });
+        return;
+      }
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách tài khoản thành công!',
@@ -806,11 +876,13 @@ let verifyToken = (token) => {
 //đăng xuất
 let userLogout = (token, decoded) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!token) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
-          errMessage: 'Không có token để đăng xuất, nhưng vẫn thành công!',
+          errMessage: 'Không có token để đăng xuất!',
           data: null,
         });
         return;
@@ -818,22 +890,25 @@ let userLogout = (token, decoded) => {
       await db.BlacklistToken.destroy({
         where: {
           ExpiredAt: {
-            [Op.lt]: new Date(), // Xóa các token có ExpiredAt nhỏ hơn thời gian hiện tại
+            [Op.lt]: new Date(),
           },
         },
+        transaction,
       });
-      const expiredAt = decoded && decoded.exp ? new Date(decoded.exp * 1000) : null;
+      const expiredAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 24 * 60 * 60 * 1000);
       await db.BlacklistToken.create({
         Token: token,
         CreatedAt: new Date(),
         ExpiredAt: expiredAt,
-      });
+      }, { transaction });
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Đăng xuất thành công!',
         data: null,
       });
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,
@@ -846,8 +921,10 @@ let userLogout = (token, decoded) => {
 //chuyển trạng thái của tài khoản
 let changeAccountStatus = (accountid, accountstatus) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!accountid || !accountstatus) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -855,51 +932,50 @@ let changeAccountStatus = (accountid, accountstatus) => {
         });
         return;
       }
-      let userData = await db.Account.findOne({
+      const validAccountStatus = await checkAccountStatus(accountstatus);
+      if (!validAccountStatus) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Trạng thái tài khoản không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      const account = await db.Account.findOne({
         where: { AccountID: accountid },
-        raw: false,
+        transaction,
       });
-      if (userData) {
-        if (userData.AccountStatus !== accountstatus) {
-          let validAccountStatus = await checkAccountStatus(accountstatus);
-          if (typeof validAccountStatus === 'object' && validAccountStatus.errCode !== 0) {
-            resolve({
-              errCode: 1,
-              errMessage: validAccountStatus.errMessage,
-              data: null,
-            });
-            return;
-          }
-          if (!validAccountStatus) {
-            resolve({
-              errCode: 1,
-              errMessage: 'Mã trạng thái tài khoản không tồn tại!',
-              data: null,
-            });
-            return;
-          }
-          userData.AccountStatus = accountstatus;
-          await userData.save();
-          resolve({
-            errCode: 0,
-            errMessage: 'Thay đổi trạng thái thành công!',
-            data: null,
-          });
-        } else {
-          resolve({
-            errCode: 1,
-            errMessage: 'Trạng thái không thay đổi!',
-            data: null,
-          });
-        }
-      } else {
+      if (!account) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Tài khoản không tồn tại!',
           data: null,
         });
+        return;
       }
+      if (account.AccountStatus === accountstatus) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Trạng thái không thay đổi!',
+          data: null,
+        });
+        return;
+      }
+      await db.Account.update(
+        { AccountStatus: accountstatus },
+        { where: { AccountID: accountid }, transaction }
+      );
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Thay đổi trạng thái tài khoản thành công!',
+        data: null,
+      });
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,
@@ -912,8 +988,10 @@ let changeAccountStatus = (accountid, accountstatus) => {
 //chỉnh sửa thông tin người dùng cơ bản
 let changeAccountInfo = (userInfo) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!userInfo || !userInfo.accountid) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -921,16 +999,18 @@ let changeAccountInfo = (userInfo) => {
         });
         return;
       }
-      let isValidateInput = await validateUserEdit(userInfo);
+      const isValidateInput = await validateAccountEdit(userInfo);
       if (isValidateInput) {
+        await transaction.rollback();
         resolve(isValidateInput);
         return;
       }
-      let account = await db.Account.findOne({
+      const account = await db.Account.findOne({
         where: { AccountID: userInfo.accountid },
-        raw: false,
+        transaction,
       });
       if (!account) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Tài khoản không tồn tại!',
@@ -939,12 +1019,13 @@ let changeAccountInfo = (userInfo) => {
         return;
       }
       if (userInfo.accountname && userInfo.accountname !== account.AccountName) {
-        let isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
+        const isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
         if (typeof isAccountNameExist === 'object' && isAccountNameExist.errCode !== 0) {
           resolve(isAccountNameExist);
           return;
         }
         if (isAccountNameExist) {
+          await transaction.rollback();
           resolve({
             errCode: 1,
             errMessage: 'Tên tài khoản đã tồn tại trong hệ thống!',
@@ -954,12 +1035,13 @@ let changeAccountInfo = (userInfo) => {
         }
       }
       if (userInfo.phone && userInfo.phone !== account.Phone) {
-        let isPhoneExist = await checkPhoneExist(userInfo.phone);
+        const isPhoneExist = await checkPhoneExist(userInfo.phone);
         if (typeof isPhoneExist === 'object' && isPhoneExist.errCode !== 0) {
           resolve(isPhoneExist);
           return;
         }
         if (isPhoneExist) {
+          await transaction.rollback();
           resolve({
             errCode: 1,
             errMessage: 'Số điện thoại đã tồn tại trong hệ thống!',
@@ -969,8 +1051,8 @@ let changeAccountInfo = (userInfo) => {
         }
       }
       let isUpdated = false;
-      if (userInfo.accounttype) {
-        account.AccountType = userInfo.accounttype;
+      if (userInfo.accountname) {
+        account.AccountName = userInfo.accountname;
         isUpdated = true;
       }
       if (userInfo.username) {
@@ -990,13 +1072,14 @@ let changeAccountInfo = (userInfo) => {
         isUpdated = true;
       }
       if ('userimage' in userInfo) {
-        if (userInfo.userimage === 0) {
+        if (userInfo.userimage === null) {
           account.UserImage = null;
           isUpdated = true;
-        } else if (!userInfo.userimage?.secure_url) {
+        } else if (!userInfo.userimage?.secure_url || userInfo.userimage.secure_url.length > 2048) {
+          await transaction.rollback();
           resolve({
             errCode: 1,
-            errMessage: 'Định dạng ảnh đại diện không hợp lệ!',
+            errMessage: 'URL ảnh đại diện không hợp lệ hoặc vượt quá 2048 ký tự!',
             data: null,
           });
           return;
@@ -1005,47 +1088,74 @@ let changeAccountInfo = (userInfo) => {
           isUpdated = true;
         }
       }
-      if (userInfo.accountname) {
-        account.AccountName = userInfo.accountname;
+      if (userInfo.accounttype) {
+        account.AccountType = userInfo.accounttype;
         isUpdated = true;
       }
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
         const { bio, specialization, workingstatus } = userInfo.veterinarianInfo;
-        let vetInfo = await db.VeterinarianInfo.findOne({
+        const validWorkingStatus = await checkWorkingStatus(workingstatus);
+        if (!validWorkingStatus) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Trạng thái làm việc không hợp lệ!',
+            data: null,
+          });
+          return;
+        }
+        const vetInfo = await db.VeterinarianInfo.findOne({
           where: { AccountID: userInfo.accountid },
-          raw: false,
+          transaction,
         });
         if (vetInfo) {
-          vetInfo.Bio = bio || null;
-          vetInfo.Specialization = specialization || null;
-          vetInfo.WorkingStatus = workingstatus || null;
-          await vetInfo.save();
-          isUpdated = true;
+          await db.VeterinarianInfo.update(
+            {
+              Bio: bio?.trim() || vetInfo.Bio,
+              Specialization: specialization?.trim() || vetInfo.Specialization,
+              WorkingStatus: workingstatus.trim(),
+            },
+            { where: { AccountID: userInfo.accountid }, transaction }
+          );
         } else {
           await db.VeterinarianInfo.create({
             AccountID: userInfo.accountid,
-            Bio: bio || null,
-            Specialization: specialization || null,
-            WorkingStatus: workingstatus || null,
-          });
-          isUpdated = true;
+            Bio: bio?.trim() || null,
+            Specialization: specialization?.trim() || null,
+            WorkingStatus: workingstatus.trim(),
+          }, { transaction });
         }
+        isUpdated = true;
       }
-      if (isUpdated) {
-        await account.save();
-        resolve({
-          errCode: 0,
-          errMessage: 'Cập nhật thông tin tài khoản thành công!',
-          data: null,
-        });
-      } else {
+      if (!isUpdated) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Không có thông tin nào để cập nhật!',
           data: null,
         });
+        return;
       }
+      await db.Account.update(
+        {
+          AccountName: account.AccountName,
+          UserName: account.UserName,
+          Gender: account.Gender,
+          Phone: account.Phone,
+          Address: account.Address,
+          UserImage: account.UserImage,
+          AccountType: account.AccountType,
+        },
+        { where: { AccountID: userInfo.accountid }, transaction }
+      );
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Cập nhật thông tin tài khoản thành công!',
+        data: null,
+      });
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,
@@ -1058,8 +1168,10 @@ let changeAccountInfo = (userInfo) => {
 //thay đổi mật khẩu
 let changePassword = (accountid, password, newpassword) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!accountid || !newpassword) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -1067,11 +1179,12 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      let account = await db.Account.findOne({
+      const account = await db.Account.findOne({
         where: { AccountID: accountid },
-        raw: false,
+        transaction,
       });
       if (!account) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Tài khoản không tồn tại!',
@@ -1080,8 +1193,9 @@ let changePassword = (accountid, password, newpassword) => {
         return;
       }
       if (password !== 'forgot_password') {
-        let checkPassword = bcrypt.compareSync(password, account.Password);
-        if (!checkPassword) {
+        const isPasswordValid = bcrypt.compareSync(password, account.Password);
+        if (!isPasswordValid) {
+          await transaction.rollback();
           resolve({
             errCode: 2,
             errMessage: 'Mật khẩu cũ không đúng!',
@@ -1090,9 +1204,10 @@ let changePassword = (accountid, password, newpassword) => {
           return;
         }
       }
-      const checkNewPassword = newpassword.trim();
+      const newPasswordTrimmed = newpassword.trim();
       const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
-      if (!passwordRegex.test(checkNewPassword)) {
+      if (!passwordRegex.test(newPasswordTrimmed)) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Mật khẩu mới không hợp lệ! (Cần ít nhất 8 ký tự)',
@@ -1100,7 +1215,8 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      if (password !== 'forgot_password' && password === newpassword) {
+      if (password !== 'forgot_password' && bcrypt.compareSync(newpassword, account.Password)) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Mật khẩu mới không được trùng với mật khẩu cũ!',
@@ -1108,19 +1224,24 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      let hashedPassword = await hashPassword(newpassword);
-      if (typeof hashedPassword === 'object' && hashedPassword.errCode !== 0) {
+      const hashedPassword = await hashPassword(newPasswordTrimmed);
+      if (typeof hashedPassword === 'object' && hashedPassword.errCode) {
+        await transaction.rollback();
         resolve(hashedPassword);
         return;
       }
-      account.Password = hashedPassword;
-      await account.save();
+      await db.Account.update(
+        { Password: hashedPassword },
+        { where: { AccountID: accountid }, transaction }
+      );
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Đổi mật khẩu thành công!',
         data: null,
       });
     } catch (e) {
+      await transaction.rollback();
       console.log(e);
       resolve({
         errCode: 3,
@@ -1142,24 +1263,24 @@ let getPaymentInfo = (accountid) => {
         });
         return;
       }
-      let data = await db.Account.findOne({
+      const data = await db.Account.findOne({
         where: { AccountID: accountid },
         attributes: ['UserName', 'Phone', 'Address'],
         raw: true,
       });
-      if (data) {
-        resolve({
-          errCode: 0,
-          errMessage: 'Lấy thông tin thanh toán thành công!',
-          data,
-        });
-      } else {
+      if (!data) {
         resolve({
           errCode: 2,
           errMessage: 'Tài khoản không tồn tại!',
           data: null,
         });
+        return;
       }
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin thanh toán thành công!',
+        data,
+      });
     } catch (e) {
       console.log('Error in getPaymentInfo: ', e);
       resolve({
@@ -1170,7 +1291,7 @@ let getPaymentInfo = (accountid) => {
     }
   });
 };
-
+//lấy thông tin thêm của tài khoản bác sĩ thú y
 let getVeterinarianInfo = (accountid) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -1187,19 +1308,19 @@ let getVeterinarianInfo = (accountid) => {
         attributes: ['Bio', 'Specialization', 'WorkingStatus'],
         raw: true,
       });
-      if (vetInfo) {
-        resolve({
-          errCode: 0,
-          errMessage: 'Lấy thông tin bác sĩ thú y thành công!',
-          data: vetInfo,
-        });
-      } else {
+      if (!vetInfo) {
         resolve({
           errCode: 2,
           errMessage: 'Không tìm thấy thông tin bác sĩ thú y!',
           data: null,
         });
+        return;
       }
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin bác sĩ thú y thành công!',
+        data: vetInfo,
+      });
     } catch (e) {
       console.log(e);
       resolve({
@@ -1210,34 +1331,13 @@ let getVeterinarianInfo = (accountid) => {
     }
   });
 };
-
-let sendVerificationEmail = async (email, code) => {
-  try {
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-    let mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Mã xác nhận đặt lại mật khẩu',
-      text: `Mã xác nhận của bạn là: ${code}. Mã này có hiệu lực trong 30 phút.`,
-    };
-    await transporter.sendMail(mailOptions);
-    return true;
-  } catch (e) {
-    console.log(e);
-    return false;
-  }
-};
-
+//gửi mã xác minh quên mật khẩu
 let sendForgotToken = (email) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!email) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -1245,8 +1345,10 @@ let sendForgotToken = (email) => {
         });
         return;
       }
+      const emailTrimmed = email.trim();
       const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim())) {
+      if (!emailRegex.test(emailTrimmed)) {
+        await transaction.rollback();
         resolve({
           errCode: 1,
           errMessage: 'Email không hợp lệ!',
@@ -1255,11 +1357,13 @@ let sendForgotToken = (email) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { Email: email },
+        where: { Email: emailTrimmed },
         attributes: ['AccountID'],
         raw: true,
+        transaction,
       });
       if (!account) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Email không tồn tại trong hệ thống!',
@@ -1272,19 +1376,20 @@ let sendForgotToken = (email) => {
       const expiredAt = new Date(currentTime.getTime() + 30 * 60 * 1000);
       await db.BlacklistToken.destroy({
         where: {
-          ExpiredAt: {
-            [Op.lt]: currentTime,
-          },
+          ExtraValue: account.AccountID,
+          ExpiredAt: { [Op.lt]: currentTime },
         },
+        transaction,
       });
       await db.BlacklistToken.create({
         Token: code,
         ExtraValue: account.AccountID,
         CreatedAt: currentTime,
         ExpiredAt: expiredAt,
-      });
-      const emailSent = await sendVerificationEmail(email, code);
+      }, { transaction });
+      const emailSent = await sendVerificationEmail(emailTrimmed, code);
       if (!emailSent) {
+        await transaction.rollback();
         resolve({
           errCode: 3,
           errMessage: 'Lỗi khi gửi email xác nhận!',
@@ -1292,13 +1397,15 @@ let sendForgotToken = (email) => {
         });
         return;
       }
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Mã xác nhận đã được gửi!',
         data: account.AccountID,
       });
     } catch (e) {
-      console.log(e);
+      await transaction.rollback();
+      console.log('Error in sendForgotToken: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi xử lý email: ' + e.message,
@@ -1307,11 +1414,13 @@ let sendForgotToken = (email) => {
     }
   });
 };
-
+//xác nhận mã xác minh
 let verifyForgotToken = (accountid, token) => {
   return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
     try {
       if (!accountid || !token) {
+        await transaction.rollback();
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -1325,8 +1434,10 @@ let verifyForgotToken = (accountid, token) => {
           Token: token,
           ExtraValue: accountid,
         },
+        transaction,
       });
       if (!tokenRecord) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Mã xác nhận không hợp lệ!',
@@ -1335,6 +1446,7 @@ let verifyForgotToken = (accountid, token) => {
         return;
       }
       if (tokenRecord.ExpiredAt < currentTime) {
+        await transaction.rollback();
         resolve({
           errCode: 2,
           errMessage: 'Mã xác nhận đã hết hạn!',
@@ -1343,18 +1455,130 @@ let verifyForgotToken = (accountid, token) => {
         return;
       }
       await db.BlacklistToken.destroy({
-        where: { Token: token, ExtraValue: accountid },
+        where: { ExtraValue: accountid },
+        transaction,
       });
+      await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Xác nhận mã thành công!',
         data: null,
       });
     } catch (e) {
-      console.log(e);
+      await transaction.rollback();
+      console.log('Error in verifyForgotToken: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi xác minh mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!page || !limit || page < 1 || limit < 1) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Tham số page hoặc limit không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      if (filter !== 'ALL' && !filter.includes('-')) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tham số filter không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      if (sort && !['0', '1', '2'].includes(sort)) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tham số sort không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+
+      const offset = (page - 1) * limit;
+      let where = { AccountType: 'V' };
+      let order = [];
+
+      if (search?.trim()) {
+        const searchTerm = search.trim().substring(0, 50);
+        where.UserName = { [Op.like]: `%${searchTerm}%` };
+      }
+
+      let vetInfoWhere = {};
+      if (filter !== 'ALL') {
+        const [, value] = filter.split('-');
+        vetInfoWhere.Specialization = value;
+      }
+
+      switch (sort) {
+        case '1': // Số lượt đặt lịch
+          order.push([{ model: db.VeterinarianInfo, as: 'VeterinarianInfo' }, 'WorkingStatus', 'DESC']);
+          break;
+        case '2': // Tên A-Z
+          order.push(['UserName', 'ASC']);
+          break;
+        default: // Mặc định
+          order.push(['UserName', 'ASC']);
+          break;
+      }
+
+      const { count, rows } = await db.Account.findAndCountAll({
+        where,
+        attributes: ['AccountID', 'UserName'],
+        include: [
+          {
+            model: db.VeterinarianInfo,
+            as: 'VeterinarianInfo',
+            attributes: ['Specialization', 'Bio', 'WorkingStatus',],
+            where: vetInfoWhere,
+            required: true,
+          },
+        ],
+        limit: parseInt(limit),
+        offset,
+        order,
+        raw: true,
+        distinct: true,
+        nest: true,
+      });
+
+      if (!rows || rows.length === 0) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Không tìm thấy bác sĩ thú y nào!',
+          data: [],
+          totalItems: 0,
+        });
+        return;
+      }
+
+      const data = rows.map(row => ({
+        AccountID: row.AccountID,
+        UserName: row.UserName,
+        Specialization: row.VeterinarianInfo.Specialization,
+        Bio: row.VeterinarianInfo.Bio,
+        WorkingStatus: row.VeterinarianInfo.WorkingStatus,
+      }));
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy danh sách bác sĩ thú y thành công!',
+        data,
+        totalItems: count,
+      });
+    } catch (e) {
+      console.log('Error in loadVeterinarianInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy danh sách bác sĩ thú y: ${e.message}`,
         data: null,
       });
     }
@@ -1375,4 +1599,5 @@ module.exports = {
   getVeterinarianInfo,
   sendForgotToken,
   verifyForgotToken,
+  loadVeterinarianInfo,
 };

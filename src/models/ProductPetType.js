@@ -2,7 +2,11 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class ProductPetType extends Model {}
+  class ProductPetType extends Model {
+    static associate(models) {
+      ProductPetType.belongsTo(models.Product, { foreignKey: 'ProductID' });
+    }
+  }
 
   ProductPetType.init(
     {
@@ -13,12 +17,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       ProductID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       PetType: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'PetType')
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'PetType')
       },
     },
     {
@@ -26,6 +31,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'ProductPetType',
       tableName: 'ProductPetType',
       timestamps: false,
+      indexes: [
+        { fields: ['ProductID'], name: 'index_product_id' },
+      ],
     }
   );
 

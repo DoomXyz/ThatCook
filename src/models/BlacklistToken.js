@@ -2,7 +2,11 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class BlacklistToken extends Model { }
+  class BlacklistToken extends Model {
+    static associate(models) {
+      // Không có mối quan hệ trực tiếp với các bảng khác
+    }
+  }
 
   BlacklistToken.init(
     {
@@ -17,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       ExtraValue: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: true,
       },
       CreatedAt: {
@@ -34,6 +38,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'BlacklistToken',
       tableName: 'BlacklistToken',
       timestamps: false,
+      indexes: [
+        { fields: ['Token'], name: 'index_token' },
+      ],
     }
   );
 

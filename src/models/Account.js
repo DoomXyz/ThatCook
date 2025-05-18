@@ -2,21 +2,32 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Account extends Model {}
+  class Account extends Model {
+    static associate(models) {
+      Account.hasMany(models.Pet, { foreignKey: 'AccountID' });
+      Account.hasMany(models.Appointment, { foreignKey: 'AccountID' });
+      Account.hasMany(models.Appointment, { foreignKey: 'VeterinarianID', as: 'VeterinarianAppointments' });
+      Account.hasMany(models.Schedule, { foreignKey: 'VeterinarianID' });
+      Account.hasOne(models.VeterinarianInfo, { foreignKey: 'AccountID' });
+      Account.hasMany(models.Invoice, { foreignKey: 'AccountID' });
+      Account.hasMany(models.CartItem, { foreignKey: 'AccountID' });
+    }
+  }
 
   Account.init(
     {
       AccountID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         primaryKey: true,
         allowNull: false,
       },
       AccountName: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
+        collate: 'utf8mb4_bin',
       },
       Email: {
-        type: DataTypes.CHAR(100),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       Password: {
@@ -24,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       UserName: {
-        type: DataTypes.CHAR(50),
+        type: DataTypes.STRING(50),
         allowNull: false,
       },
       UserImage: {
@@ -32,16 +43,17 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       Phone: {
-        type: DataTypes.CHAR(11),
+        type: DataTypes.STRING(11),
         allowNull: true,
       },
       Address: {
-        type: DataTypes.CHAR(100),
+        type: DataTypes.STRING(100),
         allowNull: true,
       },
       Gender: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'Gender')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'Gender')
       },
       LoginAttempt: {
         type: DataTypes.INTEGER,
@@ -56,12 +68,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       AccountStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'AccountStatus')
-        allowNull: true,
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'AccountStatus')
       },
       AccountType: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'AccountType')
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'AccountType')
       },
     },
     {
@@ -69,6 +83,11 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Account',
       tableName: 'Account',
       timestamps: false,
+      indexes: [
+        { unique: true, fields: ['Email'], name: 'unique_email' },
+        { fields: ['Phone'], name: 'index_phone' },
+        { fields: ['UserName'], name: 'index_username' },
+      ],
     }
   );
 

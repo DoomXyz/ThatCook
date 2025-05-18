@@ -2,7 +2,11 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Banner extends Model {}
+  class Banner extends Model {
+    static associate(models) {
+      Banner.belongsTo(models.Product, { foreignKey: 'ProductID' });
+    }
+  }
 
   Banner.init(
     {
@@ -25,12 +29,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       BannerStatus: {
-        type: DataTypes.CHAR(20), // Liên kết với Code từ ALLCODES (Type = 'BannerStatus')
+        type: DataTypes.STRING(20),
         allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'BannerStatus')
       },
       ProductID: {
-        type: DataTypes.CHAR(10),
-        allowNull: false,
+        type: DataTypes.STRING(10),
+        allowNull: true,
       },
     },
     {
@@ -38,6 +43,9 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Banner',
       tableName: 'Banner',
       timestamps: false,
+      indexes: [
+        { fields: ['ProductID'], name: 'index_product_id' },
+      ],
     }
   );
 

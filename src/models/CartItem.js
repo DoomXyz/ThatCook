@@ -2,7 +2,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class CartItem extends Model {}
+  class CartItem extends Model {
+    static associate(models) {
+      CartItem.belongsTo(models.Account, { foreignKey: 'AccountID' });
+      CartItem.belongsTo(models.Product, { foreignKey: 'ProductID' });
+      CartItem.belongsTo(models.ProductDetail, { foreignKey: 'ProductDetailID' });
+    }
+  }
 
   CartItem.init(
     {
@@ -21,11 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       AccountID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       ProductID: {
-        type: DataTypes.CHAR(10),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       ProductDetailID: {
@@ -38,6 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'CartItem',
       tableName: 'CartItem',
       timestamps: false,
+      indexes: [
+        { fields: ['AccountID'], name: 'index_account_id' },
+        { fields: ['ProductID'], name: 'index_product_id' },
+        { fields: ['ProductDetailID'], name: 'index_product_detail_id' },
+      ],
     }
   );
 

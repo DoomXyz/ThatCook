@@ -33,35 +33,6 @@ let getAllCodes = (type) => {
   });
 };
 
-let checkGender = (gender) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!gender) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu dữ liệu để kiểm tra!',
-          data: null,
-        });
-        return;
-      }
-      let exist = await db.AllCodes.findOne({
-        where: {
-          Type: 'Gender',
-          Code: gender,
-        },
-      });
-      resolve(exist ? true : false);
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
 let checkAccountType = (accountType) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -114,6 +85,93 @@ let checkAccountStatus = (accountStatus) => {
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi kiểm tra: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let checkGender = (gender) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!gender) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'Gender',
+          Code: gender,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let checkPetGender = (petGender) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!petGender) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'PetGender',
+          Code: petGender,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let checkWorkingStatus = (workingStatus) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!workingStatus) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'WorkingStatus',
+          Code: workingStatus,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
         data: null,
       });
     }
@@ -178,35 +236,6 @@ let checkPetType = (petType) => {
   });
 };
 
-let checkPetGender = (petGender) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!petGender) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu dữ liệu để kiểm tra!',
-          data: null,
-        });
-        return;
-      }
-      let exist = await db.AllCodes.findOne({
-        where: {
-          Type: 'PetGender',
-          Code: petGender,
-        },
-      });
-      resolve(exist ? true : false);
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
 let checkDetailStatus = (detailStatus) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -236,10 +265,10 @@ let checkDetailStatus = (detailStatus) => {
   });
 };
 
-let checkBannerStatus = (bannerStatus) => {
+let checkPaymentType = (paymentType) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!bannerStatus) {
+      if (!paymentType) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu dữ liệu để kiểm tra!',
@@ -249,8 +278,8 @@ let checkBannerStatus = (bannerStatus) => {
       }
       let exist = await db.AllCodes.findOne({
         where: {
-          Type: 'BannerStatus',
-          Code: bannerStatus,
+          Type: 'PaymentType',
+          Code: paymentType,
         },
       });
       resolve(exist ? true : false);
@@ -323,35 +352,6 @@ let checkShippingStatus = (shippingStatus) => {
   });
 };
 
-let checkPaymentType = (paymentType) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!paymentType) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu dữ liệu để kiểm tra!',
-          data: null,
-        });
-        return;
-      }
-      let exist = await db.AllCodes.findOne({
-        where: {
-          Type: 'PaymentType',
-          Code: paymentType,
-        },
-      });
-      resolve(exist ? true : false);
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
 let checkShippingMethod = (shippingMethod) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -381,6 +381,64 @@ let checkShippingMethod = (shippingMethod) => {
   });
 };
 
+let checkBannerStatus = (bannerStatus) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!bannerStatus) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'BannerStatus',
+          Code: bannerStatus,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let checkAppointmentType = (appointmentType) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!appointmentType) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'AppointmentType',
+          Code: appointmentType,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
 let checkCoupon = (couponcode, price) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -394,22 +452,22 @@ let checkCoupon = (couponcode, price) => {
       }
       let discountAmout = 0;
       const couponInfo = await db.Coupon.findOne({
-        where: { CouponCode: couponcode },
-        attributes: { exclude: ['CouponID', 'CouponDescription'] },
+        where: { CouponCode: couponcode, CouponStatus: 'ACTIVE' },
+        attributes: ['DiscountType', 'DiscountValue', 'MaxDiscount', 'MinOrderValue', 'StartDate', 'EndDate'],
       });
-      const currentDate = new Date();
       if (!couponInfo) {
         resolve({
           errCode: 1,
-          errMessage: 'Mã giảm giá không tồn tại!',
+          errMessage: 'Mã giảm giá không tồn tại hoặc đã hết hạn!',
           data: discountAmout,
         });
         return;
       }
-      if ((couponInfo.EndDate < currentDate, couponInfo.CouponStatus === 'EXPIRED')) {
+      const currentDate = new Date();
+      if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
         resolve({
           errCode: 2,
-          errMessage: 'Mã giảm giá hết hạn!',
+          errMessage: 'Mã giảm giá không trong thời gian hiệu lực!',
           data: discountAmout,
         });
         return;
@@ -466,10 +524,13 @@ let getCouponInfo = (couponcode) => {
       }
       let couponData = null;
       if (couponcode === 'ALL') {
-        couponData = await db.Coupon.findAll();
+        couponData = await db.Coupon.findAll({
+          attributes: ['CouponCode', 'MinOrderValue', 'DiscountValue', 'MaxDiscount', 'StartDate', 'EndDate', 'DiscountType', 'CouponStatus'],
+        });
       } else {
         couponData = await db.Coupon.findOne({
           where: { CouponCode: couponcode },
+          attributes: ['CouponCode', 'MinOrderValue', 'DiscountValue', 'MaxDiscount', 'StartDate', 'EndDate', 'DiscountType', 'CouponStatus'],
         });
       }
       if (couponData !== null) {
@@ -498,18 +559,20 @@ let getCouponInfo = (couponcode) => {
 
 module.exports = {
   getAllCodes,
-  checkGender,
   checkAccountType,
   checkAccountStatus,
-  checkProductType,
-  checkPetType,
+  checkGender,
   checkPetGender,
+  checkPetType,
+  checkProductType,
+  checkWorkingStatus,
   checkDetailStatus,
-  checkBannerStatus,
+  checkPaymentType,
   checkPaymentStatus,
   checkShippingStatus,
-  checkPaymentType,
   checkShippingMethod,
+  checkBannerStatus,
+  checkAppointmentType,
   checkCoupon,
   getCouponInfo,
 };
