@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import './PetSelectModal.scss';
+import { handleGetAccountPetInfoApi } from '../../services/petServices';
 
 class PetSelectModal extends Component {
     constructor(props) {
@@ -10,36 +11,75 @@ class PetSelectModal extends Component {
         this.state = {
             loadedPetInfo: [],
             isLoading: false,
+            accountid: this.props.accountid || '',
         };
-    }
-
-    async componentDidMount() {
     }
 
     async componentDidUpdate(prevProps) {
         if (this.props.isOpen && !prevProps.isOpen) {
+            await this.loadPetInfo();
+        }
+        if (this.props.accountid !== prevProps.accountid) {
+            this.setState({ accountid: this.props.accountid || '' }, this.loadPetInfo);
         }
     }
 
+    loadPetInfo = async () => {
+        const { accountid } = this.state;
+        if (!accountid) {
+            toast.error('Thiếu mã tài khoản để tải danh sách thú cưng!', {
+                position: 'top-right',
+                autoClose: 500,
+                closeOnClick: true,
+            });
+            return;
+        }
+        try {
+            this.setState({ isLoading: true });
+            const response = await handleGetAccountPetInfoApi(accountid);
+            if (response && response.errCode === 0) {
+                this.setState({
+                    loadedPetInfo: response.data || [],
+                    isLoading: false,
+                });
+            } else {
+                toast.error(response?.errMessage || 'Không thể tải danh sách thú cưng!', {
+                    position: 'top-right',
+                    autoClose: 500,
+                    closeOnClick: true,
+                });
+                this.setState({ loadedPetInfo: [], isLoading: false });
+            }
+        } catch (e) {
+            toast.error('Lỗi khi tải danh sách thú cưng!', {
+                position: 'top-right',
+                autoClose: 500,
+                closeOnClick: true,
+            });
+            this.setState({ loadedPetInfo: [], isLoading: false });
+        }
+    };
+
     handleSelectPet = (petID) => {
         this.props.handleSelectPetFromModal(petID);
+        this.props.toggleFromModal();
     };
 
     render() {
-        const { isOpen } = this.props;
+        const { isOpen, toggleFromModal } = this.props;
         const { loadedPetInfo, isLoading } = this.state;
 
         return (
-            <Modal show={isOpen} onHide={this.props.toggleFromModal} centered backdrop="static" className="pet-select-modal">
+            <Modal show={isOpen} onHide={toggleFromModal} centered backdrop="static" className="pet-select-modal">
                 <Modal.Header closeButton>
                     <Modal.Title>Chọn Thú Cưng</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {isLoading ? (
-                        <p>Đang tải...</p>
+                        <p className="text-center">Đang tải...</p>
                     ) : (
                         <div className="pet-select-table">
-                            <table className="table">
+                            <table className="table table-bordered">
                                 <thead>
                                     <tr>
                                         <th>Tên Thú Cưng</th>
@@ -58,9 +98,9 @@ class PetSelectModal extends Component {
                                                 <td>{pet.PetType}</td>
                                                 <td>{pet.PetGender}</td>
                                                 <td>{pet.Age}</td>
-                                                <td>{pet.Weight} kg</td>
+                                                <td>{pet.PetWeight} kg</td>
                                                 <td>
-                                                    <button className="select-btn" onClick={() => this.handleSelectPet(pet.PetID)}>
+                                                    <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectPet(pet.PetID)}>
                                                         Chọn
                                                     </button>
                                                 </td>
@@ -68,7 +108,9 @@ class PetSelectModal extends Component {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6">Không có thú cưng nào.</td>
+                                            <td colSpan="6" className="text-center">
+                                                Không có thú cưng nào.
+                                            </td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -77,7 +119,7 @@ class PetSelectModal extends Component {
                     )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={this.props.toggleFromModal}>
+                    <Button variant="secondary" onClick={toggleFromModal}>
                         Đóng
                     </Button>
                 </Modal.Footer>

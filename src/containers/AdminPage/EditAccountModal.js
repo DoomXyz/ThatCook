@@ -34,13 +34,13 @@ class EditAccountModal extends Component {
     };
   }
   async componentDidMount() {
-    await this.handleLoadCodeGender();
-    await this.handleLoadCodeAccountType();
-    await this.handleLoadCodeWorkingStatus();
     const { selectedAccountID } = this.props;
     if (selectedAccountID) {
       this.loadAccountInfo(selectedAccountID);
     }
+    await this.handleLoadCodeGender();
+    await this.handleLoadCodeAccountType();
+    await this.handleLoadCodeWorkingStatus();
   }
   async componentDidUpdate(prevProps) {
     const { selectedAccountID, isOpen } = this.props;
@@ -73,6 +73,7 @@ class EditAccountModal extends Component {
   loadAccountInfo = async (accountid) => {
     try {
       const [accountResponse, vetResponse] = await Promise.all([handleGetAccountInfoApi(accountid), handleGetVeterinarianInfoApi(accountid)]);
+      console.log(accountResponse)
       if (accountResponse && accountResponse.errCode === 0) {
         const accountInfo = accountResponse.data;
         const vetInfo = vetResponse && vetResponse.errCode === 0 ? vetResponse.data : null;
@@ -278,7 +279,7 @@ class EditAccountModal extends Component {
     if (!loadedAccountInfo) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="edit-user-modal" centered backdrop="static">
-          <Modal.Body>Không tìm thấy thông tin tài khoản.</Modal.Body>
+          <Modal.Body>Đang tải thông tin tài khoản.</Modal.Body>
         </Modal>
       );
     }
@@ -336,7 +337,7 @@ class EditAccountModal extends Component {
               </div>
               <div className="inputbox-1">
                 <IonIcon icon={informationCircleOutline}></IonIcon>
-                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} />
+                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
               </div>
             </div>
@@ -384,11 +385,11 @@ class EditAccountModal extends Component {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={this.handleEditAccount}>
-            Lưu
-          </Button>
-          <Button variant="primary" onClick={this.toggle}>
+          <Button variant="secondary" onClick={this.toggle}>
             Đóng
+          </Button>
+          <Button variant="primary" onClick={this.handleEditAccount}>
+            Lưu
           </Button>
         </Modal.Footer>
       </Modal>

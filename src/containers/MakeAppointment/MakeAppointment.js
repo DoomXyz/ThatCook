@@ -10,9 +10,9 @@ import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
-import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
+import { handleGetAccountPetInfoApi, handleGetPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
-import { checkLoginStatus } from '../../utils/pakage';
+import { checkLoginStatus, uploadImages } from '../../utils/pakage';
 
 import PetSelectModal from './PetSelectModal';
 import VeterinarianSelectModal from './VeterinarianSelectModal';
@@ -34,7 +34,7 @@ class MakeAppointment extends Component {
       petgender: '',
       petweight: '',
       appointmentDateTime: null,
-      selectedDoctorID: '',
+      selectedVeterinarianID: '',
       selectedServiceID: '',
       selectedPetID: '',
       starttime: '',
@@ -50,6 +50,7 @@ class MakeAppointment extends Component {
       isUploading: false,
       isShowPetSelectModal: false,
       isShowVeterinarianSelectModal: false,
+      createdAppointmentID: '',
     };
   }
   async componentDidMount() {
@@ -220,7 +221,6 @@ class MakeAppointment extends Component {
   };
   handleSavePetInfo = async () => {
     const { loadedPetList, isLoggedIn, accountInfo, guestID, petname, pettype, petgender, age, petweight } = this.state;
-    console.log(loadedPetList);
     const newPetInfo = {
       petname,
       pettype,
@@ -228,104 +228,110 @@ class MakeAppointment extends Component {
       age: age ? parseInt(age) : 0,
       petweight: petweight ? parseFloat(petweight) : 0,
     };
-    const isValidPetInfo = loadedPetList.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype && item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight);
-    if (isValidPetInfo) {
-      toast.info('Đã chọn thú cưng trong danh sách!', {
+    if (!newPetInfo.petname || !newPetInfo.age || !newPetInfo.petweight) {
+      toast.error('Thông tin thú cưng không được để trống!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
-      this.setState({
-        selectedPetID: isValidPetInfo.PetID,
+      return;
+    }
+    const petName = newPetInfo.petname.trim();
+    const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+    if (!petNameRegex.test(petName)) {
+      toast.error('Tên thú cưng không hợp lệ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
       });
       return;
-    } else {
-      if (!newPetInfo.petname || !newPetInfo.age || !newPetInfo.petweight) {
-        toast.error('Thông tin thú cưng không được để trống!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        return;
-      } else {
-        const petName = newPetInfo.petname.trim();
-        const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-        if (!petNameRegex.test(petName)) {
-          toast.error('Tên thú cưng không hợp lệ!', {
+    }
+    try {
+      let accountid = isLoggedIn ? accountInfo.AccountID : guestID || null;
+      if (isLoggedIn && loadedPetList.length > 0) {
+        const isValidPetInfo = loadedPetList.find(
+          (item) =>
+            item.PetName === newPetInfo.petname &&
+            item.PetType === newPetInfo.pettype &&
+            item.PetGender === newPetInfo.petgender &&
+            item.Age === newPetInfo.age &&
+            parseFloat(item.PetWeight) === newPetInfo.petweight
+        );
+        if (isValidPetInfo) {
+          toast.info('Đã chọn thú cưng trong danh sách!', {
             position: 'top-right',
             autoClose: 500,
             closeOnClick: true,
           });
+          this.setState({ selectedPetID: isValidPetInfo.PetID });
           return;
         }
       }
-      try {
-        let accountid = null;
-        if (isLoggedIn) {
-          accountid = accountInfo.AccountID;
-        }
-        if (!guestID) {
-          const response = await handleSavePetInfoApi(accountid, newPetInfo);
-          if (response && response.errCode === 0) {
-            toast.success('Đã chọn thông tin cưng!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
-            const { isLoggedIn } = this.state;
-            if (!isLoggedIn) {
-              this.setState({
-                guestID: response.data.guestID,
+      if (!isLoggedIn && guestID) {
+        const response = await handleGetAccountPetInfoApi(guestID);
+        if (response && response.errCode === 0) {
+          const guestPetInfo = Array.isArray(response.data) ? response.data : [response.data];
+          const existingPet = guestPetInfo[0];
+          if (existingPet) {
+            const updatePetInfo = await handleChangePetInfoApi(existingPet.PetID, newPetInfo);
+            if (updatePetInfo && updatePetInfo.errCode === 0) {
+              toast.success('Cập nhật thông tin thú cưng thành công!', {
+                position: 'top-right',
+                autoClose: 500,
+                closeOnClick: true,
+              });
+              this.setState({ selectedPetID: existingPet.PetID });
+            } else {
+              toast.error(updatePetInfo.errMessage || 'Cập nhật thông tin thú cưng thất bại!', {
+                position: 'top-right',
+                autoClose: 500,
+                closeOnClick: true,
               });
             }
-            this.setState({
-              selectedPetID: response.data.PetID,
-            });
-          } else {
-            toast.error('Lưu thông tin thú cưng thất bại!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
+            return;
           }
-        } else {
-          const response = await handleGetAccountPetInfoApi(guestID);
-          if (response && response.errCode === 0) {
-            const guestPetInfo = [response.data];
-            const isValidPetInfo = guestPetInfo.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype && item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight);
-            if (!isValidPetInfo) {
-              const updatePetInfo = await handleChangePetInfoApi(response.data.PetID, newPetInfo);
-              if (updatePetInfo && updatePetInfo.errCode !== 0) {
-                toast.error(updatePetInfo.errMessage, {
-                  position: 'top-right',
-                  autoClose: 500,
-                  closeOnClick: true,
-                });
-              }
-            }
-          } else {
-            toast.error('Lấy thông tin thú cưng thất bại!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
+        }
+      }
+      const response = await handleSavePetInfoApi(accountid, newPetInfo);
+      if (response && response.errCode === 0) {
+        toast.success('Lưu thông tin thú cưng thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({
+          selectedPetID: response.data.PetID,
+          guestID: response.data.guestID || guestID,
+        });
+        if (isLoggedIn) {
+          const petResponse = await handleGetAccountPetInfoApi(accountInfo.AccountID);
+          if (petResponse && petResponse.errCode === 0) {
+            this.setState({
+              loadedPetList: petResponse.data,
             });
           }
         }
-      } catch (e) {
-        console.log(e);
-        toast.error('Lỗi khi lưu thông tin thú cưng!', {
+      } else {
+        toast.error(response.errMessage || 'Lưu thông tin thú cưng thất bại!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
+    } catch (e) {
+      console.log(e);
+      toast.error('Lỗi khi lưu thông tin thú cưng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
     }
   };
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
     this.setState({ ...copyState }, () => {
-      if (['selectedDoctorID', 'selectedServiceID'].includes(type)) {
+      if (['selectedVeterinarianID', 'selectedServiceID'].includes(type)) {
         const { appointmentDateTime, selectedServiceID } = this.state;
         if (appointmentDateTime && selectedServiceID) {
           this.handleLoadAvailableTimes();
@@ -336,7 +342,8 @@ class MakeAppointment extends Component {
     });
   };
   handleOnChangeDateInput = (date) => {
-    this.setState({ appointmentDateTime: date }, () => {
+    const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000) : null;
+    this.setState({ appointmentDateTime: formattedDate }, () => {
       const { appointmentDateTime, selectedServiceID } = this.state;
       if (appointmentDateTime && selectedServiceID) {
         this.handleLoadAvailableTimes();
@@ -347,13 +354,13 @@ class MakeAppointment extends Component {
   };
   handleLoadAvailableTimes = async () => {
     try {
-      const { appointmentDateTime, selectedDoctorID, selectedServiceID } = this.state;
+      const { appointmentDateTime, selectedVeterinarianID, selectedServiceID } = this.state;
       if (!appointmentDateTime || !selectedServiceID) {
         this.setState({ availableTimes: [], starttime: '' });
         return;
       }
       const formattedDate = appointmentDateTime.toISOString().split('T')[0];
-      const vetID = selectedDoctorID || 'ALL';
+      const vetID = selectedVeterinarianID || 'ALL';
       const response = await handleGetAvailableTimesApi(formattedDate, vetID, selectedServiceID);
       console.log(response);
       if (response.errCode === 0) {
@@ -375,83 +382,114 @@ class MakeAppointment extends Component {
       this.setState({ availableTimes: [], starttime: '' });
     }
   };
+  checkValidateInput = () => {
+    const { customername, customeremail, customerphone, appointmentDateTime, starttime, notes, selectedServiceID, selectedPetID } = this.state;
+
+    if (!customername || !customeremail || !customerphone || !appointmentDateTime || !starttime || !selectedServiceID || !selectedPetID) {
+      return {
+        errCode: -1,
+        errMessage: 'Thiếu thông tin đặt lịch!',
+      };
+    }
+
+    const customerNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+    if (!customerNameRegex.test(customername.trim())) return { errCode: 1, errMessage: 'Tên khách hàng sai định dạng (2-50 ký tự, chữ, số, khoảng trắng)!' };
+
+    const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customeremail.trim())) return { errCode: 1, errMessage: 'Email sai định dạng!' };
+
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(customerphone.trim())) return { errCode: 1, errMessage: 'Số điện thoại không hợp lệ!' };
+
+    const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(starttime)) return { errCode: 1, errMessage: 'Giờ hẹn không hợp lệ (định dạng HH:mm)!' };
+    const dateCheck = new Date(appointmentDateTime);
+    if (isNaN(dateCheck.getTime())) return { errCode: 1, errMessage: 'Ngày hẹn không hợp lệ!' };
+    const [hours, minutes] = starttime.split(':').map(Number);
+    dateCheck.setHours(hours, minutes, 0, 0);
+    const now = new Date();
+    if (dateCheck <= now) return { errCode: 1, errMessage: 'Thời gian hẹn phải trong tương lai!' };
+
+    if (notes) {
+      const notesCheck = notes.trim();
+      if (!notesCheck || notesCheck.length > 65535) { return { errCode: 1, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' }; }
+    }
+
+    return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+  };
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, petname, pettype, petgender, age, petweight, appointmentDateTime, selectedDoctorID, selectedServiceID, starttime, notes, selectedPetID, allImages, isUploading } = this.state;
-
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianID, selectedServiceID,
+        starttime, notes, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
+      const isValidateInput = this.checkValidateInput();
+      if (isValidateInput.errCode !== 0) {
+        toast.error(isValidateInput.errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({ isLoading: false });
+        return;
+      }
       if (isUploading) {
         toast.info('Đang tải ảnh, vui lòng chờ!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
+        this.setState({ isLoading: false });
         return;
       }
-
-      const uploadedImages = [];
+      let uploadedImages = [];
       if (allImages.length > 0) {
-        this.setState({ isUploading: true });
-        for (let img of allImages) {
-          if (img.file) {
-            try {
-              const response = await uploadImageToCloudinaryApi(img.file);
-              if (response.errCode === 0) {
-                uploadedImages.push({
-                  ImageID: img.ImageID,
-                  Image: response.data.secure_url,
-                });
-              } else {
-                toast.error(`Không thể tải ảnh ${img.file.name}!`, {
-                  position: 'top-right',
-                  autoClose: 500,
-                  closeOnClick: true,
-                });
-              }
-            } catch (e) {
-              toast.error(`Lỗi khi tải ảnh ${img.file.name}!`, {
-                position: 'top-right',
-                autoClose: 500,
-                closeOnClick: true,
-              });
-            }
-          } else {
-            uploadedImages.push({
-              ImageID: img.ImageID,
-              Image: img.Image,
-            });
-          }
+        if (allImages.length > 3) {
+          toast.error('Tối đa 3 hình ảnh!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+          this.setState({ isLoading: false });
+          return;
         }
+        this.setState({ isUploading: true });
+        const uploadResult = await uploadImages(allImages);
+        if (!uploadResult.status) {
+          toast.error(uploadResult.error, {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+          this.setState({ isLoading: false, isUploading: false });
+          return;
+        }
+        uploadedImages = uploadResult.images;
       }
-
       const appointmentdate = appointmentDateTime ? appointmentDateTime.toISOString().split('T')[0] : '';
       const response = await handleCreateAppointmentApi({
         customername,
-        customerphone,
         customeremail,
-        petname,
-        pettype,
-        petgender,
-        age,
-        petweight,
+        customerphone,
         appointmentdate,
         starttime,
         notes,
-        accountid: this.props.userInfo?.AccountID || null,
-        veterinarianid: selectedDoctorID,
+        accountid: isLoggedIn ? accountInfo.AccountID : guestID,
+        veterinarianid: selectedVeterinarianID || null,
         serviceid: selectedServiceID,
         petid: selectedPetID,
-        imageInfo: uploadedImages, // Include uploaded images
+        imageInfo: uploadedImages,
+        type: 'FIRST',
       });
-
-      if (response.errCode === 0) {
+      console.log("respone: ", response)
+      if (response && response.errCode === 0) {
+        this.setState({
+          createdAppointmentID: response.data.AppointmentID
+        })
         toast.success('Đặt lịch thành công!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
-        this.setState({ allImages: [] }); // Clear images after success
-        this.props.navigate('/home');
       } else {
         toast.error(response.errMessage, {
           position: 'top-right',
@@ -460,9 +498,10 @@ class MakeAppointment extends Component {
         });
       }
     } catch (e) {
-      toast.error('Lỗi khi đặt lịch!', {
+      console.log('Error in handleSubmitAppointment:', e);
+      toast.error(`Lỗi khi đặt lịch khám: ${e.message}`, {
         position: 'top-right',
-        autoClose: 500,
+        autoClose: 1000,
         closeOnClick: true,
       });
     } finally {
@@ -516,17 +555,41 @@ class MakeAppointment extends Component {
     this.setState({ isShowVeterinarianSelectModal: !this.state.isShowVeterinarianSelectModal });
   };
 
-  handleSelectPetFromModal = (petID) => {
+  handleSelectPetFromModal = async (petID) => {
     console.log('Selected Pet ID:', petID);
-    this.setState({ selectedPetID: petID });
+    try {
+      const response = await handleGetPetInfoApi(petID);
+      if (response && response.errCode === 0) {
+        this.setState({
+          selectedPetID: petID,
+          petname: response.data.PetName,
+          pettype: response.data.PetType,
+          petgender: response.data.PetGender,
+          age: response.data.Age.toString(),
+          petweight: response.data.PetWeight.toString(),
+        });
+      } else {
+        toast.error(response.errMessage || 'Không thể tải thông tin thú cưng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      toast.error('Lỗi khi tải thông tin thú cưng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
   };
 
   handleSelectVeterinarianFromModal = (vetID) => {
     console.log('Selected Veterinarian ID:', vetID);
-    this.setState({ selectedDoctorID: vetID });
+    this.setState({ selectedVeterinarianID: vetID });
   };
   render() {
-    const { isLoading, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedDoctorID, loadedPetList } = this.state;
+    const { isLoading, isLoggedIn, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedVeterinarianID, loadedPetList } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
@@ -545,7 +608,7 @@ class MakeAppointment extends Component {
                 <input type="text" placeholder="Hãy nhập số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
                 <input type="text" placeholder="Hãy nhập email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
-              {loadedPetList.length > 0 ? (
+              {isLoggedIn && loadedPetList.length > 0 ? (
                 <div className="makeappointment-content-pet">
                   <button onClick={this.togglePetSelectModal}>Xem danh sách thú cưng</button>
                 </div>
@@ -586,9 +649,11 @@ class MakeAppointment extends Component {
                   <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} />
                 </div>
               </div>
-              <div className="makeappointment-save-petinfo-button">
-                <button onClick={this.handleSavePetInfo}>Lưu</button>
-              </div>
+              {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && (
+                <div className="makeappointment-save-petinfo-button">
+                  <button onClick={this.handleSavePetInfo}>Lưu</button>
+                </div>
+              )}
               <div className="makeappointment-content-doctor">
                 <div className="f">
                   <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
@@ -597,8 +662,7 @@ class MakeAppointment extends Component {
               </div>
               <div className="makeappointment-content-date">
                 <div className="f">
-                  <DatePicker selected={appointmentDateTime} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
-                  <button onClick={() => this.handleOnChangeDateInput(null)}>Reset</button>
+                  <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
                 </div>
               </div>
               <div className="f">

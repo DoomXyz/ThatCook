@@ -24,6 +24,7 @@ import ViewInvoiceModal from './ViewInvoiceModal';
 import CreateBannerModal from './CreateBannerModal';
 import EditBannerModal from './EditBannerModal';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+import { set } from 'lodash';
 
 class Owner extends Component {
   constructor(props) {
@@ -313,6 +314,7 @@ class Owner extends Component {
       {
         searchValue: value,
         currentPage: 1,
+        tempCurrentPage: "1",
       },
       () => {
         if (this.debounceTimeout) {
@@ -341,6 +343,7 @@ class Owner extends Component {
       {
         filterValue: value,
         currentPage: 1,
+        tempCurrentPage: "1",
       },
       () => {
         switch (type) {
@@ -364,6 +367,7 @@ class Owner extends Component {
       {
         sortValue: value,
         currentPage: 1,
+        tempCurrentPage: "1",
       },
       () => {
         switch (type) {
@@ -1126,10 +1130,7 @@ class Owner extends Component {
                                 <td>
                                   <img src={item.ProductImage || ''} alt={item.ProductName} style={{ width: '50px', height: '50px' }} />
                                 </td>
-                                <td className="f">
-                                  <p>{parseFloat(item.ProductPrice).toLocaleString('vi-VN')}</p>
-                                  vnđ
-                                </td>
+                                <td>{parseFloat(item.ProductPrice).toLocaleString('vi-VN')} vnđ</td>
                                 <td>{item.TotalStock || 0}</td>
                                 <td>{item.TotalSold || 0}</td>
                                 <td className="f" onClick={(e) => e.stopPropagation()}>
@@ -1397,8 +1398,8 @@ class Owner extends Component {
                       onChange={(date) => {
                         const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
                         this.setState({ dateFilterValue: formattedDate }, () => {
-                          if (this.state.actionPage === 2) {
-                            this.handleLoadInvoiceInfo();
+                          if (this.state.actionPage === 3) {
+                            this.handleLoadBannerInfo();
                           }
                         });
                       }}
@@ -1443,19 +1444,19 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'Vô thời hạn'}
                           </td>
                           <td className="f" onClick={(e) => e.stopPropagation()}>

@@ -250,7 +250,6 @@ class CheckOut extends Component {
   loadCheckOutCartInfo = async () => {
     try {
       const { checkOutCart, limitProductPerQuery } = this.state;
-      console.log(checkOutCart);
       const responseDetail = await handleGetCartDetailApi(JSON.stringify(checkOutCart));
       if (responseDetail && responseDetail.errCode === 0) {
         const checkOutCart = responseDetail.data;
@@ -300,7 +299,9 @@ class CheckOut extends Component {
     if (tempCouponCode !== couponCode) {
       try {
         const response = await handleGetCouponApi(tempCouponCode);
-        if (response && response.data.errCode === 0 && parseFloat(finalPrice) > parseFloat(response.data.data.MinOrderValue)) {
+        console.log(response)
+        if (response && response.data.errCode === 0 &&
+          parseFloat(finalPrice) > parseFloat(response.data.data.MinOrderValue) && response.data.data.CouponStatus === "ACTIVE") {
           this.setState({ isLoading: true });
           toast.success('Áp dụng mã giảm giá thành công!', {
             position: 'top-right',

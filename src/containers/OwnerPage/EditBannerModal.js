@@ -380,7 +380,7 @@ class EditBannerModal extends Component {
   };
 
   render() {
-    const { isOpen, codeBannerStatus, codePetType, codeProductType, imagePreview, createdat, hiddenat, bannerstatus, producttype, pettype, searchValue, loadedProductInfo, productid, productname } = this.state;
+    const { codeBannerStatus, codePetType, codeProductType, imagePreview, hiddenat, bannerstatus, producttype, pettype, loadedProductInfo, productid, productname } = this.state;
     const productOptions = loadedProductInfo.map((product) => ({
       value: product.ProductID,
       label: product.ProductName,
@@ -447,10 +447,7 @@ class EditBannerModal extends Component {
               <p>Ngày ẩn (tùy chọn):</p>
               <DatePicker
                 selected={hiddenat}
-                onChange={(date) => {
-                  const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
-                  this.setState({ hiddenat: formattedDate });
-                }}
+                onChange={(date) => this.setState({ hiddenat: date })}
                 dateFormat="dd/MM/yyyy"
                 placeholderText="dd/mm/yyyy"
                 className="date-picker"

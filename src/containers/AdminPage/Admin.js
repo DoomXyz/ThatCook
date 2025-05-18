@@ -43,10 +43,10 @@ class Admin extends Component {
   }
   async componentDidMount() {
     await this.handleIsLogin();
+    await this.handleLoadAccountInfo();
     await this.handleLoadGender();
     await this.handleLoadAccountType();
     await this.handleLoadAccountStatus();
-    await this.handleLoadAccountInfo();
   }
   handleLoadGender = async () => {
     try {
@@ -169,6 +169,7 @@ class Admin extends Component {
       {
         filterValue: value,
         currentPage: 1,
+        tempCurrentPage: '1',
       },
       () => {
         this.handleLoadAccountInfo();
@@ -180,6 +181,7 @@ class Admin extends Component {
       {
         sortValue: value,
         currentPage: 1,
+        tempCurrentPage: '1',
       },
       () => {
         this.handleLoadAccountInfo();
@@ -192,6 +194,7 @@ class Admin extends Component {
       {
         searchValue: value,
         currentPage: 1,
+        tempCurrentPage: '1',
       },
       () => {
         if (this.debounceTimeout) {
@@ -200,17 +203,6 @@ class Admin extends Component {
         this.debounceTimeout = setTimeout(() => {
           this.handleLoadAccountInfo();
         }, 500);
-      }
-    );
-  };
-  handleClearSearch = () => {
-    this.setState(
-      {
-        searchValue: '',
-        currentPage: 1,
-      },
-      () => {
-        this.handleLoadAccountInfo();
       }
     );
   };
@@ -367,6 +359,20 @@ class Admin extends Component {
     await this.handleLoadAccountInfo();
     this.setState({ isLoading: false });
   };
+  handleResetFilter = () => {
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+      },
+      () => {
+        this.handleLoadAccountInfo();
+      }
+    );
+  };
 
   handleLogout = async () => {
     const confirmLogout = () =>
@@ -511,11 +517,17 @@ class Admin extends Component {
 
   render() {
     const { isLoading, loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages, codeGender, codeAccountType, codeAccountStatus, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, tempCurrentPage } = this.state;
-    console.log(codeGender, codeAccountType, codeAccountStatus);
     return (
       <div className="admin-container">
-        <CreateAccountModal isOpen={isShowCreateAccountModal} toggleFromModal={this.toggleCreateUserModal} handleCreateAccountFromModal={this.handleCreateAccountFromModal} />
-        <EditAccountModal isOpen={isShowEditAccountModal} toggleFromModal={this.toggleEditAccountModal} selectedAccountID={selectedAccount} handleEditAccountFromModal={this.handleEditAccountFromModal} />
+        <CreateAccountModal
+          isOpen={isShowCreateAccountModal}
+          toggleFromModal={this.toggleCreateUserModal}
+          handleCreateAccountFromModal={this.handleCreateAccountFromModal} />
+        <EditAccountModal
+          isOpen={isShowEditAccountModal}
+          toggleFromModal={this.toggleEditAccountModal}
+          selectedAccountID={selectedAccount}
+          handleEditAccountFromModal={this.handleEditAccountFromModal} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />
@@ -560,6 +572,9 @@ class Admin extends Component {
                 </div>
               </div>
               <div className="admin-search-right">
+                <button onClick={this.handleResetFilter}>
+                  Reset
+                </button>
                 <div>
                   <label>Lọc:</label>
                   <select value={filterValue} onChange={(event) => this.handleFilterAccount(event.target.value)}>
@@ -603,7 +618,6 @@ class Admin extends Component {
                     <tr>
                       <th>Mã TK</th>
                       <th>Email</th>
-                      <th>Tên TK</th>
                       <th>Họ tên người dùng</th>
                       <th>Giới tính</th>
                       <th>SĐT</th>
@@ -620,7 +634,6 @@ class Admin extends Component {
                             <p>{item.AccountID}</p>
                           </td>
                           <td>{item.Email}</td>
-                          <td>{item.AccountName}</td>
                           <td>{item.UserName}</td>
                           <td>{this.getGenderValue(item.Gender)}</td>
                           <td>{item.Phone}</td>

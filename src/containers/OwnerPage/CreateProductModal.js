@@ -290,6 +290,7 @@ class CreateProductModal extends Component {
   };
 
   handleSaveProduct = async () => {
+    console.log(this.state)
     const validation = this.checkValidateProduct();
     if (validation.errCode !== 0) {
       toast.error(validation.errMessage, {
@@ -299,7 +300,6 @@ class CreateProductModal extends Component {
       });
       return;
     }
-
     const confirmSave = () =>
       new Promise((resolve) => {
         toast(
@@ -327,10 +327,8 @@ class CreateProductModal extends Component {
           { position: 'top-center', autoClose: 1000, closeOnClick: false }
         );
       });
-
     const isConfirmed = await confirmSave();
     if (!isConfirmed) return;
-
     if (this.state.isUploading) {
       toast.info('Đang tải ảnh, vui lòng chờ!', {
         position: 'top-right',
@@ -339,7 +337,6 @@ class CreateProductModal extends Component {
       });
       return;
     }
-
     this.setState({ isUploading: true });
     try {
       const { allImages, productname, producttype, pettype, productprice, productdescription, loadedProductDetailInfo } = this.state;

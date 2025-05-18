@@ -112,6 +112,7 @@ class CreateAccountModal extends Component {
 
   resetState = () => {
     this.setState({
+      accounttype: '',
       accountname: '',
       email: '',
       password: '',
@@ -121,6 +122,7 @@ class CreateAccountModal extends Component {
       confirmPassword: '',
       bio: '',
       specialization: '',
+      workingstatus: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
     });
@@ -272,7 +274,7 @@ class CreateAccountModal extends Component {
               </div>
               <div className="inputbox-1">
                 <IonIcon icon={informationCircleOutline}></IonIcon>
-                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} />
+                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
               </div>
             </div>
@@ -336,11 +338,11 @@ class CreateAccountModal extends Component {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={this.handleCreateAccount}>
-            Lưu
-          </Button>
-          <Button variant="primary" onClick={this.toggle}>
+          <Button variant="secondary" onClick={this.toggle}>
             Đóng
+          </Button>
+          <Button variant="primary" onClick={this.handleCreateAccount}>
+            Lưu
           </Button>
         </Modal.Footer>
       </Modal>

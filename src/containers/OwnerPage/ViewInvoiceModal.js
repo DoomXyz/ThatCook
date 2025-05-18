@@ -160,13 +160,13 @@ class ViewInvoiceModal extends Component {
                         Thời gian:{' '}
                         {loadedInvoiceDetails.CreatedAt
                           ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })
                           : 'N/A'}
                       </p>
                     </div>
@@ -249,13 +249,16 @@ class ViewInvoiceModal extends Component {
                           <sup>đ</sup>
                         </td>
                       </tr>
-                      <tr>
-                        <td colSpan="5">Giảm giá:</td>
-                        <td className="cen">
-                          -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}
-                          <sup>đ</sup>
-                        </td>
-                      </tr>
+                      {loadedInvoiceDetails.DiscountAmount > 0 ? (
+                        <tr>
+                          <td colSpan="5">Giảm giá:</td>
+                          <td className="cen">
+                            -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}
+                            <sup>đ</sup>
+                          </td>
+                        </tr>
+                      ) : ""
+                      }
                       <tr>
                         <td colSpan="5">
                           <b>Tổng thanh toán:</b>

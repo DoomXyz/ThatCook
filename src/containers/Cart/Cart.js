@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { cogOutline } from 'ionicons/icons';
+import { cogOutline, trophy } from 'ionicons/icons';
 
 import './Cart.scss';
 import Spinner from '../../components/Spinner';
@@ -19,6 +19,7 @@ import { updateItemQuantity, removeFromCart, updateCartDetail, mergeCartDetail, 
 
 import cart from '../../assets/icons/shopping-cart.png';
 import card from '../../assets/icons/cheque.png';
+import { kebabCase } from 'lodash';
 
 class Cart extends Component {
   constructor(props) {
@@ -151,7 +152,7 @@ class Cart extends Component {
         if (accountid) {
           const response = await handleGetCartApi(accountid);
           if (response && response.errCode === 0) {
-            cartItems = response.data;
+            cartItems = response.data || [];
           } else {
             toast.error('Tải giỏ hàng thất bại!', {
               position: 'top-right',
@@ -162,15 +163,18 @@ class Cart extends Component {
             return;
           }
         } else {
-          cartItems = this.props.cartItems;
+          cartItems = this.props.cartItems
         }
         const responseDetail = await handleGetCartDetailApi(JSON.stringify(cartItems));
         if (responseDetail && responseDetail.errCode === 0) {
+          const detailInfo = responseDetail.data || [];
           this.setState(
             {
               loadedCartInfo: cartItems,
-              loadedCartDetailInfo: responseDetail.data,
-              totalPages: Math.ceil(responseDetail.data.length / this.state.limitProductPerQuery),
+              loadedCartDetailInfo: detailInfo,
+              totalPages: Math.ceil(detailInfo.length / this.state.limitProductPerQuery) || 1,
+              currentPage: 1,
+              tempCurrentPage: '1',
             },
             async () => {
               await this.handleLoadDetailList(cartItems);
@@ -178,12 +182,16 @@ class Cart extends Component {
             }
           );
         } else {
-          toast.error('Tải chi tiết giỏ hàng thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
-          reject(new Error('Tải chi tiết giỏ hàng thất bại'));
+          this.setState(
+            {
+              loadedCartInfo: [],
+              loadedCartDetailInfo: [],
+              totalPages: 1,
+              currentPage: 1,
+              tempCurrentPage: '1',
+            },
+            () => resolve()
+          );
         }
       } catch (e) {
         console.log('Lỗi khi tải chi tiết giỏ hàng!');
@@ -243,6 +251,12 @@ class Cart extends Component {
       totalPrice += productPrice * loadedCartDetailInfo[i].ItemQuantity;
     }
     return totalPrice;
+  };
+
+  handleOnChange = (event, type) => {
+    this.setState({
+      [type]: event.target.checked
+    });
   };
 
   handleAddQuantity = async (productid, productdetailid, quantity) => {
@@ -324,34 +338,43 @@ class Cart extends Component {
       isConfirmed = true;
     }
     if (isConfirmed) {
+      this.setState({ isLoading: true })
       const { isLoggedIn, accountInfo } = this.state;
-      if (isLoggedIn) {
-        const response = await handleRemoveFromCartApi(accountInfo.AccountID, productid, productdetailid);
-        if (response && response.errCode === 0) {
+      try {
+        if (isLoggedIn) {
+          const response = await handleRemoveFromCartApi(accountInfo.AccountID, productid, productdetailid);
+          if (response && response.errCode === 0) {
+            toast.success('Xóa sản phẩm thành công', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            })
+          } else {
+            toast.error('Xóa sản phẩm thất bại!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+          }
+        } else {
+          this.props.removeFromCart(productid, productdetailid);
           toast.success('Xóa sản phẩm thành công', {
             position: 'top-right',
             autoClose: 500,
             closeOnClick: true,
           });
-        } else {
-          toast.error('Xóa sản phẩm thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
         }
-      } else {
-        this.props.removeFromCart(productid, productdetailid);
-        toast.success('Xóa sản phẩm thành công', {
+        await this.handleLoadCartInfo();
+        this.triggerCountCartItem();
+      } catch (e) {
+        toast.error('Lỗi khi xóa sản phẩm!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
     }
-    await this.handleLoadCartInfo();
-    this.triggerCountCartItem();
-    this.setState({ disabledRemoveButton: false });
+    this.setState({ disabledRemoveButton: false, isLoading: false });
   };
 
   handleChangeProductDetail = async (productid, productdetailid1, productdetailid2) => {
@@ -545,10 +568,20 @@ class Cart extends Component {
                   <p>Cài đặt giỏ hàng: </p>
                 </div>
                 <div className="check-btn f">
-                  <input type="radio" className="turn-off-save-delete " />
-                  <p>Tắt thông báo xóa</p>
-                  <input type="radio" className="turn-off-save-merge " />
-                  <p>Tắt thông gộp sản phẩm</p>
+                  <input
+                    type="checkbox"
+                    className="turn-off-save-delete"
+                    checked={this.state.isSaveDelete}
+                    onChange={(e) => this.setState({ isSaveDelete: e.target.checked })}
+                  />
+                  <p>Thông báo xóa</p>
+                  <input
+                    type="checkbox"
+                    className="turn-off-save-merge"
+                    checked={this.state.isSaveMerge}
+                    onChange={(e) => this.setState({ isSaveMerge: e.target.checked })}
+                  />
+                  <p>Thông báo gộp sản phẩm</p>
                 </div>
               </div>
               <div className="cart-top-warp">

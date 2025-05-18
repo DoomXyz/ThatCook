@@ -108,6 +108,7 @@ class Home extends Component {
 
   handleLoadProductInfo = async () => {
     const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state;
+    console.log(filterValue)
     try {
       const response = await handleLoadSaleProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue);
       if (response && response.errCode === 0) {
@@ -317,6 +318,7 @@ class Home extends Component {
 
   handleAddToCart = async (product) => {
     try {
+      console.log(product)
       const quantity = product.ItemQuantity ? product.ItemQuantity : 1;
       await this.handleIsLogin();
       const addToCartProduct = [
@@ -340,6 +342,7 @@ class Home extends Component {
             autoClose: 500,
             closeOnClick: true,
           });
+          return;
         }
       } else {
         productData = this.props.cartItems;

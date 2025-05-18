@@ -1,6 +1,7 @@
 import axios from '../axios';
 
 const handleCreateAppointmentApi = (appointmentData) => {
+  console.log(appointmentData)
   return axios.post('/api/create-appointment', appointmentData);
 };
 

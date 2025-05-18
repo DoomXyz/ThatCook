@@ -400,10 +400,7 @@ class CreateBannerModal extends Component {
               <p>Ngày ẩn (tùy chọn):</p>
               <DatePicker
                 selected={hiddenat}
-                onChange={(date) => {
-                  const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
-                  this.setState({ hiddenat: formattedDate });
-                }}
+                onChange={(date) => this.setState({ hiddenat: date })}
                 dateFormat="dd/MM/yyyy"
                 placeholderText="dd/mm/yyyy"
                 className="date-picker"
