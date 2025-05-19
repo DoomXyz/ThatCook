@@ -20,6 +20,7 @@ import Vaccination from '../containers/Vaccination/Vaccination';
 import Surgery from '../containers/Surgery/Surgery';
 import Test from '../containers/Test/Test';
 import DoctorPage from '../containers/DoctorPage/Doctor';
+import AppointmentCheckOut from '../containers/AppointmentCheckOut/AppointmentCheckOut';
 // class AppRoutes extends Component {
 //     render() {
 //         const { navigate } = this.props; // Nhận navigate từ props
@@ -59,6 +60,7 @@ const AppRoutes = () => {
       <Route path="/service/vaccination" element={<Vaccination navigate={navigate} />} />
       <Route path="/service/surgery" element={<Surgery navigate={navigate} />} />
       <Route path="/service/test" element={<Test navigate={navigate} />} />
+      <Route path="/appointmentcheckout" element={<AppointmentCheckOut navigate={navigate} />} />
     </Routes>
   );
 };
