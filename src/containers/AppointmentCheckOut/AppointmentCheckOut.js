@@ -24,11 +24,14 @@ class AppointmentCheckOut extends Component {
                         <div className="appointment-check-out-content-left ">
                             <div className="appointment-check-out-content-left-cus-info">
                                 <p>*Thông tin khách hàng</p>
-                                <input type="text" placeholder="Hãy nhập tên khách hàng" />
+                                <input type="text" disabled />
                                 <br />
-                                <input type="text" placeholder="Hãy nhập số điện thoại" />
+                                <input type="text" disabled />
                                 <br />
-                                <input type="text" placeholder="Hãy nhập email" />
+                                <input type="text" disabled />
+                                <br />
+                                <p>*Tên thú cưng</p>
+                                <input type="text" disabled />
                             </div>
                             <div className="appointment-check-out-content-left-service-medicine-total">
                                 <table>

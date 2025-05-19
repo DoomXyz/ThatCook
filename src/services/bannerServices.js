@@ -16,6 +16,10 @@ const handleCreateBannerApi = (bannerInfo) => {
   return axios.post('/api/create-banner', bannerInfo);
 };
 
+const handleCreateCouponApi = (couponInfo) => {
+  return axios.post('/api/create-coupon', couponInfo);
+};
+
 const handleChangeBannerInfoApi = (bannerInfo) => {
   return axios.put('/api/change-bannerinfo', bannerInfo);
 };

@@ -14,6 +14,7 @@ import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductIn
 import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
 import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { handleCreateCouponApi, handleLoadCouponInfoApi } from '../../services/couponServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
@@ -22,8 +23,10 @@ import CreateProductModal from './CreateProductModal';
 import EditProductModal from './EditProductModal';
 import ViewInvoiceModal from './ViewInvoiceModal';
 import CreateBannerModal from './CreateBannerModal';
+import CreateCouponModal from './CreateCouponModal.js';
 import EditBannerModal from './EditBannerModal';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+
 import { set } from 'lodash';
 
 class Owner extends Component {
@@ -36,6 +39,7 @@ class Owner extends Component {
       isShowEditProductModal: false,
       isShowViewInvoiceModal: false,
       isShowCancelInvoiceModal: false,
+      isShowCreateCouponModal: false,
       accountInfo: null,
       isLoggedIn: false,
       isLoading: true,
@@ -44,11 +48,14 @@ class Owner extends Component {
       loadedPaymentStatusFilterValue: [],
       loadedShippingStatusFilterValue: [],
       loadedBannerStatusFilterValue: [],
+      loadedCouponStatusFilterValue: [],
+      loadedDiscountTypeFilterValue: [],
       actionPage: 1,
       currentPage: 1,
       tempCurrentPage: '1',
       limitProductPerQuery: 10,
       limitInvoicePerQuery: 10,
+      limitCouponPerQuery: 10,
       limitBannerPerQuery: 5,
       searchValue: '',
       dateFilterValue: '',
@@ -57,12 +64,15 @@ class Owner extends Component {
       totalProductPages: 1,
       totalInvoicePages: 1,
       totalBannerPages: 1,
+      totalCouponPages: 1,
       loadedProductInfo: [],
       loadedInvoiceInfo: [],
       loadedBannerInfo: [],
+      loadedCouponInfo: [],
       selectedProduct: null,
       selectedBanner: null,
       selectedInvoice: null,
+      selectedCoupon: null,
       selectedCancelInvoice: null,
     };
     this.debounceTimeout = null;
@@ -76,7 +86,7 @@ class Owner extends Component {
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue, loadedBannerStatusFilterValue } = this.state;
+      const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue, loadedBannerStatusFilterValue, loadedCouponStatusFilterValue, loadedDiscountTypeFilterValue } = this.state;
       switch (this.state.actionPage) {
         case 1:
           if (actionPage === 1) {
@@ -106,6 +116,17 @@ class Owner extends Component {
           }
           if (loadedBannerStatusFilterValue.length === 0) {
             await this.handleLoadBannerStatusFilterValue();
+          }
+          break;
+        case 4:
+          if (actionPage === 4) {
+            this.handleLoadCouponInfo();
+          }
+          if (loadedCouponStatusFilterValue.length === 0) {
+            await this.handleLoadCouponStatusFilterValue();
+          }
+          if (loadedDiscountTypeFilterValue.length === 0) {
+            await this.handleLoadDiscountTypeFilterValue();
           }
           break;
         default:
@@ -286,6 +307,26 @@ class Owner extends Component {
       });
     }
   };
+  handleLoadCouponInfo = async () => {
+    const { currentPage, limitCouponPerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state;
+    try {
+      const response = await handleLoadCouponInfoApi(currentPage, limitCouponPerQuery, searchValue, filterValue, sortValue, dateFilterValue);
+      console.log(response);
+      if (response && response.data.errCode === 0) {
+        this.setState({
+          loadedCouponInfo: response.data.data,
+          totalCouponPages: Math.ceil(response.data.totalItems / limitCouponPerQuery),
+        });
+      }
+    } catch (e) {
+      console.log('Error loading couponinfo:', e);
+      toast.error('Lỗi khi load danh sách coupon!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   handleLoadBannerStatusFilterValue = async () => {
     try {
       const loadedFilterValue = await handleGetAllCodesApi('BannerStatus');
@@ -308,13 +349,57 @@ class Owner extends Component {
       });
     }
   };
+  handleLoadCouponStatusFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetAllCodesApi('CouponStatus');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedCouponStatusFilterValue: loadedFilterValue,
+      });
+    } catch (e) {
+      console.log('Error loading couponstatus code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleLoadDiscountTypeFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetAllCodesApi('DiscountType');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        loadedDiscountTypeFilterValue: loadedFilterValue,
+      });
+    } catch (e) {
+      console.log('Error loading discounttype code:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   handleSearchChange = (event, type) => {
     const value = event.target.value;
     this.setState(
       {
         searchValue: value,
         currentPage: 1,
-        tempCurrentPage: "1",
+        tempCurrentPage: '1',
       },
       () => {
         if (this.debounceTimeout) {
@@ -331,6 +416,9 @@ class Owner extends Component {
             case 3:
               this.handleLoadBannerInfo();
               break;
+            case 4:
+              this.handleLoadCouponInfo();
+              break;
             default:
               break;
           }
@@ -343,7 +431,7 @@ class Owner extends Component {
       {
         filterValue: value,
         currentPage: 1,
-        tempCurrentPage: "1",
+        tempCurrentPage: '1',
       },
       () => {
         switch (type) {
@@ -355,6 +443,9 @@ class Owner extends Component {
             break;
           case 3:
             this.handleLoadBannerInfo();
+            break;
+          case 4:
+            this.handleLoadCouponInfo();
             break;
           default:
             break;
@@ -367,7 +458,7 @@ class Owner extends Component {
       {
         sortValue: value,
         currentPage: 1,
-        tempCurrentPage: "1",
+        tempCurrentPage: '1',
       },
       () => {
         switch (type) {
@@ -379,6 +470,9 @@ class Owner extends Component {
             break;
           case 3:
             this.handleLoadBannerInfo();
+            break;
+          case 4:
+            this.handleLoadCouponInfo();
             break;
           default:
             break;
@@ -407,6 +501,9 @@ class Owner extends Component {
           case 3:
             this.handleLoadBannerInfo();
             break;
+          case 4:
+            this.handleLoadCouponInfo();
+            break;
           default:
             break;
         }
@@ -417,7 +514,7 @@ class Owner extends Component {
     this.setState({
       isLoading: true,
     });
-    const { totalProductPages, totalInvoicePages, totalBannerPages } = this.state;
+    const { totalProductPages, totalInvoicePages, totalBannerPages, totalCouponPages } = this.state;
     let totalPages;
     switch (type) {
       case 1:
@@ -428,6 +525,9 @@ class Owner extends Component {
         break;
       case 3:
         totalPages = totalBannerPages;
+        break;
+      case 4:
+        totalPages = totalCouponPages;
         break;
       default:
         totalPages = 1;
@@ -455,6 +555,9 @@ class Owner extends Component {
           case 3:
             this.handleLoadBannerInfo();
             break;
+          case 4:
+            this.handleLoadCouponInfo();
+            break;
           default:
             break;
         }
@@ -481,6 +584,9 @@ class Owner extends Component {
           case 3:
             this.handleLoadBannerInfo();
             break;
+          case 4:
+            this.handleLoadCouponInfo();
+            break;
           default:
             break;
         }
@@ -490,7 +596,7 @@ class Owner extends Component {
   handleNextPage = (type) => {
     this.setState(
       (prevState) => {
-        const newPage = Math.min(type === 1 ? prevState.totalProductPages : type === 2 ? prevState.totalInvoicePages : prevState.totalBannerPages, prevState.currentPage + 1);
+        const newPage = Math.min(type === 1 ? prevState.totalProductPages : type === 2 ? prevState.totalInvoicePages : type === 3 ? prevState.totalBannerPages : prevState.totalCouponPages, prevState.currentPage + 1);
         return {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
@@ -506,6 +612,9 @@ class Owner extends Component {
             break;
           case 3:
             this.handleLoadBannerInfo();
+            break;
+          case 4:
+            this.handleLoadCouponInfo();
             break;
           default:
             break;
@@ -547,6 +656,9 @@ class Owner extends Component {
       isShowViewInvoiceModal: true,
     });
   };
+  handleSelectedCoupon = (couponid) => {
+    console.log(couponid)
+  };
   handleSelectedCancelInvoice = (invoiceid) => {
     this.setState({
       selectedCancelInvoice: invoiceid,
@@ -581,6 +693,11 @@ class Owner extends Component {
   toggleCancelInvoiceModal = () => {
     this.setState({
       isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
+    });
+  };
+  toggleCreateCouponModal = () => {
+    this.setState({
+      isShowCreateCouponModal: !this.state.isShowCreateCouponModal,
     });
   };
   handleCreateProductFromModal = async (productInfo) => {
@@ -744,6 +861,39 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
+  handleCreateCouponFromModal = async (couponInfo) => {
+    console.log(couponInfo);
+    // this.setState({ isLoading: true });
+    // try {
+    //   const response = await handleCreateCouponApi(couponInfo);
+    //   if (response && response.errCode === 0) {
+    //     toast.success('Thêm coupon mới thành công!', {
+    //       position: 'top-right',
+    //       autoClose: 500,
+    //       closeOnClick: true,
+    //     });
+    //     await this.handleLoadCouponInfo();
+    //     this.setState({
+    //       isShowCreateCouponModal: false,
+    //     });
+    //   } else {
+    //     const errMessage = response?.errMessage || 'Thêm coupon mới thất bại!';
+    //     toast.error(errMessage, {
+    //       position: 'top-right',
+    //       autoClose: 500,
+    //       closeOnClick: true,
+    //     });
+    //   }
+    // } catch (e) {
+    //   console.error('Create Coupon:', e);
+    //   toast.error('Xảy ra lỗi khi thêm coupon mới, vui lòng thử lại!', {
+    //     position: 'top-right',
+    //     autoClose: 500,
+    //     closeOnClick: true,
+    //   });
+    // }
+    // this.setState({ isLoading: false });
+  };
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
     this.setState({
@@ -772,6 +922,18 @@ class Owner extends Component {
     e.preventDefault();
     this.setState({
       actionPage: 3,
+      currentPage: 1,
+      tempCurrentPage: '1',
+      searchValue: '',
+      dateFilterValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
+    });
+  };
+  handleFormDanhSachCoupon = (e) => {
+    e.preventDefault();
+    this.setState({
+      actionPage: 4,
       currentPage: 1,
       tempCurrentPage: '1',
       searchValue: '',
@@ -1027,6 +1189,9 @@ class Owner extends Component {
       loadedShippingStatusFilterValue,
       loadedBannerInfo,
       loadedBannerStatusFilterValue,
+      loadedCouponInfo,
+      loadedCouponStatusFilterValue,
+      loadedDiscountTypeFilterValue,
       isLoading,
       actionPage,
       searchValue,
@@ -1038,12 +1203,14 @@ class Owner extends Component {
       totalProductPages,
       totalInvoicePages,
       totalBannerPages,
+      totalCouponPages,
       isShowCreateProductModal,
       isShowEditProductModal,
       isShowCreateBannerModal,
       isShowEditBannerModal,
       isShowViewInvoiceModal,
       isShowCancelInvoiceModal,
+      isShowCreateCouponModal,
       selectedProduct,
       selectedBanner,
       selectedInvoice,
@@ -1487,7 +1654,186 @@ class Owner extends Component {
                       <button className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalBannerPages}>
                         {'>'}
                       </button>
-                      <button className="last" onClick={() => this.handlePageChange(totalBannerPages, 2)} disabled={currentPage === totalBannerPages}>
+                      <button className="last" onClick={() => this.handlePageChange(totalBannerPages, 3)} disabled={currentPage === totalBannerPages}>
+                        {'>>'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        case 4:
+          return (
+            <div>
+              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-banner">
+                THÊM COUPON <IonIcon icon={add}></IonIcon>
+              </button>
+              <div className="f">
+                <div className="owner-mid-content-search-banner" style={{ display: actionPage === 4 ? 'flex' : 'none' }}>
+                  <p>Tìm kiếm:</p>
+                  <input type="text" placeholder="Nhập mã coupon" value={searchValue} onChange={(event) => this.handleSearchChange(event, 4)} />
+                  <IonIcon icon={searchOutline}></IonIcon>
+                </div>
+                <div style={{ display: actionPage === 4 ? 'flex' : 'none' }} className="owner-mid-content-banner-filter-sort f">
+                  <div className="owner-mid-content-banner-filter">
+                    <label>Lọc Coupon:</label>
+                    <br />
+                    <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 4)}>
+                      <option value="ALL">Tất cả</option>
+                      {loadedCouponStatusFilterValue && loadedCouponStatusFilterValue.length > 0 && (
+                        <optgroup label="Trạng thái">
+                          {loadedCouponStatusFilterValue.map((item) => (
+                            <option key={`couponstatus-${item.Code}`} value={`couponstatus-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {loadedDiscountTypeFilterValue && loadedDiscountTypeFilterValue.length > 0 && (
+                        <optgroup label="Loại giảm giá">
+                          {loadedDiscountTypeFilterValue.map((item) => (
+                            <option key={`discounttype-${item.Code}`} value={`discounttype-${item.Code}`}>
+                              {item.CodeValueVI}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Giảm giá tối đa (Cố định)">
+                        <option value="maxdiscountfixed-0">0 - 20.000 VNĐ</option>
+                        <option value="maxdiscountfixed-1">20.000 - 50.000 VNĐ</option>
+                        <option value="maxdiscountfixed-2">50.000 - 100.000 VNĐ</option>
+                        <option value="maxdiscountfixed-3">Trên 100.000 VNĐ</option>
+                      </optgroup>
+                      <optgroup label="Giảm giá tối đa (Phần trăm)">
+                        <option value="maxdiscountperc-0">0 - 10%</option>
+                        <option value="maxdiscountperc-1">10 - 20%</option>
+                        <option value="maxdiscountperc-2">20 - 50%</option>
+                        <option value="maxdiscountperc-3">Trên 50%</option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div className="owner-mid-content-banner-sort">
+                    <label>Sắp xếp:</label>
+                    <br />
+                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 4)}>
+                      <option value="0">Mặc định</option>
+                      <option value="1">Mới nhất</option>
+                      <option value="2">Cũ nhất</option>
+                      <option value="3">Hạn sử dụng xa nhất</option>
+                      <option value="4">Hết sử dụng gần nhất</option>
+                      <option value="5">Giảm giá ít nhất</option>
+                      <option value="6">Giảm giá nhiều nhất</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: actionPage === 4 ? 'block' : 'none' }} className="owner-mid-content-banner-date">
+                  <label>Coupon còn hiệu lực trong ngày:</label>
+                  <br />
+                  <div className="f">
+                    <DatePicker
+                      selected={dateFilterValue ? new Date(dateFilterValue + 'T00:00:00') : null}
+                      onChange={(date) => {
+                        const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
+                        this.setState({ dateFilterValue: formattedDate }, () => {
+                          if (this.state.actionPage === 4) {
+                            this.handleLoadCouponInfo();
+                          }
+                        });
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    <button style={{ marginLeft: '10px' }} onClick={this.handleResetFilter}>
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="owner-mid-content-mid-list-img">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mã giảm giá</th>
+                      <th>Giá trị giảm</th>
+                      <th>Giảm tối đa</th>
+                      <th>Mua tối thiểu</th>
+                      <th>Mô tả</th>
+                      <th>Loại giảm giá</th>
+                      <th>Trạng thái</th>
+                      <th>Ngày bắt đầu</th>
+                      <th>Ngày hết hạn</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadedCouponInfo.length > 0 ? (
+                      loadedCouponInfo.map((item) => (
+                        <tr key={item.CouponID} className="owner-mid-content-right-list-banner-item">
+                          <td>{item.CouponCode}</td>
+                          <td>
+                            {parseFloat(item.DiscountValue).toLocaleString('vi-VN')}{item.DiscountType === 'PERC' ? '%' : 'vnđ'}
+                          </td>
+                          <td>
+                            {parseFloat(item.MaxDiscount).toLocaleString('vi-VN')}vnđ
+                          </td>
+                          <td>{parseFloat(item.MinOrderValue) > 0 ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ' : 'Không yêu cầu'}</td>
+                          <td>{item.CouponDescription || 'N/A'}</td>
+                          <td>
+                            {loadedDiscountTypeFilterValue.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType}
+                          </td>
+                          <td>
+                            {loadedCouponStatusFilterValue.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus}
+                          </td>
+                          <td>
+                            {item.StartDate
+                              ? new Date(item.StartDate).toLocaleString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
+                              : 'N/A'}
+                          </td>
+                          <td>
+                            {item.EndDate
+                              ? new Date(item.EndDate).toLocaleString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
+                              : 'Vô thời hạn'}
+                          </td>
+                          <td className="f" onClick={(e) => e.stopPropagation()}>
+                            <button className="btn-edit" onClick={() => this.handleSelectedCoupon(item.CouponID)}>
+                              <IonIcon icon={pencil}></IonIcon>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="10">Không tìm thấy coupon nào.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                {totalCouponPages > 1 && (
+                  <div className="page-content">
+                    <div className="page-content-item">
+                      <button className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
+                        {'<<'}
+                      </button>
+                      <button className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
+                        {'<'}
+                      </button>
+                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 4)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
+                      <span className="total-pages">/ {totalCouponPages}</span>
+                      <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalCouponPages}>
+                        {'>'}
+                      </button>
+                      <button className="last" onClick={() => this.handlePageChange(totalCouponPages, 4)} disabled={currentPage === totalCouponPages}>
                         {'>>'}
                       </button>
                     </div>
@@ -1509,6 +1855,7 @@ class Owner extends Component {
         <EditBannerModal isOpen={isShowEditBannerModal} toggleFromModal={this.toggleEditBannerModal} selectedBannerID={selectedBanner} handleChangeBannerFromModal={this.handleChangeBannerFromModal} />
         <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
+        <CreateCouponModal isOpen={isShowCreateCouponModal} toggleFromModal={this.toggleCreateCouponModal} handleCreateCouponFromModal={this.handleCreateCouponFromModal} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />
@@ -1536,6 +1883,11 @@ class Owner extends Component {
                 <li>
                   <a onClick={this.handleFormDanhSachBanner} className={actionPage === 3 ? 'active' : ''}>
                     BANNER
+                  </a>
+                </li>
+                <li>
+                  <a onClick={this.handleFormDanhSachCoupon} className={actionPage === 4 ? 'active' : ''}>
+                    COUPON
                   </a>
                 </li>
               </div>

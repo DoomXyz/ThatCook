@@ -14,7 +14,8 @@ import { chevronBackOutline } from 'ionicons/icons';
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleGetCartDetailApi } from '../../services/cartServices';
 import { handleCreateInvoiceApi } from '../../services/invoiceServices';
-import { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi } from '../../services/utilitiesServices';
+import { handleCheckCouponApi, handleGetCouponApi } from '../../services/couponServices'
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout } from '../../store/actions';

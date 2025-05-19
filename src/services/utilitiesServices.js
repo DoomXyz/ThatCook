@@ -9,14 +9,6 @@ const handleGetAllCodesApi = async (type) => {
   }
 };
 
-const handleCheckCouponApi = async (couponcode, price) => {
-  return axios.get(`/api/check-coupon?couponcode=${couponcode}&price=${price}`);
-};
-
-const handleGetCouponApi = async (couponcode) => {
-  return axios.get(`/api/get-couponinfo?couponcode=${couponcode}`);
-};
-
 const uploadImageToCloudinaryApi = async (file) => {
   console.log('Bắt đầu upload ảnh lên Cloudinary:', file.name, file.size);
 
@@ -56,4 +48,4 @@ const uploadImageToCloudinaryApi = async (file) => {
   }
 };
 
-export { handleGetAllCodesApi, handleCheckCouponApi, handleGetCouponApi, uploadImageToCloudinaryApi };
+export { handleGetAllCodesApi, uploadImageToCloudinaryApi };

@@ -183,7 +183,7 @@ class HomeAppointment extends Component {
             <div
               className="service-item"
               onClick={() => {
-                this.props.navigate('/user/genhealthcheck');
+                this.props.navigate('/service/genhealthcheck');
               }}
             >
               <img src={tongquat} />
@@ -192,7 +192,7 @@ class HomeAppointment extends Component {
             <div
               className="service-item"
               onClick={() => {
-                this.props.navigate('/user/vaccination');
+                this.props.navigate('/service/vaccination');
               }}
             >
               <img src={tiemphong} />
@@ -201,7 +201,7 @@ class HomeAppointment extends Component {
             <div
               className="service-item"
               onClick={() => {
-                this.props.navigate('/user/surgery');
+                this.props.navigate('/service/surgery');
               }}
             >
               <img src={phauthuat} />
@@ -211,7 +211,7 @@ class HomeAppointment extends Component {
           <div
             className="service-item"
             onClick={() => {
-              this.props.navigate('/user/test');
+              this.props.navigate('/service/test');
             }}
           >
             <img src={xetnghiem} />
