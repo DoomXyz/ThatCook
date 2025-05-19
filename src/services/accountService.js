@@ -490,12 +490,37 @@ let userRegister = (userInfo) => {
         AccountType: userInfo.accounttype || 'C',
       }, { transaction });
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
-        const { bio, specialization, workingstatus } = userInfo.veterinarianInfo;
+        const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
         if (!workingstatus) {
           await transaction.rollback();
           resolve({
             errCode: 1,
             errMessage: 'Trạng thái làm việc của bác sĩ không được để trống!',
+            data: null,
+          });
+          return;
+        }
+        if (!selectedServicesList || !Array.isArray(selectedServicesList) || selectedServicesList.length === 0) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!',
+            data: null,
+          });
+          return;
+        }
+        const validServices = await db.Service.findAll({
+          where: {
+            ServiceID: selectedServicesList,
+          },
+          attributes: ['ServiceID'],
+          transaction,
+        });
+        if (validServices.length !== selectedServicesList.length) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Một hoặc nhiều dịch vụ không hợp lệ!',
             data: null,
           });
           return;
@@ -506,6 +531,12 @@ let userRegister = (userInfo) => {
           Specialization: specialization?.trim() || null,
           WorkingStatus: workingstatus.trim(),
         }, { transaction });
+        for (const serviceid of selectedServicesList) {
+          await db.VeterinarianService.create({
+            VeterinarianID: accountID,
+            ServiceID: serviceid,
+          }, { transaction });
+        }
       }
       await transaction.commit();
       resolve({
@@ -1093,13 +1124,38 @@ let changeAccountInfo = (userInfo) => {
         isUpdated = true;
       }
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
-        const { bio, specialization, workingstatus } = userInfo.veterinarianInfo;
+        const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
         const validWorkingStatus = await checkWorkingStatus(workingstatus);
         if (!validWorkingStatus) {
           await transaction.rollback();
           resolve({
             errCode: 1,
             errMessage: 'Trạng thái làm việc không hợp lệ!',
+            data: null,
+          });
+          return;
+        }
+        if (!selectedServicesList || !Array.isArray(selectedServicesList) || selectedServicesList.length === 0) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!',
+            data: null,
+          });
+          return;
+        }
+        const validServices = await db.Service.findAll({
+          where: {
+            ServiceID: selectedServicesList,
+          },
+          attributes: ['ServiceID'],
+          transaction,
+        });
+        if (validServices.length !== selectedServicesList.length) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Một hoặc nhiều dịch vụ không hợp lệ!',
             data: null,
           });
           return;
@@ -1123,6 +1179,16 @@ let changeAccountInfo = (userInfo) => {
             Bio: bio?.trim() || null,
             Specialization: specialization?.trim() || null,
             WorkingStatus: workingstatus.trim(),
+          }, { transaction });
+        }
+        await db.VeterinarianService.destroy({
+          where: { VeterinarianID: userInfo.accountid },
+          transaction,
+        });
+        for (const serviceid of selectedServicesList) {
+          await db.VeterinarianService.create({
+            VeterinarianID: userInfo.accountid,
+            ServiceID: serviceid,
           }, { transaction });
         }
         isUpdated = true;
@@ -1291,46 +1357,6 @@ let getPaymentInfo = (accountid) => {
     }
   });
 };
-//lấy thông tin thêm của tài khoản bác sĩ thú y
-let getVeterinarianInfo = (accountid) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!accountid) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      const vetInfo = await db.VeterinarianInfo.findOne({
-        where: { AccountID: accountid },
-        attributes: ['Bio', 'Specialization', 'WorkingStatus'],
-        raw: true,
-      });
-      if (!vetInfo) {
-        resolve({
-          errCode: 2,
-          errMessage: 'Không tìm thấy thông tin bác sĩ thú y!',
-          data: null,
-        });
-        return;
-      }
-      resolve({
-        errCode: 0,
-        errMessage: 'Lấy thông tin bác sĩ thú y thành công!',
-        data: vetInfo,
-      });
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
 //gửi mã xác minh quên mật khẩu
 let sendForgotToken = (email) => {
   return new Promise(async (resolve, reject) => {
@@ -1475,6 +1501,120 @@ let verifyForgotToken = (accountid, token) => {
     }
   });
 };
+//lấy thông tin thêm của tài khoản bác sĩ thú y
+let getVeterinarianInfo = (accountid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!accountid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const account = await db.Account.findOne({
+        where: { AccountID: accountid, AccountType: 'V' },
+        attributes: ['AccountID'],
+      });
+      if (!account) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Tài khoản không phải bác sĩ thú y!',
+          data: null,
+        });
+        return;
+      }
+      const vetInfo = await db.VeterinarianInfo.findOne({
+        where: { AccountID: accountid },
+        attributes: ['Bio', 'Specialization', 'WorkingStatus'],
+        raw: true,
+      });
+
+      if (!vetInfo) {
+        return resolve({
+          errCode: 2,
+          errMessage: 'Không tìm thấy thông tin bác sĩ thú y!',
+          data: null,
+        });
+      }
+      const servicesRaw = await db.VeterinarianService.findAll({
+        where: { VeterinarianID: accountid },
+        attributes: ['ServiceID'],
+        include: [
+          {
+            model: db.Service,
+            attributes: ['ServiceID', 'ServiceName'],
+          },
+        ],
+        raw: true,
+        nest: true,
+      });
+      const formattedData = {
+        Bio: vetInfo.Bio || null,
+        Specialization: vetInfo.Specialization || null,
+        WorkingStatus: vetInfo.WorkingStatus || null,
+        services: servicesRaw.map((vs) => ({
+          ServiceID: vs.ServiceID,
+          ServiceName: vs.Service?.ServiceName || null,
+        })),
+      };
+      console.log(formattedData)
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin bác sĩ thú y thành công!',
+        data: formattedData,
+      });
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+let getVeterinarianService = (accountid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const services = await db.VeterinarianService.findAll({
+        where: { VeterinarianID: accountid },
+        include: [
+          {
+            model: db.Service,
+            attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
+          },
+        ],
+        attributes: [],
+        raw: true,
+        nest: true,
+      });
+      if (!services || services.length === 0) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Bác sĩ không có dịch vụ nào!',
+          data: [],
+        });
+        return;
+      }
+      const formattedServices = services.map((s) => ({
+        ServiceID: s.Service.ServiceID,
+        ServiceName: s.Service.ServiceName,
+        Price: s.Service.Price,
+        Duration: s.Service.Duration,
+        Description: s.Service.Description,
+      }));
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy danh sách dịch vụ thành công!',
+        data: formattedServices,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -1591,6 +1731,7 @@ module.exports = {
   changePassword,
   getPaymentInfo,
   getVeterinarianInfo,
+  getVeterinarianService,
   sendForgotToken,
   verifyForgotToken,
   loadVeterinarianInfo,

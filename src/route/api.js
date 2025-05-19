@@ -54,9 +54,9 @@ let initAPIRoutes = (app) => {
     router.post('/api/send-forgot-token', accountController.handleSendForgotToken);
     router.post('/api/verify-forgot-token', accountController.handleVerifyForgotToken);
     router.get('/api/load-veterinarianinfo', accountController.handleLoadVeterinarianInfo);
+    router.get('/api/get-veterinarianservice', accountController.handleGetVeterinarianService);
 
     router.get('/api/get-sale-bannerinfo', bannerController.handleGetSaleBannerInfo);
-
     router.get('/api/load-sale-productinfo', productController.handleLoadSaleProductInfo);
     router.get('/api/get-sale-productinfo', productController.handleGetSaleProductInfo);
     router.get('/api/get-productdetailinfo', productController.handleGetProductDetailInfo);
@@ -86,6 +86,11 @@ let initAPIRoutes = (app) => {
     //admin
     router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
     router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);
+
+    router.get('/api/load-allcodesinfo', utilitiesController.handleLoadAllCodesInfo);
+    router.post('/api/create-code', utilitiesController.handleCreateCode);
+    router.put('/api/change-codeinfo', utilitiesController.handleChangeCodeInfo)
+
     //owner
     router.get('/api/load-productinfo', productController.handleLoadProductInfo);
     router.get('/api/get-productinfo', productController.handleGetProductInfo);

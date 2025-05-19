@@ -6,11 +6,12 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Account.hasMany(models.Pet, { foreignKey: 'AccountID' });
       Account.hasMany(models.Appointment, { foreignKey: 'AccountID' });
-      Account.hasMany(models.Appointment, { foreignKey: 'VeterinarianID', as: 'VeterinarianAppointments' });
+      Account.hasMany(models.Appointment, { foreignKey: 'VeterinarianID' });
       Account.hasMany(models.Schedule, { foreignKey: 'VeterinarianID' });
       Account.hasOne(models.VeterinarianInfo, { foreignKey: 'AccountID' });
       Account.hasMany(models.Invoice, { foreignKey: 'AccountID' });
       Account.hasMany(models.CartItem, { foreignKey: 'AccountID' });
+      Account.hasMany(models.VeterinarianService, { foreignKey: 'VeterinarianID' });
     }
   }
 

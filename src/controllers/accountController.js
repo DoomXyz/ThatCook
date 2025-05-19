@@ -148,7 +148,7 @@ let handleChangePassword = async (req, res) => {
 let handleGetPaymentInfo = async (req, res) => {
   try {
     let response = await accountService.getPaymentInfo(req.query.accountid);
-    return res.status(response.errCode === 0 ? 200 : response.errCode === 2 ? 401 : response.errCode === 3 ? 500 : 400).json(response);
+    return res.status(200).json(response);
   } catch (e) {
     console.log('Error in handleGetPaymentInfo: ', e);
     return res.status(500).json({
@@ -161,6 +161,19 @@ let handleGetPaymentInfo = async (req, res) => {
 let handleGetVeterinarianInfo = async (req, res) => {
   try {
     let response = await accountService.getVeterinarianInfo(req.query.accountid);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
+let handleGetVeterinarianService = async (req, res) => {
+  try {
+    let response = await accountService.getVeterinarianService(req.query.accountid);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -229,6 +242,7 @@ module.exports = {
   handleChangePassword,
   handleGetPaymentInfo,
   handleGetVeterinarianInfo,
+  handleGetVeterinarianService,
   handleSendForgotToken,
   handleVerifyForgotToken,
   handleLoadVeterinarianInfo,
