@@ -290,6 +290,10 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      Notes: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
     },
       {
         indexes: [

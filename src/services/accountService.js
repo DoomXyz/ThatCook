@@ -1502,7 +1502,6 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         });
         return;
       }
-
       const offset = (page - 1) * limit;
       let where = { AccountType: 'V' };
       let order = [];
@@ -1511,13 +1510,11 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         const searchTerm = search.trim().substring(0, 50);
         where.UserName = { [Op.like]: `%${searchTerm}%` };
       }
-
       let vetInfoWhere = {};
       if (filter !== 'ALL') {
         const [, value] = filter.split('-');
         vetInfoWhere.Specialization = value;
       }
-
       switch (sort) {
         case '1': // Số lượt đặt lịch
           order.push([{ model: db.VeterinarianInfo, as: 'VeterinarianInfo' }, 'WorkingStatus', 'DESC']);
@@ -1529,7 +1526,6 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
           order.push(['UserName', 'ASC']);
           break;
       }
-
       const { count, rows } = await db.Account.findAndCountAll({
         where,
         attributes: ['AccountID', 'UserName'],
@@ -1559,7 +1555,6 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         });
         return;
       }
-
       const data = rows.map(row => ({
         AccountID: row.AccountID,
         UserName: row.UserName,
@@ -1567,7 +1562,6 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         Bio: row.VeterinarianInfo.Bio,
         WorkingStatus: row.VeterinarianInfo.WorkingStatus,
       }));
-
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách bác sĩ thú y thành công!',

@@ -390,6 +390,7 @@ let createAppointment = (customername, customeremail, customerphone, appointment
 let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
   return new Promise(async (resolve, reject) => {
     try {
+      // lấy thêm thông tin cho chỉ lấy serviceid mà veterinarianid đó có làm
       if (!appointmentDate || !serviceID) {
         resolve({
           errCode: -1,
