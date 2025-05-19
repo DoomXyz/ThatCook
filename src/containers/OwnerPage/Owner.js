@@ -1699,17 +1699,11 @@ class Owner extends Component {
                           ))}
                         </optgroup>
                       )}
-                      <optgroup label="Giảm giá tối đa (Cố định)">
+                      <optgroup label="Giảm giá tối đa">
                         <option value="maxdiscountfixed-0">0 - 20.000 VNĐ</option>
                         <option value="maxdiscountfixed-1">20.000 - 50.000 VNĐ</option>
                         <option value="maxdiscountfixed-2">50.000 - 100.000 VNĐ</option>
                         <option value="maxdiscountfixed-3">Trên 100.000 VNĐ</option>
-                      </optgroup>
-                      <optgroup label="Giảm giá tối đa (Phần trăm)">
-                        <option value="maxdiscountperc-0">0 - 10%</option>
-                        <option value="maxdiscountperc-1">10 - 20%</option>
-                        <option value="maxdiscountperc-2">20 - 50%</option>
-                        <option value="maxdiscountperc-3">Trên 50%</option>
                       </optgroup>
                     </select>
                   </div>
