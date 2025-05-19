@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
-import { IonIcon } from '@ionic/react'; //import thư viện icon
+import { IonIcon } from '@ionic/react';
+import Select from 'react-select';
 
 import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
 
@@ -9,7 +10,7 @@ import './Admin.scss';
 import Spinner from '../../components/Spinner';
 
 import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from '../../services/accountServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi, } from '../../services/utilitiesServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
@@ -27,17 +28,24 @@ class Admin extends Component {
       codeGender: [],
       codeAccountType: [],
       codeAccountStatus: [],
+      codeTypes: [],
       loadedAccountInfo: [],
+      loadedCodeInfo: [],
       selectedAccount: null,
+      selectedCode: null,
       currentPage: 1,
       tempCurrentPage: '1',
       limitAccountPerQuery: 10,
+      limitCodePerQuery: 10,
       searchValue: '',
       filterValue: 'ALL',
       sortValue: '0',
       totalPages: 1,
       isShowCreateAccountModal: false,
       isShowEditAccountModal: false,
+      actionPage: 1,
+      isEditingCode: null,
+      isAddingCode: false,
     };
     this.debounceTimeout = null;
   }
@@ -48,6 +56,26 @@ class Admin extends Component {
     await this.handleLoadAccountType();
     await this.handleLoadAccountStatus();
   }
+  async componentDidUpdate(prevProps, prevState) {
+    if (prevState.actionPage !== this.state.actionPage) {
+      const { codeGender, codeAccountType, codeAccountStatus, codeTypes } = this.state
+      switch (this.state.actionPage) {
+        case 1:
+          await this.handleLoadAccountInfo();
+          if (codeGender.length === 0) await this.handleLoadGender();
+          if (codeAccountType.length === 0) await this.handleLoadAccountType();
+          if (codeAccountStatus.length === 0) await this.handleLoadAccountStatus();
+          break;
+        case 2:
+          await this.handleLoadAllCodesInfo();
+          if (codeTypes.length === 0) await this.handleLoadCodeTypes();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   handleLoadGender = async () => {
     try {
       const codeGender = await handleGetAllCodesApi('Gender');
@@ -114,6 +142,27 @@ class Admin extends Component {
       });
     }
   };
+  handleLoadCodeTypes = async () => {
+    try {
+      const response = await handleGetAllCodesApi('ALL');
+      if (response && response.length !== 0) {
+        this.setState({ codeTypes: response });
+      } else {
+        toast.error('Không thể tải danh sách Type!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Error loading code types:', e);
+      toast.error('Lỗi khi tải danh sách Type!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -142,7 +191,6 @@ class Admin extends Component {
       isLoading: false,
     });
   };
-
   handleLoadAccountInfo = async () => {
     const { currentPage, limitAccountPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
@@ -164,31 +212,26 @@ class Admin extends Component {
       });
     }
   };
-  handleFilterAccount = (value) => {
-    this.setState(
-      {
-        filterValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        this.handleLoadAccountInfo();
+  handleLoadAllCodesInfo = async () => {
+    const { currentPage, limitCodePerQuery, searchValue, filterValue, sortValue } = this.state;
+    try {
+      let response = await handleLoadAllCodesInfoApi(currentPage, limitCodePerQuery, searchValue, filterValue, sortValue);
+      if (response && response.data.errCode === 0) {
+        this.setState({
+          loadedCodeInfo: response.data.data,
+          totalPages: Math.ceil(response.data.totalItems / limitCodePerQuery),
+        });
       }
-    );
+    } catch (e) {
+      console.log('Error loading code info:', e);
+      toast.error('Lỗi khi load danh sách AllCodes!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
   };
-  handleSortAccount = (value) => {
-    this.setState(
-      {
-        sortValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        this.handleLoadAccountInfo();
-      }
-    );
-  };
-  handleSearchChange = (event) => {
+  handleSearchChange = (event, type) => {
     const value = event.target.value;
     this.setState(
       {
@@ -201,8 +244,82 @@ class Admin extends Component {
           clearTimeout(this.debounceTimeout);
         }
         this.debounceTimeout = setTimeout(() => {
-          this.handleLoadAccountInfo();
+          switch (type) {
+            case 1:
+              this.handleLoadAccountInfo();
+              break;
+            case 2:
+              this.handleLoadAllCodesInfo();
+              break;
+            default:
+              break;
+          }
         }, 500);
+      }
+    );
+  };
+  handleFilter = (value, type) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadAccountInfo();
+            break;
+          case 2:
+            this.handleLoadAllCodesInfo();
+            break;
+          default:
+            break;
+        }
+      }
+    );
+  };
+  handleSort = (value, type) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadAccountInfo();
+            break;
+          case 2:
+            this.handleLoadAllCodesInfo();
+            break;
+          default:
+            break;
+        }
+      }
+    );
+  };
+  handleResetFilter = (type) => {
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+      },
+      () => {
+        switch (type) {
+          case 1:
+            this.handleLoadAccountInfo();
+            break;
+          case 2:
+            this.handleLoadAllCodesInfo();
+            break;
+          default:
+            break;
+        }
       }
     );
   };
@@ -359,21 +476,6 @@ class Admin extends Component {
     await this.handleLoadAccountInfo();
     this.setState({ isLoading: false });
   };
-  handleResetFilter = () => {
-    this.setState(
-      {
-        currentPage: 1,
-        tempCurrentPage: '1',
-        searchValue: '',
-        filterValue: 'ALL',
-        sortValue: '0',
-      },
-      () => {
-        this.handleLoadAccountInfo();
-      }
-    );
-  };
-
   handleLogout = async () => {
     const confirmLogout = () =>
       new Promise((resolve) => {
@@ -428,17 +530,16 @@ class Admin extends Component {
     }
   };
 
-  handlePageChange = (page) => {
+  handlePageChange = (page, type) => {
     this.setState({
       isLoading: true,
     });
     const { totalPages } = this.state;
     let newPage = page;
-    // Xử lý giá trị không hợp lệ
     if (isNaN(page) || page <= 0) {
-      newPage = 1; // Nếu nhập chữ, ký tự, hoặc số không hợp lệ, về trang 1
+      newPage = 1;
     } else if (page > totalPages) {
-      newPage = totalPages; // Nếu nhập số lớn hơn totalPages, đặt thành totalPages
+      newPage = totalPages;
     }
     this.setState(
       {
@@ -447,12 +548,21 @@ class Admin extends Component {
         tempCurrentPage: newPage.toString(),
       },
       () => {
-        this.handleLoadAccountInfo();
+        switch (type) {
+          case 1:
+            this.handleLoadAccountInfo();
+            break;
+          case 2:
+            this.handleLoadAllCodesInfo();
+            break;
+          default:
+            break;
+        }
       }
     );
   };
 
-  handlePrevPage = () => {
+  handlePrevPage = (type) => {
     this.setState(
       (prevState) => {
         const newPage = Math.max(1, prevState.currentPage - 1);
@@ -462,12 +572,21 @@ class Admin extends Component {
         };
       },
       () => {
-        this.handleLoadAccountInfo();
+        switch (type) {
+          case 1:
+            this.handleLoadAccountInfo();
+            break;
+          case 2:
+            this.handleLoadAllCodesInfo();
+            break;
+          default:
+            break;
+        }
       }
     );
   };
 
-  handleNextPage = () => {
+  handleNextPage = (type) => {
     this.setState(
       (prevState) => {
         const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
@@ -477,94 +596,324 @@ class Admin extends Component {
         };
       },
       () => {
-        this.handleLoadAccountInfo();
+        switch (type) {
+          case 1:
+            this.handleLoadAccountInfo();
+            break;
+          case 2:
+            this.handleLoadAllCodesInfo();
+            break;
+          default:
+            break;
+        }
       }
     );
   };
 
-  handlePageInputChange = (event) => {
+  handlePageInputChange = (event, type) => {
     const value = event.target.value;
     this.setState({ tempCurrentPage: value });
   };
 
-  handlePageInputBlur = () => {
+  handlePageInputBlur = (type) => {
     const { tempCurrentPage } = this.state;
     const page = parseInt(tempCurrentPage, 10);
-    this.handlePageChange(page);
+    this.handlePageChange(page, type);
   };
 
-  handlePageKeyDown = (event) => {
+  handlePageKeyDown = (event, type) => {
     if (event.key === 'Enter') {
       const { tempCurrentPage } = this.state;
       const page = parseInt(tempCurrentPage, 10);
-      this.handlePageChange(page);
+      this.handlePageChange(page, type);
     }
   };
-  getGenderValue = (code) => {
-    const gender = this.state.codeGender.find((item) => item.Code === code);
-    return gender ? gender.CodeValueVI : code;
+  handleEditCode = (index) => {
+    this.setState({ isEditingCode: index, isAddingCode: false });
   };
+  handleAddCode = () => {
+    if (this.state.isAddingCode || this.state.isEditingCode !== null) {
+      const confirmAddNew = () =>
+        new Promise((resolve) => {
+          toast(
+            <div>
+              <p>
+                {this.state.isAddingCode
+                  ? 'Bạn đang thêm mã mới chưa lưu. Lưu hoặc hủy trước khi thêm mã mới?'
+                  : 'Bạn có thay đổi chưa lưu. Hủy thay đổi và thêm mã mới?'}
+              </p>
+              <button
+                className="toast-confirm-btn"
+                onClick={() => {
+                  resolve(true);
+                  toast.dismiss();
+                }}
+              >
+                Có
+              </button>
+              <button
+                className="toast-cancel-btn"
+                onClick={() => {
+                  resolve(false);
+                  toast.dismiss();
+                }}
+              >
+                Không
+              </button>
+            </div>,
+            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          );
+        });
 
-  getAccountTypeValue = (code) => {
-    const accountType = this.state.codeAccountType.find((item) => item.Code === code);
-    return accountType ? accountType.CodeValueVI : code;
+      confirmAddNew().then((isConfirmed) => {
+        if (isConfirmed) {
+          this.setState(
+            {
+              isEditingCode: null,
+              isAddingCode: false,
+            },
+            async () => {
+              await this.handleLoadAllCodesInfo();
+              this.setState((prevState) => ({
+                loadedCodeInfo: [
+                  {
+                    CodeID: Date.now(),
+                    Type: '',
+                    Code: '',
+                    CodeValueVI: '',
+                    ExtraValue: '',
+                  },
+                  ...prevState.loadedCodeInfo,
+                ],
+                isEditingCode: 0,
+                isAddingCode: true,
+              }));
+            }
+          );
+        }
+      });
+    } else {
+      this.setState((prevState) => ({
+        loadedCodeInfo: [
+          {
+            CodeID: Date.now(),
+            Type: '',
+            Code: '',
+            CodeValueVI: '',
+            ExtraValue: '',
+          },
+          ...prevState.loadedCodeInfo,
+        ],
+        isEditingCode: 0,
+        isAddingCode: true,
+      }));
+    }
   };
-
-  getAccountStatusValue = (code) => {
-    const accountStatus = this.state.codeAccountStatus.find((item) => item.Code === code);
-    return accountStatus ? accountStatus.CodeValueVI : code;
+  handleCancelCode = () => {
+    this.setState(
+      {
+        isEditingCode: null,
+        isAddingCode: false,
+      },
+      async () => {
+        await this.handleLoadAllCodesInfo();
+      }
+    );
   };
+  handleCodeChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newCodes = [...prevState.loadedCodeInfo];
+      newCodes[index] = { ...newCodes[index], [field]: value };
+      return { loadedCodeInfo: newCodes };
+    });
+  };
+  checkValidateCode = (index) => {
+    const item = this.state.loadedCodeInfo[index];
 
-  render() {
-    const { isLoading, loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages, codeGender, codeAccountType, codeAccountStatus, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, tempCurrentPage } = this.state;
-    return (
-      <div className="admin-container">
-        <CreateAccountModal
-          isOpen={isShowCreateAccountModal}
-          toggleFromModal={this.toggleCreateUserModal}
-          handleCreateAccountFromModal={this.handleCreateAccountFromModal} />
-        <EditAccountModal
-          isOpen={isShowEditAccountModal}
-          toggleFromModal={this.toggleEditAccountModal}
-          selectedAccountID={selectedAccount}
-          handleEditAccountFromModal={this.handleEditAccountFromModal} />
-        <ToastContainer />
-        {isLoading ? (
-          <Spinner />
-        ) : (
+    if (!item.Type) return { errCode: -1, errMessage: `Type tại dòng ${index + 1} không được để trống!` };
+    const typeRegex = /^[A-Za-z0-9]{2,30}$/;
+    if (!typeRegex.test(item.Type.trim())) return { errCode: -1, errMessage: `Type tại dòng ${index + 1} không hợp lệ (2-30 ký tự, chỉ chữ và số)!` };
+
+    if (!item.Code) return { errCode: -1, errMessage: `Code tại dòng ${index + 1} không được để trống!` };
+    const codeRegex = /^[A-Za-z0-9]{1,20}$/;
+    if (!codeRegex.test(item.Code.trim())) return { errCode: -1, errMessage: `Code tại dòng ${index + 1} không hợp lệ (1-20 ký tự, chỉ chữ và số)!` };
+
+    if (!item.CodeValueVI) return { errCode: -1, errMessage: `CodeValueVI tại dòng ${index + 1} không được để trống!` };
+    const valueRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
+    if (!valueRegex.test(item.CodeValueVI.trim())) return { errCode: -1, errMessage: `CodeValueVI tại dòng ${index + 1} không hợp lệ (2-50 ký tự, có ít nhất một chữ cái)!` };
+
+    if (item.ExtraValue && (isNaN(item.ExtraValue) || parseFloat(item.ExtraValue) < 0)) {
+      return { errCode: -1, errMessage: `ExtraValue tại dòng ${index + 1} phải là số không âm!` };
+    }
+
+    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
+  };
+  handleSaveCode = async (index) => {
+    const validation = this.checkValidateCode(index);
+    if (validation.errCode !== 0) {
+      toast.error(validation.errMessage, {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+
+    const confirmSave = () =>
+      new Promise((resolve) => {
+        toast(
           <div>
-            <div className="admin-action">
-              <div className="admin-action-left">
-                <div
-                  className="btn-Home"
-                  onClick={() => {
-                    this.props.navigate('/home');
-                  }}
-                >
-                  <IonIcon icon={homeOutline}></IonIcon>
-                </div>
-                <div className="btn-addTK" onClick={() => this.toggleCreateUserModal()}>
-                  <button>
-                    THÊM TÀI KHOẢN <IonIcon icon={addOutline}></IonIcon>
-                  </button>
-                </div>
-              </div>
-              <div>
-                <h1>THÔNG TIN NGƯỜI DÙNG</h1>
-              </div>
-              <div className="admin-action-right">
-                <div className="btn-logoutTK" onClick={this.handleLogout}>
-                  <button>
-                    ĐĂNG XUẤT<IonIcon icon={logOutOutline}></IonIcon>
-                  </button>
-                </div>
-              </div>
+            <p>Xác nhận lưu thông tin AllCodes?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmSave();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const codeInfo = {
+        CodeID: this.state.loadedCodeInfo[index].CodeID,
+        Type: this.state.loadedCodeInfo[index].Type.trim(),
+        Code: this.state.loadedCodeInfo[index].Code.trim(),
+        CodeValueVI: this.state.loadedCodeInfo[index].CodeValueVI.trim(),
+        ExtraValue: this.state.loadedCodeInfo[index].ExtraValue
+          ? parseFloat(this.state.loadedCodeInfo[index].ExtraValue).toFixed(2)
+          : null,
+      };
+
+      let apiResponse;
+      if (this.state.isAddingCode) {
+        apiResponse = await handleCreateCodeApi(codeInfo);
+      } else {
+        apiResponse = await handleChangeCodeApi(codeInfo);
+      }
+      const response = apiResponse.data
+      if (response && response.errCode === 0) {
+        toast.success(this.state.isAddingCode ? 'Tạo AllCodes thành công!' : 'Chỉnh sửa AllCodes thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadAllCodesInfo();
+        this.setState({
+          isEditingCode: null,
+          isAddingCode: false,
+        });
+      } else {
+        const errMessage = response?.errMessage || (this.state.isAddingCode ? 'Tạo AllCodes thất bại!' : 'Chỉnh sửa AllCodes thất bại!');
+        toast.error(errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error(this.state.isAddingCode ? 'Create AllCodes:' : 'Edit AllCodes:', e);
+      toast.error(`Xảy ra lỗi khi ${this.state.isAddingCode ? 'tạo' : 'chỉnh sửa'} AllCodes, vui lòng thử lại!`, {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleFormAccountManagement = (e) => {
+    e.preventDefault();
+    this.setState(
+      {
+        actionPage: 1,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        isEditingCode: null,
+        isAddingCode: false,
+        loadedCodeInfo: [],
+      },
+      async () => {
+        await this.handleLoadAccountInfo();
+      }
+    );
+  };
+
+  handleFormCodeManagement = (e) => {
+    e.preventDefault();
+    this.setState(
+      {
+        actionPage: 2,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        isEditingCode: null,
+        isAddingCode: false,
+        loadedCodeInfo: [],
+      },
+      async () => {
+        await this.handleLoadAllCodesInfo();
+      }
+    );
+  };
+  renderSection = () => {
+    const {
+      loadedAccountInfo,
+      searchValue,
+      filterValue,
+      sortValue,
+      currentPage,
+      totalPages,
+      codeGender,
+      codeAccountType,
+      codeAccountStatus,
+      tempCurrentPage,
+      loadedCodeInfo,
+      codeTypes,
+      isEditingCode,
+      isAddingCode,
+      actionPage
+    } = this.state;
+    switch (actionPage) {
+      case 1:
+        return (
+          <div>
+            <div className="btn-addTK" onClick={() => this.toggleCreateUserModal()}>
+              <button>
+                THÊM TÀI KHOẢN <IonIcon icon={addOutline}></IonIcon>
+              </button>
             </div>
             <div className="admin-search">
               <div className="admin-search-left">
                 <div className="admin-search-box">
                   <div className="inputbox">
-                    <input type="text" placeholder="Tìm kiếm theo tên, email, SĐT" value={searchValue} onChange={this.handleSearchChange} />
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm theo tên, email, SĐT"
+                      value={searchValue}
+                      onChange={(event) => this.handleSearchChange(event, 1)}
+                    />
                     <div className="btn-search">
                       <IonIcon icon={searchOutline} className="search-icon"></IonIcon>
                     </div>
@@ -572,12 +921,10 @@ class Admin extends Component {
                 </div>
               </div>
               <div className="admin-search-right">
-                <button onClick={this.handleResetFilter}>
-                  Reset
-                </button>
+                <button onClick={() => this.handleResetFilter(1)}>Reset</button>
                 <div>
                   <label>Lọc:</label>
-                  <select value={filterValue} onChange={(event) => this.handleFilterAccount(event.target.value)}>
+                  <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                     <option value="ALL">Mặc định (Tất cả)</option>
                     <optgroup label="Theo Quyền Hạn">
                       <option value="accounttype-A">Admin</option>
@@ -598,15 +945,15 @@ class Admin extends Component {
                 </div>
                 <div>
                   <label>Sắp Xếp:</label>
-                  <select value={sortValue} onChange={(event) => this.handleSortAccount(event.target.value)}>
+                  <select value={sortValue} onChange={(event) => this.handleSort(event.target.value, 1)}>
                     <option value="0">Mặc định</option>
                     <option value="1">A-Z</option>
                     <option value="2">Z-A</option>
                     <option value="3">Theo Quyền Hạn</option>
                     <option value="4">Theo Trạng Thái</option>
                     <option value="5">Theo Giới tính</option>
-                    <option value="6">Thời gian tạo mới nhất </option>
-                    <option value="7">Thời gian tạo cũ nhất </option>
+                    <option value="6">Thời gian tạo mới nhất</option>
+                    <option value="7">Thời gian tạo cũ nhất</option>
                   </select>
                 </div>
               </div>
@@ -629,23 +976,32 @@ class Admin extends Component {
                     </tr>
                     {loadedAccountInfo.length > 0 ? (
                       loadedAccountInfo.map((item) => (
-                        <tr key={item.AccountID} className={item.AccountStatus === 'ACT' ? 'status-act' : 'status-dis'}>
+                        <tr
+                          key={item.AccountID}
+                          className={item.AccountStatus === 'ACT' ? 'status-act' : 'status-dis'}
+                        >
                           <td>
                             <p>{item.AccountID}</p>
                           </td>
                           <td>{item.Email}</td>
                           <td>{item.UserName}</td>
-                          <td>{this.getGenderValue(item.Gender)}</td>
+                          <td>{codeGender.find((filterItem) => filterItem.Code === item.Gender)?.CodeValueVI || item.Gender}</td>
                           <td>{item.Phone}</td>
                           <td>{item.Address}</td>
-                          <td>{this.getAccountTypeValue(item.AccountType)}</td>
-                          <td>{this.getAccountStatusValue(item.AccountStatus)}</td>
+                          <td>{codeAccountType.find((filterItem) => filterItem.Code === item.AccountType)?.CodeValueVI || item.AccountType}</td>
+                          <td>{codeAccountStatus.find((filterItem) => filterItem.Code === item.AccountStatus)?.CodeValueVI || item.AccountStatus}</td>
                           <td>{new Date(item.CreatedAt).toLocaleDateString('vi-VN')}</td>
                           <td>
-                            <button className="btn-edit" onClick={() => this.handleSelectedAccount(item.AccountID)}>
+                            <button
+                              className="btn-edit"
+                              onClick={() => this.handleSelectedAccount(item.AccountID)}
+                            >
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
-                            <button className="btn-lock" onClick={() => this.handleChangeAccountStatus(item)}>
+                            <button
+                              className="btn-lock"
+                              onClick={() => this.handleChangeAccountStatus(item)}
+                            >
                               <IonIcon icon={lockClosed}></IonIcon>
                             </button>
                           </td>
@@ -664,24 +1020,310 @@ class Admin extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button className="first" onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
+                    <button
+                      className="first"
+                      onClick={() => this.handlePageChange(1, 1)}
+                      disabled={currentPage === 1}
+                    >
                       {'<<'}
                     </button>
-                    <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
+                    <button
+                      className="prev"
+                      onClick={() => this.handlePrevPage(1)}
+                      disabled={currentPage === 1}
+                    >
                       {'<'}
                     </button>
-                    <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
+                    <input
+                      type="text"
+                      value={tempCurrentPage}
+                      onChange={(event) => this.handlePageInputChange(event, 1)}
+                      onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
+                      onBlur={() => this.handlePageInputBlur(1)}
+                    />
                     <span className="total-pages">/ {totalPages}</span>
-                    <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
+                    <button
+                      className="next"
+                      onClick={() => this.handleNextPage(1)}
+                      disabled={currentPage === totalPages}
+                    >
                       {'>'}
                     </button>
-                    <button className="last" onClick={() => this.handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+                    <button
+                      className="last"
+                      onClick={() => this.handlePageChange(totalPages, 1)}
+                      disabled={currentPage === totalPages}
+                    >
                       {'>>'}
                     </button>
                   </div>
                 </div>
               )}
             </div>
+          </div>
+        );
+      case 2:
+        return (
+          <div>
+            <button
+              style={{ display: actionPage === 2 ? 'block' : 'none' }}
+              onClick={() => this.handleAddCode()}
+              className="add-code"
+            >
+              THÊM CODE MỚI <IonIcon icon={addOutline}></IonIcon>
+            </button>
+            <div className="admin-search">
+              <div className="admin-search-left">
+                <div className="admin-search-box">
+                  <div className="inputbox">
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm theo Type, Code và CodeValue"
+                      value={searchValue}
+                      onChange={(event) => this.handleSearchChange(event, 2)}
+                    />
+                    <div className="btn-search">
+                      <IonIcon icon={searchOutline} className="search-icon"></IonIcon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-search-right">
+                <button onClick={() => this.handleResetFilter(2)}>Reset</button>
+                <div>
+                  <label>Lọc:</label>
+                  <Select
+                    className="type-filter-select"
+                    options={[
+                      { value: 'ALL', label: 'Tất cả' },
+                      ...codeTypes.map((type) => ({
+                        value: `type-${type.Type}`,
+                        label: type.Type,
+                      })),
+                    ]}
+                    value={
+                      filterValue === 'ALL'
+                        ? { value: 'ALL', label: 'Tất cả' }
+                        : codeTypes.find((type) => `type-${type.Type}` === filterValue)
+                          ? { value: filterValue, label: codeTypes.find((type) => `type-${type.Type}` === filterValue).Type }
+                          : null
+                    }
+                    onChange={(selectedOption) => this.handleFilter(selectedOption ? selectedOption.value : 'ALL', 2)}
+                    placeholder="Chọn loại"
+                    isClearable
+                    isSearchable
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="admin-list">
+              <div className="codes-table">
+                <table className="table">
+                  <tbody>
+                    <tr>
+                      <th>Mã Code</th>
+                      <th>Type</th>
+                      <th>Code</th>
+                      <th>CodeValue</th>
+                      <th>Giá trị thêm</th>
+                      <th>Action</th>
+                    </tr>
+                    {loadedCodeInfo.length > 0 ? (
+                      loadedCodeInfo.map((item, index) => (
+                        <tr key={item.CodeID}>
+                          <td>{item.CodeID}</td>
+                          <td>
+                            {isEditingCode === index ? (
+                              <input
+                                type="text"
+                                value={item.Type}
+                                onChange={(e) => this.handleCodeChange(index, 'Type', e.target.value)}
+                                disabled={!isAddingCode}
+                              />
+                            ) : (
+                              item.Type
+                            )}
+                          </td>
+                          <td>
+                            {isEditingCode === index ? (
+                              <input
+                                type="text"
+                                value={item.Code}
+                                onChange={(e) => this.handleCodeChange(index, 'Code', e.target.value)}
+                                disabled={!isAddingCode}
+                              />
+                            ) : (
+                              item.Code
+                            )}
+                          </td>
+                          <td>
+                            {isEditingCode === index ? (
+                              <input
+                                type="text"
+                                value={item.CodeValueVI}
+                                onChange={(e) => this.handleCodeChange(index, 'CodeValueVI', e.target.value)}
+                              />
+                            ) : (
+                              item.CodeValueVI
+                            )}
+                          </td>
+                          <td>
+                            {isEditingCode === index ? (
+                              <input
+                                type="number"
+                                value={item.ExtraValue ?? ''}
+                                onChange={(e) => this.handleCodeChange(index, 'ExtraValue', e.target.value)}
+                              />
+                            ) : (
+                              item.ExtraValue ? parseFloat(item.ExtraValue).toFixed(2) : ''
+                            )}
+                          </td>
+                          <td>
+                            {isEditingCode === index ? (
+                              <>
+                                <button className="save-code" onClick={() => this.handleSaveCode(index)}>
+                                  Lưu
+                                </button>
+                                <button className="cancel-code" onClick={() => this.handleCancelCode()}>
+                                  Hủy
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                className="btn-edit"
+                                onClick={() => this.handleEditCode(index)}
+                                disabled={isEditingCode !== null || isAddingCode}
+                              >
+                                <IonIcon icon={pencil}></IonIcon>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>
+                          Không tìm thấy AllCodes
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {totalPages > 1 && (
+                <div className="page-content">
+                  <div className="page-content-item">
+                    <button
+                      className="first"
+                      onClick={() => this.handlePageChange(1, 2)}
+                      disabled={currentPage === 1}
+                    >
+                      {'<<'}
+                    </button>
+                    <button
+                      className="prev"
+                      onClick={() => this.handlePrevPage(2)}
+                      disabled={currentPage === 1}
+                    >
+                      {'<'}
+                    </button>
+                    <input
+                      type="text"
+                      value={tempCurrentPage}
+                      onChange={(event) => this.handlePageInputChange(event, 2)}
+                      onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
+                      onBlur={() => this.handlePageInputBlur(2)}
+                    />
+                    <span className="total-pages">/ {totalPages}</span>
+                    <button
+                      className="next"
+                      onClick={() => this.handleNextPage(2)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {'>'}
+                    </button>
+                    <button
+                      className="last"
+                      onClick={() => this.handlePageChange(totalPages, 2)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {'>>'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  render() {
+    const {
+      isLoading,
+      isShowCreateAccountModal,
+      isShowEditAccountModal,
+      selectedAccount,
+      actionPage
+    } = this.state;
+    return (
+      <div className="admin-container">
+        <CreateAccountModal
+          isOpen={isShowCreateAccountModal}
+          toggleFromModal={this.toggleCreateUserModal}
+          handleCreateAccountFromModal={this.handleCreateAccountFromModal}
+        />
+        <EditAccountModal
+          isOpen={isShowEditAccountModal}
+          toggleFromModal={this.toggleEditAccountModal}
+          selectedAccountID={selectedAccount}
+          handleEditAccountFromModal={this.handleEditAccountFromModal}
+        />
+        <ToastContainer />
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <div>
+            <div className="admin-action">
+              <div className="admin-action-left">
+                <div className="btn-Home" onClick={() => this.props.navigate('/home')}>
+                  <IonIcon icon={homeOutline}></IonIcon>
+                </div>
+              </div>
+              <div>
+                <h1>TRANG QUẢN TRỊ</h1>
+              </div>
+              <div className="admin-action-right">
+                <div className="btn-logoutTK" onClick={this.handleLogout}>
+                  <button>
+                    ĐĂNG XUẤT <IonIcon icon={logOutOutline}></IonIcon>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="admin-top-content">
+              <div className="admin-top-content-menu f">
+                <li>
+                  <a
+                    onClick={this.handleFormAccountManagement}
+                    className={actionPage === 1 ? 'active' : ''}
+                  >
+                    THÔNG TIN TÀI KHOẢN
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={this.handleFormCodeManagement}
+                    className={actionPage === 2 ? 'active' : ''}
+                  >
+                    THÔNG TIN ALLCODES
+                  </a>
+                </li>
+              </div>
+            </div>
+            <div className="admin-mid-content f">{this.renderSection()}</div>
           </div>
         )}
       </div>

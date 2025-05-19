@@ -9,6 +9,18 @@ const handleGetAllCodesApi = async (type) => {
   }
 };
 
+const handleLoadAllCodesInfoApi = (page, limit, search, filter, sort) => {
+  return axios.get(`/api/load-allcodesinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
+};
+
+const handleCreateCodeApi = (codeInfo) => {
+  return axios.post('/api/create-code', codeInfo);
+};
+
+const handleChangeCodeApi = (codeInfo) => {
+  return axios.put('/api/change-codeinfo', codeInfo);
+}
+
 const uploadImageToCloudinaryApi = async (file) => {
   console.log('Bắt đầu upload ảnh lên Cloudinary:', file.name, file.size);
 
@@ -48,4 +60,4 @@ const uploadImageToCloudinaryApi = async (file) => {
   }
 };
 
-export { handleGetAllCodesApi, uploadImageToCloudinaryApi };
+export { handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi, uploadImageToCloudinaryApi };

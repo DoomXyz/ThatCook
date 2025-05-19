@@ -8,10 +8,10 @@ import './MakeAppointment.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
-import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
+import { handleGetAccountInfoApi, handleLogoutApi, handleGetVeterinarianServicesApi } from '../../services/accountServices';
 import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAccountPetInfoApi, handleGetPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
-import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { checkLoginStatus, uploadImages } from '../../utils/pakage';
 
 import PetSelectModal from './PetSelectModal';
@@ -51,6 +51,7 @@ class MakeAppointment extends Component {
       isShowPetSelectModal: false,
       isShowVeterinarianSelectModal: false,
       createdAppointmentID: '',
+      originalServiceList: [],
     };
   }
   async componentDidMount() {
@@ -203,12 +204,14 @@ class MakeAppointment extends Component {
         });
         this.setState({
           codeService: [],
+          originalServiceList: [],
           selectedServiceID: '',
         });
         return;
       }
       this.setState({
         codeService: response.data,
+        originalServiceList: response.data,
         selectedServiceID: response.data.length > 0 ? response.data[0].ServiceID : '',
       });
     } catch (e) {
@@ -330,11 +333,11 @@ class MakeAppointment extends Component {
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
-    this.setState({ ...copyState }, () => {
-      if (['selectedVeterinarianID', 'selectedServiceID'].includes(type)) {
+    this.setState({ ...copyState }, async () => {
+      if (type === 'selectedServiceID') {
         const { appointmentDateTime, selectedServiceID } = this.state;
         if (appointmentDateTime && selectedServiceID) {
-          this.handleLoadAvailableTimes();
+          await this.handleLoadAvailableTimes();
         } else {
           this.setState({ availableTimes: [], starttime: '' });
         }
@@ -583,8 +586,53 @@ class MakeAppointment extends Component {
     }
   };
 
-  handleSelectVeterinarianFromModal = (vetID) => {
-    this.setState({ selectedVeterinarianID: vetID });
+  handleSelectVeterinarianFromModal = async (vetID) => {
+    this.setState({ selectedVeterinarianID: vetID }, async () => {
+      if (vetID) {
+        try {
+          const response = await handleGetVeterinarianServicesApi(vetID);
+          if (response.errCode === 0 && response.data && response.data.length > 0) {
+            this.setState({
+              codeService: response.data,
+              selectedServiceID: response.data[0]?.ServiceID || '',
+            });
+          } else {
+            toast.error('Bác sĩ này không có dịch vụ nào!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+            this.setState({
+              codeService: [],
+              selectedServiceID: '',
+            });
+          }
+        } catch (e) {
+          toast.error('Lỗi khi tải dịch vụ của bác sĩ!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+          this.setState({
+            codeService: [],
+            selectedServiceID: '',
+          });
+        }
+      } else {
+        // Khi không chọn bác sĩ, khôi phục danh sách dịch vụ gốc
+        this.setState({
+          codeService: this.state.originalServiceList,
+          selectedServiceID: this.state.originalServiceList[0]?.ServiceID || '',
+        });
+      }
+      // Load lại khung giờ
+      const { appointmentDateTime, selectedServiceID } = this.state;
+      if (appointmentDateTime && selectedServiceID) {
+        await this.handleLoadAvailableTimes();
+      } else {
+        this.setState({ availableTimes: [], starttime: '' });
+      }
+    });
   };
   render() {
     const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedVeterinarianID, loadedPetList } = this.state;
@@ -655,7 +703,7 @@ class MakeAppointment extends Component {
               <div className="makeappointment-content-doctor">
                 <div className="f">
                   <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
-                  <p>*Không bắt buộc</p>
+                  {!selectedVeterinarianID ? (<p>*Không bắt buộc</p>) : selectedVeterinarianID}
                 </div>
               </div>
               <div className="makeappointment-content-date">

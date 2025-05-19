@@ -6,6 +6,8 @@ import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, ca
 import './CreateAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import Select from 'react-select';
+import { handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class CreateAccountModal extends Component {
@@ -29,6 +31,8 @@ class CreateAccountModal extends Component {
       codeGender: [],
       codeAccountType: [],
       codeWorkingStatus: [],
+      loadedServiceInfo: [],
+      selectedServices: [],
     };
   }
 
@@ -36,6 +40,13 @@ class CreateAccountModal extends Component {
     await this.handleLoadCodeGender();
     await this.handleLoadCodeAccountType();
     await this.handleLoadCodeWorkingStatus();
+    await this.handleLoadServiceInfo();
+  }
+
+  async componentDidUpdate(prevProps) {
+    if (prevProps.isOpen !== this.props.isOpen) {
+      this.resetState();
+    }
   }
 
   handleLoadCodeGender = async () => {
@@ -109,6 +120,29 @@ class CreateAccountModal extends Component {
       });
     }
   };
+  handleLoadServiceInfo = async () => {
+    try {
+      const response = await handleGetServiceInfoApi('ALL');
+      if (response.errCode === 0 && response.data && response.data.length > 0) {
+        this.setState({
+          loadedServiceInfo: response.data,
+        });
+      } else {
+        toast.error('Không thể tải danh sách dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Error loading service info:', e);
+      toast.error('Lỗi khi tải danh sách dịch vụ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
 
   resetState = () => {
     this.setState({
@@ -122,10 +156,17 @@ class CreateAccountModal extends Component {
       confirmPassword: '',
       bio: '',
       specialization: '',
-      workingstatus: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
+      selectedServices: [],
     });
+  };
+
+  handleServiceChange = (selectedOptions) => {
+    const selectedServiceIds = selectedOptions
+      ? selectedOptions.map((option) => option.value)
+      : [];
+    this.setState({ selectedServices: selectedServiceIds });
   };
 
   toggle = async () => {
@@ -150,14 +191,14 @@ class CreateAccountModal extends Component {
   };
 
   checkValidateInput = () => {
-    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender, specialization } = this.state;
+    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender, specialization, selectedServices, accounttype } = this.state;
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
     const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
     const phoneRegex = /^[0-9]{10,11}$/;
     const specializationRegex = /^$|^[A-Za-zÀ-ỹ\s]{0,50}$/;
-
+    console.log(this.state)
     if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
     if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
 
@@ -183,13 +224,17 @@ class CreateAccountModal extends Component {
 
     if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên môn không hợp lệ!' };
 
+    if (accounttype === 'V' && selectedServices.length === 0) {
+      return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
+    }
+
     return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
   };
 
   handleCreateAccount = () => {
     let isValidateInput = this.checkValidateInput();
     if (isValidateInput.errCode === 0) {
-      const { accounttype, accountname, email, password, username, phone, address, gender, bio, specialization, workingstatus } = this.state;
+      const { accounttype, accountname, email, password, username, phone, address, gender, bio, specialization, workingstatus, selectedServices } = this.state;
       const userInfo = {
         accounttype,
         accountname,
@@ -205,6 +250,7 @@ class CreateAccountModal extends Component {
           bio: bio || null,
           specialization: specialization || null,
           workingstatus: workingstatus || null,
+          selectedServicesList: selectedServices,
         };
       }
       this.props.handleCreateAccountFromModal(userInfo);
@@ -219,7 +265,12 @@ class CreateAccountModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingstatus, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus } = this.state;
+    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingstatus,
+      isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices } = this.state;
+    const serviceOptions = loadedServiceInfo.map((service) => ({
+      value: service.ServiceID,
+      label: service.ServiceName,
+    }));
     return (
       <Modal show={isOpen} onHide={this.toggle} className="create-user-modal" centered backdrop="static">
         <Modal.Header closeButton>
@@ -276,6 +327,19 @@ class CreateAccountModal extends Component {
                 <IonIcon icon={informationCircleOutline}></IonIcon>
                 <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
+              </div>
+              <div className="selectbox">
+                <label>Dịch vụ thực hiện *</label>
+                <Select
+                  isMulti
+                  options={serviceOptions}
+                  value={serviceOptions.filter((option) => selectedServices.includes(option.value))}
+                  onChange={this.handleServiceChange}
+                  placeholder="Chọn dịch vụ..."
+                  className="service-select"
+                  classNamePrefix="select"
+                />
+                <IonIcon icon={invertModeOutline}></IonIcon>
               </div>
             </div>
           )}

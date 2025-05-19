@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
+import Select from 'react-select';
 
 import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline, informationCircleOutline, idCardOutline, invertModeOutline } from 'ionicons/icons';
 
@@ -9,6 +10,7 @@ import './EditAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
+import { handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAccountInfoApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
@@ -31,6 +33,8 @@ class EditAccountModal extends Component {
       codeGender: [],
       codeAccountType: [],
       codeWorkingStatus: [],
+      loadedServiceInfo: [],
+      selectedServices: [],
     };
   }
   async componentDidMount() {
@@ -41,6 +45,7 @@ class EditAccountModal extends Component {
     await this.handleLoadCodeGender();
     await this.handleLoadCodeAccountType();
     await this.handleLoadCodeWorkingStatus();
+    await this.handleLoadServiceInfo();
   }
   async componentDidUpdate(prevProps) {
     const { selectedAccountID, isOpen } = this.props;
@@ -48,6 +53,7 @@ class EditAccountModal extends Component {
       await this.handleLoadCodeGender();
       await this.handleLoadCodeAccountType();
       await this.handleLoadCodeWorkingStatus();
+      await this.handleLoadServiceInfo();
       this.resetState();
       if (selectedAccountID) {
         this.loadAccountInfo(selectedAccountID);
@@ -67,13 +73,12 @@ class EditAccountModal extends Component {
       gender: '',
       bio: '',
       specialization: '',
-      workingstatus: '',
+      selectedServices: [],
     });
   };
   loadAccountInfo = async (accountid) => {
     try {
       const [accountResponse, vetResponse] = await Promise.all([handleGetAccountInfoApi(accountid), handleGetVeterinarianInfoApi(accountid)]);
-      console.log(accountResponse)
       if (accountResponse && accountResponse.errCode === 0) {
         const accountInfo = accountResponse.data;
         const vetInfo = vetResponse && vetResponse.errCode === 0 ? vetResponse.data : null;
@@ -90,7 +95,9 @@ class EditAccountModal extends Component {
           bio: vetInfo ? vetInfo.Bio || '' : '',
           specialization: vetInfo ? vetInfo.Specialization || '' : '',
           workingstatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
+          selectedServices: vetResponse && vetResponse.errCode === 0 && vetResponse.data.services ? vetResponse.data.services.map(service => service.ServiceID) : [],
         });
+        console.log(vetResponse.data)
       } else {
         this.resetState();
         toast.error('Tải tài khoản thất bại!', {
@@ -177,6 +184,35 @@ class EditAccountModal extends Component {
       });
     }
   };
+  handleLoadServiceInfo = async () => {
+    try {
+      const response = await handleGetServiceInfoApi('ALL');
+      if (response.errCode === 0 && response.data && response.data.length > 0) {
+        this.setState({
+          loadedServiceInfo: response.data,
+        });
+      } else {
+        toast.error('Không thể tải danh sách dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Error loading service info:', e);
+      toast.error('Lỗi khi tải danh sách dịch vụ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleServiceChange = (selectedOptions) => {
+    const selectedServiceIds = selectedOptions
+      ? selectedOptions.map((option) => option.value)
+      : [];
+    this.setState({ selectedServices: selectedServiceIds });
+  };
   toggle = async () => {
     this.resetState();
     this.props.toggleFromModal();
@@ -189,7 +225,7 @@ class EditAccountModal extends Component {
     });
   };
   checkValidateInput = () => {
-    const { accountname, username, phone, address, gender, codeGender, specialization } = this.state;
+    const { accountname, username, phone, address, gender, codeGender, specialization, selectedServices, accounttype } = this.state;
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
     const phoneRegex = /^[0-9]{10,11}$/;
@@ -211,6 +247,10 @@ class EditAccountModal extends Component {
     if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: 'Giới tính không hợp lệ!' };
 
     if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên môn không hợp lệ!' };
+
+    if (accounttype === 'V' && selectedServices.length === 0) {
+      return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
+    }
 
     return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
   };
@@ -246,7 +286,7 @@ class EditAccountModal extends Component {
     if (isConfirmed) {
       let isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode === 0) {
-        const { selectedAccountID, accounttype, accountname, username, phone, address, gender, bio, specialization, workingstatus } = this.state;
+        const { selectedAccountID, accounttype, accountname, username, phone, address, gender, bio, specialization, workingstatus, selectedServices } = this.state;
         const userInfo = {
           accountid: selectedAccountID,
           accounttype,
@@ -261,6 +301,7 @@ class EditAccountModal extends Component {
             bio: bio || null,
             specialization: specialization || null,
             workingstatus: workingstatus || null,
+            selectedServicesList: selectedServices,
           };
         }
         this.props.handleEditAccountFromModal(userInfo);
@@ -275,7 +316,7 @@ class EditAccountModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType, codeWorkingStatus, bio, specialization, workingstatus } = this.state;
+    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType, codeWorkingStatus, bio, specialization, workingstatus, loadedServiceInfo, selectedServices } = this.state;
     if (!loadedAccountInfo) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="edit-user-modal" centered backdrop="static">
@@ -319,20 +360,25 @@ class EditAccountModal extends Component {
                   <label>Chuyên khoa</label>
                 </div>
                 <div className="selectbox">
-                  <label>Trạng thái làm việc</label>
-                  <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
-                    {codeWorkingStatus.length > 0 ? (
-                      codeWorkingStatus.map((item) => (
-                        <option key={item.Code} value={item.Code}>
-                          {item.CodeValueVI}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">Không có dữ liệu trạng thái</option>
-                    )}
-                  </select>
+                  <label>Dịch vụ thực hiện *</label>
+                  <Select
+                    isMulti
+                    options={loadedServiceInfo.map((service) => ({
+                      value: service.ServiceID,
+                      label: service.ServiceName,
+                    }))}
+                    value={loadedServiceInfo
+                      .filter((service) => selectedServices.includes(service.ServiceID))
+                      .map((service) => ({
+                        value: service.ServiceID,
+                        label: service.ServiceName,
+                      }))}
+                    onChange={this.handleServiceChange}
+                    placeholder="Chọn dịch vụ..."
+                    className="service-select"
+                    classNamePrefix="select"
+                  />
                   <IonIcon icon={invertModeOutline}></IonIcon>
-
                 </div>
               </div>
               <div className="inputbox-1">

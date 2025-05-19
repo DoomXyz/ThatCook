@@ -30,7 +30,7 @@ class EditProductModal extends Component {
       productdescription: '',
       isUploading: false,
       allImages: [],
-      editingField: null,
+      isEditingDetail: null,
       isAddingDetail: false,
     };
   }
@@ -73,7 +73,7 @@ class EditProductModal extends Component {
       productdescription: '',
       isUploading: false,
       allImages: [],
-      editingField: null,
+      isEditingDetail: null,
       isAddingDetail: false,
     });
   };
@@ -262,9 +262,16 @@ class EditProductModal extends Component {
   };
 
   handleEditDetail = (index) => {
-    this.setState({ editingField: index, isAddingDetail: false });
+    if (this.state.isAddingDetail || this.state.isEditingDetail !== null) {
+      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa chi tiết khác!', {
+        position: 'top-right',
+        autoClose: 1000,
+        closeOnClick: true,
+      });
+      return;
+    }
+    this.setState({ isEditingDetail: index, isAddingDetail: false });
   };
-
   handleSaveDetail = (index) => {
     const validation = this.checkValidateDetail(index);
     if (validation.errCode !== 0) {
@@ -275,40 +282,143 @@ class EditProductModal extends Component {
       });
       return;
     }
-    this.setState({ editingField: null, isAddingDetail: false });
+    this.setState({ isEditingDetail: null, isAddingDetail: false });
   };
 
   handleAddDetail = () => {
-    this.setState((prevState) => ({
-      loadedProductDetailInfo: [
-        ...prevState.loadedProductDetailInfo,
-        {
-          ProductDetailID: Date.now(),
-          DetailName: '',
-          Stock: '0',
-          ExtraPrice: '0',
-          Promotion: '0',
-          DetailStatus: 'OUT',
-        },
-      ],
-      editingField: prevState.loadedProductDetailInfo.length,
-      isAddingDetail: true,
-    }));
+    if (this.state.isAddingDetail || this.state.isEditingDetail !== null) {
+      const confirmAddNew = () =>
+        new Promise((resolve) => {
+          toast(
+            <div>
+              <p>
+                {this.state.isAddingDetail
+                  ? 'Bạn đang thêm chi tiết sản phẩm chưa lưu. Lưu hoặc hủy trước khi thêm chi tiết mới?'
+                  : 'Bạn có thay đổi chi tiết sản phẩm chưa lưu. Hủy thay đổi và thêm chi tiết mới?'}
+              </p>
+              <button
+                className="toast-confirm-btn"
+                onClick={() => {
+                  resolve(true);
+                  toast.dismiss();
+                }}
+              >
+                Có
+              </button>
+              <button
+                className="toast-cancel-btn"
+                onClick={() => {
+                  resolve(false);
+                  toast.dismiss();
+                }}
+              >
+                Không
+              </button>
+            </div>,
+            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          );
+        });
+
+      confirmAddNew().then((isConfirmed) => {
+        if (isConfirmed) {
+          this.setState(
+            {
+              isEditingDetail: null,
+              isAddingDetail: false,
+            },
+            () => {
+              this.setState((prevState) => ({
+                loadedProductDetailInfo: [
+                  ...prevState.loadedProductDetailInfo,
+                  {
+                    ProductDetailID: Date.now(),
+                    DetailName: '',
+                    Stock: '0',
+                    ExtraPrice: '0',
+                    Promotion: '0',
+                    DetailStatus: 'AVAIL',
+                  },
+                ],
+                isEditingDetail: prevState.loadedProductDetailInfo.length,
+                isAddingDetail: true,
+              }));
+            }
+          );
+        }
+      });
+    } else {
+      this.setState((prevState) => ({
+        loadedProductDetailInfo: [
+          ...prevState.loadedProductDetailInfo,
+          {
+            ProductDetailID: Date.now(),
+            DetailName: '',
+            Stock: '0',
+            ExtraPrice: '0',
+            Promotion: '0',
+            DetailStatus: 'AVAIL',
+          },
+        ],
+        isEditingDetail: prevState.loadedProductDetailInfo.length,
+        isAddingDetail: true,
+      }));
+    }
   };
 
   handleCancelDetail = () => {
-    this.setState((prevState) => {
-      if (prevState.isAddingDetail && prevState.editingField === prevState.loadedProductDetailInfo.length - 1) {
-        return {
-          loadedProductDetailInfo: prevState.loadedProductDetailInfo.slice(0, -1),
-          editingField: null,
-          isAddingDetail: false,
-        };
+    const confirmCancel = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>
+              {this.state.isAddingDetail
+                ? 'Bạn đang thêm chi tiết sản phẩm chưa lưu. Hủy chi tiết này?'
+                : 'Bạn có thay đổi chi tiết sản phẩm chưa lưu. Hủy thay đổi?'}
+            </p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 2000, closeOnClick: false }
+        );
+      });
+
+    confirmCancel().then((isConfirmed) => {
+      if (isConfirmed) {
+        this.setState((prevState) => {
+          if (prevState.isAddingDetail && prevState.isEditingDetail === prevState.loadedProductDetailInfo.length - 1) {
+            return {
+              loadedProductDetailInfo: prevState.loadedProductDetailInfo.slice(0, -1),
+              isEditingDetail: null,
+              isAddingDetail: false,
+            };
+          }
+          return {
+            isEditingDetail: null,
+            isAddingDetail: false,
+          };
+        }, () => {
+          // Tải lại thông tin sản phẩm để làm mới dữ liệu
+          if (this.state.selectedProductID) {
+            this.handleLoadProductInfo(this.state.selectedProductID);
+          }
+        });
       }
-      return {
-        editingField: null,
-        isAddingDetail: false,
-      };
     });
   };
 
@@ -526,7 +636,7 @@ class EditProductModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, editingField, codeDetailStatus, isAddingDetail } = this.state;
+    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, isEditingDetail, codeDetailStatus, isAddingDetail } = this.state;
 
     return (
       <Modal show={isOpen} onHide={this.toggle} centered backdrop="static" className="create-product-modal">
@@ -609,13 +719,56 @@ class EditProductModal extends Component {
                     {loadedProductDetailInfo && loadedProductDetailInfo.length > 0 ? (
                       loadedProductDetailInfo.map((item, index) => (
                         <tr key={item.ProductDetailID}>
-                          <td>{editingField === index ? <input type="text" value={item.DetailName} onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)} /> : item.DetailName}</td>
-                          <td>{editingField === index ? <input type="number" value={item.Stock} onChange={(e) => this.handleDetailChange(index, 'Stock', e.target.value)} /> : item.Stock}</td>
-                          <td>{editingField === index ? <input type="number" value={item.ExtraPrice ?? ''} onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)} /> : parseFloat(item.ExtraPrice) || 0}</td>
-                          <td>{editingField === index ? <input type="number" value={item.Promotion ?? ''} onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)} /> : parseFloat(item.Promotion) || 0}</td>
                           <td>
-                            {editingField === index ? (
-                              <select value={item.DetailStatus} onChange={(e) => this.handleDetailChange(index, 'DetailStatus', e.target.value)}>
+                            {isEditingDetail === index ? (
+                              <input
+                                type="text"
+                                value={item.DetailName}
+                                onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)}
+                              />
+                            ) : (
+                              item.DetailName
+                            )}
+                          </td>
+                          <td>
+                            {isEditingDetail === index ? (
+                              <input
+                                type="number"
+                                value={item.Stock}
+                                onChange={(e) => this.handleDetailChange(index, 'Stock', e.target.value)}
+                              />
+                            ) : (
+                              item.Stock
+                            )}
+                          </td>
+                          <td>
+                            {isEditingDetail === index ? (
+                              <input
+                                type="number"
+                                value={item.ExtraPrice ?? ''}
+                                onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)}
+                              />
+                            ) : (
+                              parseFloat(item.ExtraPrice) || 0
+                            )}
+                          </td>
+                          <td>
+                            {isEditingDetail === index ? (
+                              <input
+                                type="number"
+                                value={item.Promotion ?? ''}
+                                onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)}
+                              />
+                            ) : (
+                              parseFloat(item.Promotion) || 0
+                            )}
+                          </td>
+                          <td>
+                            {isEditingDetail === index ? (
+                              <select
+                                value={item.DetailStatus}
+                                onChange={(e) => this.handleDetailChange(index, 'DetailStatus', e.target.value)}
+                              >
                                 {codeDetailStatus.map((status) => (
                                   <option key={status.Code} value={status.Code}>
                                     {status.CodeValueVI}
@@ -627,12 +780,21 @@ class EditProductModal extends Component {
                             )}
                           </td>
                           <td>
-                            {editingField === index ? (
-                              <button className="save-detail" onClick={() => this.handleSaveDetail(index)}>
-                                Lưu
-                              </button>
+                            {isEditingDetail === index ? (
+                              <>
+                                <button className="save-detail" onClick={() => this.handleSaveDetail(index)}>
+                                  Lưu
+                                </button>
+                                <button className="cancel-detail" onClick={() => this.handleCancelDetail()}>
+                                  Hủy
+                                </button>
+                              </>
                             ) : (
-                              <button className="edit-detail" onClick={() => this.handleEditDetail(index)}>
+                              <button
+                                className="edit-detail"
+                                onClick={() => this.handleEditDetail(index)}
+                                disabled={isEditingDetail !== null || isAddingDetail}
+                              >
                                 Sửa
                               </button>
                             )}
@@ -648,7 +810,10 @@ class EditProductModal extends Component {
                     )}
                     <tr>
                       <td colSpan="6" style={{ textAlign: 'center' }}>
-                        <button className={`add-detail-btn ${isAddingDetail ? 'cancel' : ''}`} onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}>
+                        <button
+                          className={`add-detail-btn ${isAddingDetail ? 'cancel' : ''}`}
+                          onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}
+                        >
                           {isAddingDetail ? 'Hủy' : 'Thêm'}
                         </button>
                       </td>

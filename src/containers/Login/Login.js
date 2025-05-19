@@ -98,7 +98,6 @@ class Login extends Component {
         });
       } else {
         const accountInfo = response.data;
-        console.log(response.data)
         if (this.props.cartItems.length !== 0) {
           const responseCart = await handleAddToCartApi(accountInfo.AccountID, this.props.cartItems);
           if (responseCart) {
