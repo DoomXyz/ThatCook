@@ -6,6 +6,7 @@ import cartController from '../controllers/cartController';
 import invoiceController from '../controllers/invoiceController';
 import appointmentController from '../controllers/appointmentController';
 import petController from '../controllers/petController'
+import couponController from '../controllers/couponController'
 import utilitiesController from '../controllers/utilitiesController';
 import { checkAdminJWT, checkOwnerJWT, checkCustomerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 let router = express.Router();
@@ -41,8 +42,6 @@ let initAPIRoutes = (app) => {
     router.use(protectRoute);
     //public
     router.get('/api/get-allcodes', utilitiesController.handleGetAllCodes);
-    router.get('/api/check-coupon', utilitiesController.handleCheckCoupon);
-    router.get('/api/get-couponinfo', utilitiesController.handleGetCouponInfo);
 
     router.post('/api/register', accountController.handleRegister);
     router.post('/api/login', accountController.handleLogin);
@@ -100,6 +99,10 @@ let initAPIRoutes = (app) => {
     router.put('/api/change-bannerinfo', bannerController.handleChangeBannerInfo);
 
     router.get('/api/load-invoiceinfo', invoiceController.handleLoadInvoiceInfo);
+
+    router.get('/api/check-coupon', couponController.handleCheckCoupon);
+    router.get('/api/get-couponinfo', couponController.handleGetCouponInfo);
+    router.get('/api/load-couponinfo', couponController.handleLoadCouponInfo);
     //veterinarian
 
     return app.use('/', router);

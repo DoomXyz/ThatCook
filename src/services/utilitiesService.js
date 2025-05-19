@@ -381,6 +381,35 @@ let checkShippingMethod = (shippingMethod) => {
   });
 };
 
+let checkCouponStatus = (couponStatus) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!couponStatus) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'CouponStatus',
+          Code: couponStatus,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
 let checkBannerStatus = (bannerStatus) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -439,124 +468,6 @@ let checkAppointmentType = (appointmentType) => {
   });
 };
 
-let checkCoupon = (couponcode, price) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!couponcode || !price) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      let discountAmout = 0;
-      const couponInfo = await db.Coupon.findOne({
-        where: { CouponCode: couponcode, CouponStatus: 'ACTIVE' },
-        attributes: ['DiscountType', 'DiscountValue', 'MaxDiscount', 'MinOrderValue', 'StartDate', 'EndDate'],
-      });
-      if (!couponInfo) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Mã giảm giá không tồn tại hoặc đã hết hạn!',
-          data: discountAmout,
-        });
-        return;
-      }
-      const currentDate = new Date();
-      if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
-        resolve({
-          errCode: 2,
-          errMessage: 'Mã giảm giá không trong thời gian hiệu lực!',
-          data: discountAmout,
-        });
-        return;
-      }
-      if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
-        resolve({
-          errCode: 2,
-          errMessage: 'Mã giảm giá chưa bắt đầu!',
-          data: discountAmout,
-        });
-        return;
-      }
-      if (parseFloat(price) < parseFloat(couponInfo.MinOrderValue)) {
-        resolve({
-          errCode: 2,
-          errMessage: 'Không thể áp dụng mã giảm giá!',
-          data: discountAmout,
-        });
-        return;
-      }
-      let discountValue = 0;
-      if (couponInfo.DiscountType === 'FIXED') {
-        discountValue = parseFloat(couponInfo.DiscountValue);
-      } else {
-        discountValue = price * (parseFloat(couponInfo.DiscountValue) / 100);
-      }
-      discountValue = price - discountValue > couponInfo.MaxDiscount ? couponInfo.MaxDiscount : discountValue;
-      resolve({
-        errCode: 0,
-        errMessage: 'Kiểm tra giảm giá thành công!',
-        data: discountValue,
-      });
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra thông tin: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
-let getCouponInfo = (couponcode) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!couponcode) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      let couponData = null;
-      if (couponcode === 'ALL') {
-        couponData = await db.Coupon.findAll({
-          attributes: ['CouponCode', 'MinOrderValue', 'DiscountValue', 'MaxDiscount', 'StartDate', 'EndDate', 'DiscountType', 'CouponStatus'],
-        });
-      } else {
-        couponData = await db.Coupon.findOne({
-          where: { CouponCode: couponcode },
-          attributes: ['CouponCode', 'MinOrderValue', 'DiscountValue', 'MaxDiscount', 'StartDate', 'EndDate', 'DiscountType', 'CouponStatus'],
-        });
-      }
-      if (couponData !== null) {
-        resolve({
-          errCode: 0,
-          errMessage: 'Lấy dữ liệu thành công!',
-          data: couponData,
-        });
-      } else {
-        resolve({
-          errCode: 2,
-          errMessage: 'Mã giảm giá không tồn tại!',
-          data: null,
-        });
-      }
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra thông tin: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
 module.exports = {
   getAllCodes,
   checkAccountType,
@@ -571,8 +482,7 @@ module.exports = {
   checkPaymentStatus,
   checkShippingStatus,
   checkShippingMethod,
+  checkCouponStatus,
   checkBannerStatus,
   checkAppointmentType,
-  checkCoupon,
-  getCouponInfo,
 };

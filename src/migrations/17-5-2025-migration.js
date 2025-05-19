@@ -571,6 +571,10 @@ module.exports = {
         },
         EndDate: {
           type: Sequelize.DATE,
+          allowNull: true,
+        },
+        CreatedAt: {
+          type: Sequelize.DATE,
           allowNull: false,
         },
         DiscountType: {
