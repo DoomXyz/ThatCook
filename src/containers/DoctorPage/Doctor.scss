@@ -3,15 +3,9 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  .header-container {
-    background-color: rgb(255, 255, 255) !important;
-    border-bottom: 1px solid black;
-    height: 5rem;
-  }
 }
 
 .doctor-container {
-  margin-top: 1rem;
   background-color: rgb(240, 227, 234);
   flex: 1;
   display: flex;
@@ -25,7 +19,6 @@
 }
 
 .doctor-action-form {
-  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -51,6 +44,200 @@
 .doctor-action-form:hover {
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   /* Hiệu ứng shadow khi hover */
+}
+
+.doctor-info-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  min-height: 400px;
+  /* Đặt chiều cao tối thiểu cố định */
+  display: flex;
+  /* Sử dụng flex để quản lý nội dung */
+  flex-direction: column;
+  justify-content: flex-start;
+
+  /* Căn nội dung từ trên xuống */
+  .doctor-info-form-content {
+    border-top: rgb(184, 184, 184) 2px solid;
+    display: flex;
+    flex-direction: row;
+    justify-content: center; // Căn giữa theo chiều ngang
+    align-items: center; // Căn giữa theo chiều dọc
+    gap: 15px;
+    height: 100%;
+
+    .doctor-content-left {
+      flex: 5; // Chiếm 7/10 không gian
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      flex-direction: column;
+
+      /* Các price-item xếp dọc */
+      /* Khoảng cách giữa các price-item */
+      .doctor-info-tab {
+        display: flex;
+        flex-direction: row;
+        /* label và value nằm ngang */
+        justify-content: space-between;
+        /* Căn đều hai bên hoặc tùy chỉnh */
+      }
+
+      .descreption-doctor {
+        display: flex;
+        font-weight: bold;
+        /* Tương tự <th> */
+        flex: 3;
+        /* Chiếm không gian tối đa bên trái */
+        justify-content: flex-start;
+        padding-right: 10px;
+      }
+
+      .value-doctor {
+        display: flex;
+        color: #333;
+        /* Tùy chỉnh kiểu dáng cho value */
+        flex: 7;
+        /* Chiếm không gian tối đa bên phải */
+        text-align: right;
+        /* Căn phải cho value, tùy chỉnh nếu cần */
+        justify-content: flex-end;
+      }
+
+      .value-doctor-input {
+        display: flex;
+        color: #333;
+        /* Tùy chỉnh kiểu dáng cho value */
+        flex: 7;
+        /* Chiếm không gian tối đa bên phải */
+        text-align: right;
+        /* Căn phải cho value, tùy chỉnh nếu cần */
+        justify-content: flex-start;
+        border: none;
+        /* Xóa viền mặc định */
+        border-bottom: 1px solid #ccc;
+        /* Thêm gạch chân */
+        background: transparent;
+        /* Nền trong suốt */
+        outline: none;
+
+        /* Xóa viền focus mặc định */
+        &:focus {
+          border-bottom: 1px solid #007bff;
+          /* Đổi màu gạch chân khi focus */
+        }
+      }
+
+      .edit-button {
+        display: flex;
+        justify-content: center;
+        margin-left: 10px;
+        padding: 5px 5px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #0056b3;
+        }
+      }
+
+      .change-info-button {
+        display: flex;
+        justify-content: center;
+
+        .button-submit {
+          display: flex;
+          margin-top: 20px;
+        }
+
+        button {
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #0056b3;
+          }
+        }
+      }
+
+      .gender-radio-group {
+        display: flex;
+        gap: 15px;
+        /* Khoảng cách giữa các radio button */
+      }
+
+      .gender-radio {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        input[type='radio'] {
+          margin-right: 5px;
+          cursor: pointer;
+        }
+      }
+
+      .gender-radio-1 {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding-right: 40px;
+
+        input[type='radio'] {
+          margin-right: 5px;
+          cursor: pointer;
+        }
+      }
+
+      .email {
+        padding-right: 40px;
+      }
+    }
+
+    .doctor-content-right {
+      flex: 3; // Chiếm 3/10 không gian
+      display: flex;
+      flex-direction: column;
+      justify-content: center; // Căn giữa theo chiều dọc
+      align-items: center; // Căn giữa theo chiều ngang
+      gap: 20px;
+      border-left: rgb(184, 184, 184) 2px solid;
+
+      .doctor-content-img-info {
+        width: 100px;
+        height: 100px;
+        background-color: #ccc;
+        border-radius: 50%;
+      }
+
+      .button-submit {
+        margin-top: 20px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #0056b3;
+        }
+      }
+    }
+  }
 }
 
 .doctor-action-info,
@@ -83,6 +270,7 @@
 .appointment-history-form,
 .appointment-detail-form {
   background-color: #fff;
+
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);

@@ -45,7 +45,7 @@ const handleVerifyForgotTokenApi = (accountid, token) => {
   return axios.post('/api/verify-forgot-token', { accountid, token });
 };
 
-const loadVeterinarianInfoApi = (page, limit, search, filter, sort) => {
+const handleLoadVeterinarianInfoApi = (page, limit, search, filter, sort) => {
   return axios.get(`/api/load-veterinarianinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
@@ -62,5 +62,5 @@ export {
   handleGetVeterinarianInfoApi,
   handleSendForgotTokenApi,
   handleVerifyForgotTokenApi,
-  loadVeterinarianInfoApi,
+  handleLoadVeterinarianInfoApi,
 };

@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import { IonIcon } from '@ionic/react';
+import { eyeOutline, eyeOffOutline, chevronBack, pencil } from 'ionicons/icons';
 import { connect } from 'react-redux';
 import Spinner from '../../components/Spinner';
 import { handleSendForgotTokenApi, handleVerifyForgotTokenApi, handleChangePasswordApi } from '../../services/accountServices';
@@ -16,12 +18,19 @@ class ForgotPassword extends Component {
       confirmPassword: '',
       accountID: '',
       isLoading: false,
+      showNewPassword: false,
+      showConfirmPassword: false,
     };
   }
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
     this.setState({ ...copyState });
+  };
+  toggleShowPassword = (field) => {
+    this.setState((prevState) => ({
+      [field]: !prevState[field],
+    }));
   };
   handleSendForgotToken = async () => {
     const { email } = this.state;
@@ -205,25 +214,15 @@ class ForgotPassword extends Component {
                 <b>Nhập mật khẩu mới:</b>
               </label>
               <div className="input-form">
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(event) => this.handleOnChangeInput(event, 'newPassword')}
-                  placeholder="Mật khẩu mới"
-                  required
-                />
+                <input type={this.state.showNewPassword ? 'text' : 'password'} name="newPassword" value={newPassword} onChange={(event) => this.handleOnChangeInput(event, "newPassword")} placeholder="Nhập mật khẩu mới" required />
+                <IonIcon icon={this.state.showNewPassword ? eyeOutline : eyeOffOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showNewPassword')} />
               </div>
               <label>
                 <b>Nhập lại mật khẩu:</b>
               </label>
               <div className="input-form">
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => this.handleOnChangeInput(event, 'confirmPassword')}
-                  placeholder="Nhập lại mật khẩu"
-                  required
-                />
+                <input type={this.state.showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={confirmPassword} onChange={(event) => this.handleOnChangeInput(event, "confirmPassword")} placeholder="Xác nhận mật khẩu" required />
+                <IonIcon icon={this.state.showConfirmPassword ? eyeOutline : eyeOffOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showConfirmPassword')} />
               </div>
             </div>
             <div className="button-submit">
@@ -247,7 +246,19 @@ class ForgotPassword extends Component {
         ) : (
           <div className="forgot-container">
             <div className="forgot-content">
-              <h2>Quên Mật Khẩu</h2>
+              <div className='forgot-head'>
+                <div
+                  className="back"
+                  onClick={() => {
+                    this.props.navigate('/login');
+                  }}>
+                  <IonIcon icon={chevronBack}></IonIcon>
+                </div>
+                <div className='forgot-head-info'><h2>Quên Mật Khẩu</h2>
+                </div>
+                <div className='back2'></div>
+              </div>
+
               <div className="forgot-status">
                 <div className="forgot-step">
                   <div className={`forgot-step-email ${currentStep === 1 ? 'active' : ''}`}>

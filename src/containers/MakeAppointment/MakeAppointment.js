@@ -556,7 +556,6 @@ class MakeAppointment extends Component {
   };
 
   handleSelectPetFromModal = async (petID) => {
-    console.log('Selected Pet ID:', petID);
     try {
       const response = await handleGetPetInfoApi(petID);
       if (response && response.errCode === 0) {
@@ -585,15 +584,14 @@ class MakeAppointment extends Component {
   };
 
   handleSelectVeterinarianFromModal = (vetID) => {
-    console.log('Selected Veterinarian ID:', vetID);
     this.setState({ selectedVeterinarianID: vetID });
   };
   render() {
-    const { isLoading, isLoggedIn, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedVeterinarianID, loadedPetList } = this.state;
+    const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedVeterinarianID, loadedPetList } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
-        <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} handleSelectPetFromModal={this.handleSelectPetFromModal} />
+        <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} accountID={isLoggedIn ? accountInfo.AccountID : null} handleSelectPetFromModal={this.handleSelectPetFromModal} />
         <VeterinarianSelectModal isOpen={isShowVeterinarianSelectModal} toggleFromModal={this.toggleVeterinarianSelectModal} handleSelectVeterinarianFromModal={this.handleSelectVeterinarianFromModal} />
         {isLoading ? (
           <Spinner />

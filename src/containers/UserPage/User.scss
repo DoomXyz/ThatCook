@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+
   /* Đổi height thành min-height */
   .header-container {
     background-color: rgb(255, 255, 255) !important;
@@ -406,6 +407,7 @@
           /* Căn phải cho value, tùy chỉnh nếu cần */
           justify-content: flex-end;
         }
+
         .cancel-order-btn {
           padding: 0.3rem 0.5rem;
           background-color: rgb(235, 0, 0);
@@ -505,11 +507,17 @@
   }
 
   .user-change-pw-form-content-input {
+    position: relative;
+    width: 50%;
+    max-width: 800px;
+    border-bottom: 1px solid #ccc;
+
     input {
       width: 50%;
       max-width: 800px;
+      padding: 8px 40px 8px 12px; // Để lại không gian cho biểu tượng
       border: none;
-      border-bottom: 1px solid #ccc;
+
       background: transparent;
       outline: none;
       font-size: 16px;
@@ -523,6 +531,18 @@
         color: #aaa;
       }
     }
+
+    .password-toggle-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #6b7280;
+      font-size: 1.25rem;
+    }
+
+
   }
 
   .error-message {
@@ -620,6 +640,7 @@
 
       h5 {
         color: inherit;
+
         &.delivered {
           color: green;
         }
@@ -754,10 +775,8 @@
   display: flex;
   flex-direction: column;
   /* Các price-item xếp dọc */
-  gap: 10px;
-  padding-right: 20px;
-  padding-bottom: 20px;
-  border-radius: 8px;
+  border-top-left-radius: 10px; // Bo góc trên bên trái
+  border-top-right-radius: 10px; // Bo góc trên bên phải
 
   .price-item {
     display: flex;
@@ -767,27 +786,30 @@
     /* Căn đều hai bên hoặc tùy chỉnh */
     align-items: center;
     /* Căn giữa theo chiều dọc */
+    border-bottom: rgb(222, 219, 219) 1px solid;
   }
 
   /* Khoảng cách giữa các price-item */
   .label {
     display: flex;
     font-weight: bold;
+    padding: 10px;
     /* Tương tự <th> */
     flex: 5;
     /* Chiếm không gian tối đa bên trái */
     justify-content: flex-end;
+    border-right: rgb(222, 219, 219) 1px solid;
   }
 
   .value {
     display: flex;
     color: #333;
+    padding: 10px;
     /* Tùy chỉnh kiểu dáng cho value */
-    flex: 1;
+    flex: 2;
     /* Chiếm không gian tối đa bên phải */
     text-align: right;
     /* Căn phải cho value, tùy chỉnh nếu cần */
     justify-content: flex-end;
-    border-bottom: rgb(184, 184, 184) 2px solid;
   }
 }

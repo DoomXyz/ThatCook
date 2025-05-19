@@ -5,209 +5,300 @@ import Button from 'react-bootstrap/Button';
 import { IonIcon } from '@ionic/react';
 import { searchOutline } from 'ionicons/icons';
 import './VeterinarianSelectModal.scss';
-import { loadVeterinarianInfoApi } from '../../services/accountServices';
+import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
+import { handleGetServiceInfoApi } from '../../services/appointmentServices'
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class VeterinarianSelectModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
       loadedVeterinarianInfo: [],
-      isLoading: false,
-      searchTerm: '',
-      sortOption: '0',
-      filterSpecialization: 'ALL',
+      searchValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
+      totalPages: 1,
       currentPage: 1,
       tempCurrentPage: '1',
-      limitPerPage: 10,
+      limitItemPerQuery: 100,
       totalPages: 1,
-      specializations: [],
+      loadedServiceFilterValue: [],
+      codeWorkingStatus: [],
     };
     this.debounceTimeout = null;
   }
 
   async componentDidMount() {
-    if (this.props.isOpen) {
-      await this.loadVeterinarianInfo();
-    }
+
   }
 
   async componentDidUpdate(prevProps) {
-    if (this.props.isOpen && !prevProps.isOpen) {
-      await this.loadVeterinarianInfo();
+    const { isOpen } = this.props;
+    if (isOpen && !prevProps.isOpen) {
+      await this.handleLoadVeterinarianInfo();
+      await this.handleLoadServiceFilterValue();
+      await this.handleLoadWorkingStatus();
     }
   }
 
-  loadVeterinarianInfo = async () => {
-    const { searchTerm, sortOption, filterSpecialization, currentPage, limitPerPage } = this.state;
+  handleLoadVeterinarianInfo = async () => {
+    const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
-      this.setState({ isLoading: true });
-      const response = await loadVeterinarianInfoApi(currentPage, limitPerPage, searchTerm, filterSpecialization, sortOption);
+      const response = await handleLoadVeterinarianInfoApi(currentPage, limitItemPerQuery, searchValue, filterValue, sortValue);
       if (response && response.errCode === 0) {
-        const specializations = [...new Set(response.data.map(vet => vet.Specialization))].filter(spec => spec);
         this.setState({
-          loadedVeterinarianInfo: response.data || [],
-          totalPages: Math.ceil(response.totalItems / limitPerPage) || 1,
-          specializations,
-          isLoading: false,
-        });
-      } else {
-        toast.error(response?.errMessage || 'Không thể tải danh sách bác sĩ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        this.setState({
-          loadedVeterinarianInfo: [],
-          totalPages: 1,
-          isLoading: false,
+          loadedVeterinarianInfo: response.data,
+          totalPages: Math.ceil(response.totalItems / limitItemPerQuery),
         });
       }
     } catch (e) {
-      toast.error('Lỗi khi tải danh sách bác sĩ!', {
+      console.log('Error loading veterinarianinfo:', e);
+      toast.error('Lỗi khi load danh sách bác sĩ thú y!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
+    }
+  }
+
+  handleLoadServiceFilterValue = async () => {
+    try {
+      const loadedFilterValue = await handleGetServiceInfoApi('ALL');
+      if (!loadedFilterValue || loadedFilterValue.length === 0) {
+        toast.error('Không thể tải danh sách lọc!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
       this.setState({
-        loadedVeterinarianInfo: [],
-        totalPages: 1,
-        isLoading: false,
+        loadedServiceFilterValue: loadedFilterValue.data,
+      });
+    } catch (e) {
+      console.log('Error loading service list:', e);
+      toast.error('Lỗi khi tải danh sách lọc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
       });
     }
   };
 
-  handleSearch = (event) => {
-    const searchTerm = event.target.value;
-    this.setState({ searchTerm, currentPage: 1, tempCurrentPage: '1' }, () => {
-      if (this.debounceTimeout) {
-        clearTimeout(this.debounceTimeout);
+  handleLoadWorkingStatus = async () => {
+    try {
+      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
+      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
+        toast.error('Không thể tải trạng thái làm việc!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
       }
-      this.debounceTimeout = setTimeout(() => {
-        this.loadVeterinarianInfo();
-      }, 500);
-    });
+      this.setState({
+        codeWorkingStatus,
+      });
+    } catch (e) {
+      console.log('Error loading workingstatus code:', e);
+      toast.error('Lỗi khi tải trạng thái làm việc!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
   };
 
-  handleSort = (event) => {
-    this.setState({ sortOption: event.target.value, currentPage: 1, tempCurrentPage: '1' }, this.loadVeterinarianInfo);
+  handleFilter = (value) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleLoadVeterinarianInfo();
+      }
+    );
   };
 
-  handleFilter = (event) => {
-    this.setState({ filterSpecialization: event.target.value, currentPage: 1, tempCurrentPage: '1' }, this.loadVeterinarianInfo);
+  handleSort = (value) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleLoadVeterinarianInfo();
+      }
+    );
+  };
+
+  handleSearchChange = (event) => {
+    const value = event.target.value;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        if (this.debounceTimeout) {
+          clearTimeout(this.debounceTimeout);
+        }
+        this.debounceTimeout = setTimeout(() => {
+          this.handleLoadVeterinarianInfo();
+        }, 500);
+      }
+    );
   };
 
   handlePageChange = (page) => {
-    if (page < 1 || page > this.state.totalPages) return;
-    this.setState({ currentPage: page, tempCurrentPage: page.toString() }, this.loadVeterinarianInfo);
+    const { totalPages } = this.state;
+    let newPage = page;
+    // Xử lý giá trị không hợp lệ
+    if (isNaN(page) || page <= 0) {
+      newPage = 1; // Nếu nhập chữ, ký tự, hoặc số không hợp lệ, về trang 1
+    } else if (page > totalPages) {
+      newPage = totalPages; // Nếu nhập số lớn hơn totalPages, đặt thành totalPages
+    }
+    this.setState(
+      {
+        currentPage: newPage,
+        tempCurrentPage: newPage.toString(),
+      },
+      () => {
+        this.handleLoadVeterinarianInfo();
+      }
+    );
   };
 
   handlePrevPage = () => {
     this.setState(
-      (prevState) => ({
-        currentPage: Math.max(1, prevState.currentPage - 1),
-        tempCurrentPage: Math.max(1, prevState.currentPage - 1).toString(),
-      }),
-      this.loadVeterinarianInfo
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      },
+      () => {
+        this.handleLoadVeterinarianInfo();
+      }
     );
   };
 
   handleNextPage = () => {
     this.setState(
-      (prevState) => ({
-        currentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
-        tempCurrentPage: Math.min(prevState.totalPages, prevState.currentPage + 1).toString(),
-      }),
-      this.loadVeterinarianInfo
+      (prevState) => {
+        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      },
+      () => {
+        this.handleLoadVeterinarianInfo();
+      }
     );
   };
 
   handlePageInputChange = (event) => {
-    this.setState({ tempCurrentPage: event.target.value });
+    const value = event.target.value;
+    this.setState({ tempCurrentPage: value });
   };
 
   handlePageInputBlur = () => {
-    const { tempCurrentPage, totalPages } = this.state;
+    const { tempCurrentPage } = this.state;
     const page = parseInt(tempCurrentPage, 10);
-    if (!isNaN(page) && page >= 1 && page <= totalPages) {
-      this.handlePageChange(page);
-    } else {
-      this.setState({ tempCurrentPage: this.state.currentPage.toString() });
-    }
+    this.handlePageChange(page);
   };
 
   handlePageKeyDown = (event) => {
     if (event.key === 'Enter') {
-      this.handlePageInputBlur();
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page);
     }
   };
 
-  handleSelectVeterinarian = (vetID) => {
-    this.props.handleSelectVeterinarianFromModal(vetID);
+  getAccountStatusValue = (code) => {
+
+  };
+
+  handleSelectVeterinarianFromModal = (veterinarianID) => {
+    this.props.handleSelectVeterinarianFromModal(veterinarianID);
     this.props.toggleFromModal();
   };
 
   render() {
     const { isOpen, toggleFromModal } = this.props;
-    const { loadedVeterinarianInfo, isLoading, searchTerm, sortOption, filterSpecialization, currentPage, tempCurrentPage, totalPages, specializations } = this.state;
+    const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;
 
     return (
-      <Modal show={isOpen} onHide={toggleFromModal} centered backdrop="static" className="veterinarian-select-modal">
+      <Modal
+        show={isOpen}
+        onHide={toggleFromModal}
+        centered backdrop="static"
+        className="veterinarian-select-modal"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Chọn Bác Sĩ Thú Y</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {isLoading ? (
-            <p className="text-center">Đang tải...</p>
-          ) : (
-            <div className="veterinarian-select-table">
-              <div className="showdoctor-content-top f">
-                <div className="showdoctor-content-top-search">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm bác sĩ"
-                    value={searchTerm}
-                    onChange={this.handleSearch}
-                  />
-                  <IonIcon icon={searchOutline}></IonIcon>
-                </div>
-                <div className="showdoctor-content-top-sort">
-                  <p>Sắp xếp:</p>
-                  <select value={sortOption} onChange={this.handleSort}>
-                    <option value="0">Mặc định</option>
-                    <option value="1">Số lượt đặt lịch</option>
-                    <option value="2">Tên A-Z</option>
-                  </select>
-                </div>
-                <div className="showdoctor-content-top-filter">
-                  <p>Chuyên ngành:</p>
-                  <select value={filterSpecialization} onChange={this.handleFilter}>
-                    <option value="ALL">Tất cả</option>
-                    {specializations.map(spec => (
-                      <option key={spec} value={spec}>{spec}</option>
-                    ))}
-                  </select>
-                </div>
+          <div className="veterinarian-select-table">
+            <div className="showdoctor-content-top f">
+              <div className="showdoctor-content-top-search">
+                <input
+                  type="text"
+                  placeholder="Nhập tên bác sĩ"
+                  value={searchValue}
+                  onChange={(event) => this.handleSearchChange(event)}
+                />
+                <IonIcon icon={searchOutline}></IonIcon>
+              </div>
+              <div className="showdoctor-content-top-filter">
+                <p>Lọc:</p>
+                <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
+                  <option value="ALL">Tất cả</option>
+                  {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
+                    <optgroup label="Dịch vụ khám">
+                      {loadedServiceFilterValue.map((item) => (
+                        <option key={item.ServiceID} value={item.ServiceID}>
+                          {item.ServiceName}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+              <div className="showdoctor-content-top-sort">
+                <p>Sắp xếp:</p>
+                <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
+                  <option value="0">Mặc định</option>
+                  <option value="1">Số lượt đặt lịch</option>
+                  <option value="2">Tên A-Z</option>
+                  <option value="3">Tên Z-A</option>
+                </select>
               </div>
               <table className="table table-bordered">
                 <thead>
                   <tr>
                     <th>Tên Bác Sĩ</th>
-                    <th>Chuyên Ngành</th>
+                    <th>Chuyên Khoa</th>
                     <th>Số Lượt Đặt Lịch</th>
-                    <th>Trạng Thái</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loadedVeterinarianInfo.length > 0 ? (
-                    loadedVeterinarianInfo.map((vet) => (
-                      <tr key={vet.AccountID}>
-                        <td>{vet.UserName}</td>
-                        <td>{vet.Specialization}</td>
-                        <td>{vet.BookingCount || 0}</td>
-                        <td>{vet.WorkingStatus === 'ONLINE' ? 'Online' : 'Offline'}</td>
+                    loadedVeterinarianInfo.map((item) => (
+                      <tr key={item.AccountID}>
+                        <td>{item.UserName}</td>
+                        <td>{item.Specialization}</td>
+                        <td>{item.BookingCount || 0}</td>
+                        <td>{codeWorkingStatus.find((filterItem) => filterItem.Code === item.WorkingStatus)?.CodeValueVI || item.WorkingStatus}</td>
                         <td>
-                          <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectVeterinarian(vet.AccountID)}>
+                          <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectVeterinarianFromModal(item.AccountID)}>
                             Chọn
                           </button>
                         </td>
@@ -265,7 +356,7 @@ class VeterinarianSelectModal extends Component {
                 </div>
               )}
             </div>
-          )}
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={toggleFromModal}>

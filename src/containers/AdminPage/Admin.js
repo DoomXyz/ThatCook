@@ -664,7 +664,7 @@ class Admin extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button className="first" onClick={this.handleFirstPage} disabled={currentPage === 1}>
+                    <button className="first" onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
                     <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
@@ -675,7 +675,7 @@ class Admin extends Component {
                     <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button className="last" onClick={this.handleLastPage} disabled={currentPage === totalPages}>
+                    <button className="last" onClick={() => this.handlePageChange(totalPages)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>

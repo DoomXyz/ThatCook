@@ -873,6 +873,10 @@ class User extends Component {
             <div className="user-info-form-content">
               <div className="user-content-left">
                 <div className="user-info-tab">
+                  <div className="descreption-user">Email:</div>
+                  <div className="value-user email">{email}</div>
+                </div>
+                <div className="user-info-tab">
                   <div className="descreption-user">Tên tài khoản:</div>
                   {editField === 'accountname' ? <input type="text" name="accountname" value={accountname} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{accountname}</div>}
                   <button type="button" className="edit-button" onClick={() => this.handleEditClick('accountname')}>
@@ -910,10 +914,6 @@ class User extends Component {
                       </label>
                     ))}
                   </div>
-                </div>
-                <div className="user-info-tab">
-                  <div className="descreption-user">Email:</div>
-                  <div className="value-user email">{email}</div>
                 </div>
                 <div className="change-info-button" onSubmit={this.handleUpdateAccountInfo}>
                   <button> Cập nhật </button>
@@ -1127,17 +1127,17 @@ class User extends Component {
               <label>Mật khẩu cũ:</label>
               <div className="user-change-pw-form-content-input">
                 <input type={this.state.showOldPassword ? 'text' : 'password'} name="oldPassword" value={oldPassword} onChange={this.handleChangePasswordInputChange} placeholder="Nhập mật khẩu cũ" required />
-                <IonIcon icon={this.state.showOldPassword ? eyeOffOutline : eyeOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showOldPassword')} />
+                <IonIcon icon={this.state.showOldPassword ? eyeOutline : eyeOffOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showOldPassword')} />
               </div>
               <label>Mật khẩu mới:</label>
               <div className="user-change-pw-form-content-input">
-                <input type="password" name="newPassword" value={newPassword} onChange={this.handleChangePasswordInputChange} placeholder="Nhập mật khẩu mới" required />
-                <IonIcon icon={this.state.showNewPassword ? eyeOffOutline : eyeOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showNewPassword')} />
+                <input type={this.state.showNewPassword ? 'text' : 'password'} name="newPassword" value={newPassword} onChange={this.handleChangePasswordInputChange} placeholder="Nhập mật khẩu mới" required />
+                <IonIcon icon={this.state.showNewPassword ? eyeOutline : eyeOffOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showNewPassword')} />
               </div>
               <label>Xác nhận mật khẩu mới:</label>
               <div className="user-change-pw-form-content-input">
-                <input type="password" name="confirmPassword" value={confirmPassword} onChange={this.handleChangePasswordInputChange} placeholder="Xác nhận mật khẩu" required />
-                <IonIcon icon={this.state.showConfirmPassword ? eyeOffOutline : eyeOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showConfirmPassword')} />
+                <input type={this.state.showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={confirmPassword} onChange={this.handleChangePasswordInputChange} placeholder="Xác nhận mật khẩu" required />
+                <IonIcon icon={this.state.showConfirmPassword ? eyeOutline : eyeOffOutline} className="password-toggle-icon" onClick={() => this.toggleShowPassword('showConfirmPassword')} />
               </div>
             </div>
             <div className="button-submit">
@@ -1274,11 +1274,11 @@ class User extends Component {
             )}
             <div className="user-cart-form-info-table-price">
               <div className="price-item">
-                <div className="label">Tổng sản phẩm:</div>
+                <div className="label">Tổng sản phẩm</div>
                 <div className="value">{loadedInvoiceDetail?.TotalQuantity || 0}</div>
               </div>
               <div className="price-item">
-                <div className="label">Tổng tiền hàng:</div>
+                <div className="label">Tổng tiền hàng</div>
                 <div className="value">
                   {parseFloat(loadedInvoiceDetail?.TotalPrice).toLocaleString('vi-VN', {
                     style: 'currency',
@@ -1287,7 +1287,7 @@ class User extends Component {
                 </div>
               </div>
               <div className="price-item">
-                <div className="label">Phí vận chuyển:</div>
+                <div className="label">Phí vận chuyển</div>
                 <div className="value">
                   {(() => {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
@@ -1302,7 +1302,7 @@ class User extends Component {
               </div>
               {parseFloat(loadedInvoiceDetail?.DiscountAmount) > 0 && (
                 <div className="price-item">
-                  <div className="label">Giảm giá từ coupon:</div>
+                  <div className="label">Giảm giá từ coupon</div>
                   <div className="value">
                     -
                     {parseFloat(loadedInvoiceDetail?.DiscountAmount).toLocaleString('vi-VN', {
@@ -1313,7 +1313,7 @@ class User extends Component {
                 </div>
               )}
               <div className="price-item">
-                <div className="label">Tổng thanh toán:</div>
+                <div className="label">Tổng thanh toán</div>
                 <div className="value">
                   {parseFloat(loadedInvoiceDetail?.TotalPayment).toLocaleString('vi-VN', {
                     style: 'currency',
@@ -1322,7 +1322,7 @@ class User extends Component {
                 </div>
               </div>
               <div className="price-item">
-                <div className="label">Phương thức thanh toán:</div>
+                <div className="label">Phương thức thanh toán</div>
                 <div className="value">
                   {(() => {
                     const payment = codePaymentType?.find((method) => method.Code === loadedInvoiceDetail?.PaymentType);
@@ -1331,7 +1331,7 @@ class User extends Component {
                 </div>
               </div>
               <div className="price-item">
-                <div className="label">Phương thức vận chuyển:</div>
+                <div className="label">Phương thức vận chuyển</div>
                 <div className="value">
                   {(() => {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
