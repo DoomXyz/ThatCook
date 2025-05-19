@@ -1,6 +1,6 @@
 import db from '../models/index';
 import { Op, literal } from 'sequelize';
-import { } from './utilitiesService';
+import {checkDiscountType,checkCouponStatus } from './utilitiesService';
 
 let checkCoupon = (couponcode, price) => {
     return new Promise(async (resolve, reject) => {
@@ -139,7 +139,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                 });
                 return;
             }
-            if (sort && !['0', '1', '2', '3', '4'].includes(sort)) {
+            if (sort && !['0', '1', '2', '3', '4', '5', '6 '].includes(sort)) {
                 resolve({
                     errCode: 1,
                     errMessage: 'Tham số sort không hợp lệ!',
@@ -191,19 +191,34 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                         return;
                     }
                     where.CouponStatus = value;
+                } else if(field === 'discounttype') {
+                    const validDiscountType = await checkDiscountType(value);
+                    if (!validDiscountType) {
+                        resolve({
+                            errCode: 1,
+                            errMessage: 'Loại giảm giá không hợp lệ!',
+                            data: null,
+                        });
+                        return;
+                    }
+                    where.DiscountType = value;
                 } else if (field === 'maxdiscount') {
                     switch (value) {
                         case '0':
                             where.MaxDiscount = { [Op.between]: [0, 20000] };
+                            where.DiscountType = 'FIXED';
                             break;
                         case '1':
                             where.MaxDiscount = { [Op.between]: [20000, 50000] };
+                            where.DiscountType = 'FIXED';
                             break;
                         case '2':
                             where.MaxDiscount = { [Op.between]: [50000, 100000] };
+                            where.DiscountType = 'FIXED';
                             break;
                         case '3':
                             where.MaxDiscount = { [Op.gt]: 100000 };
+                            where.DiscountType = 'FIXED';
                             break;
                         default:
                             resolve({
@@ -225,39 +240,32 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
 
             // Sắp xếp
             switch (sort) {
-                case '1': // Đơn hàng mới nhất
+                case '1': // Sắp xếp theo ngày tạo mới nhất
                     order.push(['CreatedAt', 'DESC']);
                     break;
-                case '2': // Đơn hàng cũ nhất
+                case '2': // Sắp xếp theo ngày tạo trễ nhất
                     order.push(['CreatedAt', 'ASC']);
                     break;
-                case '3': // TotalPayment tăng dần
-                    order.push(['EndDate', 'ASC']);
-                    break;
-                case '4': // TotalPayment giảm dần
+                case '3': 
                     order.push(['EndDate', 'DESC']);
+                    break;
+                case '4': 
+                    order.push(['EndDate', 'ASC']);
                     break;
                 case '5':
                     order.push(['MaxDiscount', 'ASC']);
-                default: // Mặc định (0)
+                    break
+                case '6':
+                    order.push(['MaxDiscount', 'DESC']);
+                    break
+                default: 
                     order.push(['CreatedAt', 'DESC']);
                     break;
             }
 
             // Lấy danh sách hóa đơn
-            const { count, rows } = await db.Invoice.findAndCountAll({
+            const { count, rows } = await db.Coupon.findAndCountAll({
                 where,
-                attributes: [
-                    'InvoiceID',
-                    'ReceiverName',
-                    'ReceiverPhone',
-                    'TotalQuantity',
-                    'TotalPayment',
-                    'CreatedAt',
-                    'CanceledAt',
-                    'PaymentStatus',
-                    'ShippingStatus',
-                ],
                 limit: parseInt(limit),
                 offset,
                 order,
@@ -267,7 +275,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
             if (!rows || rows.length === 0) {
                 resolve({
                     errCode: 0,
-                    errMessage: 'Không tìm thấy đơn hàng nào!',
+                    errMessage: 'Không tìm thấy mã giảm giá nào!',
                     data: [],
                     totalItems: 0,
                 });
@@ -276,15 +284,15 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
 
             resolve({
                 errCode: 0,
-                errMessage: 'Lấy danh sách đơn hàng thành công!',
+                errMessage: 'Lấy danh sách mã giảm giá thành công!',
                 data: rows,
                 totalItems: count,
             });
         } catch (e) {
-            console.log('Error in loadInvoiceInfo: ', e);
+            console.log('Error in loadCouponInfo: ', e);
             resolve({
                 errCode: 3,
-                errMessage: `Lỗi khi lấy danh sách đơn hàng: ${e.message}`,
+                errMessage: `Lỗi khi lấy danh sách mã giảm giá: ${e.message}`,
                 data: null,
             });
         }
