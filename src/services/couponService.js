@@ -1,6 +1,6 @@
 import db from '../models/index';
 import { Op, literal } from 'sequelize';
-import {checkDiscountType,checkCouponStatus } from './utilitiesService';
+import { checkDiscountType, checkCouponStatus } from './utilitiesService';
 
 let checkCoupon = (couponcode, price) => {
     return new Promise(async (resolve, reject) => {
@@ -139,7 +139,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                 });
                 return;
             }
-            if (sort && !['0', '1', '2', '3', '4', '5', '6 '].includes(sort)) {
+            if (sort && !['0', '1', '2', '3', '4', '5', '6'].includes(sort)) {
                 resolve({
                     errCode: 1,
                     errMessage: 'Tham số sort không hợp lệ!',
@@ -151,17 +151,15 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
             let where = {};
             let order = [];
 
-            // Tìm kiếm theo ReceiverName hoặc ReceiverPhone
-            if (search) {
+            // Tìm kiếm theo CouponCode
+            if (search?.trim()) {
                 const searchTerm = search.trim().substring(0, 20);
-                where[Op.or] = [
-                    { CouponCode: { [Op.like]: `%${searchTerm}%` } }
-                ];
+                where[Op.or] = [{ CouponCode: { [Op.like]: `%${searchTerm}%` } }];
             }
             // Lọc theo ngày (bỏ qua giờ)
             if (date) {
-                const startOfDay = new Date(date);
-                if (isNaN(startOfDay.getTime())) {
+                const selectedDate = new Date(date);
+                if (isNaN(selectedDate.getTime())) {
                     resolve({
                         errCode: 1,
                         errMessage: 'Tham số date không hợp lệ!',
@@ -169,15 +167,20 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                     });
                     return;
                 }
-                startOfDay.setHours(0, 0, 0, 0);
-                const endOfDay = new Date(startOfDay);
+                selectedDate.setHours(0, 0, 0, 0);
+                const endOfDay = new Date(selectedDate);
                 endOfDay.setHours(23, 59, 59, 999);
-                where.CreatedAt = {
-                    [Op.gte]: startOfDay,
-                    [Op.lte]: endOfDay,
-                };
+                where[Op.and] = [
+                    { StartDate: { [Op.lte]: endOfDay } },
+                    {
+                        [Op.or]: [
+                            { EndDate: { [Op.gte]: selectedDate } },
+                            { EndDate: null },
+                        ],
+                    },
+                ];
             }
-            // Lọc theo paymentstatus, shippingstatus hoặc totalpayment
+            // Lọc theo couponstatus, discounttype, maxdiscountfixed, hoặc maxdiscountperc
             if (filter !== 'ALL') {
                 const [field, value] = filter.split('-');
                 if (field === 'couponstatus') {
@@ -191,7 +194,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                         return;
                     }
                     where.CouponStatus = value;
-                } else if(field === 'discounttype') {
+                } else if (field === 'discounttype') {
                     const validDiscountType = await checkDiscountType(value);
                     if (!validDiscountType) {
                         resolve({
@@ -202,28 +205,48 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                         return;
                     }
                     where.DiscountType = value;
-                } else if (field === 'maxdiscount') {
+                } else if (field === 'maxdiscountfixed') {
+                    where.DiscountType = 'FIXED';
                     switch (value) {
                         case '0':
                             where.MaxDiscount = { [Op.between]: [0, 20000] };
-                            where.DiscountType = 'FIXED';
                             break;
                         case '1':
                             where.MaxDiscount = { [Op.between]: [20000, 50000] };
-                            where.DiscountType = 'FIXED';
                             break;
                         case '2':
                             where.MaxDiscount = { [Op.between]: [50000, 100000] };
-                            where.DiscountType = 'FIXED';
                             break;
                         case '3':
                             where.MaxDiscount = { [Op.gt]: 100000 };
-                            where.DiscountType = 'FIXED';
                             break;
                         default:
                             resolve({
                                 errCode: 1,
                                 errMessage: 'Khoảng giá không hợp lệ!',
+                                data: null,
+                            });
+                            return;
+                    }
+                } else if (field === 'maxdiscountperc') {
+                    where.DiscountType = 'PERC';
+                    switch (value) {
+                        case '0':
+                            where.MaxDiscount = { [Op.between]: [0, 10] }; // 0-10%
+                            break;
+                        case '1':
+                            where.MaxDiscount = { [Op.between]: [10, 20] }; // 10-20%
+                            break;
+                        case '2':
+                            where.MaxDiscount = { [Op.between]: [20, 50] }; // 20-50%
+                            break;
+                        case '3':
+                            where.MaxDiscount = { [Op.gt]: 50 }; // >50%
+                            break;
+                        default:
+                            resolve({
+                                errCode: 1,
+                                errMessage: 'Khoảng phần trăm không hợp lệ!',
                                 data: null,
                             });
                             return;
@@ -240,25 +263,25 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
 
             // Sắp xếp
             switch (sort) {
-                case '1': // Sắp xếp theo ngày tạo mới nhất
+                case '1': // Mã giảm giá mới nhất
                     order.push(['CreatedAt', 'DESC']);
                     break;
-                case '2': // Sắp xếp theo ngày tạo trễ nhất
+                case '2': // Mã giảm giá cũ nhất
                     order.push(['CreatedAt', 'ASC']);
                     break;
-                case '3': 
-                    order.push(['EndDate', 'DESC']);
-                    break;
-                case '4': 
+                case '3': // Hạn sử dụng xa nhất
                     order.push(['EndDate', 'ASC']);
                     break;
-                case '5':
+                case '4': // Hết sử dụng gần nhất
+                    order.push(['EndDate', 'DESC']);
+                    break;
+                case '5': // Giảm giá ít nhất
                     order.push(['MaxDiscount', 'ASC']);
-                    break
-                case '6':
+                    break;
+                case '6': // Giảm giá nhiều nhất
                     order.push(['MaxDiscount', 'DESC']);
-                    break
-                default: 
+                    break;
+                default: // Mặc định (0)
                     order.push(['CreatedAt', 'DESC']);
                     break;
             }
@@ -266,6 +289,19 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
             // Lấy danh sách hóa đơn
             const { count, rows } = await db.Coupon.findAndCountAll({
                 where,
+                attributes: [
+                    'CouponID',
+                    'CouponCode',
+                    'CouponDescription',
+                    'MinOrderValue',
+                    'DiscountValue',
+                    'MaxDiscount',
+                    'DiscountType',
+                    'CouponStatus',
+                    'StartDate',
+                    'EndDate',
+                    'CreatedAt',
+                ],
                 limit: parseInt(limit),
                 offset,
                 order,
@@ -281,7 +317,6 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                 });
                 return;
             }
-
             resolve({
                 errCode: 0,
                 errMessage: 'Lấy danh sách mã giảm giá thành công!',

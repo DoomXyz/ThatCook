@@ -290,7 +290,7 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-      Notes: {
+      MedicalNotes: {
         type: Sequelize.TEXT,
         allowNull: true,
       },

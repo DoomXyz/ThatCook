@@ -468,8 +468,6 @@ let checkBannerStatus = (bannerStatus) => {
   });
 };
 
-
-
 let checkAppointmentType = (appointmentType) => {
   return new Promise(async (resolve, reject) => {
     try {

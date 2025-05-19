@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      Notes: {
+      MedicalNotes: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
