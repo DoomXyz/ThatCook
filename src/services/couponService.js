@@ -228,29 +228,6 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                             });
                             return;
                     }
-                } else if (field === 'maxdiscountperc') {
-                    where.DiscountType = 'PERC';
-                    switch (value) {
-                        case '0':
-                            where.MaxDiscount = { [Op.between]: [0, 10] }; // 0-10%
-                            break;
-                        case '1':
-                            where.MaxDiscount = { [Op.between]: [10, 20] }; // 10-20%
-                            break;
-                        case '2':
-                            where.MaxDiscount = { [Op.between]: [20, 50] }; // 20-50%
-                            break;
-                        case '3':
-                            where.MaxDiscount = { [Op.gt]: 50 }; // >50%
-                            break;
-                        default:
-                            resolve({
-                                errCode: 1,
-                                errMessage: 'Khoảng phần trăm không hợp lệ!',
-                                data: null,
-                            });
-                            return;
-                    }
                 } else {
                     resolve({
                         errCode: 1,
