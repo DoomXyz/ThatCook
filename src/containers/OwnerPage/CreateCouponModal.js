@@ -116,6 +116,8 @@ class CreateCouponModal extends Component {
         }
         if (!maxdiscount) {
             return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được để trống!' };
+        } else if (discounttype === 'FIXED' && maxdiscount > discountvalue) {
+            return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
         }
         if (!startdate) {
             return { errCode: -1, errMessage: 'Ngày bắt đầu không được để trống!' };
@@ -151,7 +153,6 @@ class CreateCouponModal extends Component {
             });
             return;
         }
-
         const confirmSave = () =>
             new Promise((resolve) => {
                 toast(
@@ -197,7 +198,7 @@ class CreateCouponModal extends Component {
             const couponInfo = {
                 couponcode,
                 coupondescription,
-                minordervalue,
+                minordervalue: minordervalue ? minordervalue : 0,
                 discountvalue,
                 maxdiscount,
                 startdate: startdate ? startdate.toISOString().split('T')[0] : null,
