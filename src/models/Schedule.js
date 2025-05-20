@@ -5,6 +5,8 @@ module.exports = (sequelize, DataTypes) => {
   class Schedule extends Model {
     static associate(models) {
       Schedule.belongsTo(models.Account, { foreignKey: 'VeterinarianID' });
+      Schedule.belongsTo(models.Appointment, { foreignKey: 'AppointmentID' });
+
     }
   }
 
@@ -17,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       VeterinarianID: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+      },
+      AppointmentID: {
         type: DataTypes.STRING(10),
         allowNull: false,
       },

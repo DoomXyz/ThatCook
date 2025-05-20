@@ -742,6 +742,34 @@ let checkDiscountType = (discountType) => {
     }
   });
 };
+let checkAppointmentStatus = (appointmentStatus) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!appointmentStatus) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'AppointmentStatus',
+          Code: appointmentStatus,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
 
 let checkBannerStatus = (bannerStatus) => {
   return new Promise(async (resolve, reject) => {
@@ -820,6 +848,7 @@ module.exports = {
   checkShippingMethod,
   checkCouponStatus,
   checkDiscountType,
+  checkAppointmentStatus,
   checkBannerStatus,
   checkAppointmentType,
 };

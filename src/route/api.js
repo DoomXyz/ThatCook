@@ -7,6 +7,7 @@ import invoiceController from '../controllers/invoiceController';
 import appointmentController from '../controllers/appointmentController';
 import petController from '../controllers/petController'
 import couponController from '../controllers/couponController'
+import scheduleController from '../controllers/scheduleController'
 import utilitiesController from '../controllers/utilitiesController';
 import { checkAdminJWT, checkOwnerJWT, checkCustomerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 let router = express.Router();
@@ -110,6 +111,11 @@ let initAPIRoutes = (app) => {
     router.get('/api/load-couponinfo', couponController.handleLoadCouponInfo);
     router.post('/api/create-coupon', couponController.handleCreateCoupon);
     //veterinarian
+    router.put('/api/change-workingstatus', accountController.handleChangeWorkingStatus);
+
+    router.get('/api/load-pendingappointments', appointmentController.handleLoadPendingAppointments);
+    router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
+
 
     return app.use('/', router);
 };

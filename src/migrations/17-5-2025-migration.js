@@ -315,6 +315,12 @@ module.exports = {
         references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
       },
+      AppointmentID: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
+        references: { model: 'Appointment', key: 'AppointmentID' },
+        onDelete: 'CASCADE',
+      },
       Date: {
         type: Sequelize.DATEONLY,
         allowNull: false,

@@ -1559,7 +1559,6 @@ let getVeterinarianInfo = (accountid) => {
           ServiceName: vs.Service?.ServiceName || null,
         })),
       };
-      console.log(formattedData)
       resolve({
         errCode: 0,
         errMessage: 'Lấy thông tin bác sĩ thú y thành công!',
@@ -1668,7 +1667,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
       }
       const { count, rows } = await db.Account.findAndCountAll({
         where,
-        attributes: ['AccountID', 'UserName'],
+        attributes: ['AccountID', 'UserName', 'UserImage'],
         include: [
           {
             model: db.VeterinarianInfo,
@@ -1698,6 +1697,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
       const data = rows.map(row => ({
         AccountID: row.AccountID,
         UserName: row.UserName,
+        UserImage: row.UserImage,
         Specialization: row.VeterinarianInfo.Specialization,
         Bio: row.VeterinarianInfo.Bio,
         WorkingStatus: row.VeterinarianInfo.WorkingStatus,
@@ -1713,6 +1713,73 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi lấy danh sách bác sĩ thú y: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
+let changeWorkingStatus = (accountid, workingstatus) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      if (!accountid || !workingstatus) {
+        await transaction.rollback();
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const validWorkingStatus = await checkWorkingStatus(workingstatus);
+      if (!validWorkingStatus) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Trạng thái làm việc không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      const account = await db.VeterinarianInfo.findOne({
+        where: { AccountID: accountid },
+        transaction,
+      });
+      if (!account) {
+        await transaction.rollback();
+        resolve({
+          errCode: 2,
+          errMessage: 'Tài khoản bác sĩ không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+      if (account.WorkingStatus === workingstatus) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Trạng thái không thay đổi!',
+          data: null,
+        });
+        return;
+      }
+      await db.VeterinarianInfo.update(
+        { WorkingStatus: workingstatus },
+        { where: { AccountID: accountid }, transaction }
+      );
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Thay đổi trạng thái tài khoản thành công!',
+        data: null,
+      });
+    } catch (e) {
+      await transaction.rollback();
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi thay đổi trạng thái: ' + e.message,
         data: null,
       });
     }
@@ -1735,4 +1802,5 @@ module.exports = {
   sendForgotToken,
   verifyForgotToken,
   loadVeterinarianInfo,
+  changeWorkingStatus,
 };

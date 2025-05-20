@@ -230,6 +230,21 @@ let handleLoadVeterinarianInfo = async (req, res) => {
   }
 };
 
+let handleChangeWorkingStatus = async (req, res) => {
+  try {
+    const { accountid, workingstatus } = req.body
+    let response = await accountService.changeWorkingStatus(accountid, workingstatus);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
+
 module.exports = {
   handleRegister,
   handleLogin,
@@ -246,4 +261,5 @@ module.exports = {
   handleSendForgotToken,
   handleVerifyForgotToken,
   handleLoadVeterinarianInfo,
+  handleChangeWorkingStatus,
 };

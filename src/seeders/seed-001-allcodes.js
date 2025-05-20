@@ -95,9 +95,8 @@ module.exports = {
         { Type: 'CancelReason', Code: 'ORDER_ERROR', CodeValueVI: 'Lỗi trong quá trình đặt hàng', ExtraValue: null },
 
         // ScheduleStatus
-        { Type: 'ScheduleStatus', Code: 'AVAILABLE', CodeValueVI: 'Có sẵn', ExtraValue: null },
-        { Type: 'ScheduleStatus', Code: 'BOOKED', CodeValueVI: 'Đã đặt', ExtraValue: null },
-        { Type: 'ScheduleStatus', Code: 'UNAVAILABLE', CodeValueVI: 'Không có sẵn', ExtraValue: null },
+        { Type: 'ScheduleStatus', Code: 'PEND', CodeValueVI: 'Chờ khám', ExtraValue: null },
+        { Type: 'ScheduleStatus', Code: 'CANCELED', CodeValueVI: 'Đã bị hủy', ExtraValue: null },
       ],
       {}
     );

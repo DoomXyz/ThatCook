@@ -2,6 +2,70 @@ import { raw } from 'body-parser';
 import db from '../models/index';
 import { checkPetType, checkPetGender } from './utilitiesService';
 
+let deleteUnlinkedGuestPets = () => {
+    return new Promise(async (resolve, reject) => {
+        const transaction = await db.sequelize.transaction();
+        try {
+            // Tìm thú cưng khách vãng lai (AccountID bắt đầu bằng 'G')
+            const guestPets = await db.Pet.findAll({
+                where: {
+                    AccountID: { [db.Sequelize.Op.like]: 'G%' },
+                },
+                attributes: ['PetID'],
+                raw: true,
+                transaction,
+            });
+            if (!guestPets || guestPets.length === 0) {
+                await transaction.commit();
+                resolve({
+                    errCode: 0,
+                    errMessage: 'Không tìm thấy thú cưng khách vãng lai nào để xóa!',
+                    data: null
+                });
+                return;
+            }
+            const petIDs = guestPets.map(thucung => thucung.PetID);
+            const appointments = await db.Appointment.findAll({
+                where: { PetID: { [db.Sequelize.Op.in]: petIDs } },
+                attributes: ['PetID'],
+                raw: true,
+                transaction,
+            });
+            const petsToDelete = guestPets.filter(
+                pet => !appointments.some(appointment => appointment.PetID === pet.PetID)
+            );
+            if (petsToDelete.length === 0) {
+                await transaction.commit();
+                resolve({
+                    errCode: 0,
+                    errMessage: 'Không có thú cưng khách vãng lai nào cần xóa!',
+                    data: null
+                });
+                return;
+            }
+            const petIDsToDelete = petsToDelete.map(pet => pet.PetID);
+            await db.Pet.destroy({
+                where: { PetID: { [db.Sequelize.Op.in]: petIDsToDelete } },
+                transaction,
+            });
+            await transaction.commit();
+            resolve({
+                errCode: 0,
+                errMessage: 'Xóa thú cưng khách vãng lai thành công!',
+                data: null
+            });
+        } catch (e) {
+            await transaction.rollback();
+            console.log('Lỗi trong deleteUnlinkedGuestPets: ', e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi xóa thú cưng khách vãng lai: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
 let validatePetInput = async (petInfo) => {
     if (!petInfo || Object.keys(petInfo).length === 0) {
         return {
@@ -214,6 +278,7 @@ let getPetInfo = (petid) => {
                 });
                 return;
             }
+            await deleteUnlinkedGuestPets();
             const data = await db.Pet.findOne({
                 where: { PetID: petid },
                 attributes: ['PetID', 'PetName', 'PetType', 'PetGender', 'Age', 'PetWeight'],
@@ -256,6 +321,7 @@ let savePetInfo = (accountid, petInfo) => {
                 });
                 return;
             }
+            await deleteUnlinkedGuestPets();
             const isValidateInput = await validatePetInput(petInfo);
             if (isValidateInput) {
                 await transaction.rollback();
