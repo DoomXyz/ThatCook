@@ -10,7 +10,7 @@ import './Admin.scss';
 import Spinner from '../../components/Spinner';
 
 import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from '../../services/accountServices';
-import { handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi, } from '../../services/utilitiesServices';
+import { handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi } from '../../services/utilitiesServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
@@ -58,7 +58,7 @@ class Admin extends Component {
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { codeGender, codeAccountType, codeAccountStatus, codeTypes } = this.state
+      const { codeGender, codeAccountType, codeAccountStatus, codeTypes } = this.state;
       switch (this.state.actionPage) {
         case 1:
           await this.handleLoadAccountInfo();
@@ -637,11 +637,7 @@ class Admin extends Component {
         new Promise((resolve) => {
           toast(
             <div>
-              <p>
-                {this.state.isAddingCode
-                  ? 'Bạn đang thêm mã mới chưa lưu. Lưu hoặc hủy trước khi thêm mã mới?'
-                  : 'Bạn có thay đổi chưa lưu. Hủy thay đổi và thêm mã mới?'}
-              </p>
+              <p>{this.state.isAddingCode ? 'Bạn đang thêm mã mới chưa lưu. Lưu hoặc hủy trước khi thêm mã mới?' : 'Bạn có thay đổi chưa lưu. Hủy thay đổi và thêm mã mới?'}</p>
               <button
                 className="toast-confirm-btn"
                 onClick={() => {
@@ -797,9 +793,7 @@ class Admin extends Component {
         Type: this.state.loadedCodeInfo[index].Type.trim(),
         Code: this.state.loadedCodeInfo[index].Code.trim(),
         CodeValueVI: this.state.loadedCodeInfo[index].CodeValueVI.trim(),
-        ExtraValue: this.state.loadedCodeInfo[index].ExtraValue
-          ? parseFloat(this.state.loadedCodeInfo[index].ExtraValue).toFixed(2)
-          : null,
+        ExtraValue: this.state.loadedCodeInfo[index].ExtraValue ? parseFloat(this.state.loadedCodeInfo[index].ExtraValue).toFixed(2) : null,
       };
 
       let apiResponse;
@@ -808,7 +802,7 @@ class Admin extends Component {
       } else {
         apiResponse = await handleChangeCodeApi(codeInfo);
       }
-      const response = apiResponse.data
+      const response = apiResponse.data;
       if (response && response.errCode === 0) {
         toast.success(this.state.isAddingCode ? 'Tạo AllCodes thành công!' : 'Chỉnh sửa AllCodes thành công!', {
           position: 'top-right',
@@ -878,42 +872,16 @@ class Admin extends Component {
     );
   };
   renderSection = () => {
-    const {
-      loadedAccountInfo,
-      searchValue,
-      filterValue,
-      sortValue,
-      currentPage,
-      totalPages,
-      codeGender,
-      codeAccountType,
-      codeAccountStatus,
-      tempCurrentPage,
-      loadedCodeInfo,
-      codeTypes,
-      isEditingCode,
-      isAddingCode,
-      actionPage
-    } = this.state;
+    const { loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages, codeGender, codeAccountType, codeAccountStatus, tempCurrentPage, loadedCodeInfo, codeTypes, isEditingCode, isAddingCode, actionPage } = this.state;
     switch (actionPage) {
       case 1:
         return (
           <div>
-            <div className="btn-addTK" onClick={() => this.toggleCreateUserModal()}>
-              <button>
-                THÊM TÀI KHOẢN <IonIcon icon={addOutline}></IonIcon>
-              </button>
-            </div>
             <div className="admin-search">
               <div className="admin-search-left">
                 <div className="admin-search-box">
                   <div className="inputbox">
-                    <input
-                      type="text"
-                      placeholder="Tìm kiếm theo tên, email, SĐT"
-                      value={searchValue}
-                      onChange={(event) => this.handleSearchChange(event, 1)}
-                    />
+                    <input type="text" placeholder="Tìm kiếm theo tên, email, SĐT" value={searchValue} onChange={(event) => this.handleSearchChange(event, 1)} />
                     <div className="btn-search">
                       <IonIcon icon={searchOutline} className="search-icon"></IonIcon>
                     </div>
@@ -922,7 +890,7 @@ class Admin extends Component {
               </div>
               <div className="admin-search-right">
                 <button onClick={() => this.handleResetFilter(1)}>Reset</button>
-                <div>
+                <div className="alo">
                   <label>Lọc:</label>
                   <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                     <option value="ALL">Mặc định (Tất cả)</option>
@@ -943,9 +911,9 @@ class Admin extends Component {
                     </optgroup>
                   </select>
                 </div>
-                <div>
+                <div className="alo">
                   <label>Sắp Xếp:</label>
-                  <select value={sortValue} onChange={(event) => this.handleSort(event.target.value, 1)}>
+                  <select value={sortValue} onChange={(event) => this.handleSort(event.target.value, 1)} className="select-2">
                     <option value="0">Mặc định</option>
                     <option value="1">A-Z</option>
                     <option value="2">Z-A</option>
@@ -957,7 +925,13 @@ class Admin extends Component {
                   </select>
                 </div>
               </div>
+              <div className="btn-addTK" onClick={() => this.toggleCreateUserModal()}>
+                <button>
+                  THÊM TÀI KHOẢN <IonIcon icon={addOutline}></IonIcon>
+                </button>
+              </div>
             </div>
+
             <div className="admin-list">
               <div className="users-table">
                 <table className="table">
@@ -976,10 +950,7 @@ class Admin extends Component {
                     </tr>
                     {loadedAccountInfo.length > 0 ? (
                       loadedAccountInfo.map((item) => (
-                        <tr
-                          key={item.AccountID}
-                          className={item.AccountStatus === 'ACT' ? 'status-act' : 'status-dis'}
-                        >
+                        <tr key={item.AccountID} className={item.AccountStatus === 'ACT' ? 'status-act' : 'status-dis'}>
                           <td>
                             <p>{item.AccountID}</p>
                           </td>
@@ -992,16 +963,10 @@ class Admin extends Component {
                           <td>{codeAccountStatus.find((filterItem) => filterItem.Code === item.AccountStatus)?.CodeValueVI || item.AccountStatus}</td>
                           <td>{new Date(item.CreatedAt).toLocaleDateString('vi-VN')}</td>
                           <td>
-                            <button
-                              className="btn-edit"
-                              onClick={() => this.handleSelectedAccount(item.AccountID)}
-                            >
+                            <button className="btn-edit" onClick={() => this.handleSelectedAccount(item.AccountID)}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
-                            <button
-                              className="btn-lock"
-                              onClick={() => this.handleChangeAccountStatus(item)}
-                            >
+                            <button className="btn-lock" onClick={() => this.handleChangeAccountStatus(item)}>
                               <IonIcon icon={lockClosed}></IonIcon>
                             </button>
                           </td>
@@ -1020,40 +985,18 @@ class Admin extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button
-                      className="first"
-                      onClick={() => this.handlePageChange(1, 1)}
-                      disabled={currentPage === 1}
-                    >
+                    <button className="first" onClick={() => this.handlePageChange(1, 1)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button
-                      className="prev"
-                      onClick={() => this.handlePrevPage(1)}
-                      disabled={currentPage === 1}
-                    >
+                    <button className="prev" onClick={() => this.handlePrevPage(1)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input
-                      type="text"
-                      value={tempCurrentPage}
-                      onChange={(event) => this.handlePageInputChange(event, 1)}
-                      onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
-                      onBlur={() => this.handlePageInputBlur(1)}
-                    />
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 1)} onKeyDown={(event) => this.handlePageKeyDown(event, 1)} onBlur={() => this.handlePageInputBlur(1)} />
                     <span className="total-pages">/ {totalPages}</span>
-                    <button
-                      className="next"
-                      onClick={() => this.handleNextPage(1)}
-                      disabled={currentPage === totalPages}
-                    >
+                    <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button
-                      className="last"
-                      onClick={() => this.handlePageChange(totalPages, 1)}
-                      disabled={currentPage === totalPages}
-                    >
+                    <button className="last" onClick={() => this.handlePageChange(totalPages, 1)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -1065,23 +1008,11 @@ class Admin extends Component {
       case 2:
         return (
           <div>
-            <button
-              style={{ display: actionPage === 2 ? 'block' : 'none' }}
-              onClick={() => this.handleAddCode()}
-              className="add-code"
-            >
-              THÊM CODE MỚI <IonIcon icon={addOutline}></IonIcon>
-            </button>
             <div className="admin-search">
               <div className="admin-search-left">
                 <div className="admin-search-box">
                   <div className="inputbox">
-                    <input
-                      type="text"
-                      placeholder="Tìm kiếm theo Type, Code và CodeValue"
-                      value={searchValue}
-                      onChange={(event) => this.handleSearchChange(event, 2)}
-                    />
+                    <input type="text" placeholder="Tìm kiếm theo Type, Code và CodeValue" value={searchValue} onChange={(event) => this.handleSearchChange(event, 2)} />
                     <div className="btn-search">
                       <IonIcon icon={searchOutline} className="search-icon"></IonIcon>
                     </div>
@@ -1090,7 +1021,7 @@ class Admin extends Component {
               </div>
               <div className="admin-search-right">
                 <button onClick={() => this.handleResetFilter(2)}>Reset</button>
-                <div>
+                <div className="alo">
                   <label>Lọc:</label>
                   <Select
                     className="type-filter-select"
@@ -1101,19 +1032,18 @@ class Admin extends Component {
                         label: type.Type,
                       })),
                     ]}
-                    value={
-                      filterValue === 'ALL'
-                        ? { value: 'ALL', label: 'Tất cả' }
-                        : codeTypes.find((type) => `type-${type.Type}` === filterValue)
-                          ? { value: filterValue, label: codeTypes.find((type) => `type-${type.Type}` === filterValue).Type }
-                          : null
-                    }
+                    value={filterValue === 'ALL' ? { value: 'ALL', label: 'Tất cả' } : codeTypes.find((type) => `type-${type.Type}` === filterValue) ? { value: filterValue, label: codeTypes.find((type) => `type-${type.Type}` === filterValue).Type } : null}
                     onChange={(selectedOption) => this.handleFilter(selectedOption ? selectedOption.value : 'ALL', 2)}
                     placeholder="Chọn loại"
                     isClearable
                     isSearchable
                   />
                 </div>
+              </div>
+              <div className="btn-addAC">
+                <button style={{ display: actionPage === 2 ? 'block' : 'none' }} onClick={() => this.handleAddCode()} className="btn-addAC">
+                  THÊM CODE MỚI <IonIcon icon={addOutline}></IonIcon>
+                </button>
               </div>
             </div>
             <div className="admin-list">
@@ -1132,52 +1062,10 @@ class Admin extends Component {
                       loadedCodeInfo.map((item, index) => (
                         <tr key={item.CodeID}>
                           <td>{item.CodeID}</td>
-                          <td>
-                            {isEditingCode === index ? (
-                              <input
-                                type="text"
-                                value={item.Type}
-                                onChange={(e) => this.handleCodeChange(index, 'Type', e.target.value)}
-                                disabled={!isAddingCode}
-                              />
-                            ) : (
-                              item.Type
-                            )}
-                          </td>
-                          <td>
-                            {isEditingCode === index ? (
-                              <input
-                                type="text"
-                                value={item.Code}
-                                onChange={(e) => this.handleCodeChange(index, 'Code', e.target.value)}
-                                disabled={!isAddingCode}
-                              />
-                            ) : (
-                              item.Code
-                            )}
-                          </td>
-                          <td>
-                            {isEditingCode === index ? (
-                              <input
-                                type="text"
-                                value={item.CodeValueVI}
-                                onChange={(e) => this.handleCodeChange(index, 'CodeValueVI', e.target.value)}
-                              />
-                            ) : (
-                              item.CodeValueVI
-                            )}
-                          </td>
-                          <td>
-                            {isEditingCode === index ? (
-                              <input
-                                type="number"
-                                value={item.ExtraValue ?? ''}
-                                onChange={(e) => this.handleCodeChange(index, 'ExtraValue', e.target.value)}
-                              />
-                            ) : (
-                              item.ExtraValue ? parseFloat(item.ExtraValue).toFixed(2) : ''
-                            )}
-                          </td>
+                          <td>{isEditingCode === index ? <input type="text" value={item.Type} onChange={(e) => this.handleCodeChange(index, 'Type', e.target.value)} disabled={!isAddingCode} /> : item.Type}</td>
+                          <td>{isEditingCode === index ? <input type="text" value={item.Code} onChange={(e) => this.handleCodeChange(index, 'Code', e.target.value)} disabled={!isAddingCode} /> : item.Code}</td>
+                          <td>{isEditingCode === index ? <input type="text" value={item.CodeValueVI} onChange={(e) => this.handleCodeChange(index, 'CodeValueVI', e.target.value)} /> : item.CodeValueVI}</td>
+                          <td>{isEditingCode === index ? <input type="number" value={item.ExtraValue ?? ''} onChange={(e) => this.handleCodeChange(index, 'ExtraValue', e.target.value)} /> : item.ExtraValue ? parseFloat(item.ExtraValue).toFixed(2) : ''}</td>
                           <td>
                             {isEditingCode === index ? (
                               <>
@@ -1189,11 +1077,7 @@ class Admin extends Component {
                                 </button>
                               </>
                             ) : (
-                              <button
-                                className="btn-edit"
-                                onClick={() => this.handleEditCode(index)}
-                                disabled={isEditingCode !== null || isAddingCode}
-                              >
+                              <button className="btn-edit" onClick={() => this.handleEditCode(index)} disabled={isEditingCode !== null || isAddingCode}>
                                 <IonIcon icon={pencil}></IonIcon>
                               </button>
                             )}
@@ -1213,40 +1097,18 @@ class Admin extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button
-                      className="first"
-                      onClick={() => this.handlePageChange(1, 2)}
-                      disabled={currentPage === 1}
-                    >
+                    <button className="first" onClick={() => this.handlePageChange(1, 2)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button
-                      className="prev"
-                      onClick={() => this.handlePrevPage(2)}
-                      disabled={currentPage === 1}
-                    >
+                    <button className="prev" onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input
-                      type="text"
-                      value={tempCurrentPage}
-                      onChange={(event) => this.handlePageInputChange(event, 2)}
-                      onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
-                      onBlur={() => this.handlePageInputBlur(2)}
-                    />
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 2)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
                     <span className="total-pages">/ {totalPages}</span>
-                    <button
-                      className="next"
-                      onClick={() => this.handleNextPage(2)}
-                      disabled={currentPage === totalPages}
-                    >
+                    <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button
-                      className="last"
-                      onClick={() => this.handlePageChange(totalPages, 2)}
-                      disabled={currentPage === totalPages}
-                    >
+                    <button className="last" onClick={() => this.handlePageChange(totalPages, 2)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -1261,26 +1123,11 @@ class Admin extends Component {
   };
 
   render() {
-    const {
-      isLoading,
-      isShowCreateAccountModal,
-      isShowEditAccountModal,
-      selectedAccount,
-      actionPage
-    } = this.state;
+    const { isLoading, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, actionPage } = this.state;
     return (
       <div className="admin-container">
-        <CreateAccountModal
-          isOpen={isShowCreateAccountModal}
-          toggleFromModal={this.toggleCreateUserModal}
-          handleCreateAccountFromModal={this.handleCreateAccountFromModal}
-        />
-        <EditAccountModal
-          isOpen={isShowEditAccountModal}
-          toggleFromModal={this.toggleEditAccountModal}
-          selectedAccountID={selectedAccount}
-          handleEditAccountFromModal={this.handleEditAccountFromModal}
-        />
+        <CreateAccountModal isOpen={isShowCreateAccountModal} toggleFromModal={this.toggleCreateUserModal} handleCreateAccountFromModal={this.handleCreateAccountFromModal} />
+        <EditAccountModal isOpen={isShowEditAccountModal} toggleFromModal={this.toggleEditAccountModal} selectedAccountID={selectedAccount} handleEditAccountFromModal={this.handleEditAccountFromModal} />
         <ToastContainer />
         {isLoading ? (
           <Spinner />
@@ -1306,24 +1153,20 @@ class Admin extends Component {
             <div className="admin-top-content">
               <div className="admin-top-content-menu f">
                 <li>
-                  <a
-                    onClick={this.handleFormAccountManagement}
-                    className={actionPage === 1 ? 'active' : ''}
-                  >
+                  <a onClick={this.handleFormAccountManagement} className={actionPage === 1 ? 'active' : ''}>
                     THÔNG TIN TÀI KHOẢN
                   </a>
                 </li>
                 <li>
-                  <a
-                    onClick={this.handleFormCodeManagement}
-                    className={actionPage === 2 ? 'active' : ''}
-                  >
+                  <a onClick={this.handleFormCodeManagement} className={actionPage === 2 ? 'active' : ''}>
                     THÔNG TIN ALLCODES
                   </a>
                 </li>
               </div>
             </div>
-            <div className="admin-mid-content f">{this.renderSection()}</div>
+            <div className="admin-center">
+              <div className="admin-mid-content">{this.renderSection()}</div>
+            </div>
           </div>
         )}
       </div>

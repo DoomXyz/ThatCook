@@ -95,9 +95,9 @@ class EditAccountModal extends Component {
           bio: vetInfo ? vetInfo.Bio || '' : '',
           specialization: vetInfo ? vetInfo.Specialization || '' : '',
           workingstatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
-          selectedServices: vetResponse && vetResponse.errCode === 0 && vetResponse.data.services ? vetResponse.data.services.map(service => service.ServiceID) : [],
+          selectedServices: vetResponse && vetResponse.errCode === 0 && vetResponse.data.services ? vetResponse.data.services.map((service) => service.ServiceID) : [],
         });
-        console.log(vetResponse.data)
+        console.log(vetResponse.data);
       } else {
         this.resetState();
         toast.error('Tải tài khoản thất bại!', {
@@ -208,9 +208,7 @@ class EditAccountModal extends Component {
     }
   };
   handleServiceChange = (selectedOptions) => {
-    const selectedServiceIds = selectedOptions
-      ? selectedOptions.map((option) => option.value)
-      : [];
+    const selectedServiceIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
     this.setState({ selectedServices: selectedServiceIds });
   };
   toggle = async () => {
@@ -374,32 +372,32 @@ class EditAccountModal extends Component {
                   </select>
                   <IonIcon icon={invertModeOutline}></IonIcon>
                 </div>
-                <div className="selectbox">
-                  <label>Dịch vụ thực hiện *</label>
-                  <Select
-                    isMulti
-                    options={loadedServiceInfo.map((service) => ({
-                      value: service.ServiceID,
-                      label: service.ServiceName,
-                    }))}
-                    value={loadedServiceInfo
-                      .filter((service) => selectedServices.includes(service.ServiceID))
-                      .map((service) => ({
-                        value: service.ServiceID,
-                        label: service.ServiceName,
-                      }))}
-                    onChange={this.handleServiceChange}
-                    placeholder="Chọn dịch vụ..."
-                    className="service-select"
-                    classNamePrefix="select"
-                  />
-                  <IonIcon icon={invertModeOutline}></IonIcon>
-                </div>
               </div>
               <div className="inputbox-1">
                 <IonIcon icon={informationCircleOutline}></IonIcon>
                 <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
+              </div>
+              <div className="selectbox-service">
+                <label>Dịch vụ thực hiện</label>
+                <Select
+                  isMulti
+                  options={loadedServiceInfo.map((service) => ({
+                    value: service.ServiceID,
+                    label: service.ServiceName,
+                  }))}
+                  value={loadedServiceInfo
+                    .filter((service) => selectedServices.includes(service.ServiceID))
+                    .map((service) => ({
+                      value: service.ServiceID,
+                      label: service.ServiceName,
+                    }))}
+                  onChange={this.handleServiceChange}
+                  placeholder="Chọn dịch vụ..."
+                  className="service-select"
+                  classNamePrefix="select"
+                />
+                <IonIcon icon={invertModeOutline}></IonIcon>
               </div>
             </div>
           )}

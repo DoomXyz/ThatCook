@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
 
 .f {
   display: flex;
@@ -110,8 +110,8 @@
           font-size: 1.2rem;
           top: 15px;
 
-          &[name='eye-outline'],
-          &[name='eye-off-outline'] {
+          &[name="eye-outline"],
+          &[name="eye-off-outline"] {
             cursor: pointer;
 
             &:hover {
@@ -283,105 +283,85 @@
           }
         }
       }
-
-      .inputbox-2 {
+      .selectbox-service {
         position: relative;
-        margin: 20px 0;
-        margin-right: 1rem;
+        width: 45.7rem;
         border-bottom: 2px solid black;
         color: black;
 
-        .toggle-password {
-          ion-icon {
-            cursor: pointer;
-          }
-        }
-
-        input {
-          width: 350px;
-          height: 50px;
-          /* Giảm chiều cao input */
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 1rem;
-          padding: 0 35px 0 5px;
-          color: black;
-          margin-bottom: -10px;
-
-          &:-webkit-autofill {
-            &,
-            &:hover,
-            &:focus,
-            &:active {
-              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-              -webkit-text-fill-color: black !important;
-              border: none !important;
-              background: transparent !important;
-              transition: background-color 5000s ease-in-out 0s;
-            }
-
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-
-            ~ ion-icon {
-              color: black;
-            }
-          }
-
-          &:not(:placeholder-shown) {
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-
-            ~ ion-icon {
-              color: black;
-            }
-          }
-        }
+        /* Tăng chiều rộng select */
 
         label {
           position: absolute;
-          top: 50%;
+
           left: 5px;
           transform: translateY(-50%);
           color: black;
           font-size: 1rem;
           pointer-events: none;
           transition: all 0.5s ease-in-out;
+          margin-bottom: 10rem;
+        }
+
+        option {
+          background-color: rgb(248, 245, 245);
         }
 
         ion-icon {
           position: absolute;
           right: 8px;
-          color: black;
+          top: 68%;
+          transform: translateY(-50%);
           font-size: 1.2rem;
-          top: 15px;
+          color: black;
+          pointer-events: none;
+        }
+        .service-select {
+          margin-top: 1.5rem;
 
-          &[name='eye-outline'],
-          &[name='eye-off-outline'] {
-            cursor: pointer;
+          width: 45.7rem;
+          background-color: transparent;
+        }
+      }
+    }
 
-            &:hover {
-              color: #333;
-            }
+    .inputbox-2 {
+      position: relative;
+      margin: 20px 0;
+      margin-right: 1rem;
+      border-bottom: 2px solid black;
+      color: black;
+
+      .toggle-password {
+        ion-icon {
+          cursor: pointer;
+        }
+      }
+
+      input {
+        width: 350px;
+        height: 50px;
+        /* Giảm chiều cao input */
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        padding: 0 35px 0 5px;
+        color: black;
+        margin-bottom: -10px;
+
+        &:-webkit-autofill {
+          &,
+          &:hover,
+          &:focus,
+          &:active {
+            -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+            -webkit-text-fill-color: black !important;
+            border: none !important;
+            background: transparent !important;
+            transition: background-color 5000s ease-in-out 0s;
           }
-        }
 
-        .error-message {
-          display: none;
-          font-size: 0.7rem;
-          color: #ff0000;
-          margin-top: 5px;
-          position: absolute;
-          bottom: -20px;
-          left: 5px;
-        }
-
-        input:focus {
           ~ label {
             top: -5px;
             color: black;
@@ -392,271 +372,331 @@
           }
         }
 
-        &:hover {
-          border-bottom: 2px solid #333;
-
-          label {
+        &:not(:placeholder-shown) {
+          ~ label {
             top: -5px;
             color: black;
           }
 
-          ion-icon {
+          ~ ion-icon {
             color: black;
           }
         }
       }
 
-      .inputbox-1 {
-        position: relative;
-        margin: 20px 0px;
-        border-bottom: 2px solid black;
+      label {
+        position: absolute;
+        top: 50%;
+        left: 5px;
+        transform: translateY(-50%);
         color: black;
-        width: 730px;
-
-        textarea {
-          width: 700px;
-          height: 40px;
-          resize: vertical;
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 1rem;
-          padding: 10px 35px 10px 5px;
-          color: black;
-          margin-bottom: -10px;
-          line-height: 1rem;
-          &:focus {
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-          }
-
-          &.filled {
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-          }
-        }
-
-        input {
-          width: 100%;
-          width: 750px;
-          height: 50px;
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 1rem;
-
-          color: black;
-          margin-bottom: -10px;
-
-          &:not([type='password']):-webkit-autofill {
-            &,
-            &:hover,
-            &:focus,
-            &:active {
-              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-              -webkit-text-fill-color: black !important;
-              border: none !important;
-              background: transparent !important;
-              transition: background-color 5000s ease-in-out 0s;
-            }
-
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-
-            ~ ion-icon {
-              color: black;
-            }
-          }
-
-          &:not(:placeholder-shown) {
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-
-            ~ ion-icon {
-              color: black;
-            }
-          }
-        }
-
-        label {
-          position: absolute;
-          top: 50%;
-          left: 5px;
-          transform: translateY(-50%);
-          color: black;
-          font-size: 1rem;
-          pointer-events: none;
-          transition: all 0.5s ease-in-out;
-        }
-
-        ion-icon {
-          position: absolute;
-          right: 8px;
-          color: black;
-          font-size: 1.2rem;
-          top: 15px;
-
-          &[name='eye-outline'],
-          &[name='eye-off-outline'] {
-            cursor: pointer;
-
-            &:hover {
-              color: #333;
-            }
-          }
-        }
-
-        input:focus {
-          ~ label {
-            top: -5px;
-            color: black;
-          }
-
-          ~ ion-icon {
-            color: black;
-          }
-        }
-
-        &:hover {
-          border-bottom: 2px solid #333;
-
-          label {
-            top: -5px;
-            color: black;
-          }
-
-          ion-icon {
-            color: black;
-          }
-        }
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.5s ease-in-out;
       }
 
-      .inputbox-address {
-        position: relative;
-        margin: 20px 0px;
-        border-bottom: 2px solid black;
+      ion-icon {
+        position: absolute;
+        right: 8px;
         color: black;
-        width: 730px;
-        margin-left: 1rem;
+        font-size: 1.2rem;
+        top: 15px;
 
-        input {
-          width: 100%;
-          width: 700px;
-          height: 50px;
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 1rem;
+        &[name="eye-outline"],
+        &[name="eye-off-outline"] {
+          cursor: pointer;
 
-          color: black;
-          margin-bottom: -10px;
-
-          &:not([type='password']):-webkit-autofill {
-            &,
-            &:hover,
-            &:focus,
-            &:active {
-              -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-              -webkit-text-fill-color: black !important;
-              border: none !important;
-              background: transparent !important;
-              transition: background-color 5000s ease-in-out 0s;
-            }
-
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-
-            ~ ion-icon {
-              color: black;
-            }
-          }
-
-          &:not(:placeholder-shown) {
-            ~ label {
-              top: -5px;
-              color: black;
-            }
-
-            ~ ion-icon {
-              color: black;
-            }
-          }
-        }
-
-        label {
-          position: absolute;
-          top: 50%;
-          left: 5px;
-          transform: translateY(-50%);
-          color: black;
-          font-size: 1rem;
-          pointer-events: none;
-          transition: all 0.5s ease-in-out;
-        }
-
-        ion-icon {
-          position: absolute;
-          right: 8px;
-          color: black;
-          font-size: 1.2rem;
-          top: 15px;
-
-          &[name='eye-outline'],
-          &[name='eye-off-outline'] {
-            cursor: pointer;
-
-            &:hover {
-              color: #333;
-            }
-          }
-        }
-
-        input:focus {
-          ~ label {
-            top: -5px;
-            color: black;
-          }
-
-          ~ ion-icon {
-            color: black;
-          }
-        }
-
-        &:hover {
-          border-bottom: 2px solid #333;
-
-          label {
-            top: -5px;
-            color: black;
-          }
-
-          ion-icon {
-            color: black;
+          &:hover {
+            color: #333;
           }
         }
       }
 
       .error-message {
-        color: red;
-        font-size: 1rem;
-        margin-top: -10px;
-        margin-bottom: -10px;
-        margin-left: 15px;
+        display: none;
+        font-size: 0.7rem;
+        color: #ff0000;
+        margin-top: 5px;
+        position: absolute;
+        bottom: -20px;
+        left: 5px;
+      }
+
+      input:focus {
+        ~ label {
+          top: -5px;
+          color: black;
+        }
+
+        ~ ion-icon {
+          color: black;
+        }
+      }
+
+      &:hover {
+        border-bottom: 2px solid #333;
+
+        label {
+          top: -5px;
+          color: black;
+        }
+
+        ion-icon {
+          color: black;
+        }
       }
     }
-  }
 
-  .modal-footer {
-    justify-content: space-between;
+    .inputbox-1 {
+      position: relative;
+      margin: 20px 0px;
+      border-bottom: 2px solid black;
+      color: black;
+      width: 730px;
+
+      textarea {
+        width: 700px;
+        height: 40px;
+        resize: vertical;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        padding: 10px 35px 10px 5px;
+        color: black;
+        margin-bottom: -10px;
+        line-height: 1rem;
+        &:focus {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+        }
+
+        &.filled {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+        }
+      }
+
+      input {
+        width: 100%;
+        width: 750px;
+        height: 50px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+
+        color: black;
+        margin-bottom: -10px;
+
+        &:not([type="password"]):-webkit-autofill {
+          &,
+          &:hover,
+          &:focus,
+          &:active {
+            -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+            -webkit-text-fill-color: black !important;
+            border: none !important;
+            background: transparent !important;
+            transition: background-color 5000s ease-in-out 0s;
+          }
+
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+
+        &:not(:placeholder-shown) {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+      }
+
+      label {
+        position: absolute;
+        top: 50%;
+        left: 5px;
+        transform: translateY(-50%);
+        color: black;
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.5s ease-in-out;
+      }
+
+      ion-icon {
+        position: absolute;
+        right: 8px;
+        color: black;
+        font-size: 1.2rem;
+        top: 15px;
+
+        &[name="eye-outline"],
+        &[name="eye-off-outline"] {
+          cursor: pointer;
+
+          &:hover {
+            color: #333;
+          }
+        }
+      }
+
+      input:focus {
+        ~ label {
+          top: -5px;
+          color: black;
+        }
+
+        ~ ion-icon {
+          color: black;
+        }
+      }
+
+      &:hover {
+        border-bottom: 2px solid #333;
+
+        label {
+          top: -5px;
+          color: black;
+        }
+
+        ion-icon {
+          color: black;
+        }
+      }
+    }
+
+    .inputbox-address {
+      position: relative;
+      margin: 20px 0px;
+      border-bottom: 2px solid black;
+      color: black;
+      width: 730px;
+      margin-left: 1rem;
+
+      input {
+        width: 100%;
+        width: 700px;
+        height: 50px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+
+        color: black;
+        margin-bottom: -10px;
+
+        &:not([type="password"]):-webkit-autofill {
+          &,
+          &:hover,
+          &:focus,
+          &:active {
+            -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+            -webkit-text-fill-color: black !important;
+            border: none !important;
+            background: transparent !important;
+            transition: background-color 5000s ease-in-out 0s;
+          }
+
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+
+        &:not(:placeholder-shown) {
+          ~ label {
+            top: -5px;
+            color: black;
+          }
+
+          ~ ion-icon {
+            color: black;
+          }
+        }
+      }
+
+      label {
+        position: absolute;
+        top: 50%;
+        left: 5px;
+        transform: translateY(-50%);
+        color: black;
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.5s ease-in-out;
+      }
+
+      ion-icon {
+        position: absolute;
+        right: 8px;
+        color: black;
+        font-size: 1.2rem;
+        top: 15px;
+
+        &[name="eye-outline"],
+        &[name="eye-off-outline"] {
+          cursor: pointer;
+
+          &:hover {
+            color: #333;
+          }
+        }
+      }
+
+      input:focus {
+        ~ label {
+          top: -5px;
+          color: black;
+        }
+
+        ~ ion-icon {
+          color: black;
+        }
+      }
+
+      &:hover {
+        border-bottom: 2px solid #333;
+
+        label {
+          top: -5px;
+          color: black;
+        }
+
+        ion-icon {
+          color: black;
+        }
+      }
+    }
+
+    .error-message {
+      color: red;
+      font-size: 1rem;
+      margin-top: -10px;
+      margin-bottom: -10px;
+      margin-left: 15px;
+    }
   }
+}
+
+.modal-footer {
+  justify-content: space-between;
 }

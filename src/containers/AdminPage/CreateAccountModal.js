@@ -163,9 +163,7 @@ class CreateAccountModal extends Component {
   };
 
   handleServiceChange = (selectedOptions) => {
-    const selectedServiceIds = selectedOptions
-      ? selectedOptions.map((option) => option.value)
-      : [];
+    const selectedServiceIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
     this.setState({ selectedServices: selectedServiceIds });
   };
 
@@ -198,7 +196,7 @@ class CreateAccountModal extends Component {
     const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
     const phoneRegex = /^[0-9]{10,11}$/;
     const specializationRegex = /^$|^[A-Za-zÀ-ỹ\s]{0,50}$/;
-    console.log(this.state)
+    console.log(this.state);
     if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
     if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
 
@@ -265,8 +263,7 @@ class CreateAccountModal extends Component {
 
   render() {
     const { isOpen } = this.props;
-    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingstatus,
-      isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices } = this.state;
+    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingstatus, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices } = this.state;
     const serviceOptions = loadedServiceInfo.map((service) => ({
       value: service.ServiceID,
       label: service.ServiceName,
@@ -328,17 +325,9 @@ class CreateAccountModal extends Component {
                 <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
               </div>
-              <div className="selectbox">
-                <label>Dịch vụ thực hiện *</label>
-                <Select
-                  isMulti
-                  options={serviceOptions}
-                  value={serviceOptions.filter((option) => selectedServices.includes(option.value))}
-                  onChange={this.handleServiceChange}
-                  placeholder="Chọn dịch vụ..."
-                  className="service-select"
-                  classNamePrefix="select"
-                />
+              <div className="selectbox-service">
+                <label>Dịch vụ thực hiện</label>
+                <Select isMulti options={serviceOptions} value={serviceOptions.filter((option) => selectedServices.includes(option.value))} onChange={this.handleServiceChange} placeholder="Chọn dịch vụ..." className="service-select" classNamePrefix="select" />
                 <IonIcon icon={invertModeOutline}></IonIcon>
               </div>
             </div>

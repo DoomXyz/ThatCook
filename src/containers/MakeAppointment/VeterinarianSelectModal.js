@@ -6,8 +6,9 @@ import { IonIcon } from '@ionic/react';
 import { searchOutline } from 'ionicons/icons';
 import './VeterinarianSelectModal.scss';
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
-import { handleGetServiceInfoApi } from '../../services/appointmentServices'
+import { handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import doctor from '../../assets/doctor-imgs/Anh-bac-si-Web_ThS.-BS.-DOAN-TRONG-NGHIA-.jpg';
 
 class VeterinarianSelectModal extends Component {
   constructor(props) {
@@ -28,9 +29,7 @@ class VeterinarianSelectModal extends Component {
     this.debounceTimeout = null;
   }
 
-  async componentDidMount() {
-
-  }
+  async componentDidMount() { }
 
   async componentDidUpdate(prevProps) {
     const { isOpen } = this.props;
@@ -43,8 +42,10 @@ class VeterinarianSelectModal extends Component {
 
   handleLoadVeterinarianInfo = async () => {
     const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
+
     try {
       const response = await handleLoadVeterinarianInfoApi(currentPage, limitItemPerQuery, searchValue, filterValue, sortValue);
+      console.log(response);
       if (response && response.errCode === 0) {
         this.setState({
           loadedVeterinarianInfo: response.data,
@@ -59,7 +60,7 @@ class VeterinarianSelectModal extends Component {
         closeOnClick: true,
       });
     }
-  }
+  };
 
   handleLoadServiceFilterValue = async () => {
     try {
@@ -221,9 +222,7 @@ class VeterinarianSelectModal extends Component {
     }
   };
 
-  getAccountStatusValue = (code) => {
-
-  };
+  getAccountStatusValue = (code) => { };
 
   handleSelectVeterinarianFromModal = (veterinarianID) => {
     this.props.handleSelectVeterinarianFromModal(veterinarianID);
@@ -235,25 +234,17 @@ class VeterinarianSelectModal extends Component {
     const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;
 
     return (
-      <Modal
-        show={isOpen}
-        onHide={toggleFromModal}
-        centered backdrop="static"
-        className="veterinarian-select-modal"
-      >
+      <Modal show={isOpen} onHide={toggleFromModal} centered backdrop="static" className="veterinarian-select-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Chọn Bác Sĩ Thú Y</Modal.Title>
+          <Modal.Title>
+            <p>Chọn Bác Sĩ Thú Y</p>
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="veterinarian-select-table">
+          {/* <div className="veterinarian-select-table">
             <div className="showdoctor-content-top f">
               <div className="showdoctor-content-top-search">
-                <input
-                  type="text"
-                  placeholder="Nhập tên bác sĩ"
-                  value={searchValue}
-                  onChange={(event) => this.handleSearchChange(event)}
-                />
+                <input type="text" placeholder="Nhập tên bác sĩ" value={searchValue} onChange={(event) => this.handleSearchChange(event)} />
                 <IonIcon icon={searchOutline}></IonIcon>
               </div>
               <div className="showdoctor-content-top-filter">
@@ -316,45 +307,94 @@ class VeterinarianSelectModal extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button
-                      className="first"
-                      onClick={() => this.handlePageChange(1)}
-                      disabled={currentPage === 1}
-                    >
+                    <button className="first" onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button
-                      className="prev"
-                      onClick={this.handlePrevPage}
-                      disabled={currentPage === 1}
-                    >
+                    <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input
-                      type="text"
-                      value={tempCurrentPage}
-                      onChange={this.handlePageInputChange}
-                      onKeyDown={this.handlePageKeyDown}
-                      onBlur={this.handlePageInputBlur}
-                    />
+                    <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
                     <span className="total-pages">/ {totalPages}</span>
-                    <button
-                      className="next"
-                      onClick={this.handleNextPage}
-                      disabled={currentPage === totalPages}
-                    >
+                    <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button
-                      className="last"
-                      onClick={() => this.handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
-                    >
+                    <button className="last" onClick={() => this.handlePageChange(totalPages)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
                 </div>
               )}
+            </div>
+          </div> */}
+
+          <div className="showdoctor-modal-body">
+            <div className="showdoctor-content">
+              <div className="showdoctor-content-top f  ">
+                <div className="showdoctor-content-top-search">
+                  <input type="text" placeholder="Nhập tên bác sĩ" value={searchValue} onChange={(event) => this.handleSearchChange(event)} />
+                  <IonIcon icon={searchOutline}></IonIcon>
+                </div>
+                <div className="showdoctor-content-top-sort">
+                  <p>Sắp xếp:</p>
+                  <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
+                    <option value="0">Mặc định</option>
+                    <option value="1">Số lượt đặt lịch</option>
+                    <option value="2">Tên A-Z</option>
+                    <option value="3">Tên Z-A</option>
+                  </select>
+                </div>
+                <div className="showdoctor-content-top-filter">
+                  <p>Lọc:</p>
+                  <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
+                    <option value="ALL">Tất cả</option>
+                    {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
+                      <optgroup label="Dịch vụ khám">
+                        {loadedServiceFilterValue.map((item) => (
+                          <option key={item.ServiceID} value={item.ServiceID}>
+                            {item.ServiceName}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+              </div>
+              <div className="showdoctor-content-mid showdoctor-con">
+                <div className="showdoctor-content-mid-list">
+                  {loadedVeterinarianInfo.length > 0 ? (
+                    loadedVeterinarianInfo.map((item) => (
+                      <div className="showdoctor-content-mid-list-item " key={item.AccountID}>
+                        <div className="f">
+                          <img src={item.UserImage} />
+                          <div>
+                            <div>
+                              <p>
+                                Bác sĩ: <b>{item.UserName}</b>
+                              </p>
+                              <p>
+                                <b>Chuyên ngành:</b> {item.Specialization}
+                              </p>
+                              <p>
+                                <b>Số lượt đặt lịch:</b> {item.BookingCount || 0}
+                              </p>
+                              <p>
+                                <b>Trạng thái:</b> {codeWorkingStatus.find((filterItem) => filterItem.Code === item.WorkingStatus)?.CodeValueVI || item.WorkingStatus}
+                              </p>
+                            </div>
+                            <div>
+                              <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectVeterinarianFromModal(item.AccountID)}>
+                                Đặt lịch
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p>khoog co bs nào</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </Modal.Body>

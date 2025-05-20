@@ -54,6 +54,10 @@ const handleLoadVeterinarianInfoApi = (page, limit, search, filter, sort) => {
   return axios.get(`/api/load-veterinarianinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
+const handleChangeWorkingStatusApi = (accountid, workingstatus) => {
+  return axios.put('/api/change-workingstatus', { accountid, workingstatus });
+};
+
 export {
   handleRegisterApi,
   handleLoginApi,
@@ -69,4 +73,5 @@ export {
   handleSendForgotTokenApi,
   handleVerifyForgotTokenApi,
   handleLoadVeterinarianInfoApi,
+  handleChangeWorkingStatusApi,
 };

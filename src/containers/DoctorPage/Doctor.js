@@ -3,18 +3,21 @@ import { ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 
+import Spinner from '../../components/Spinner';
+import DatePicker from 'react-datepicker';
+
 import { chevronBack, pencil, eyeOutline, eyeOffOutline, chevronForwardOutline, chevronBackOutline } from 'ionicons/icons';
 
 import './Doctor.scss'; // Import SCSS
 
-import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
-import { uploadImageToCloudinaryApi, handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { handleLogoutApi, handleChangeAccountInfoApi, handleChangeWorkingStatusApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { handleLoadPendingAppointmentsApi, handleChangeAppointmentStatusApi } from '../../services/appointmentServices'
 
 import { userLogin, userLogout } from '../../store/actions';
 import { checkLoginStatus } from '../../utils/pakage';
 
 import Header from '../../components/HomeHeader';
-import Footer from '../../components/HomeFooter';
 
 class Doctor extends Component {
   constructor(props) {
@@ -27,10 +30,21 @@ class Doctor extends Component {
       bio: '',
       specialization: '',
       actionPage: 1,
-      editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
+      editField: null,
       servicesList: [],
       originalValue: '',
       codeWorkingStatus: [],
+      loadedPendingAppointments: [],
+      currentPage: 1,
+      tempCurrentPage: '1',
+      limitPendingAppointmentPerQuery: 3,
+      totalPendingAppointmentPages: 1,
+      searchValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
+      date1: '',
+      date2: '',
+      selectedAppointment: null,
 
       currentWeekStart: new Date('2025-05-12'),
       selectedAppointment: null, // Lưu lịch khám được chọn
@@ -135,7 +149,8 @@ class Doctor extends Component {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        this.loadVeterinarianInfo();
+        const { accountInfo } = this.state;
+        this.loadVeterinarianInfo(accountInfo.AccountID);
       }, 10);
     }
   }
@@ -217,12 +232,6 @@ class Doctor extends Component {
           bio: veterinarianInfo.Bio,
           servicesList: veterinarianInfo.services
         });
-      } else {
-        toast.error('Bạn đã được đăng xuất!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
       }
     } catch (e) {
       console.log('Lỗi khi tải tài khoản:', e);
@@ -274,16 +283,189 @@ class Doctor extends Component {
     }
     this.setState({ editField: null, originalValue: '' });
   };
+  handleChangeWorkingStatus = async () => {
+    const { workingstatus, isLoggedIn, accountInfo } = this.state;
+    const newStatus = workingstatus === 'WORK' ? 'LEAVE' : 'WORK';
+    const accountID = isLoggedIn ? accountInfo.AccountID : null;
+    if (!accountID) {
+      toast.error('Lỗi không xác nhận được mã tài khoản!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+    try {
+      const response = await handleChangeWorkingStatusApi(accountID, newStatus);
+      if (response && response.errCode === 0) {
+        this.setState({ workingstatus: newStatus });
+        toast.success('Cập nhật trạng thái thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      } else {
+        toast.error('Lỗi khi cập nhật trạng thái!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Lỗi khi gọi API:', e);
+      toast.error('Lỗi hệ thống khi cập nhật trạng thái!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleLoadPendingAppointments = async () => {
+    const {
+      currentPage,
+      limitPendingAppointmentPerQuery,
+      searchValue,
+      filterValue,
+      sortValue,
+      date1,
+      date2,
+      isLoggedIn,
+      accountInfo
+    } = this.state;
+    const accountID = isLoggedIn ? accountInfo.AccountID : null;
+    if (!accountID) {
+      toast.error('Lỗi không xác nhận được mã tài khoản!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleLoadPendingAppointmentsApi(accountID, currentPage, limitPendingAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2);
+      if (response && response.errCode === 0) {
+
+        this.setState({
+          loadedPendingAppointments: response.data,
+          totalPendingAppointmentPages: Math.ceil(response.totalItems / limitPendingAppointmentPerQuery),
+        });
+      } else {
+        toast.error('Không thể tải danh sách lịch hẹn!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải lịch hẹn:', e);
+      toast.error('Lỗi hệ thống khi tải danh sách!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  handleChangeAppointmentStatus = async (appointmentid, code) => {
+    const { isLoggedIn, accountInfo, workingstatus } = this.state;
+    const accountID = isLoggedIn ? accountInfo.AccountID : null;
+    if (!accountID) {
+      toast.error('Lỗi không xác nhận được mã tài khoản!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+    let isConfirmed = false;
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận {code === "CONF" ? "xác nhận" : "hủy"} lịch hẹn?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 1000, closeOnClick: false, onClose: () => resolve(false) }
+        );
+      });
+    isConfirmed = await confirmAction();
+    if (isConfirmed && workingstatus === "ACTIVE") {
+      try {
+        const response = await handleChangeAppointmentStatusApi(appointmentid, code, accountID);
+        if (response && response.errCode === 0) {
+          if (code === "CONF") {
+            toast.success('Xác nhận lịch hẹn thành công!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+          } else {
+            toast.success('Hủy lịch hẹn thành công!', {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+          }
+          this.handleLoadPendingAppointments();
+        } else {
+          toast.error('Lỗi khi cập nhật lịch hẹn!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
+      } catch (e) {
+        console.log('Lỗi khi cập nhât lịch hẹn:', e);
+        toast.error('Lỗi hệ thống khi cập nhật lịch hẹn!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } else {
+      toast.info('Hãy bật trạng thái làm việc trước khi thao tác!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      })
+    }
+  };
+  resetDateFilter = (dateField) => {
+    this.setState({ [dateField]: null }, () => {
+      this.handleLoadPendingAppointments();
+    });
+  };
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 1 });
+    this.setState({ actionPage: 1 }, () => {
+      this.loadVeterinarianInfo();
+    });
   };
 
   handleFormLichXacNhan = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 2 });
+    this.setState({ actionPage: 2 }, () => {
+      this.handleLoadPendingAppointments();
+    });
   };
-
   handleFormLichKham = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 3 });
@@ -292,6 +474,90 @@ class Doctor extends Component {
   handleFormLichSuKham = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 4 });
+  };
+
+  handleSearchChange = (event) => {
+    const value = event.target.value;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
+        this.debounceTimeout = setTimeout(() => {
+          this.handleLoadPendingAppointments();
+        }, 500);
+      }
+    );
+  };
+
+  handleFilter = (value) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => this.handleLoadPendingAppointments()
+    );
+  };
+
+  handleSort = (value) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => this.handleLoadPendingAppointments()
+    );
+  };
+
+  handlePageChange = (page) => {
+    const { totalPendingAppointmentPages } = this.state;
+    let newPage = page;
+    if (isNaN(page) || page <= 0) newPage = 1;
+    else if (page > totalPendingAppointmentPages) newPage = totalPendingAppointmentPages;
+    this.setState(
+      { currentPage: newPage, tempCurrentPage: newPage.toString() },
+      () => this.handleLoadPendingAppointments()
+    );
+  };
+
+  handlePrevPage = () => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return { currentPage: newPage, tempCurrentPage: newPage.toString() };
+      },
+      () => this.handleLoadPendingAppointments()
+    );
+  };
+
+  handleNextPage = () => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.min(prevState.totalPendingAppointmentPages, prevState.currentPage + 1);
+        return { currentPage: newPage, tempCurrentPage: newPage.toString() };
+      },
+      () => this.handleLoadPendingAppointments()
+    );
+  };
+
+  handlePageInputBlur = () => {
+    const { tempCurrentPage } = this.state;
+    const page = parseInt(tempCurrentPage, 10);
+    this.handlePageChange(page);
+  };
+
+  handlePageKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page);
+    }
   };
 
   handleConfirm = (id) => {
@@ -350,7 +616,8 @@ class Doctor extends Component {
 
   renderForm() {
     const { actionPage, appointments, currentWeekStart, selectedAppointment, editField,
-      isLoggedIn, accountInfo, bio, servicesList, specialization, workingstatus } = this.state;
+      isLoggedIn, accountInfo, bio, servicesList, specialization, workingstatus,
+    } = this.state;
     // Lọc và sắp xếp lịch khám đã xác nhận
     const confirmedAppointments = appointments.filter((appointment) => appointment.status === 'Đã xác nhận').sort((a, b) => new Date(a.time) - new Date(b.time));
 
@@ -378,7 +645,7 @@ class Doctor extends Component {
 
     // Kiểm tra xem tuần có lịch khám nào không
     const hasAppointmentsInWeek = daysInWeek.some(({ dayString }) => groupedAppointments[dayString].length > 0);
-
+    const { searchValue, filterValue, sortValue, loadedPendingAppointments, currentPage, tempCurrentPage, totalPendingAppointmentPages, date1, date2 } = this.state
     switch (actionPage) {
       case 1:
         return (
@@ -387,7 +654,18 @@ class Doctor extends Component {
               <b>Thông tin người dùng:</b>
             </h3>
             <div className="doctor-info-tab">
-              <div className="descreption-doctor">button trang thai : {workingstatus} </div>
+              <div className="descreption-doctor">Trạng thái làm việc:</div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={workingstatus === 'WORK'}
+                  onChange={this.handleChangeWorkingStatus}
+                />
+                <span className="slider round"></span>
+              </label>
+              <div className="value-doctor">
+                {workingstatus === 'WORK' ? 'Đang làm việc' : 'Tạm nghỉ'}
+              </div>
             </div>
             <div className="doctor-info-form-content">
               <div className="doctor-content-left">
@@ -429,43 +707,115 @@ class Doctor extends Component {
               <h3>
                 <b>Lịch khám cần xác nhận: </b>
               </h3>
-              <div className="wait-appointment-list">
-                {appointments
-                  .filter((appointment) => appointment.status === 'Chờ xác nhận')
-                  .map((appointment) => (
-                    <div key={appointment.id} className="wait-appointment-object">
-                      <div
-                        className="wait-appointment-info"
-                        onClick={() => this.handleViewDetails(appointment)} // Thêm sự kiện nhấp
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="wait-appointment-left">
-                          <h3 className="wait-appointment-descrpiton">{appointment.petName}</h3>
-                          <div className="wait-appointment-descrpiton">Chủ: {appointment.ownerName}</div>
-                          <div className="wait-appointment-descrpiton">Dịch vụ: {appointment.service}</div>
-                        </div>
-                        <div className="wait-appointment-right">
-                          <div className="wait-appointment-descrpiton">Ngay kham: {appointment.time}</div>
-                          <div className="wait-appointment-descrpiton">Gio kham: {appointment.time}</div>
-                          <div className="wait-appointment-descrpiton">Trạng thái: {appointment.status}</div>
-                        </div>
-                      </div>
-
-                      <div className="wait-appointment-button">
-                        {appointment.status === 'Chờ xác nhận' && (
-                          <>
-                            <button type="button" onClick={() => this.handleConfirm(appointment.id)} className="wait-appointment-button-accept">
-                              Xác nhận
-                            </button>
-                            <button type="button" onClick={() => this.handleReject(appointment.id)} className="wait-appointment-button-refuse">
-                              Từ chối
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+              <div className="filter-sort">
+                <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
+                  <option value="ALL">Tất cả</option>
+                  <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
+                  <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
+                </select>
+                <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
+                  <option value="0">Mặc định</option>
+                  <option value="1">Mới nhất</option>
+                  <option value="2">Cũ nhất</option>
+                </select>
               </div>
+              <div className="date-filter">
+                <label>Ngày bắt đầu:</label>
+                <DatePicker
+                  selected={date1 ? new Date(date1 + 'T00:00:00') : null}
+                  onChange={(date) => {
+                    const formattedDate = date
+                      ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                      : '';
+                    this.setState({ date1: formattedDate }, () => {
+                      this.handleLoadPendingAppointments();
+                    });
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="dd/mm/yyyy"
+                  className="date-picker"
+                />
+                {date1 && (
+                  <button
+                    onClick={() => this.resetDateFilter('date1')}
+                    style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    x
+                  </button>
+                )}
+                <label>Ngày kết thúc:</label>
+                <DatePicker
+                  selected={date2 ? new Date(date2 + 'T00:00:00') : null}
+                  onChange={(date) => {
+                    const formattedDate = date
+                      ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                      : '';
+                    this.setState({ date2: formattedDate }, () => {
+                      this.handleLoadPendingAppointments();
+                    });
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="dd/mm/yyyy"
+                  className="date-picker"
+                />
+                {date2 && (
+                  <button
+                    onClick={() => this.resetDateFilter('date2')}
+                    style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    x
+                  </button>
+                )}
+              </div>
+              <div className="wait-appointment-list">
+                {loadedPendingAppointments.length > 0 ? (
+                  loadedPendingAppointments.map((appointment) => (
+                    <div key={appointment.AppointmentID} className="appointment-item">
+                      <div onClick={() => this.handleViewDetails(appointment)}>
+                        <p>Tên thú cưng: {appointment.PetName}</p>
+                        <p>Chủ: {appointment.CustomerName}</p>
+                        <p>Dịch vụ: {appointment.ServiceName}</p>
+                        <p>
+                          Ngày: {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')} -{' '}
+                          {appointment.StartTime.slice(0, 5)}
+                        </p>
+                      </div>
+                      <button type="button" onClick={() => this.handleChangeAppointmentStatus(appointment.AppointmentID, "CONF")}>
+                        Xác nhận
+                      </button>
+                      <button type="button" onClick={() => this.handleChangeAppointmentStatus(appointment.AppointmentID, "CANCELED")}>
+                        Từ chối
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p>Không có lịch hẹn nào.</p>
+                )}
+              </div>
+              {totalPendingAppointmentPages > 1 && (
+                <div className="pagination">
+                  <button onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
+                    {'<<'}
+                  </button>
+                  <button onClick={this.handlePrevPage} disabled={currentPage === 1}>
+                    {'<'}
+                  </button>
+                  <input
+                    type="text"
+                    value={tempCurrentPage}
+                    onChange={(e) => this.setState({ tempCurrentPage: e.target.value })}
+                    onKeyDown={this.handlePageKeyDown}
+                    onBlur={this.handlePageInputBlur}
+                  />
+                  <span>/ {totalPendingAppointmentPages}</span>
+                  <button onClick={this.handleNextPage} disabled={currentPage === totalPendingAppointmentPages}>
+                    {'>'}
+                  </button>
+                  <button onClick={() => this.handlePageChange(totalPendingAppointmentPages)} disabled={currentPage === totalPendingAppointmentPages}>
+                    {'>>'}
+                  </button>
+                </div>
+              )}
             </div>
           </form>
         );
@@ -660,28 +1010,32 @@ class Doctor extends Component {
   }
 
   render() {
-    const { actionPage, selectedAppointment } = this.state;
+    const { actionPage, selectedAppointment, isLoading } = this.state;
     return (
       <div className="doctor-page">
-        <Header navigate={this.props.navigate} userInfo={this.props.userInfo} triggerLoadInformation={this.state.triggerLoadInformation} />
+        <Header navigate={this.props.navigate} userInfo={this.props.userInfo} />
         <ToastContainer />
-        <div className="doctor-container">
-          <div className="doctor-action-form">
-            <div className={`doctor-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
-              Hồ sơ bác sĩ
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <div className="doctor-container">
+            <div className="doctor-action-form">
+              <div className={`doctor-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
+                Hồ sơ bác sĩ
+              </div>
+              <div className={`doctor-action-wait-appointment ${actionPage === 2 ? 'active' : ''} || ${actionPage === 5 && selectedAppointment.status === 'Chờ xác nhận' ? 'active' : ''}`} onClick={this.handleFormLichXacNhan}>
+                Lịch cần xác nhận
+              </div>
+              <div className={`doctor-action-celendar ${actionPage === 3 ? 'active' : ''} || ${actionPage === 5 && selectedAppointment.status === 'Đã xác nhận' ? 'active' : ''}`} onClick={this.handleFormLichKham}>
+                Lịch khám
+              </div>
+              <div className={`doctor-action-history-appointment ${actionPage === 4 ? 'active' : ''} || ${actionPage === 5 && selectedAppointment.status === 'Đã hoàn thành' ? 'active' : ''}`} onClick={this.handleFormLichSuKham}>
+                Lịch sử khám
+              </div>
             </div>
-            <div className={`doctor-action-wait-appointment ${actionPage === 2 ? 'active' : ''} || ${actionPage === 5 && selectedAppointment.status === 'Chờ xác nhận' ? 'active' : ''}`} onClick={this.handleFormLichXacNhan}>
-              Lịch cần xác nhận
-            </div>
-            <div className={`doctor-action-celendar ${actionPage === 3 ? 'active' : ''} || ${actionPage === 5 && selectedAppointment.status === 'Đã xác nhận' ? 'active' : ''}`} onClick={this.handleFormLichKham}>
-              Lịch khám
-            </div>
-            <div className={`doctor-action-history-appointment ${actionPage === 4 ? 'active' : ''} || ${actionPage === 5 && selectedAppointment.status === 'Đã hoàn thành' ? 'active' : ''}`} onClick={this.handleFormLichSuKham}>
-              Lịch sử khám
-            </div>
+            <div className="doctor-form">{this.renderForm()}</div>
           </div>
-          <div className="doctor-form">{this.renderForm()}</div>
-        </div>
+        )}
       </div>
     );
   }
