@@ -246,7 +246,7 @@ class EditAccountModal extends Component {
     if (!gender) return { errCode: -1, errMessage: 'Giới tính không tồn tại!' };
     if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: 'Giới tính không hợp lệ!' };
 
-    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên môn không hợp lệ!' };
+    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên khoa không hợp lệ!' };
 
     if (accounttype === 'V' && selectedServices.length === 0) {
       return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
@@ -358,6 +358,21 @@ class EditAccountModal extends Component {
                   <IonIcon icon={idCardOutline}></IonIcon>
                   <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
                   <label>Chuyên khoa</label>
+                </div>
+                <div className="selectbox">
+                  <label>Trạng thái làm việc</label>
+                  <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
+                    {codeWorkingStatus.length > 0 ? (
+                      codeWorkingStatus.map((item) => (
+                        <option key={item.Code} value={item.Code}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có dữ liệu trạng thái</option>
+                    )}
+                  </select>
+                  <IonIcon icon={invertModeOutline}></IonIcon>
                 </div>
                 <div className="selectbox">
                   <label>Dịch vụ thực hiện *</label>

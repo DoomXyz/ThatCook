@@ -579,6 +579,9 @@ class Doctor extends Component {
                 <div className="doctor-info-tab">
                   <div className="descreption-doctor">chuyen khoa </div>
                 </div>
+                <div className="doctor-info-tab">
+                  <div className="descreption-doctor">dich vu </div>
+                </div>
                 <div className="change-info-button" onSubmit={this.handleUpdateAccountInfo}>
                   <button> Cập nhật </button>
                 </div>

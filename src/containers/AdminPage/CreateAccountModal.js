@@ -222,7 +222,7 @@ class CreateAccountModal extends Component {
 
     if (password !== confirmPassword) return { errCode: 1, errMessage: 'Mật khẩu không trùng khớp!' };
 
-    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên môn không hợp lệ!' };
+    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên khoa không hợp lệ!' };
 
     if (accounttype === 'V' && selectedServices.length === 0) {
       return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
