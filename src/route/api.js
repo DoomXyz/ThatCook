@@ -108,6 +108,7 @@ let initAPIRoutes = (app) => {
     router.get('/api/check-coupon', couponController.handleCheckCoupon);
     router.get('/api/get-couponinfo', couponController.handleGetCouponInfo);
     router.get('/api/load-couponinfo', couponController.handleLoadCouponInfo);
+    router.post('/api/create-coupon', couponController.handleCreateCoupon);
     //veterinarian
 
     return app.use('/', router);

@@ -49,8 +49,22 @@ let handleLoadCouponInfo = async (req, res) => {
     }
 };
 
+let handleCreateCoupon = async (req, res) => {
+    try {
+        let response = await couponService.createCoupon(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: 3,
+            errMessage: 'Lỗi từ server: ' + e.message,
+            data: null,
+        });
+    }
+};
 module.exports = {
     handleCheckCoupon,
     handleGetCouponInfo,
-    handleLoadCouponInfo
+    handleLoadCouponInfo,
+    handleCreateCoupon,
 };
