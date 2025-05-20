@@ -93,12 +93,14 @@
         flex: 3;
         /* Chiếm không gian tối đa bên trái */
         justify-content: flex-start;
-        padding-right: 10px;
+        padding-right:
+          10px;
       }
 
-      .value-doctor {
+      .doctor-value {
         display: flex;
         color: #333;
+        padding-right: 10px;
         /* Tùy chỉnh kiểu dáng cho value */
         flex: 7;
         /* Chiếm không gian tối đa bên phải */

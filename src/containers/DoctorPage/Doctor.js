@@ -7,7 +7,7 @@ import { chevronBack, pencil, eyeOutline, eyeOffOutline, chevronForwardOutline, 
 
 import './Doctor.scss'; // Import SCSS
 
-import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from '../../services/accountServices';
+import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 import { uploadImageToCloudinaryApi, handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 import { userLogin, userLogout } from '../../store/actions';
@@ -28,17 +28,10 @@ class Doctor extends Component {
       specialization: '',
       actionPage: 1,
       editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
-
+      servicesList: [],
       originalValue: '',
-      userimage: null,
-      accountname: '',
-      username: '',
-      phone: '',
-      address: '',
-      email: '',
-
-      actionPage: 1,
       codeWorkingStatus: [],
+
       currentWeekStart: new Date('2025-05-12'),
       selectedAppointment: null, // Lưu lịch khám được chọn
       appointments: [
@@ -128,23 +121,21 @@ class Doctor extends Component {
 
   async componentDidMount() {
     await this.handleIsLogin();
+    await this.handleLoadCodeWorkingStatus();
     if (this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        const { accountid } = this.state;
-        // this.loadAccountInfo(accountid);
+        const { accountInfo } = this.state;
+        this.loadVeterinarianInfo(accountInfo.AccountID);
         this.setState({ isLoading: false });
       }, 10);
-      setTimeout(() => {
-        console.log(this.state);
-      }, 100);
     }
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        // this.loadAccountInfo();
+        this.loadVeterinarianInfo();
       }, 10);
     }
   }
@@ -173,11 +164,11 @@ class Doctor extends Component {
       console.log('Token not found!');
     }
   };
-  handleLoadCodeWorkingStatuds = async () => {
+  handleLoadCodeWorkingStatus = async () => {
     try {
-      const codeWorkingStatuds = await handleGetAllCodesApi('WorkingStatuds');
+      const codeWorkingStatuds = await handleGetAllCodesApi('WorkingStatus');
       if (!codeWorkingStatuds || codeWorkingStatuds.length === 0) {
-        toast.error('Không thể tải danh sách giới tính!', {
+        toast.error('Không thể tải danh sách trạng thái!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
@@ -196,36 +187,65 @@ class Doctor extends Component {
       });
     }
   };
-
-  handleAccountInfoChange = (e) => {
+  handleVeterinarianInfoChange = (e) => {
     const { name, value } = e.target;
     if (name === 'workingstatus' && this.state.editField !== 'workingstatus') {
       this.setState({
         editField: 'workingstatus',
-        originalValue: this.state.workingstatus, // Lưu giá trị ban đầu của gender
+        originalValue: this.state.workingstatus,
       });
     }
     this.setState({
       [name]: value,
     });
+    console.log(name, "cach", value)
   };
-  handleEditClick = (field) => {
+  handleChangeInfoClick = (field) => {
     this.setState({
       editField: field,
       originalValue: this.state[field], // Lưu giá trị ban đầu của trường
     });
   };
-  handleUpdateAccountInfo = async (e) => {
+  loadVeterinarianInfo = async (accountid) => {
+    try {
+      const response = await handleGetVeterinarianInfoApi(accountid);
+      if (response && response.errCode === 0) {
+        const veterinarianInfo = response.data;
+        this.setState({
+          specialization: veterinarianInfo.Specialization,
+          workingstatus: veterinarianInfo.WorkingStatus,
+          bio: veterinarianInfo.Bio,
+          servicesList: veterinarianInfo.services
+        });
+      } else {
+        toast.error('Bạn đã được đăng xuất!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải tài khoản:', e);
+      toast.error('Lỗi khi tải tài khoản!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleChangeVeterinarianInfo = async (e) => {
     e.preventDefault();
-    const { editField, originalValue, accountInfo, bio, specialization, workingstatus } = this.state;
+    const { editField, originalValue, accountInfo, bio, specialization, workingstatus, servicesList } = this.state;
     let updateInfo = {
       accountid: accountInfo.AccountID,
       accounttype: accountInfo.AccountType
     };
+    const formattedServicesList = servicesList.map(service => service.ServiceID);
     updateInfo.veterinarianInfo = {
       bio: bio,
       specialization: specialization,
       workingstatus: workingstatus,
+      selectedServicesList: formattedServicesList
     };
     let hasChanges = false;
     // Kiểm tra xem có thay đổi dữ liệu không
@@ -243,14 +263,13 @@ class Doctor extends Component {
           autoClose: 500,
           closeOnClick: true,
         });
-        this.triggerLoadInformation();
       } else {
         toast.error(response.errMessage, {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
-        this.loadAccountInfo(accountInfo.AccountID);
+        this.loadVeterinarianInfo(updateInfo.accountid);
       }
     }
     this.setState({ editField: null, originalValue: '' });
@@ -330,8 +349,8 @@ class Doctor extends Component {
   };
 
   renderForm() {
-    const { actionPage, appointments, currentWeekStart, selectedAppointment, doctorimage, accountname, doctorname, phone, address, gender, email, codeGender, editField } = this.state;
-
+    const { actionPage, appointments, currentWeekStart, selectedAppointment, editField,
+      isLoggedIn, accountInfo, bio, servicesList, specialization, workingstatus } = this.state;
     // Lọc và sắp xếp lịch khám đã xác nhận
     const confirmedAppointments = appointments.filter((appointment) => appointment.status === 'Đã xác nhận').sort((a, b) => new Date(a.time) - new Date(b.time));
 
@@ -363,80 +382,41 @@ class Doctor extends Component {
     switch (actionPage) {
       case 1:
         return (
-          <form className="doctor-info-form" onSubmit={this.handleUpdateAccountInfo}>
+          <form className="doctor-info-form" onSubmit={this.handleChangeVeterinarianInfo}>
             <h3>
               <b>Thông tin người dùng:</b>
             </h3>
             <div className="doctor-info-tab">
-              <div className="descreption-doctor">button tang thai </div>
+              <div className="descreption-doctor">button trang thai : {workingstatus} </div>
             </div>
             <div className="doctor-info-form-content">
               <div className="doctor-content-left">
                 <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Email:</div>
-                  <div className="value-doctor email">{email}</div>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Tên tài khoản:</div>
-                  {editField === 'accountname' ? <input type="text" name="accountname" value={accountname} onChange={this.handleAccountInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{accountname}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('accountname')}>
-                    <IonIcon icon={pencil}></IonIcon>
-                  </button>
-                </div>
-                <div className="doctor-info-tab">
                   <div className="descreption-doctor">Họ và tên:</div>
-                  {editField === 'doctorname' ? <input type="text" name="doctorname" value={doctorname} onChange={this.handleAccountInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{doctorname}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('doctorname')}>
+                  <div className="doctor-value">{isLoggedIn ? accountInfo.UserName : ''}</div>
+                </div>
+                <div className="doctor-info-tab">
+                  <div className="descreption-doctor">Dịch vụ: </div>
+                  {servicesList && servicesList.length > 0 ? servicesList.map((item) => (<div className="doctor-value" key={item.ServiceID}> {item.ServiceName} </div>)) : ""}
+                  <div className="doctor-value"></div>
+                </div>
+                <div className="doctor-info-tab">
+                  <div className="descreption-doctor">Chuyên Khoa: </div>
+                  {editField === 'specialization' ? <input type="text" name='specialization' value={specialization}
+                    onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{specialization}</div>}
+                  <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('specialization')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Số điện thoại: </div>
-                  {editField === 'phone' ? <input type="text" name="phone" value={phone} onChange={this.handleAccountInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{phone}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('phone')}>
+                  <div className="descreption-doctor">Tiểu sử: </div>
+                  {editField === 'bio' ? <input type="text" name='bio' value={bio} onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{bio}</div>}
+                  <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('bio')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Địa chỉ:</div>
-                  {editField === 'address' ? <input type="text" name="address" value={address} onChange={this.handleAccountInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{address}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('address')}>
-                    <IonIcon icon={pencil}></IonIcon>
-                  </button>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Giới tính:</div>
-                  <div className="value-doctor gender-radio-group">
-                    {codeGender.map((item) => (
-                      <label key={item.Code} className="gender-radio">
-                        <input type="radio" name="gender" value={item.Code} checked={gender === item.Code} onChange={this.handleAccountInfoChange} />
-                        {item.CodeValueVI}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">tieu su</div>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">chuyen khoa </div>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">dich vu </div>
-                </div>
-                <div className="change-info-button" onSubmit={this.handleUpdateAccountInfo}>
+                <div className="change-info-button" onSubmit={this.handleChangeVeterinarianInfo}>
                   <button> Cập nhật </button>
-                </div>
-              </div>
-              <div className="doctor-content-right">
-                <div className="doctor-content-right-img-content">
-                  <div className="doctor-content-img-description">Ảnh đại diện</div>
-                  <div className="doctor-content-img-info">
-                    <img className="doctor-content-img-info" src={doctorimage} alt="" />
-                  </div>
-                </div>
-                <div className="doctor-content-img-button">
-                  <input type="file" accept="image/*" id="upload-avatar" onChange={this.handlePrevicedoctorImage} />
                 </div>
               </div>
             </div>
