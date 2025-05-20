@@ -2,7 +2,6 @@ import db from '../models/index';
 import { Op, literal } from 'sequelize';
 import { checkDiscountType, checkCouponStatus } from './utilitiesService';
 let validateCouponInput = async (couponInfo) => {
-    console.log(couponInfo)
     if (!couponInfo || Object.keys(couponInfo).length === 0) {
         return {
             errCode: -1,
@@ -58,6 +57,8 @@ let validateCouponInput = async (couponInfo) => {
     }
     if (maxdiscount) {
         if (maxdiscount < 0) { return { errCode: 1, errMessage: 'Gỉảm giá tối đa phải lớn hơn 0!', data: null }; }
+    } else if (discounttype === 'FIXED' && maxdiscount > minordervalue) {
+        return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được lớn hơn giá trị giảm ban đầu!', data: null };
     }
     if (!startdate) {
         return { errCode: -1, errMessage: 'Ngày bắt đầu không được để trống!', data: null };
@@ -479,4 +480,5 @@ module.exports = {
     checkCoupon,
     getCouponInfo,
     loadCouponInfo,
+    createCoupon,
 };
