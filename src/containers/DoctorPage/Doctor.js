@@ -22,19 +22,23 @@ class Doctor extends Component {
     this.state = {
       isLoading: true,
       isLoggedIn: false,
+      accountInfo: null,
+      workingstatus: '',
+      bio,
+      specialization,
       actionPage: 1,
       editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
+
       originalValue: '',
       userimage: null,
-      accountid: '',
       accountname: '',
       username: '',
       phone: '',
       address: '',
-      gender: '',
       email: '',
+
       actionPage: 1,
-      codeGender: [],
+      codeWorkingStatus: [],
       currentWeekStart: new Date('2025-05-12'),
       selectedAppointment: null, // Lưu lịch khám được chọn
       appointments: [
@@ -120,19 +124,15 @@ class Doctor extends Component {
         },
       ],
     };
-    this.handlePreviceUserImage = this.handlePreviceUserImage.bind(this);
-    this.handleUploadUserImage = this.handleUploadUserImage.bind(this);
-    this.handleUpdateAccountInfo = this.handleUpdateAccountInfo.bind(this);
   }
 
   async componentDidMount() {
-    await this.handleLoadCodeGender();
     await this.handleIsLogin();
     if (this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
         const { accountid } = this.state;
-        this.loadAccountInfo(accountid);
+        // this.loadAccountInfo(accountid);
         this.setState({ isLoading: false });
       }, 10);
       setTimeout(() => {
@@ -144,45 +144,10 @@ class Doctor extends Component {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        this.loadAccountInfo();
+        // this.loadAccountInfo();
       }, 10);
     }
   }
-  componentWillUnmount() {
-    if (this.state.userimage && this.state.fileToUpload) {
-      URL.revokeObjectURL(this.state.userimage);
-    }
-  }
-  loadAccountInfo = async (accountid) => {
-    try {
-      const response = await handleGetAccountInfoApi(accountid);
-      if (response && response.errCode === 0) {
-        const accountInfo = response.data;
-        this.setState({
-          accountname: accountInfo.AccountName,
-          email: accountInfo.Email,
-          username: accountInfo.UserName,
-          phone: accountInfo.Phone,
-          address: accountInfo.Address,
-          gender: accountInfo.Gender,
-          userimage: accountInfo.UserImage,
-        });
-      } else {
-        toast.error('Bạn đã được đăng xuất!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.log('Lỗi khi tải tài khoản:', e);
-      toast.error('Lỗi khi tải tài khoản!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -192,7 +157,7 @@ class Doctor extends Component {
         }
         this.setState({
           isLoggedIn: true,
-          accountid: accountInfo.AccountID,
+          accountInfo: accountInfo,
         });
       } else {
         await handleLogoutApi();
@@ -208,10 +173,10 @@ class Doctor extends Component {
       console.log('Token not found!');
     }
   };
-  handleLoadCodeGender = async () => {
+  handleLoadCodeWorkingStatuds = async () => {
     try {
-      const codeGender = await handleGetAllCodesApi('Gender');
-      if (!codeGender || codeGender.length === 0) {
+      const codeWorkingStatuds = await handleGetAllCodesApi('WorkingStatuds');
+      if (!codeWorkingStatuds || codeWorkingStatuds.length === 0) {
         toast.error('Không thể tải danh sách giới tính!', {
           position: 'top-right',
           autoClose: 500,
@@ -219,29 +184,25 @@ class Doctor extends Component {
         });
       }
       this.setState({
-        codeGender,
-        gender: codeGender.length > 0 ? codeGender[0].Code : '',
+        codeWorkingStatuds,
+        workingstatus: codeWorkingStatuds.length > 0 ? codeWorkingStatuds[0].Code : '',
       });
     } catch (e) {
-      console.log('Error loading gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính!', {
+      console.log('Error loading workingstatus code:', e);
+      toast.error('Lỗi khi tải danh sách trạng thái!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
     }
   };
-  triggerLoadInformation = () => {
-    this.setState((prevState) => ({
-      triggerLoadInformation: !prevState.triggerLoadInformation,
-    }));
-  };
+
   handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'gender' && this.state.editField !== 'gender') {
+    if (name === 'workingstatus' && this.state.editField !== 'workingstatus') {
       this.setState({
-        editField: 'gender',
-        originalValue: this.state.gender, // Lưu giá trị ban đầu của gender
+        editField: 'workingstatus',
+        originalValue: this.state.workingstatus, // Lưu giá trị ban đầu của gender
       });
     }
     this.setState({
@@ -254,144 +215,25 @@ class Doctor extends Component {
       originalValue: this.state[field], // Lưu giá trị ban đầu của trường
     });
   };
-  handlePreviceUserImage = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      console.log('File info:', file.name, file.size, file.type);
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        toast.error('Vui lòng chọn file ảnh!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        return;
-      }
-      const previewUrl = URL.createObjectURL(file);
-      console.log('Preview URL:', previewUrl);
-      this.setState({
-        userimage: previewUrl,
-        fileToUpload: file,
-      });
-    } else {
-      console.log('Không có file được chọn!');
-    }
-  };
-  handleUploadUserImage = async () => {
-    const { fileToUpload } = this.state;
-    if (!fileToUpload) {
-      toast.error('Vui lòng chọn ảnh trước!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-    try {
-      console.log('Gửi yêu cầu upload ảnh lên Cloudinary:', fileToUpload.name, fileToUpload.size);
-      const response = await uploadImageToCloudinaryApi(fileToUpload);
-      console.log('Kết quả upload từ Cloudinary:', response);
-      if (response && response.errCode === 0) {
-        const { secure_url } = response.data;
-        this.setState({
-          userimage: secure_url,
-          fileToUpload: null,
-        });
-        return response.data;
-      } else {
-        console.error('Lỗi từ Cloudinary:', response.errMessage, response);
-        toast.error(response.errMessage || 'Tải ảnh lên Cloudinary thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (error) {
-      console.error('Chi tiết lỗi khi tải ảnh:', error.message);
-      toast.error(error.message || 'Lỗi kết nối, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
   handleUpdateAccountInfo = async (e) => {
     e.preventDefault();
-    const { fileToUpload, isUploading, editField, originalValue, accountid, accountname, username, phone, address, gender, email } = this.state;
+    const { editField, originalValue, accountInfo, bio, specialization, workingstatus } = this.state;
     let updateInfo = {
-      accountid: accountid,
-      accountname: accountname,
-      username: username,
-      phone: phone,
-      address: address,
-      gender: gender,
-      email: email,
+      accountid: accountInfo.AccountID,
+      accounttype: accountInfo.AccountType
+    };
+    updateInfo.veterinarianInfo = {
+      bio: bio,
+      specialization: specialization,
+      workingstatus: workingstatus,
     };
     let hasChanges = false;
-    // Xử lý upload ảnh nếu có fileToUpload
-    if (fileToUpload) {
-      if (isUploading) {
-        toast.info('Đang tải ảnh, vui lòng chờ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        return;
-      }
-      this.setState({ isUploading: true, isLoading: true });
-      try {
-        const imageData = await this.handleUploadUserImage();
-        if (imageData) {
-          const userIMG = {
-            public_id: imageData.public_id,
-            secure_url: imageData.secure_url,
-            original_filename: imageData.original_filename,
-            format: imageData.format,
-            created_at: imageData.created_at,
-          };
-          // Cập nhật anhdaidien trong updateInfo thành userIMG
-          updateInfo.userimage = userIMG;
-          hasChanges = true; // Có upload ảnh, đánh dấu là có thay đổi
-        }
-      } finally {
-        this.setState({ isUploading: false, isLoading: false });
-      }
-    }
     // Kiểm tra xem có thay đổi dữ liệu không
     if (editField) {
       const newValue = this.state[editField];
       if (originalValue !== newValue) {
         hasChanges = true;
       }
-    }
-    const accountName = updateInfo.accountname.trim();
-    const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    if (!accountNameRegex.test(accountName)) {
-      toast.error('Tên tài khoản không hợp lệ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      this.loadAccountInfo(accountid);
-      return;
-    }
-    const phoneNumber = updateInfo.phone.trim();
-    const phoneRegex = /^[0-9]{10,11}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      toast.error('Số điện thoại không hợp lệ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      this.loadAccountInfo(accountid);
-      return;
     }
     if (hasChanges) {
       let response = await handleChangeAccountInfoApi(updateInfo);

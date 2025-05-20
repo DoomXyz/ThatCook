@@ -64,7 +64,7 @@ class User extends Component {
       limitProductPerQuery: 7,
       totalProductPages: 1,
     };
-    this.handlePreviceUserImage = this.handlePreviceUserImage.bind(this);
+    this.handlePreviewUserImage = this.handlePreviewUserImage.bind(this);
     this.handleUploadUserImage = this.handleUploadUserImage.bind(this);
     this.handleUpdateAccountInfo = this.handleUpdateAccountInfo.bind(this);
   }
@@ -297,7 +297,7 @@ class User extends Component {
       });
     }
   };
-  handlePreviceUserImage = (e) => {
+  handlePreviewUserImage = (e) => {
     const file = e.target.files[0];
     if (file) {
       console.log('File info:', file.name, file.size, file.type);
@@ -927,7 +927,7 @@ class User extends Component {
                   </div>
                 </div>
                 <div className="user-content-img-button">
-                  <input type="file" accept="image/*" id="upload-avatar" onChange={this.handlePreviceUserImage} />
+                  <input type="file" accept="image/*" id="upload-avatar" onChange={this.handlePreviewUserImage} />
                 </div>
               </div>
             </div>
