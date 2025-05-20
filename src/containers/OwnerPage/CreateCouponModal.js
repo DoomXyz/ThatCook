@@ -224,53 +224,84 @@ class CreateCouponModal extends Component {
         const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, codeDiscountType, startdate, enddate, discounttype } = this.state;
 
         return (
-            <Modal show={this.props.isOpen} onHide={this.toggle} centered backdrop="static" className="create-banner-modal">
+            <Modal show={this.props.isOpen} onHide={this.toggle} centered backdrop="static" className="create-coupon-modal">
                 <Modal.Header closeButton>
                     <Modal.Title>Thêm Mã Giảm Giá Mới</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className="modal-content">
-                        <div className="modal-content-add-product">
-                            <div className="f">
-                                <div className="modal-content-add-category f">
-                                    <select value={discounttype} onChange={(e) => this.handleSelectChange(e, 'discounttype')}>
-                                        {codeDiscountType.map((type) => (
-                                            <option key={type.Code} value={type.Code}>
-                                                {type.CodeValueVI}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                    <div className="create-coupon-content">
+                        <div className="f">
+                            <div className="modal-content-add-coupon-code">
+                                <p>Mã giảm giá: </p>
+                                <input type="text" placeholder="Nhập mã giảm giá" value={couponcode} onChange={(e) => this.handleInputChange(e, 'couponcode')} />
+                            </div>
+                            <div className="modal-content-add-discount-type">
+                                <p>Loại giảm giá:</p>
+                                <select value={discounttype} onChange={(e) => this.handleSelectChange(e, 'discounttype')}>
+                                    {codeDiscountType.map((type) => (
+                                        <option key={type.Code} value={type.Code}>
+                                            {type.CodeValueVI}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                        <div className="modal-content-add-dates">
-                            <p>Ngày bắt đầu:</p>
-                            <DatePicker selected={startdate} onChange={(date) => this.setState({ startdate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                        <div className="f">
+                            <div className="modal-content-add-discount-value">
+                                <p>Giá trị giảm: </p>
+                                <div className="f">
+                                    <input
+                                        type="text"
+                                        placeholder="Nhập giá trị giảm"
+                                        value={discountvalue}
+                                        onChange={(e) => this.handleInputChange(e, 'discountvalue')}
+                                        onInput={(e) => {
+                                            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="modal-content-add-max-discount">
+                                <p>Giảm tối đa: </p>
+                                <input
+                                    type="text"
+                                    placeholder="Nhập giá giảm tối đa"
+                                    value={maxdiscount}
+                                    onChange={(e) => this.handleInputChange(e, 'maxdiscount')}
+                                    onInput={(e) => {
+                                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                                    }}
+                                />
+                            </div>
                         </div>
-                        <div className="modal-content-add-dates">
-                            <p>Ngày hết hiệu lực:</p>
-                            <DatePicker selected={enddate} onChange={(date) => this.setState({ enddate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                        <div className="f">
+                            <div className="modal-content-add-coupon-description">
+                                <p>Mô tả: </p>
+                                <input type="text" placeholder="Nhập mô tảaa" value={coupondescription} onChange={(e) => this.handleInputChange(e, 'coupondescription')} />
+                            </div>
+                            <div className="modal-content-add-min-value">
+                                <p>Mua tối thiểu: </p>
+                                <input
+                                    type="text"
+                                    placeholder="Nhập giá mua ít nhất"
+                                    value={minordervalue}
+                                    onChange={(e) => this.handleInputChange(e, 'minordervalue')}
+                                    onInput={(e) => {
+                                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                                    }}
+                                />
+                            </div>
                         </div>
 
-                        <div className="modal-content-add-name">
-                            <p>Mã giảm giá: </p>
-                            <input type="text" placeholder="Nhập mã giảm giá" value={couponcode} onChange={(e) => this.handleInputChange(e, 'couponcode')} />
-                        </div>
-                        <div className="modal-content-add-name">
-                            <p>Mô tả: </p>
-                            <input type="text" placeholder="Nhập mô tả" value={coupondescription} onChange={(e) => this.handleInputChange(e, 'coupondescription')} />
-                        </div>
-                        <div className="modal-content-add-name">
-                            <p>Giá mua ít nhât: </p>
-                            <input type="text" placeholder="Nhập mô tả" value={minordervalue} onChange={(e) => this.handleInputChange(e, 'minordervalue')} />
-                        </div>
-                        <div className="modal-content-add-name">
-                            <p>Giá trị giảm: </p>
-                            <input type="text" placeholder="Nhập mô tả" value={discountvalue} onChange={(e) => this.handleInputChange(e, 'discountvalue')} />
-                        </div>
-                        <div className="modal-content-add-name">
-                            <p>Giảm tối đa: </p>
-                            <input type="text" placeholder="Nhập mô tả" value={maxdiscount} onChange={(e) => this.handleInputChange(e, 'maxdiscount')} />
+                        <div className="modal-content-add-dates f">
+                            <div className="modal-content-add-dates-start-date">
+                                <p>Ngày bắt đầu:</p>
+                                <DatePicker selected={startdate} onChange={(date) => this.setState({ startdate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                            </div>
+                            <div className="modal-content-add-dates-end-date">
+                                <p>Ngày hết hiệu lực:</p>
+                                <DatePicker selected={enddate} onChange={(date) => this.setState({ enddate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                            </div>
                         </div>
                     </div>
                 </Modal.Body>

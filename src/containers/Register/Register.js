@@ -15,14 +15,14 @@ class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      accountname: '',
-      email: '',
-      password: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: '',
-      confirmPassword: '',
+      accountname: 'admin',
+      email: 'admin@gmail.com',
+      password: '12345678',
+      username: 'admeow',
+      phone: '0919097895',
+      address: 'nhà admin nghèo',
+      gender: 'M',
+      confirmPassword: '12345678',
       isTogglePassword1: false,
       isTogglePassword2: false,
       codeGender: [],
@@ -178,12 +178,12 @@ class Register extends Component {
               <div className="register-content">
                 <h1>ĐĂNG KÝ</h1>
                 <div className="single">
-                <div className="inputbox">
+                  <div className="inputbox">
                     <IonIcon icon={mailOutline}></IonIcon>
                     <input type="email" placeholder="" value={email} onChange={(event) => this.handleOnChangeInput(event, 'email')} />
                     <label>Email</label>
                   </div>
-                  
+
                 </div>
                 <div className="R1">
                   <div className="inputbox">
@@ -198,7 +198,7 @@ class Register extends Component {
                   </div>
                 </div>
                 <div className="R1">
-                <div className="inputbox">
+                  <div className="inputbox">
                     <IonIcon icon={keyOutline}></IonIcon>
                     <input type="text" placeholder="" value={accountname} onChange={(event) => this.handleOnChangeInput(event, 'accountname')} />
                     <label>Tên tài khoản</label>

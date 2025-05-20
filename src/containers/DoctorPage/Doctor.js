@@ -24,8 +24,8 @@ class Doctor extends Component {
       isLoggedIn: false,
       accountInfo: null,
       workingstatus: '',
-      bio,
-      specialization,
+      bio: '',
+      specialization: '',
       actionPage: 1,
       editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
 
@@ -250,7 +250,7 @@ class Doctor extends Component {
           autoClose: 500,
           closeOnClick: true,
         });
-        this.loadAccountInfo(accountid);
+        this.loadAccountInfo(accountInfo.AccountID);
       }
     }
     this.setState({ editField: null, originalValue: '' });
