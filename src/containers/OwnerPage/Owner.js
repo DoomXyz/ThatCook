@@ -862,37 +862,37 @@ class Owner extends Component {
     this.setState({ isLoading: false });
   };
   handleCreateCouponFromModal = async (couponInfo) => {
-    console.log(couponInfo);
-    // this.setState({ isLoading: true });
-    // try {
-    //   const response = await handleCreateCouponApi(couponInfo);
-    //   if (response && response.errCode === 0) {
-    //     toast.success('Thêm coupon mới thành công!', {
-    //       position: 'top-right',
-    //       autoClose: 500,
-    //       closeOnClick: true,
-    //     });
-    //     await this.handleLoadCouponInfo();
-    //     this.setState({
-    //       isShowCreateCouponModal: false,
-    //     });
-    //   } else {
-    //     const errMessage = response?.errMessage || 'Thêm coupon mới thất bại!';
-    //     toast.error(errMessage, {
-    //       position: 'top-right',
-    //       autoClose: 500,
-    //       closeOnClick: true,
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.error('Create Coupon:', e);
-    //   toast.error('Xảy ra lỗi khi thêm coupon mới, vui lòng thử lại!', {
-    //     position: 'top-right',
-    //     autoClose: 500,
-    //     closeOnClick: true,
-    //   });
-    // }
-    // this.setState({ isLoading: false });
+    this.setState({ isLoading: true });
+    try {
+      const responseApi = await handleCreateCouponApi(couponInfo);
+      const response = responseApi.data;
+      if (response && response.errCode === 0) {
+        toast.success('Thêm coupon mới thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadCouponInfo();
+        this.setState({
+          isShowCreateCouponModal: false,
+        });
+      } else {
+        const errMessage = response?.errMessage || 'Thêm coupon mới thất bại!';
+        toast.error(errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error('Create Coupon:', e);
+      toast.error('Xảy ra lỗi khi thêm coupon mới, vui lòng thử lại!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
   };
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
@@ -1666,17 +1666,17 @@ class Owner extends Component {
         case 4:
           return (
             <div>
-              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-banner">
+              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-coupon">
                 THÊM COUPON <IonIcon icon={add}></IonIcon>
               </button>
               <div className="f">
-                <div className="owner-mid-content-search-banner" style={{ display: actionPage === 4 ? 'flex' : 'none' }}>
+                <div className="owner-mid-content-search-coupon" style={{ display: actionPage === 4 ? 'flex' : 'none' }}>
                   <p>Tìm kiếm:</p>
                   <input type="text" placeholder="Nhập mã coupon" value={searchValue} onChange={(event) => this.handleSearchChange(event, 4)} />
                   <IonIcon icon={searchOutline}></IonIcon>
                 </div>
-                <div style={{ display: actionPage === 4 ? 'flex' : 'none' }} className="owner-mid-content-banner-filter-sort f">
-                  <div className="owner-mid-content-banner-filter">
+                <div style={{ display: actionPage === 4 ? 'flex' : 'none' }} className="owner-mid-content-coupon-filter-sort f">
+                  <div className="owner-mid-content-coupon-filter">
                     <label>Lọc Coupon:</label>
                     <br />
                     <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 4)}>
@@ -1707,7 +1707,7 @@ class Owner extends Component {
                       </optgroup>
                     </select>
                   </div>
-                  <div className="owner-mid-content-banner-sort">
+                  <div className="owner-mid-content-coupon-sort">
                     <label>Sắp xếp:</label>
                     <br />
                     <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 4)}>
@@ -1721,7 +1721,7 @@ class Owner extends Component {
                     </select>
                   </div>
                 </div>
-                <div style={{ display: actionPage === 4 ? 'block' : 'none' }} className="owner-mid-content-banner-date">
+                <div style={{ display: actionPage === 4 ? 'block' : 'none' }} className="owner-mid-content-coupon-date">
                   <label>Coupon còn hiệu lực trong ngày:</label>
                   <br />
                   <div className="f">
@@ -1746,7 +1746,7 @@ class Owner extends Component {
                 </div>
               </div>
 
-              <div className="owner-mid-content-mid-list-img">
+              <div className="owner-mid-content-mid-list-coupon">
                 <table>
                   <thead>
                     <tr>
@@ -1765,22 +1765,17 @@ class Owner extends Component {
                   <tbody>
                     {loadedCouponInfo.length > 0 ? (
                       loadedCouponInfo.map((item) => (
-                        <tr key={item.CouponID} className="owner-mid-content-right-list-banner-item">
+                        <tr key={item.CouponID} className="owner-mid-content-right-list-coupon-item">
                           <td>{item.CouponCode}</td>
                           <td>
-                            {parseFloat(item.DiscountValue).toLocaleString('vi-VN')}{item.DiscountType === 'PERC' ? '%' : 'vnđ'}
+                            {parseFloat(item.DiscountValue).toLocaleString('vi-VN')}
+                            {item.DiscountType === 'PERC' ? '%' : 'vnđ'}
                           </td>
-                          <td>
-                            {parseFloat(item.MaxDiscount).toLocaleString('vi-VN')}vnđ
-                          </td>
+                          <td>{parseFloat(item.MaxDiscount).toLocaleString('vi-VN')}vnđ</td>
                           <td>{parseFloat(item.MinOrderValue) > 0 ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ' : 'Không yêu cầu'}</td>
                           <td>{item.CouponDescription || 'N/A'}</td>
-                          <td>
-                            {loadedDiscountTypeFilterValue.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType}
-                          </td>
-                          <td>
-                            {loadedCouponStatusFilterValue.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus}
-                          </td>
+                          <td>{loadedDiscountTypeFilterValue.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType}</td>
+                          <td>{loadedCouponStatusFilterValue.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus}</td>
                           <td>
                             {item.StartDate
                               ? new Date(item.StartDate).toLocaleString('vi-VN', {
