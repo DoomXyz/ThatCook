@@ -28,9 +28,7 @@ let validateCouponInput = async (couponInfo) => {
             };
         }
     }
-    if (!minordervalue) {
-        return { errCode: -1, errMessage: 'Giá trị mua ít nhất không được để trống!', data: null };
-    } else if (minordervalue < 0) {
+    if (minordervalue && minordervalue < 0) {
         return { errCode: -1, errMessage: 'Giá trị mua ít nhất không được bé hơn 0!', data: null };
     }
     if (!discounttype) {
@@ -57,7 +55,7 @@ let validateCouponInput = async (couponInfo) => {
     }
     if (maxdiscount) {
         if (maxdiscount < 0) { return { errCode: 1, errMessage: 'Gỉảm giá tối đa phải lớn hơn 0!', data: null }; }
-    } else if (discounttype === 'FIXED' && maxdiscount > minordervalue) {
+    } else if (discounttype === 'FIXED' && maxdiscount > discountvalue) {
         return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được lớn hơn giá trị giảm ban đầu!', data: null };
     }
     if (!startdate) {
@@ -449,7 +447,7 @@ let createCoupon = (couponInfo) => {
             const coupon = await db.Coupon.create({
                 CouponCode: couponInfo.couponcode,
                 CouponDescription: couponInfo.coupondescription,
-                MinOrderValue: couponInfo.minordervalue,
+                MinOrderValue: couponInfo.minordervalue ? couponInfo.minordervalue : 0,
                 DiscountValue: couponInfo.discountvalue,
                 MaxDiscount: couponInfo.maxdiscount,
                 DiscountType: couponInfo.discounttype,
