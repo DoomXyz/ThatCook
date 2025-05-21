@@ -35,16 +35,18 @@ textarea {
     }
 
     .makeappointment-content-user-info {
+      margin-left: 5rem;
       b {
+        margin-top: 0.7rem;
         display: block;
-        margin-left: 5rem;
+
         margin-bottom: 1rem;
       }
       input {
         background-color: transparent;
         padding: 0.2rem;
         display: block;
-        margin: 0 auto;
+
         width: 30rem;
         margin-bottom: 1rem;
         border: none;
@@ -56,16 +58,16 @@ textarea {
       }
     }
     .makeappointment-content-pet-info {
+      margin-left: 5rem;
       b {
         margin: 1rem 0;
         display: block;
-        margin-left: 5rem;
       }
       input {
         background-color: transparent;
         padding: 0.2rem;
         display: block;
-        margin: 0 auto;
+
         width: 30rem;
         margin-bottom: 1rem;
         border: none;
@@ -79,8 +81,6 @@ textarea {
           margin-bottom: 1rem;
         }
         input:first-child {
-          margin-left: 5rem;
-
           margin-right: 1rem;
         }
         select {
@@ -100,7 +100,7 @@ textarea {
         }
 
         p:first-of-type {
-          margin-left: 5.4rem;
+          margin-left: 0.4rem;
         }
         select:first-of-type {
           margin-right: 7.4rem;
@@ -115,6 +115,16 @@ textarea {
         width: 4rem;
         border-radius: 0.3rem;
       }
+      .stra {
+        margin: 1rem 0;
+        margin-left: 5rem;
+        width: 30rem;
+        height: 0.08rem;
+        background-color: black;
+      }
+    }
+    .doctor-info {
+      margin-left: 5rem;
     }
     .makeappointment-content-doctor {
       margin-top: 1rem;

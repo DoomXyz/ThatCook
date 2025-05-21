@@ -29,7 +29,7 @@ class VeterinarianSelectModal extends Component {
     this.debounceTimeout = null;
   }
 
-  async componentDidMount() { }
+  async componentDidMount() {}
 
   async componentDidUpdate(prevProps) {
     const { isOpen } = this.props;
@@ -222,7 +222,7 @@ class VeterinarianSelectModal extends Component {
     }
   };
 
-  getAccountStatusValue = (code) => { };
+  getAccountStatusValue = (code) => {};
 
   handleSelectVeterinarianFromModal = (veterinarianID) => {
     this.props.handleSelectVeterinarianFromModal(veterinarianID);

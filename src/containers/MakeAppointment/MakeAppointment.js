@@ -252,14 +252,7 @@ class MakeAppointment extends Component {
     try {
       let accountid = isLoggedIn ? accountInfo.AccountID : guestID || null;
       if (isLoggedIn && loadedPetList.length > 0) {
-        const isValidPetInfo = loadedPetList.find(
-          (item) =>
-            item.PetName === newPetInfo.petname &&
-            item.PetType === newPetInfo.pettype &&
-            item.PetGender === newPetInfo.petgender &&
-            item.Age === newPetInfo.age &&
-            parseFloat(item.PetWeight) === newPetInfo.petweight
-        );
+        const isValidPetInfo = loadedPetList.find((item) => item.PetName === newPetInfo.petname && item.PetType === newPetInfo.pettype && item.PetGender === newPetInfo.petgender && item.Age === newPetInfo.age && parseFloat(item.PetWeight) === newPetInfo.petweight);
         if (isValidPetInfo) {
           toast.info('Đã chọn thú cưng trong danh sách!', {
             position: 'top-right',
@@ -415,7 +408,9 @@ class MakeAppointment extends Component {
 
     if (notes) {
       const notesCheck = notes.trim();
-      if (!notesCheck || notesCheck.length > 65535) { return { errCode: 1, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' }; }
+      if (!notesCheck || notesCheck.length > 65535) {
+        return { errCode: 1, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+      }
     }
 
     return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
@@ -423,8 +418,7 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianID, selectedServiceID,
-        starttime, notes, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianID, selectedServiceID, starttime, notes, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
         toast.error(isValidateInput.errMessage, {
@@ -483,11 +477,11 @@ class MakeAppointment extends Component {
         imageInfo: uploadedImages,
         type: 'FIRST',
       });
-      console.log("respone: ", response)
+      console.log('respone: ', response);
       if (response && response.errCode === 0) {
         this.setState({
-          createdAppointmentID: response.data.AppointmentID
-        })
+          createdAppointmentID: response.data.AppointmentID,
+        });
         toast.success('Đặt lịch thành công!', {
           position: 'top-right',
           autoClose: 500,
@@ -698,12 +692,14 @@ class MakeAppointment extends Component {
               {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && (
                 <div className="makeappointment-save-petinfo-button">
                   <button onClick={this.handleSavePetInfo}>Lưu</button>
+                  <div className="stra"></div>
                 </div>
               )}
+              <b className="doctor-info">*Thông tin đặt lịch</b>
               <div className="makeappointment-content-doctor">
                 <div className="f">
                   <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
-                  {!selectedVeterinarianID ? (<p>*Không bắt buộc</p>) : selectedVeterinarianID}
+                  {!selectedVeterinarianID ? <p>*Không bắt buộc</p> : selectedVeterinarianID}
                 </div>
               </div>
               <div className="makeappointment-content-date">

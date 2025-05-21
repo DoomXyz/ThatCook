@@ -22,7 +22,7 @@ class ShowDoctor extends Component {
       totalPages: 1,
       currentPage: 1,
       tempCurrentPage: '1',
-      limitItemPerQuery: 100,
+      limitItemPerQuery: 9,
       totalPages: 1,
       loadedServiceFilterValue: [],
       codeWorkingStatus: [],
@@ -214,7 +214,7 @@ class ShowDoctor extends Component {
       this.handlePageChange(page);
     }
   };
-  getAccountStatusValue = (code) => { };
+  getAccountStatusValue = (code) => {};
   render() {
     const { isOpen, toggleFromModal } = this.props;
     const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;

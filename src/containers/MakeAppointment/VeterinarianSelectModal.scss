@@ -16,43 +16,7 @@
   .modal-content {
     padding: 20px;
   }
-  //   .veterinarian-select-table {
-  //     max-height: 400px;
-  //     overflow-y: auto;
-  //     table {
-  //       width: 100%;
-  //       border-collapse: collapse;
-  //       thead {
-  //         tr {
-  //           th {
-  //             padding: 10px;
-  //             background: #f0f0f0;
-  //             text-align: left;
-  //             border-bottom: 1px solid #ddd;
-  //           }
-  //         }
-  //       }
-  //       tbody {
-  //         tr {
-  //           td {
-  //             padding: 10px;
-  //             border-bottom: 1px solid #ddd;
-  //           }
-  //           .select-btn {
-  //             background: #007bff;
-  //             color: white;
-  //             border: none;
-  //             padding: 5px 10px;
-  //             border-radius: 5px;
-  //             cursor: pointer;
-  //             &:hover {
-  //               background: #0056b3;
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
+
   .f {
     display: flex;
   }
@@ -60,11 +24,7 @@
   .modal-body {
     .showdoctor-modal-body {
       background-color: white;
-      // .header-container {
-      //   background-color: rgb(255, 255, 255) !important;
-      //   border-bottom: 1px solid black;
-      //   height: 5rem;
-      // }
+
       .showdoctor-content {
         .showdoctor-content-top {
           .showdoctor-content-top-search {
@@ -98,7 +58,6 @@
               border: none;
               background-color: #ebf9fd;
               width: 12rem;
-
               border-radius: 0.7rem;
               padding: 0.5rem;
               color: #11a2f3;
@@ -116,7 +75,6 @@
               border: none;
               background-color: #ebf9fd;
               min-width: 16rem;
-
               border-radius: 0.7rem;
               padding: 0.5rem;
               color: #11a2f3;
@@ -126,10 +84,15 @@
         }
         .showdoctor-content-mid {
           .showdoctor-content-mid-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            max-height: 33rem; /* Enough for 4 items (2 rows) */
+            overflow-y: auto; /* Vertical scrollbar when content exceeds max-height */
+            padding-right: 0.5rem; /* Space for scrollbar */
             .showdoctor-content-mid-list-item {
-              margin-right: 2rem;
               box-shadow: 4px 8px 30px 0 rgba(177, 196, 218, 0.35);
-              width: 30rem;
+              width: calc(50% - 1rem); /* Two items per row */
               height: 14.5rem;
               margin-top: 2rem;
               border-radius: 1rem;
@@ -170,10 +133,8 @@
                 margin-top: 0.5rem;
                 margin-left: 8rem;
               }
-
               button:active {
                 transition: 0s;
-
                 background-color: #148cd2;
               }
             }
