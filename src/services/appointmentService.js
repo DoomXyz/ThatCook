@@ -311,12 +311,12 @@ const confirmAppointment = async (appointmentid, veterinarianid, transaction) =>
     if (appointment.VeterinarianID && appointment.VeterinarianID !== veterinarianid) {
       throw new Error('Lịch hẹn không thuộc bác sĩ này!');
     }
-    if (!appointment.VeterinarianID) {
-      await db.Appointment.update(
-        { VeterinarianID: veterinarianid },
-        { where: { AppointmentID: appointmentid }, transaction }
-      );
-    }
+    // if (!appointment.VeterinarianID) {
+    //   await db.Appointment.update(
+    //     { VeterinarianID: veterinarianid },
+    //     { where: { AppointmentID: appointmentid }, transaction }
+    //   );
+    // }
     await db.Appointment.update(
       { AppointmentStatus: 'CONF' },
       { where: { AppointmentID: appointmentid }, transaction }
@@ -914,7 +914,7 @@ let loadAppointmentDetails = (appointmentid) => {
           {
             model: db.Schedule,
             as: 'Schedule',
-            attributes: ['ScheduleID'],
+            attributes: ['ScheduleID', 'ScheduleStatus'],
             required: false,
           },
         ],
@@ -954,6 +954,7 @@ let loadAppointmentDetails = (appointmentid) => {
         AppointmentBill: appointment.AppointmentBill || null,
         Images: appointment.Images || [],
         ScheduleID: appointment.Schedule ? appointment.Schedule.ScheduleID : null,
+        ScheduleStatus: appointment.Schedule ? appointment.Schedule.ScheduleStatus : null,
       };
 
       resolve({

@@ -56,7 +56,66 @@ let cancelExpiredSchedules = () => {
         }
     });
 };
+const rejectSchedule = async (scheduleid, transaction) => {
+    try {
+        const schedule = await db.Schedule.findOne({
+            where: { ScheduleID: scheduleid },
+            attributes: ['ScheduleID', 'AppointmentID', 'VeterinarianID', 'Date', 'StartTime', 'EndTime'],
+            transaction,
+        });
+        if (!schedule) {
+            throw new Error('Không tìm thấy lịch làm việc!');
+        }
 
+        const appointment = await db.Appointment.findOne({
+            where: { AppointmentID: schedule.AppointmentID },
+            transaction,
+        });
+        if (!appointment) {
+            throw new Error('Không tìm thấy lịch hẹn liên quan!');
+        }
+
+        if (appointment.AppointmentStatus === 'CONF') {
+            await db.Appointment.update(
+                { AppointmentStatus: 'PEND' },
+                { where: { AppointmentID: schedule.AppointmentID }, transaction }
+            );
+        }
+        const scheduleDate = new Date(schedule.Date);
+        const dateStr = scheduleDate.toISOString().split('T')[0];
+        const scheduleStart = new Date(`${dateStr}T${schedule.StartTime}`);
+        const scheduleEnd = new Date(`${dateStr}T${schedule.EndTime}`);
+        const conflictingAppointments = await db.Appointment.findAll({
+            where: {
+                VeterinarianID: schedule.VeterinarianID,
+                AppointmentDate: scheduleDate,
+                AppointmentID: { [Op.ne]: schedule.AppointmentID },
+                AppointmentStatus: 'CANCELED',
+            },
+            transaction,
+        });
+        for (const conflictingApp of conflictingAppointments) {
+            const conflictingStart = new Date(`${conflictingApp.AppointmentDate.toISOString().split('T')[0]}T${conflictingApp.StartTime}`);
+            const conflictingEnd = new Date(`${conflictingApp.AppointmentDate.toISOString().split('T')[0]}T${conflictingApp.EndTime}`);
+            if (scheduleStart < conflictingEnd && scheduleEnd > conflictingStart) {
+                await db.Appointment.update(
+                    { AppointmentStatus: 'PEND' },
+                    { where: { AppointmentID: conflictingApp.AppointmentID }, transaction }
+                );
+            }
+        }
+        await db.Schedule.destroy({
+            where: { ScheduleID: scheduleid },
+            transaction,
+        });
+        return {
+            errCode: 0,
+            errMessage: 'Hủy lịch làm việc thành công!',
+        };
+    } catch (e) {
+        throw new Error(`Lỗi khi hủy lịch làm việc: ${e.message}`);
+    }
+};
 let loadSchedule = (veterinarianid, startDate) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -150,8 +209,7 @@ let loadSchedule = (veterinarianid, startDate) => {
         }
     });
 };
-
-let changeScheduleStatus = (scheduleid, schedulestatus) => {
+const changeScheduleStatus = (scheduleid, schedulestatus) => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
         try {
@@ -182,33 +240,57 @@ let changeScheduleStatus = (scheduleid, schedulestatus) => {
                 await transaction.rollback();
                 resolve({
                     errCode: 1,
-                    errMessage: 'Không tìm thấy lịch làm việc này!',
+                    errMessage: 'Không tìm thấy lịch làm việc!',
                     data: null,
                 });
                 return;
             }
-            await db.Schedule.update(
-                { ScheduleStatus: schedulestatus },
-                { where: { ScheduleID: scheduleid }, transaction }
-            );
+            if (schedulestatus === 'CANCELED') {
+                const currentDateTime = new Date();
+                const scheduleDate = new Date(schedule.Date);
+                const scheduleStart = new Date(`${scheduleDate.toISOString().split('T')[0]}T${schedule.StartTime}+07:00`);
+                const timeDifference = (scheduleStart - currentDateTime) / (1000 * 60 * 60);
+                //tắt đoạn này để ko tính giờ
+                if (timeDifference < 12) {
+                    await transaction.rollback();
+                    resolve({
+                        errCode: 1,
+                        errMessage: 'Không thể hủy lịch làm việc dưới 12 tiếng trước giờ hẹn!',
+                        data: null,
+                    });
+                    return;
+                }
+                const result = await rejectSchedule(scheduleid, transaction);
+                if (result.errCode !== 0) {
+                    await transaction.rollback();
+                    resolve(result);
+                    return;
+                }
+            } else {
+                await db.Schedule.update(
+                    { ScheduleStatus: schedulestatus },
+                    { where: { ScheduleID: scheduleid }, transaction }
+                );
+            }
             await transaction.commit();
             resolve({
                 errCode: 0,
                 errMessage: 'Cập nhật trạng thái lịch làm việc thành công!',
                 data: schedule,
             });
+            return;
         } catch (e) {
             await transaction.rollback();
-            console.log('Error in changeScheduleStatus: ', e);
+            console.error('Error in changeScheduleStatus:', e);
             resolve({
                 errCode: 3,
                 errMessage: `Lỗi khi cập nhật trạng thái lịch làm việc: ${e.message}`,
                 data: null,
             });
+            return;
         }
     });
 };
-
 module.exports = {
     loadSchedule,
     changeScheduleStatus

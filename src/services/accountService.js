@@ -479,7 +479,7 @@ let userRegister = (userInfo) => {
         Email: userInfo.email,
         Password: hashedPassword,
         UserName: userInfo.username,
-        UserImage: null,
+        UserImage: "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg",
         Phone: userInfo.phone,
         Address: userInfo.address,
         Gender: userInfo.gender,
