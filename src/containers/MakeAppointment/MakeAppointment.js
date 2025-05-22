@@ -657,10 +657,19 @@ class MakeAppointment extends Component {
               )}
               <div className="makeappointment-content-pet-info">
                 <b>*Thông tin Thú cưng</b>
-                <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} />
+                <input
+                  type="text"
+                  placeholder="Hãy nhập Tên thú cưng"
+                  value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')}
+                  disabled={isLoggedIn && loadedPetList.length > 0}
+                />
                 <div className="f">
                   <p>Loại: </p>
-                  <select value={pettype} onChange={(event) => this.handleOnChangeInput(event, 'pettype')}>
+                  <select
+                    value={pettype}
+                    onChange={(event) => this.handleOnChangeInput(event, 'pettype')}
+                    disabled={isLoggedIn && loadedPetList.length > 0}
+                  >
                     {codePetType.length > 0 ? (
                       codePetType.map((item) => (
                         <option key={item.Code} value={item.Code}>
@@ -672,7 +681,11 @@ class MakeAppointment extends Component {
                     )}
                   </select>
                   <p>Giới tính:</p>
-                  <select value={petgender} onChange={(event) => this.handleOnChangeInput(event, 'petgender')}>
+                  <select
+                    value={petgender}
+                    onChange={(event) => this.handleOnChangeInput(event, 'petgender')}
+                    disabled={isLoggedIn && loadedPetList.length > 0}
+                  >
                     {codePetGender.length > 0 ? (
                       codePetGender.map((item) => (
                         <option key={item.Code} value={item.Code}>
@@ -685,8 +698,20 @@ class MakeAppointment extends Component {
                   </select>
                 </div>
                 <div className="f">
-                  <input type="text" placeholder="Hãy nhập Tuổi" value={age} onChange={(event) => this.handleOnChangeInput(event, 'age')} />
-                  <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} />
+                  <input
+                    type="text"
+                    placeholder="Hãy nhập Tuổi"
+                    value={age}
+                    onChange={(event) => this.handleOnChangeInput(event, 'age')}
+                    disabled={isLoggedIn && loadedPetList.length > 0}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Hãy nhập Cân nặng"
+                    value={petweight}
+                    onChange={(event) => this.handleOnChangeInput(event, 'petweight')}
+                    disabled={isLoggedIn && loadedPetList.length > 0}
+                  />
                 </div>
               </div>
               {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && (

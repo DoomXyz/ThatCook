@@ -6,7 +6,7 @@ import { IonIcon } from '@ionic/react';
 import Spinner from '../../components/Spinner';
 import DatePicker from 'react-datepicker';
 
-import { chevronBack, pencil, eyeOutline, eyeOffOutline, chevronForwardOutline, chevronBackOutline, code } from 'ionicons/icons';
+import { pencil, chevronForwardOutline, chevronBackOutline } from 'ionicons/icons';
 
 import './Doctor.scss'; // Import SCSS
 
@@ -15,7 +15,7 @@ import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { handleLoadScheduleApi, handleChangeScheduleStatusApi } from '../../services/scheduleServices';
 import { handleLoadAppointmentsApi, handleChangeAppointmentStatusApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices'
 
-import { userLogin, userLogout } from '../../store/actions';
+import { userLogin, userLogout, saveAppointmentForCheckout } from '../../store/actions';
 import { checkLoginStatus } from '../../utils/pakage';
 
 import Header from '../../components/HomeHeader';
@@ -64,13 +64,15 @@ class Doctor extends Component {
     };
   }
   async componentDidMount() {
-    await this.handleIsLogin();
-    await this.handleLoadCodeWorkingStatus();
-    await this.handleLoadCodeAppointmentStatus();
-    await this.handleLoadCodeScheduleStatus();
-    await this.handleLoadCodeAppointmentType();
-    // await this.handleLoadCodePetType();
-    // await this.handleLoadCodePetGender();
+    await Promise.all([
+      this.handleIsLogin(),
+      this.handleLoadCodeWorkingStatus(),
+      this.handleLoadCodeAppointmentStatus(),
+      this.handleLoadCodeScheduleStatus(),
+      this.handleLoadCodeAppointmentType(),
+      this.handleLoadCodePetType(),
+      this.handleLoadCodePetGender(),
+    ]);
     if (this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
@@ -204,6 +206,50 @@ class Doctor extends Component {
       });
     }
   };
+  handleLoadCodePetType = async () => {
+    try {
+      const codePetType = await handleGetAllCodesApi('PetType');
+      if (!codePetType || codePetType.length === 0) {
+        toast.error('Không thể tải danh sách loại thú cưng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codePetType,
+      });
+    } catch (e) {
+      console.log('Error loading pettype code:', e);
+      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleLoadCodePetGender = async () => {
+    try {
+      const codePetGender = await handleGetAllCodesApi('PetGender');
+      if (!codePetGender || codePetGender.length === 0) {
+        toast.error('Không thể tải danh sách giới tính thú cưng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codePetGender,
+      });
+    } catch (e) {
+      console.log('Error loading petgender code:', e);
+      toast.error('Lỗi khi tải danh sách giới tính thú cưng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   handleVeterinarianInfoChange = (e) => {
     const { name, value } = e.target;
     if (name === 'workingstatus' && this.state.editField !== 'workingstatus') {
@@ -323,6 +369,7 @@ class Doctor extends Component {
     this.setState({ isLoading: true });
     try {
       const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "PEND");
+      console.log(date1, date2, response)
       if (response && response.errCode === 0) {
         this.setState({
           loadedPendingAppointments: response.data,
@@ -426,6 +473,7 @@ class Doctor extends Component {
         this.setState({
           loadedAppointmentDetail: response.data,
         });
+        console.log(response.data)
       } else {
         toast.error('Không thể tải chi tiết lịch hẹn!', {
           position: 'top-right',
@@ -493,12 +541,9 @@ class Doctor extends Component {
               });
             }
             this.handleLoadPendingAppointments();
-          } else {
-            toast.error('Lỗi khi cập nhật lịch hẹn!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
+            this.setState({
+              actionPage: 2,
+            })
           }
         } catch (e) {
           console.log('Lỗi khi cập nhât lịch hẹn:', e);
@@ -518,39 +563,76 @@ class Doctor extends Component {
     }
   };
   handleChangeScheduleStatus = async (scheduleid, status) => {
-    try {
-      const response = await handleChangeScheduleStatusApi(scheduleid, status);
-      if (response && response.errCode === 0) {
-        toast.success(`Cập nhật thành công!`, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.handleLoadSchedule()
-        this.setState({
-          actionPage: 3
-        })
-      } else {
-        toast.error(response.errMessage || 'Lỗi khi cập nhật lịch!', {
+    let isConfirmed = false;
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Bạn có muốn hủy bỏ lịch hẹn này?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 1000, closeOnClick: false, onClose: () => resolve(false) }
+        );
+      });
+    isConfirmed = await confirmAction();
+    if (isConfirmed) {
+      try {
+        const response = await handleChangeScheduleStatusApi(scheduleid, status);
+        if (response && response.errCode === 0) {
+          toast.success(`Cập nhật thành công!`, {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+          await this.handleLoadSchedule()
+          this.setState({
+            actionPage: 3
+          })
+        } else {
+          toast.error(response.errMessage || 'Lỗi khi cập nhật lịch!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
+      } catch (e) {
+        console.log('Lỗi khi cập nhật lịch:', e);
+        toast.error('Lỗi hệ thống khi cập nhật!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
       }
-    } catch (e) {
-      console.log('Lỗi khi cập nhật lịch:', e);
-      toast.error('Lỗi hệ thống khi cập nhật!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
     }
   };
   handleViewBill = (billid) => {
     console.log(`View AppointmentBill ID: ${billid}`);
   };
   handleAppointmentCheckOut = (appointmentid) => {
-    console.log(`CheckOut for AppointmentBill ID: ${appointmentid}`);
+    const { veterinarianid } = this.state
+    const appointmentData = {
+      veterinarianid,
+      appointmentid,
+    };
+    this.props.saveAppointmentForCheckout(appointmentData);
+    this.props.navigate('/appointmentcheckout');
   }
   resetDateFilter = (dateField) => {
     this.setState({ [dateField]: null }, () => {
@@ -793,7 +875,7 @@ class Doctor extends Component {
   };
   renderForm() {
     const { actionPage, veterinarianid, veterinarianname, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
-      editField, bio, servicesList, specialization, workingstatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType,
+      editField, bio, servicesList, specialization, workingstatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType, codePetType, codePetGender,
       searchValue, filterValue, sortValue, currentPage, tempCurrentPage, date1, date2, totalAppointmentPages, fromForm } = this.state;
 
     const weekEnd = new Date(currentWeekStart);
@@ -1213,7 +1295,9 @@ class Doctor extends Component {
                     </div>
                     <div className="detail-item">
                       <label>Loại thú cưng:</label>
-                      <span>{loadedAppointmentDetail.Pet.PetType}</span>
+                      <span>
+                        {codePetType.find(pettype => pettype.Code === loadedAppointmentDetail.Pet.PetType)?.CodeValueVI || loadedAppointmentDetail.Pet.PetType}
+                      </span>
                     </div>
                     <div className="detail-item">
                       <label>Cân nặng:</label>
@@ -1225,7 +1309,9 @@ class Doctor extends Component {
                     </div>
                     <div className="detail-item">
                       <label>Giới tính:</label>
-                      <span>{loadedAppointmentDetail.Pet.PetGender}</span>
+                      <span>
+                        {codePetGender.find(petgender => petgender.Code === loadedAppointmentDetail.Pet.PetGender)?.CodeValueVI || loadedAppointmentDetail.Pet.PetGender}
+                      </span>
                     </div>
                   </div>
                   <div className="detail-section">
@@ -1236,7 +1322,7 @@ class Doctor extends Component {
                     </div>
                     <div className="detail-item">
                       <label>Dịch vụ:</label>
-                      <span>{loadedAppointmentDetail.ServiceName}</span>
+                      <span>{loadedAppointmentDetail.Service.ServiceName}</span>
                     </div>
                     <div className="detail-item">
                       <label>Ngày khám:</label>
@@ -1301,6 +1387,7 @@ class Doctor extends Component {
                       </div>
                     </div>
                   )}
+
                   <div className="wait-appointment-button">
                     <button
                       type="button"
@@ -1318,19 +1405,20 @@ class Doctor extends Component {
                         >
                           Xác nhận
                         </button>
-                        <button
-                          type="button"
-                          className="action-button cancel-button"
-                          onClick={() => this.handleChangeAppointmentStatus(loadedAppointmentDetail.AppointmentID, 'CANCELED')}
-                        >
-                          Từ chối
-                        </button>
+                        {loadedAppointmentDetail.VeterinarianID !== null ? (
+                          <button
+                            type="button"
+                            className="action-button cancel-button"
+                            onClick={() => this.handleChangeAppointmentStatus(loadedAppointmentDetail.AppointmentID, 'CANCELED')}
+                          >
+                            Từ chối
+                          </button>
+                        ) : ""}
                       </>
                     )}
                     {fromForm === 3 && (
                       <>
                         {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' ? (
-                          console.log(loadedAppointmentDetail),
                           <button
                             type="button"
                             className="action-button complete-button"
@@ -1340,7 +1428,6 @@ class Doctor extends Component {
                           </button>
                         ) : ""}
                         {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus !== 'CANCELED' ? (
-                          console.log(loadedAppointmentDetail),
                           <button
                             type="button"
                             className="action-button cancel-button"
@@ -1373,7 +1460,7 @@ class Doctor extends Component {
                 </div>
               )}
             </div>
-          </form>
+          </form >
         );
       default:
         return null;
@@ -1426,10 +1513,12 @@ class Doctor extends Component {
 }
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
+  appointmentCheckout: state.appointment.appointmentCheckout,
 });
 const mapDispatchToProps = (dispatch) => ({
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
+  saveAppointmentForCheckout: (appointmentData) => dispatch(saveAppointmentForCheckout(appointmentData))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Doctor);

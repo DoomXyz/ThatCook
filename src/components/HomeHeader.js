@@ -304,6 +304,9 @@ class HomeHeader extends Component {
               <li>
                 <a onClick={() => this.props.navigate('/showdoctor')}>Bác sĩ</a>
               </li>
+              <li>
+                <a onClick={() => this.props.navigate('/bill')}>Tra cứu</a>
+              </li>
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === 'C' ? (
                   <li>

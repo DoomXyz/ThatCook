@@ -1,7 +1,6 @@
 import axios from '../axios';
 
 const handleCreateAppointmentApi = (appointmentData) => {
-  console.log(appointmentData)
   return axios.post('/api/create-appointment', appointmentData);
 };
 
@@ -21,9 +20,12 @@ const handleLoadAppointmentDetailsApi = (appointmentid) => {
   return axios.get(`/api/load-appointmentdetails?appointmentid=${appointmentid}`);
 };
 
-
 const handleChangeAppointmentStatusApi = (appointmentid, appointmentstatus, accountid) => {
   return axios.put('/api/change-appointmentstatus', { appointmentid, appointmentstatus, accountid });
+};
+
+const handleCreateAppointmentBillApi = (appointmentBillData) => {
+  return axios.post('/api/create-appointmentbill', appointmentBillData);
 };
 
 export {
@@ -33,4 +35,5 @@ export {
   handleLoadAppointmentsApi,
   handleLoadAppointmentDetailsApi,
   handleChangeAppointmentStatusApi,
+  handleCreateAppointmentBillApi,
 };
