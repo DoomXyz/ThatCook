@@ -68,7 +68,6 @@ let handleLoadAppointments = async (req, res) => {
   }
 };
 
-
 let handleLoadAppointmentDetails = async (req, res) => {
   try {
     let response = await appointmentService.loadAppointmentDetails(req.query.appointmentid);
@@ -98,6 +97,20 @@ let handleChangeAppointmentStatus = async (req, res) => {
   }
 };
 
+let handleCreateAppointmentBill = async (req, res) => {
+  try {
+    const { veterinarianid, appointmentid, serviceprice, medicalprice, medicalimage, medicalnotes } = req.body;
+    let response = await appointmentService.createAppointmentBill(veterinarianid, appointmentid, serviceprice, medicalprice, medicalimage, medicalnotes);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: 'Lỗi từ server: ' + e.message,
+      data: null,
+    });
+  }
+};
 
 module.exports = {
   handleCreateAppointment,
@@ -106,4 +119,5 @@ module.exports = {
   handleLoadAppointments,
   handleLoadAppointmentDetails,
   handleChangeAppointmentStatus,
+  handleCreateAppointmentBill
 };

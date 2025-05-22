@@ -116,6 +116,7 @@ let initAPIRoutes = (app) => {
 
     router.get('/api/load-appointments', appointmentController.handleLoadAppointments);
     router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
+    router.post('/api/create-appointmentbill', appointmentController.handleCreateAppointmentBill);
 
     router.get('/api/load-schedule', scheduleController.handleLoadSchedule);
     router.put('/api/change-schedulestatus', scheduleController.handleChangeScheduleStatus);

@@ -251,15 +251,15 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                 const scheduleStart = new Date(`${scheduleDate.toISOString().split('T')[0]}T${schedule.StartTime}+07:00`);
                 const timeDifference = (scheduleStart - currentDateTime) / (1000 * 60 * 60);
                 //tắt đoạn này để ko tính giờ
-                if (timeDifference < 12) {
-                    await transaction.rollback();
-                    resolve({
-                        errCode: 1,
-                        errMessage: 'Không thể hủy lịch làm việc dưới 12 tiếng trước giờ hẹn!',
-                        data: null,
-                    });
-                    return;
-                }
+                // if (timeDifference < 12) {
+                //     await transaction.rollback();
+                //     resolve({
+                //         errCode: 1,
+                //         errMessage: 'Không thể hủy lịch làm việc dưới 12 tiếng trước giờ hẹn!',
+                //         data: null,
+                //     });
+                //     return;
+                // }
                 const result = await rejectSchedule(scheduleid, transaction);
                 if (result.errCode !== 0) {
                     await transaction.rollback();

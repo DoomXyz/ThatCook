@@ -259,9 +259,8 @@ module.exports = {
     // Tạo bảng AppointmentBill
     await queryInterface.createTable('AppointmentBill', {
       AppointmentBillID: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(10),
         primaryKey: true,
-        autoIncrement: true,
         allowNull: false,
       },
       AppointmentID: {
@@ -269,10 +268,6 @@ module.exports = {
         allowNull: false,
         references: { model: 'Appointment', key: 'AppointmentID' },
         onDelete: 'CASCADE',
-      },
-      PaymentType: {
-        type: Sequelize.STRING(20),
-        allowNull: false,
       },
       ServicePrice: {
         type: Sequelize.DECIMAL(10, 2),
@@ -292,6 +287,10 @@ module.exports = {
       },
       MedicalNotes: {
         type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      CreatedAt: {
+        type: Sequelize.DATE,
         allowNull: true,
       },
     },

@@ -11,19 +11,13 @@ module.exports = (sequelize, DataTypes) => {
   AppointmentBill.init(
     {
       AppointmentBillID: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(10),
         primaryKey: true,
-        autoIncrement: true,
         allowNull: false,
       },
       AppointmentID: {
         type: DataTypes.STRING(10),
         allowNull: false,
-      },
-      PaymentType: {
-        type: DataTypes.STRING(20),
-        allowNull: false,
-        // Liên kết với Code từ ALLCODES (Type = 'PaymentType')
       },
       ServicePrice: {
         type: DataTypes.DECIMAL(10, 2),
@@ -43,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       MedicalNotes: {
         type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      CreatedAt: {
+        type: DataTypes.DATE,
         allowNull: true,
       },
     },
