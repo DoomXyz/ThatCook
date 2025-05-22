@@ -311,7 +311,7 @@ class HomeHeader extends Component {
                   </li>
                 ) : (
                   <li>
-                    <a onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}>Quản trị</a>
+                    <a onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}>Nghiệp vụ</a>
                   </li>
                 )
               ) : (
@@ -329,52 +329,24 @@ class HomeHeader extends Component {
               </li>
               <li>
                 {isLoggedIn ? (
-                  accountInfo ? (
-                    accountInfo.AccountType === 'V' ? (
-                      <div className="user f" id="user-icon">
-                        <img src={userImage} loading="lazy" alt="User" />
-                        <p>{userName}</p>
-                        <ul className="sub-menu">
-                          <li>
-                            <div className="f" onClick={() => this.props.navigate('/user/veterinarian')}>
-                              <IonIcon icon={informationCircleOutline}></IonIcon>
-                              <a>Thông tin bác sĩ</a>
-                            </div>
-                          </li>
-                          <li>
-                            <div className="f" onClick={this.handleLogout}>
-                              <IonIcon icon={logOutOutline}></IonIcon>
-                              <a>Đăng xuất</a>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
-                    ) : (
-                      // một đoạn này là đủ nếu ko xét đk
-                      <div className="user f" id="user-icon">
-                        <img src={userImage} loading="lazy" alt="User" />
-                        <p>{userName}</p>
-                        <ul className="sub-menu">
-                          <li>
-                            <div className="f" onClick={() => this.props.navigate('/user/customer')}>
-                              <IonIcon icon={informationCircleOutline}></IonIcon>
-                              <a>Thông tin người dùng</a>
-                            </div>
-                          </li>
-                          <li>
-                            <div className="f" onClick={this.handleLogout}>
-                              <IonIcon icon={logOutOutline}></IonIcon>
-                              <a>Đăng xuất</a>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
-                    )
-                  ) : (
-                    <li>
-                      <a onClick={() => this.props.navigate('/information')}>Liên hệ</a>
-                    </li>
-                  )
+                  <div className="user f" id="user-icon">
+                    <img src={userImage} loading="lazy" alt="User" />
+                    <p>{userName}</p>
+                    <ul className="sub-menu">
+                      <li>
+                        <div className="f" onClick={() => this.props.navigate('/user/customer')}>
+                          <IonIcon icon={informationCircleOutline}></IonIcon>
+                          <a>Thông tin người dùng</a>
+                        </div>
+                      </li>
+                      <li>
+                        <div className="f" onClick={this.handleLogout}>
+                          <IonIcon icon={logOutOutline}></IonIcon>
+                          <a>Đăng xuất</a>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
                 ) : (
                   <div className="user-none" id="user-icon">
                     <div className="f">

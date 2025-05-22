@@ -378,6 +378,14 @@
     margin-bottom: 5px;
     /* Khoảng cách giữa các dòng mô tả */
   }
+  &.vet-specific {
+    background-color: #e6f3ff; /* Xanh nhạt cho lịch bác sĩ */
+    border-left: 4px solid #007bff; /* Viền trái xanh đậm */
+  }
+  &.public-appointment {
+    background-color: #fff3e6; /* Cam nhạt cho lịch công khai */
+    border-left: 4px solid #ff9900; /* Viền trái cam */
+  }
 }
 
 .appointment-detail-container {

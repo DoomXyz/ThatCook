@@ -622,7 +622,7 @@ class Owner extends Component {
       }
     );
   };
-  handlePageInputChange = (event, type) => {
+  handlePageInputChange = (event) => {
     const value = event.target.value;
     this.setState({ tempCurrentPage: value });
   };
@@ -1324,7 +1324,13 @@ class Owner extends Component {
                           <button className="prev" onClick={() => this.handlePrevPage(1)} disabled={currentPage === 1}>
                             {'<'}
                           </button>
-                          <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 1)} onKeyDown={(event) => this.handlePageKeyDown(event, 1)} onBlur={() => this.handlePageInputBlur(1)} />
+                          <input
+                            type="text"
+                            value={tempCurrentPage}
+                            onChange={(event) => this.handlePageInputChange(event)}
+                            onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
+                            onBlur={() => this.handlePageInputBlur(1)}
+                          />
                           <span className="total-pages">/ {totalProductPages}</span>
                           <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalProductPages}>
                             {'>'}
@@ -1501,7 +1507,7 @@ class Owner extends Component {
                       <button className="prev" onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
                         {'<'}
                       </button>
-                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 2)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
+                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
                       <span className="total-pages">/ {totalInvoicePages}</span>
                       <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalInvoicePages}>
                         {'>'}
@@ -1649,7 +1655,7 @@ class Owner extends Component {
                       <button className="prev" onClick={() => this.handlePrevPage(3)} disabled={currentPage === 1}>
                         {'<'}
                       </button>
-                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 3)} onKeyDown={(event) => this.handlePageKeyDown(event, 3)} onBlur={() => this.handlePageInputBlur(3)} />
+                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 3)} onBlur={() => this.handlePageInputBlur(3)} />
                       <span className="total-pages">/ {totalBannerPages}</span>
                       <button className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalBannerPages}>
                         {'>'}
@@ -1817,7 +1823,7 @@ class Owner extends Component {
                       <button className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
                         {'<'}
                       </button>
-                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 4)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
+                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
                       <span className="total-pages">/ {totalCouponPages}</span>
                       <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalCouponPages}>
                         {'>'}

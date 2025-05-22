@@ -13,9 +13,14 @@ const handleGetServiceInfoApi = (serviceid) => {
   return axios.get(`/api/get-serviceinfo?serviceid=${serviceid}`);
 };
 
-const handleLoadPendingAppointmentsApi = (veterinarianid, page, limit, search, filter, sort, date1, date2) => {
-  return axios.get(`/api/load-pendingappointments?veterinarianid=${veterinarianid}&page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}&date1=${date1}&date2=${date2}`);
+const handleLoadAppointmentsApi = (veterinarianid, page, limit, search, filter, sort, date1, date2, status) => {
+  return axios.get(`/api/load-appointments?veterinarianid=${veterinarianid}&page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}&date1=${date1}&date2=${date2}&status=${status}`);
 };
+
+const handleLoadAppointmentDetailsApi = (appointmentid) => {
+  return axios.get(`/api/load-appointmentdetails?appointmentid=${appointmentid}`);
+};
+
 
 const handleChangeAppointmentStatusApi = (appointmentid, appointmentstatus, accountid) => {
   return axios.put('/api/change-appointmentstatus', { appointmentid, appointmentstatus, accountid });
@@ -25,6 +30,7 @@ export {
   handleCreateAppointmentApi,
   handleGetAvailableTimesApi,
   handleGetServiceInfoApi,
-  handleLoadPendingAppointmentsApi,
+  handleLoadAppointmentsApi,
+  handleLoadAppointmentDetailsApi,
   handleChangeAppointmentStatusApi,
 };
