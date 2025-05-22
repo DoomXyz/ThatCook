@@ -829,6 +829,36 @@ let checkAppointmentType = (appointmentType) => {
   });
 };
 
+let checkScheduleStatus = (scheduleStatus) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!scheduleStatus) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu dữ liệu để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.AllCodes.findOne({
+        where: {
+          Type: 'ScheduleStatus',
+          Code: scheduleStatus,
+        },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra mã: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+
 module.exports = {
   getAllCodes,
   loadAllCodesInfo,
@@ -851,4 +881,5 @@ module.exports = {
   checkAppointmentStatus,
   checkBannerStatus,
   checkAppointmentType,
+  checkScheduleStatus,
 };

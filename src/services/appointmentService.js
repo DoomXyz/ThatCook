@@ -1,8 +1,6 @@
 import { Op, where } from 'sequelize';
 import db from '../models/index.js';
 import { checkAppointmentType, checkAppointmentStatus } from './utilitiesService';
-import Appointment from '../models/Appointment.js';
-
 
 let validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo || Object.keys(appointmentInfo).length === 0) {
@@ -246,6 +244,125 @@ let generateAppointmentID = () => {
     }
   });
 };
+let cancelExpiredAppointments = () => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      const currentDateTime = new Date();
+      const pendingAppointments = await db.Appointment.findAll({
+        where: {
+          AppointmentStatus: 'PEND'
+        },
+        attributes: ['AppointmentID', 'AppointmentDate', 'StartTime'],
+        raw: true,
+        transaction,
+      });
+      const expiredAppointments = pendingAppointments.filter(app => {
+        const dateStr = app.AppointmentDate.toISOString().split('T')[0]; // Lấy YYYY-MM-DD
+        const appointmentStart = new Date(`${dateStr}T${app.StartTime}+07:00`);
+        return appointmentStart < currentDateTime;
+      });
+      if (!expiredAppointments || expiredAppointments.length === 0) {
+        await transaction.commit();
+        resolve({
+          errCode: 0,
+          errMessage: 'Không có lịch hẹn quá hạn để hủy!',
+          data: null
+        });
+        return;
+      }
+      const appointmentIDs = expiredAppointments.map(app => app.AppointmentID);
+      await db.Appointment.update(
+        { AppointmentStatus: 'CANCELED' },
+        {
+          where: { AppointmentID: { [Op.in]: appointmentIDs } },
+          transaction
+        }
+      );
+      await db.Schedule.destroy({
+        where: { AppointmentID: { [Op.in]: appointmentIDs } },
+        transaction
+      });
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Hủy các lịch hẹn quá hạn thành công!',
+        data: { canceledCount: expiredAppointments.length }
+      });
+    } catch (e) {
+      await transaction.rollback();
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi hủy lịch hẹn quá hạn: ${e.message}`,
+        data: null
+      });
+    }
+  });
+};
+const confirmAppointment = async (appointmentid, veterinarianid, transaction) => {
+  try {
+    const appointment = await db.Appointment.findOne({
+      where: { AppointmentID: appointmentid },
+      transaction,
+    });
+    if (!appointment) {
+      throw new Error('Lịch hẹn không tồn tại!');
+    }
+    if (appointment.VeterinarianID && appointment.VeterinarianID !== veterinarianid) {
+      throw new Error('Lịch hẹn không thuộc bác sĩ này!');
+    }
+    if (!appointment.VeterinarianID) {
+      await db.Appointment.update(
+        { VeterinarianID: veterinarianid },
+        { where: { AppointmentID: appointmentid }, transaction }
+      );
+    }
+    await db.Appointment.update(
+      { AppointmentStatus: 'CONF' },
+      { where: { AppointmentID: appointmentid }, transaction }
+    );
+    const conflictingAppointments = await db.Appointment.findAll({
+      where: {
+        VeterinarianID: veterinarianid,
+        AppointmentDate: appointment.AppointmentDate,
+        AppointmentID: { [Op.ne]: appointmentid },
+        AppointmentStatus: 'PEND',
+      },
+      transaction,
+    });
+    const dateStr = appointment.AppointmentDate.toISOString().split('T')[0];
+    const appointmentStart = new Date(`${dateStr}T${appointment.StartTime}`);
+    const appointmentEnd = new Date(`${dateStr}T${appointment.EndTime}`);
+    for (const conflictingApp of conflictingAppointments) {
+      const conflictingStart = new Date(`${conflictingApp.AppointmentDate.toISOString().split('T')[0]}T${conflictingApp.StartTime}`);
+      const conflictingEnd = new Date(`${conflictingApp.AppointmentDate.toISOString().split('T')[0]}T${conflictingApp.EndTime}`);
+      if (appointmentStart < conflictingEnd && appointmentEnd > conflictingStart) {
+        await db.Appointment.update(
+          { AppointmentStatus: 'CANCELED' },
+          { where: { AppointmentID: conflictingApp.AppointmentID }, transaction }
+        );
+        await db.Schedule.destroy({
+          where: { AppointmentID: conflictingApp.AppointmentID },
+          transaction,
+        });
+      }
+    }
+    await db.Schedule.create({
+      VeterinarianID: veterinarianid,
+      AppointmentID: appointment.AppointmentID,
+      Date: appointment.AppointmentDate,
+      StartTime: appointment.StartTime,
+      EndTime: appointment.EndTime,
+      ScheduleStatus: 'PEND',
+    }, { transaction });
+    return {
+      errCode: 0,
+      errMessage: 'Xác nhận lịch hẹn thành công!',
+    };
+  } catch (e) {
+    throw new Error(`Lỗi khi xác nhận lịch hẹn: ${e.message}`);
+  }
+};
 let createAppointment = (customername, customeremail, customerphone, appointmentdate, starttime, notes, accountid, veterinarianid, serviceid, petid, imageInfo, type, prevappointmentid) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
@@ -388,9 +505,10 @@ let createAppointment = (customername, customeremail, customerphone, appointment
   });
 };
 let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
+  console.log(appointmentDate, veterinarianID);
   return new Promise(async (resolve, reject) => {
     try {
-      // lấy thêm thông tin cho chỉ lấy serviceid mà veterinarianid đó có làm
+      // Kiểm tra tham số
       if (!appointmentDate || !serviceID) {
         resolve({
           errCode: -1,
@@ -408,104 +526,75 @@ let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
         });
         return;
       }
-      let duration;
-      if (serviceID === 'ALL') {
-        const services = await db.Service.findAll({
-          attributes: [[db.sequelize.fn('MIN', db.sequelize.col('Duration')), 'minDuration']],
-          raw: true,
+      const service = await db.Service.findOne({ where: { ServiceID: serviceID } });
+      if (!service) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Dịch vụ không tồn tại!',
+          data: null,
         });
-        if (!services || services.length === 0 || !services[0].minDuration) {
-          resolve({
-            errCode: 1,
-            errMessage: 'Không tìm thấy dịch vụ nào!',
-            data: null,
-          });
-          return;
-        }
-        duration = services[0].minDuration;
-      } else {
-        const service = await db.Service.findOne({ where: { ServiceID: serviceID } });
-        if (!service) {
-          resolve({
-            errCode: 1,
-            errMessage: 'Dịch vụ không tồn tại!',
-            data: null,
-          });
-          return;
-        }
-        duration = service.Duration;
+        return;
       }
+      const duration = service.Duration;
+      console.log(duration)
       const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00'];
       let availableTimes = [...fixedTimes];
-      let vetIds = veterinarianID && veterinarianID !== 'ALL' ? [veterinarianID] : (await db.VeterinarianInfo.findAll({ attributes: ['AccountID'], raw: true })).map(vet => vet.AccountID);
-      // Lấy lịch làm việc từ Schedule
+
+      let vetIds = veterinarianID && veterinarianID !== 'ALL'
+        ? [veterinarianID]
+        : (await db.VeterinarianInfo.findAll({ attributes: ['AccountID'], raw: true })).map(vet => vet.AccountID);
+
+      // Lấy lịch làm việc
       const schedules = await db.Schedule.findAll({
         where: {
           VeterinarianID: { [Op.in]: vetIds },
           Date: appointmentDate,
-          ScheduleStatus: 'AVAILABLE',
+          ScheduleStatus: 'PEND',
         },
         attributes: ['VeterinarianID', 'StartTime', 'EndTime'],
         raw: true,
       });
-      // Lấy lịch hẹn từ Appointment
-      const appointments = await db.Appointment.findAll({
-        where: {
-          VeterinarianID: { [Op.in]: vetIds },
-          AppointmentDate: appointmentDate,
-        },
-        attributes: ['VeterinarianID', 'StartTime', 'EndTime'],
-        raw: true,
-      });
+
       if (veterinarianID && veterinarianID !== 'ALL') {
-        // Lọc khung giờ khả dụng cho bác sĩ cụ thể
+        // Trường hợp bác sĩ cụ thể
         availableTimes = fixedTimes.filter((time) => {
           const [hours, minutes] = time.split(':').map(Number);
           const startTime = new Date(appointmentDate);
           startTime.setHours(hours, minutes);
           const endTime = new Date(startTime.getTime() + duration * 60000);
-          // Kiểm tra lịch làm việc
-          const hasScheduleConflict = schedules.some((sch) => {
+
+          // Kiểm tra nếu khung giờ trùng với lịch làm việc
+          const isInSchedule = schedules.some((sch) => {
             if (sch.VeterinarianID !== veterinarianID) return false;
             const schStart = new Date(`${appointmentDate}T${sch.StartTime}`);
             const schEnd = new Date(`${appointmentDate}T${sch.EndTime}`);
             return startTime < schEnd && endTime > schStart;
           });
-          // Kiểm tra lịch hẹn
-          const hasAppointmentConflict = appointments.some((app) => {
-            if (app.VeterinarianID !== veterinarianID) return false;
-            const appStart = new Date(`${appointmentDate}T${app.StartTime}`);
-            const appEnd = new Date(`${appointmentDate}T${app.EndTime}`);
-            return startTime < appEnd && endTime > appStart;
-          });
-          return !hasScheduleConflict && !hasAppointmentConflict;
+
+          return !isInSchedule;
         });
       } else {
-        // Lọc khung giờ khả dụng khi không chọn bác sĩ
+        // Trường hợp ALL
         availableTimes = fixedTimes.filter((time) => {
           const [hours, minutes] = time.split(':').map(Number);
           const startTime = new Date(appointmentDate);
           startTime.setHours(hours, minutes);
           const endTime = new Date(startTime.getTime() + duration * 60000);
-          return vetIds.some((vetId) => {
-            // Kiểm tra lịch làm việc
-            const hasScheduleConflict = schedules.some((sch) => {
+
+          // Kiểm tra nếu tất cả bác sĩ đều có lịch làm việc bao phủ khung giờ
+          const allVetsScheduled = vetIds.every((vetId) => {
+            return schedules.some((sch) => {
               if (sch.VeterinarianID !== vetId) return false;
               const schStart = new Date(`${appointmentDate}T${sch.StartTime}`);
               const schEnd = new Date(`${appointmentDate}T${sch.EndTime}`);
               return startTime < schEnd && endTime > schStart;
             });
-            // Kiểm tra lịch hẹn
-            const hasAppointmentConflict = appointments.some((app) => {
-              if (app.VeterinarianID !== vetId) return false;
-              const appStart = new Date(`${appointmentDate}T${app.StartTime}`);
-              const appEnd = new Date(`${appointmentDate}T${app.EndTime}`);
-              return startTime < appEnd && endTime > appStart;
-            });
-            return !hasScheduleConflict && !hasAppointmentConflict;
           });
+
+          return !allVetsScheduled;
         });
       }
+      console.log(availableTimes)
       resolve({
         errCode: 0,
         errMessage: 'Lấy khung giờ thành công!',
@@ -578,9 +667,17 @@ let getServiceInfo = (serviceid) => {
     }
   });
 };
-let loadPendingAppointments = (veterinarianid, page, limit, search, filter, sort, date1, date2) => {
+let loadAppointments = (veterinarianid, page, limit, search, filter, sort, date1, date2, status) => {
   return new Promise(async (resolve, reject) => {
     try {
+      if (!status || !['PEND', 'COMP'].includes(status)) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Trạng thái lịch hẹn không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
       if (!veterinarianid || !page || !limit || page < 1 || limit < 1) {
         resolve({
           errCode: -1,
@@ -605,24 +702,35 @@ let loadPendingAppointments = (veterinarianid, page, limit, search, filter, sort
         });
         return;
       }
+      await cancelExpiredAppointments()
       const offset = (page - 1) * limit;
       let where = {
-        AppointmentStatus: 'PEND', // Chỉ lấy các cuộc hẹn đang chờ xử lý
+        AppointmentStatus: status
       };
       let order = [];
       if (search?.trim()) {
         const searchTerm = search.trim().substring(0, 50);
+        //khi nào cần search thì thay sau
         // where[Op.or] = [
         //   { '$Service.ServiceName$': { [Op.like]: `%${searchTerm}%` } },
         //   { '$Pet.PetName$': { [Op.like]: `%${searchTerm}%` } },
         // ];
       }
       if (date1 && date2) {
-        where.AppointmentDate = { [Op.between]: [date1, date2] };
+        let start = new Date(date1);
+        let end = new Date(date2);
+        if (start > end) {
+          [start, end] = [end, start];
+        }
+        start.setHours(0, 0, 0, 0); // Đầu ngày sớm hơn
+        end.setHours(23, 59, 59, 999); // Cuối ngày muộn hơn
+        where.AppointmentDate = { [Op.between]: [start, end] };
       } else if (date1) {
-        where.AppointmentDate = { [Op.gte]: date1 };
+        startDate.setHours(0, 0, 0, 0);
+        where.AppointmentDate = { [Op.gte]: startDate };
       } else if (date2) {
-        where.AppointmentDate = { [Op.lte]: date2 };
+        endDate.setHours(0, 0, 0, 0);
+        where.AppointmentDate = { [Op.lte]: endDate };
       }
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
@@ -655,17 +763,32 @@ let loadPendingAppointments = (veterinarianid, page, limit, search, filter, sort
       }
       switch (sort) {
         case '1': // Cuộc hẹn mới nhất
-          order.push(['AppointmentDate', 'DESC'], ['StartTime', 'DESC']);
+          order.push([db.sequelize.literal(`CONCAT(AppointmentDate, ' ', StartTime)`), 'DESC']);
           break;
         case '2': // Cuộc hẹn cũ nhất
-          order.push(['AppointmentDate', 'ASC'], ['StartTime', 'ASC']);
+          order.push([db.sequelize.literal(`CONCAT(AppointmentDate, ' ', StartTime)`), 'ASC']);
           break;
         default: // Mặc định (0)
-          order.push(['AppointmentDate', 'ASC'], ['StartTime', 'ASC']);
+          order.push([db.sequelize.literal(`CONCAT(AppointmentDate, ' ', StartTime)`), 'ASC']);
           break;
       }
       const { count, rows } = await db.Appointment.findAndCountAll({
-        where,
+        where: {
+          ...where,
+          AppointmentID: {
+            [Op.notIn]: db.sequelize.literal(`
+              (SELECT a.AppointmentID
+               FROM Appointment a
+               INNER JOIN Schedule s
+               ON DATE(a.AppointmentDate) = s.Date
+               AND a.StartTime < s.EndTime
+               AND a.EndTime > s.StartTime
+               WHERE s.VeterinarianID = '${veterinarianid}'
+               AND s.ScheduleStatus = 'PEND'
+               AND a.AppointmentStatus = 'PEND')
+            `)
+          }
+        },
         attributes: [
           'AppointmentID',
           'AppointmentDate',
@@ -674,6 +797,7 @@ let loadPendingAppointments = (veterinarianid, page, limit, search, filter, sort
           'ServiceID',
           'VeterinarianID',
           'CustomerName',
+          'Notes',
         ],
         include: [
           {
@@ -711,11 +835,11 @@ let loadPendingAppointments = (veterinarianid, page, limit, search, filter, sort
         AppointmentDate: row.AppointmentDate,
         StartTime: row.StartTime,
         EndTime: row.EndTime,
-        ServiceID: row.ServiceID,
         ServiceName: row.Service.ServiceName,
         PetName: row.Pet.PetName,
         VeterinarianID: row.VeterinarianID,
         CustomerName: row.CustomerName,
+        Notes: row.Notes
       }));
 
       resolve({
@@ -734,10 +858,124 @@ let loadPendingAppointments = (veterinarianid, page, limit, search, filter, sort
     }
   });
 };
+let loadAppointmentDetails = (appointmentid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!appointmentid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu mã lịch hẹn!',
+          data: null,
+        });
+        return;
+      }
+
+      const appointment = await db.Appointment.findOne({
+        where: { AppointmentID: appointmentid },
+        attributes: [
+          'AppointmentID',
+          'CustomerName',
+          'CustomerEmail',
+          'CustomerPhone',
+          'AppointmentDate',
+          'StartTime',
+          'EndTime',
+          'Notes',
+          'AppointmentStatus',
+          'AppointmentType',
+          'PrevAppointmentID',
+        ],
+        include: [
+          {
+            model: db.Service,
+            as: 'Service',
+            attributes: ['ServiceName'],
+            required: true,
+          },
+          {
+            model: db.Pet,
+            as: 'Pet',
+            attributes: ['PetName', 'PetType', 'PetWeight', 'Age', 'PetGender'],
+            required: true,
+          },
+          {
+            model: db.AppointmentBill,
+            as: 'AppointmentBill',
+            attributes: ['AppointmentBillID', 'TotalPayment'],
+            required: false,
+          },
+          {
+            model: db.Image,
+            as: 'Images',
+            attributes: ['ImageID', 'Image'],
+            where: { ReferenceType: 'Appointment' },
+            required: false,
+          },
+          {
+            model: db.Schedule,
+            as: 'Schedule',
+            attributes: ['ScheduleID'],
+            required: false,
+          },
+        ],
+        raw: false,
+        nest: true,
+      });
+
+      if (!appointment) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Không tìm thấy lịch hẹn!',
+          data: null,
+        });
+        return;
+      }
+
+      const data = {
+        AppointmentID: appointment.AppointmentID,
+        CustomerName: appointment.CustomerName,
+        CustomerEmail: appointment.CustomerEmail,
+        CustomerPhone: appointment.CustomerPhone,
+        AppointmentDate: appointment.AppointmentDate,
+        StartTime: appointment.StartTime.slice(0, 5),
+        EndTime: appointment.EndTime.slice(0, 5),
+        Notes: appointment.Notes || 'Không có ghi chú',
+        AppointmentStatus: appointment.AppointmentStatus,
+        AppointmentType: appointment.AppointmentType,
+        PrevAppointmentID: appointment.PrevAppointmentID,
+        ServiceName: appointment.Service.ServiceName,
+        Pet: {
+          PetName: appointment.Pet.PetName,
+          PetType: appointment.Pet.PetType,
+          PetWeight: appointment.Pet.PetWeight,
+          Age: appointment.Pet.Age,
+          PetGender: appointment.Pet.PetGender,
+        },
+        AppointmentBill: appointment.AppointmentBill || null,
+        Images: appointment.Images || [],
+        ScheduleID: appointment.Schedule ? appointment.Schedule.ScheduleID : null,
+      };
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy chi tiết lịch hẹn thành công!',
+        data,
+      });
+    } catch (e) {
+      console.log('Error in loadAppointmentDetails: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy chi tiết lịch hẹn: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
 let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
+      // Kiểm tra tham số
       if (!appointmentid || !appointmentstatus || !veterinarianid) {
         await transaction.rollback();
         resolve({
@@ -747,6 +985,7 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
         });
         return;
       }
+      // Kiểm tra trạng thái hợp lệ
       const validAppointmentStatus = await checkAppointmentStatus(appointmentstatus);
       if (!validAppointmentStatus) {
         await transaction.rollback();
@@ -757,6 +996,7 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
         });
         return;
       }
+      // Kiểm tra lịch hẹn
       const appointment = await db.Appointment.findOne({
         where: { AppointmentID: appointmentid },
         transaction,
@@ -770,6 +1010,7 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
         });
         return;
       }
+      // Kiểm tra trạng thái không thay đổi
       if (appointment.AppointmentStatus === appointmentstatus) {
         await transaction.rollback();
         resolve({
@@ -779,33 +1020,33 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
         });
         return;
       }
-      await db.Appointment.update(
-        { AppointmentStatus: appointmentstatus },
-        { where: { AppointmentID: appointmentid }, transaction }
-      );
       if (appointmentstatus === 'CONF') {
-        // Tạo bản ghi trong Schedule khi trạng thái là 'CONF'
-        await db.Schedule.create({
-          VeterinarianID: veterinarianid,
-          AppointmentID: appointment.AppointmentID,
-          Date: appointment.AppointmentDate,
-          StartTime: appointment.StartTime,
-          EndTime: appointment.EndTime,
-          ScheduleStatus: 'PEND',
-        }, { transaction });
+        // Gọi hàm xác nhận
+        const result = await confirmAppointment(appointmentid, veterinarianid, transaction);
+        await transaction.commit();
+        resolve({
+          errCode: result.errCode,
+          errMessage: result.errMessage,
+          data: null,
+        });
       } else {
-        // Xóa bản ghi trong Schedule nếu trạng thái không phải 'CONF'
+        // Cập nhật trạng thái không phải CONF
+        await db.Appointment.update(
+          { AppointmentStatus: appointmentstatus },
+          { where: { AppointmentID: appointmentid }, transaction }
+        );
+        // Xóa bản ghi Schedule
         await db.Schedule.destroy({
           where: { AppointmentID: appointmentid },
           transaction,
         });
+        await transaction.commit();
+        resolve({
+          errCode: 0,
+          errMessage: 'Thay đổi trạng thái lịch hẹn thành công!',
+          data: null,
+        });
       }
-      await transaction.commit();
-      resolve({
-        errCode: 0,
-        errMessage: 'Thay đổi trạng thái lịch hẹn thành công!',
-        data: null,
-      });
     } catch (e) {
       await transaction.rollback();
       console.log(e);
@@ -822,6 +1063,7 @@ export default {
   createAppointment,
   getAvailableTimes,
   getServiceInfo,
-  loadPendingAppointments,
+  loadAppointments,
+  loadAppointmentDetails,
   changeAppointmentStatus,
 };

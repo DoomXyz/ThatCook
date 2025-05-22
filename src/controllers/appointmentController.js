@@ -45,7 +45,7 @@ let handleGetServiceInfo = async (req, res) => {
   }
 };
 
-let handleLoadPendingAppointments = async (req, res) => {
+let handleLoadAppointments = async (req, res) => {
   try {
     const veterinarianid = req.query.veterinarianid || ''
     const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
@@ -55,10 +55,26 @@ let handleLoadPendingAppointments = async (req, res) => {
     const sort = req.query.sort || '0';
     const date1 = req.query.date1 || '';
     const date2 = req.query.date2 || '';
-    let response = await appointmentService.loadPendingAppointments(veterinarianid, page, limit, search, filter, sort, date1, date2);
+    const status = req.query.status || '';
+    let response = await appointmentService.loadAppointments(veterinarianid, page, limit, search, filter, sort, date1, date2, status);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleLoadPendingAppointments: ', e);
+    console.log('Error in handleLoadAppointments: ', e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: `Lỗi từ server: ${e.message}`,
+      data: null,
+    });
+  }
+};
+
+
+let handleLoadAppointmentDetails = async (req, res) => {
+  try {
+    let response = await appointmentService.loadAppointmentDetails(req.query.appointmentid);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log('Error in handleLoadAppointmentDetails: ', e);
     return res.status(500).json({
       errCode: 3,
       errMessage: `Lỗi từ server: ${e.message}`,
@@ -87,6 +103,7 @@ module.exports = {
   handleCreateAppointment,
   handleGetAvailableTimes,
   handleGetServiceInfo,
-  handleLoadPendingAppointments,
+  handleLoadAppointments,
+  handleLoadAppointmentDetails,
   handleChangeAppointmentStatus,
 };

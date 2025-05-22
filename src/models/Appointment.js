@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       Appointment.belongsTo(models.Service, { foreignKey: 'ServiceID' });
       Appointment.belongsTo(models.Pet, { foreignKey: 'PetID' });
       Appointment.hasOne(models.AppointmentBill, { foreignKey: 'AppointmentID' });
+      Appointment.hasOne(models.Schedule, { foreignKey: 'AppointmentID' });
       Appointment.hasMany(models.Image, { foreignKey: 'ReferenceID', constraints: false, scope: { ReferenceType: 'Appointment' } });
     }
   }

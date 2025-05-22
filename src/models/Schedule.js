@@ -6,7 +6,6 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Schedule.belongsTo(models.Account, { foreignKey: 'VeterinarianID' });
       Schedule.belongsTo(models.Appointment, { foreignKey: 'AppointmentID' });
-
     }
   }
 

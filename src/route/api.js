@@ -79,6 +79,7 @@ let initAPIRoutes = (app) => {
     router.post('/api/create-appointment', appointmentController.handleCreateAppointment);
     router.get('/api/get-serviceinfo', appointmentController.handleGetServiceInfo);
     router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes)
+    router.get('/api/load-appointmentdetails', appointmentController.handleLoadAppointmentDetails);
 
     router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
     router.get('/api/get-petinfo', petController.handleGetPetInfo);
@@ -113,10 +114,11 @@ let initAPIRoutes = (app) => {
     //veterinarian
     router.put('/api/change-workingstatus', accountController.handleChangeWorkingStatus);
 
-    router.get('/api/load-pendingappointments', appointmentController.handleLoadPendingAppointments);
+    router.get('/api/load-appointments', appointmentController.handleLoadAppointments);
     router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
 
-
+    router.get('/api/load-schedule', scheduleController.handleLoadSchedule);
+    router.put('/api/change-schedulestatus', scheduleController.handleChangeScheduleStatus);
     return app.use('/', router);
 };
 

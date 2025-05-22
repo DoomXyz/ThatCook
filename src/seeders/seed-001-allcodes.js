@@ -96,6 +96,7 @@ module.exports = {
 
         // ScheduleStatus
         { Type: 'ScheduleStatus', Code: 'PEND', CodeValueVI: 'Chờ khám', ExtraValue: null },
+        { Type: 'ScheduleStatus', Code: 'COMP', CodeValueVI: 'Đã khám', ExtraValue: null },
         { Type: 'ScheduleStatus', Code: 'CANCELED', CodeValueVI: 'Đã bị hủy', ExtraValue: null },
       ],
       {}
