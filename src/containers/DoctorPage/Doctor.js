@@ -69,8 +69,8 @@ class Doctor extends Component {
     await this.handleLoadCodeAppointmentStatus();
     await this.handleLoadCodeScheduleStatus();
     await this.handleLoadCodeAppointmentType();
-    await this.handleLoadCodePetType();
-    await this.handleLoadCodePetGender();
+    // await this.handleLoadCodePetType();
+    // await this.handleLoadCodePetGender();
     if (this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
@@ -526,10 +526,12 @@ class Doctor extends Component {
           autoClose: 500,
           closeOnClick: true,
         });
-        // Tải lại chi tiết lịch hẹn
-        this.handleLoadAppointmentDetails(this.state.selectedAppointment);
+        await this.handleLoadSchedule()
+        this.setState({
+          actionPage: 3
+        })
       } else {
-        toast.error('Lỗi khi cập nhật lịch!', {
+        toast.error(response.errMessage || 'Lỗi khi cập nhật lịch!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
@@ -1327,14 +1329,18 @@ class Doctor extends Component {
                     )}
                     {fromForm === 3 && (
                       <>
-                        <button
-                          type="button"
-                          className="action-button complete-button"
-                          onClick={() => this.handleAppointmentCheckOut(loadedAppointmentDetail.AppointmentID)}
-                        >
-                          Hoàn thành dịch vụ
-                        </button>
-                        {loadedAppointmentDetail.ScheduleID ? (
+                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' ? (
+                          console.log(loadedAppointmentDetail),
+                          <button
+                            type="button"
+                            className="action-button complete-button"
+                            onClick={() => this.handleAppointmentCheckOut(loadedAppointmentDetail.AppointmentID)}
+                          >
+                            Hoàn thành
+                          </button>
+                        ) : ""}
+                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus !== 'CANCELED' ? (
+                          console.log(loadedAppointmentDetail),
                           <button
                             type="button"
                             className="action-button cancel-button"
@@ -1342,9 +1348,7 @@ class Doctor extends Component {
                           >
                             Hủy khám
                           </button>
-                        ) : (
-                          <p>Không có lịch làm việc để hủy</p>
-                        )}
+                        ) : ""}
                       </>
                     )}
                     {fromForm === 4 && loadedAppointmentDetail.AppointmentBill && (
