@@ -520,10 +520,10 @@ class CheckOut extends Component {
         });
         toast.success(
           <div>
-            Đặt hàng thành công! Mã đơn hàng: {response.data}
+            Đặt hàng thành công! Mã đơn hàng: {response.data.InvoiceID}
             <div style={{ marginTop: '10px' }}>
               <button
-                onClick={() => this.props.navigate(`/bill/${response.data}`)}
+                onClick={() => this.props.navigate(`/bill/${response.data.InvoiceID}`)}
                 style={{
                   marginRight: '10px',
                   color: 'blue',
