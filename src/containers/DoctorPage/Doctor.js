@@ -825,7 +825,6 @@ class Doctor extends Component {
     );
   };
   handleNextPage = (type) => {
-
     this.setState(
       (prevState) => {
         let totalPages;
@@ -1501,7 +1500,8 @@ class Doctor extends Component {
                             Hoàn thành
                           </button>
                         ) : ""}
-                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus !== 'CANCELED' ? (
+
+                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' ? (
                           <button
                             type="button"
                             className="action-button cancel-button"

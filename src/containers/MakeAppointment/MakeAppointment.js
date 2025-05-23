@@ -58,7 +58,7 @@ class MakeAppointment extends Component {
       isShowVeterinarianSelectModal: false,
       createdAppointmentID: '',
       originalServiceList: [],
-
+      isEditable: true,
     };
   }
   async componentDidMount() {
@@ -67,11 +67,14 @@ class MakeAppointment extends Component {
     await this.handleLoadCodePetGender();
     await this.handleLoadCodeService();
     setTimeout(() => {
+      if (!this.props.fuAppointmentInfo && this.state.accountInfo.AccountType === "V") {
+        this.props.navigate('/user/veterinarian')
+      }
       this.handleLoadAppointmentInfo();
       this.setState({ isLoading: false });
     }, 10);
-  }
 
+  }
   async componentDidUpdate(prevProps) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
@@ -830,6 +833,7 @@ class MakeAppointment extends Component {
 
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
+  fuAppointmentInfo: state.appointment.fuAppointmentInfo,
 });
 
 const mapDispatchToProps = {};

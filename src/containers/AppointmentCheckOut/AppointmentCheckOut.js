@@ -8,7 +8,7 @@ import Spinner from '../../components/Spinner';
 import './AppointmentCheckOut.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import { handleLoadAppointmentDetailsApi, handleCreateAppointmentBillApi } from '../../services/appointmentServices'
-import { saveBillSearchInfo, clearAppointmentCheckout } from '../../store/actions';
+import { saveFuAppointmentInfo, clearAppointmentCheckout } from '../../store/actions';
 
 class AppointmentCheckOut extends Component {
     constructor(props) {
@@ -202,12 +202,12 @@ class AppointmentCheckOut extends Component {
             if (response && response.errCode === 0) {
                 toast.success(
                     <div>
-                        Thanh toán thành công! Mã hóa đơn: {response.data.AppointmentBillID}
+                        Hoàn tất thanh đoán!
                         <div style={{ marginTop: '10px' }}>
                             <button
                                 onClick={() => {
-                                    this.props.saveBillSearchInfo({ billid: response.data.AppointmentBillID, billtype: 3 });
-                                    this.props.navigate('/bill');
+                                    this.props.saveFuAppointmentInfo({ billid: response.data.AppointmentBillID });
+                                    this.props.navigate('/makeappointment');
                                 }}
                                 style={{
                                     marginRight: '10px',
@@ -217,7 +217,7 @@ class AppointmentCheckOut extends Component {
                                     border: 'none',
                                 }}
                             >
-                                Xem chi tiết
+                                Tạo lịch tái khám
                             </button>
                             <button
                                 onClick={() => this.props.navigate('/home')}
@@ -362,7 +362,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    saveBillSearchInfo: (billData) => dispatch(saveBillSearchInfo(billData)),
+    saveFuAppointmentInfo: (fuAppointmentInfo) => dispatch(saveFuAppointmentInfo(fuAppointmentInfo)),
     clearAppointmentCheckout: () => dispatch(clearAppointmentCheckout()),
 });
 
