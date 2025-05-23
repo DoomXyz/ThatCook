@@ -870,6 +870,19 @@ let loadAppointments = (veterinarianid, page, limit, search, filter, sort, date1
             });
             return;
           }
+        } else if (field === 'service') {
+          const validService = await db.Service.findOne({
+            where: { ServiceID: value },
+          });
+          if (!validService) {
+            resolve({
+              errCode: 1,
+              errMessage: 'Dịch vụ không tồn tại!',
+              data: null,
+            });
+            return;
+          }
+          where.ServiceID = value;
         } else {
           resolve({
             errCode: 1,
@@ -1263,7 +1276,6 @@ let createAppointmentBill = (veterinarianid, appointmentid, serviceprice, medica
     }
   });
 };
-
 let getAppointmentBillDetail = (appointmentbillid) => {
   return new Promise(async (resolve, reject) => {
     try {
