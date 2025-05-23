@@ -19,6 +19,8 @@ import { checkLoginStatus } from '../../utils/pakage';
 
 import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
+const hoadon = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1748006346/mau-hoa-don-scaled_jvwj68.jpg'
+
 class User extends Component {
   constructor(props) {
     super(props);
@@ -55,6 +57,7 @@ class User extends Component {
       loadedInvoiceDetail: null,
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
+      loadedApppointmentInfo: [],
       currentInvoicePage: 1,
       tempCurrentInvoicePage: '1',
       limitInvoicePerQuery: 5,
@@ -63,6 +66,10 @@ class User extends Component {
       tempCurrentProductPage: '1',
       limitProductPerQuery: 7,
       totalProductPages: 1,
+      currentAppointmentPage: 1,
+      tempCurrentAppointmentPage: '1',
+      limitAppointmentPerQuery: 5,
+      totalAppointmentPages: 1,
     };
     this.handlePreviewUserImage = this.handlePreviewUserImage.bind(this);
     this.handleUploadUserImage = this.handleUploadUserImage.bind(this);
@@ -487,6 +494,18 @@ class User extends Component {
     e.preventDefault();
     this.setState({ actionPage: 2, selectedInvoiceID: null });
   };
+  handleFormDatLich = (e) => {
+    e.preventDefault();
+    this.setState({ actionPage: 5 });
+  };
+  handleFromThuCung = (e) => {
+    e.preventDefault();
+    this.setState({ actionPage: 7 });
+  };
+  handleFromThemThuCung = (e) => {
+    e.preventDefault();
+    this.setState({ actionPage: 8 });
+  };
   handleFormDoiMatKhau = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 3 });
@@ -522,6 +541,13 @@ class User extends Component {
         closeOnClick: true,
       });
     }
+  };
+  handleFormChiTietLichKham = (appointmentId) => {
+    this.setState({
+      actionPage: 6,
+      selectedAppointmentID: appointmentId, // Lưu ID của lịch khám được chọn
+      // Các trạng thái khác nếu cần, ví dụ: loadedAppointmentDetail
+    });
   };
   handleChangePasswordInputChange = (e) => {
     this.setState({ [e.target.name]: e.target.value });
@@ -1342,6 +1368,230 @@ class User extends Component {
             </div>
           </form>
         );
+      case 5:
+        return (
+          <form className="user-appointment-form">
+            <div className="f">
+              <h3>
+                <b>Lịch Khám:</b>
+              </h3>
+              <div className="appointment-search">
+                <input type="text" placeholder="Hãy nhập tên bác sĩ hoặc thú cưng..." />
+              </div>
+              <div className="appointment-filter f">
+                <p>Loại lịch:</p>
+                <select>
+                  <option>Tắt cả</option>
+                  <option>Đã khám</option>
+                  <option>Chưa khám</option>
+                </select>
+              </div>
+              <div className="appointment-sort f">
+                <p>Sắp xếp:</p>
+                <select>
+                  <option>Tắt cả</option>
+                  <option>Mới nhất</option>
+                  <option>Cũ nhất</option>
+                </select>
+              </div>
+            </div>
+            <div className="user-appointment-form-content">
+              <div className="appointment-list">
+                <div
+                  className={`appointment-list-item ${actionPage === 6 ? 'active' : ''}`}
+                  onClick={() => this.handleFormChiTietLichKham('ABCDEDSD')} // Thay 'ABCDEDSD' bằng appointmentId thực tế
+                >
+                  <div className="appointment-list-item-top-1">
+                    <b>Ngày Khám: 30/4/2025 16:00-17:00</b>
+                  </div>
+                  <div className="appointment-list-item-top">
+                    <div>
+                      <p>
+                        <b>Ngày đặt lịch: </b> 27/11/2020 15:36
+                      </p>
+                      <p>
+                        <b>Mã lịch khám:</b> ABCDEDSD
+                      </p>
+                    </div>
+                    <div>
+                      <p>
+                        <b>Tình trạng lịch:</b> Đã khám
+                      </p>
+                      <p>
+                        <b>Tình trạng thanh toán:</b> Đã thanh toán
+                      </p>
+                    </div>
+                  </div>
+                  <div className="appointment-list-item-mid">
+                    <p>
+                      <b>Tên khách hàng: </b> Nguyen Van A
+                    </p>
+                    <p>
+                      <b>Tên thú cưng:</b> Kiki
+                    </p>
+                    <p>
+                      <b>Tên dịch vụ:</b> ACBB
+                    </p>
+                  </div>
+                  <div className="appointment-list-item-bottom">
+                    <button>Hủy đặt lịch</button>
+                    <div className="f">
+                      <b>Tổng thanh toán:</b> <p>100.000 vnđ</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        );
+      case 6:
+        return (
+          <form className="user-appointment-form-detail">
+            <div className="user-appointment-form-detail-top">
+              <div className="user-appointment-form-detail-left">
+                <div className="back" onClick={this.handleFormDatLich}>
+                  <IonIcon icon={chevronBack}></IonIcon>
+                  <h5>
+                    <b>Trở lại</b>
+                  </h5>
+                </div>
+              </div>
+              <div className="user-appointment-form-detail-right">
+                <div className="appointment-detail-tab">
+                  <div className="mlk">
+                    <h5>Mã lịch khám: </h5>
+                  </div>
+                  <div className="ctmd">
+                    <h5>HmuHMU</h5>
+                  </div>
+                </div>
+                <div className="tt">
+                  <h5>Đã thanh toán</h5>
+                </div>
+              </div>
+            </div>
+            <div className="user-appointment-form-detail-mid-1">
+              <div className="user-appointment-form-detail-mid-1-left-info">
+                <div className="f">
+                  <b>Ngày đặt lịch:</b> <p>27/11/2020 15:36</p>
+                </div>
+                <div className="f">
+                  <b>Tên khách hàng:</b> <p>Nguyen Van A</p>
+                </div>
+                <div className="f">
+                  <b>Tên thú cưng:</b> <p>Kiki</p>
+                </div>
+              </div>
+              <div className="user-appointment-form-detail-mid-1-right-info">
+                <div className="f">
+                  <b>Tên bác sĩ</b> <p>Nguyen Van B</p>
+                </div>
+                <div className="f">
+                  <b>Dịch vụ:</b> <p>ACBB</p>
+                </div>
+              </div>
+            </div>
+            <div className="user-appointment-form-detail-mid-2">
+              <div className="user-appointment-form-detail-mid-2-left">
+                <div className="f">
+                  <b>Ngày khám: </b>
+                  <p>27/11/2020 15:00 đến 16:00</p>
+                </div>
+
+                <div className="f">
+                  <b>Phí dịch vụ: </b>
+                  <p>100.000 vnđ</p>
+                </div>
+                <div className="f">
+                  <b>Phí dược phẩm: </b>
+                  <p>100.000 vnđ</p>
+                </div>
+                <div className="f">
+                  <b>Tổng thanh toán: </b>
+                  <p>100.000 vnđ</p>
+                </div>
+              </div>
+
+              <div className="user-appointment-form-detail-mid-2-center">
+                <b>*Ghi chú của bác sĩ:</b>
+                <br />
+                <label></label>
+              </div>
+              <div className="user-appointment-form-detail-mid-2-right">
+                <img src={hoadon} />
+              </div>
+            </div>
+          </form>
+        );
+      case 7:
+        return (
+          <form className="user-pet-form">
+            <div className="user-pet-form-top">
+              <h3>
+                <b>Thông tin thú cưng:</b>
+              </h3>
+              <button onClick={this.handleFromThemThuCung}>Thêm thú cưng</button>
+            </div>
+            <div className="user-pet-form-content">
+              <div className="user-pet-form-content-list">
+                <div className="user-pet-form-content-list-item f">
+                  <div className="user-pet-form-content-list-item-top-1">
+                    <b>Tên thú cưng: Kiki</b>
+                  </div>
+                  <div className="f">
+                    <b>Giống: </b>
+                    <p>Chó</p>
+                  </div>
+                  <div className="f">
+                    <b>Cân nặng (kg): </b>
+                    <p>5</p>
+                  </div>
+                  <div className="f">
+                    <b>Tuổi (Tháng): </b>
+                    <p>15</p>
+                  </div>
+                  <div className="f">
+                    <b>Giới tính: </b>
+                    <p>Cái</p>
+                  </div>
+                  <button className="edit-pet">
+                    <IonIcon icon={pencil}></IonIcon>
+                  </button>
+                  <button className="delete-pet">
+                    <b>X</b>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        );
+      case 8:
+        return (
+          <form className="user-add-pet-form">
+            <div className="user-add-pet-form-top">
+              <h3>
+                <b>Thêm thú cưng:</b>
+              </h3>
+              <button onClick={this.handleFromThuCung}>Hủy</button>
+            </div>
+            <div className="user-add-pet-form-content">
+              <div>
+                <input type="text" placeholder="Hãy nhập tên thú cưng" />
+                <select>
+                  <option value="male">Nam</option>
+                  <option value="female">Nu</option>
+                </select>
+                <input type="text" placeholder="Hãy nhập cân nặng" />
+                <input type="text" placeholder="Hãy nhập tuổi" />
+                <select>
+                  <option value="dog">Chó</option>
+                  <option value="cat">Cái</option>
+                </select>
+              </div>
+              <button>Thêm</button>
+            </div>
+          </form>
+        );
       default:
         return null;
     }
@@ -1362,9 +1612,15 @@ class User extends Component {
               <div className={`user-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
                 Hồ sơ người dùng
               </div>
+              <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFromThuCung}>
+                Thông tin thú cưng
+              </div>
               <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
                 Lịch sử đơn hàng
               </div>
+              <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
+                Lịch Khám
+              </div>{' '}
               <div className={`user-action-change-pw ${actionPage === 3 ? 'active' : ''}`} onClick={this.handleFormDoiMatKhau}>
                 Đổi mật khẩu
               </div>

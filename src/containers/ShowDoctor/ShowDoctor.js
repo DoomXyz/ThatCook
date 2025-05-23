@@ -285,11 +285,31 @@ class ShowDoctor extends Component {
                   </div>
                 ))
               ) : (
-                <p>Không có bác sĩ nào</p>
+                <p>khoog co bs nào</p>
               )}
             </div>
           </div>
         </div>
+        {totalPages > 1 && (
+          <div className="page-content">
+            <div className="page-content-item">
+              <button className="first" onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
+                {'<<'}
+              </button>
+              <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
+                {'<'}
+              </button>
+              <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
+              <span className="total-pages">/ {totalPages}</span>
+              <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
+                {'>'}
+              </button>
+              <button className="last" onClick={() => this.handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+                {'>>'}
+              </button>
+            </div>
+          </div>
+        )}
         <Footer />
       </div>
     );

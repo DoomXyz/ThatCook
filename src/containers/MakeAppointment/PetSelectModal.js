@@ -79,11 +79,7 @@ class PetSelectModal extends Component {
                 new Promise((resolve) => {
                     toast(
                         <div>
-                            <p>
-                                {this.state.isAddingPet
-                                    ? 'Bạn đang thêm thú cưng chưa lưu. Lưu hoặc hủy trước khi thêm thú cưng mới?'
-                                    : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi và thêm thú cưng mới?'}
-                            </p>
+                            <p>{this.state.isAddingPet ? 'Bạn đang thêm thú cưng chưa lưu. Lưu hoặc hủy trước khi thêm thú cưng mới?' : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi và thêm thú cưng mới?'}</p>
                             <button
                                 className="toast-confirm-btn"
                                 onClick={() => {
@@ -277,11 +273,7 @@ class PetSelectModal extends Component {
             new Promise((resolve) => {
                 toast(
                     <div>
-                        <p>
-                            {this.state.isAddingPet
-                                ? 'Bạn đang thêm thú cưng chưa lưu. Hủy thú cưng này?'
-                                : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi?'}
-                        </p>
+                        <p>{this.state.isAddingPet ? 'Bạn đang thêm thú cưng chưa lưu. Hủy thú cưng này?' : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi?'}</p>
                         <button
                             className="toast-confirm-btn"
                             onClick={() => {
@@ -359,15 +351,14 @@ class PetSelectModal extends Component {
         return (
             <Modal show={isOpen} onHide={toggleFromModal} centered backdrop="static" className="pet-select-modal">
                 <Modal.Header closeButton>
-                    <Modal.Title>Chọn Thú Cưng</Modal.Title>
+                    <Modal.Title>
+                        <p>Chọn Thú Cưng</p>
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {loadedPetInfo.length < limitPetCount && (
                         <div className="pet-select-add">
-                            <button
-                                className="btn btn-success btn-sm"
-                                onClick={this.handleAddPet}
-                            >
+                            <button className="btn btn-success btn-sm" onClick={this.handleAddPet}>
                                 Thêm Thú Cưng
                             </button>
                         </div>
@@ -379,7 +370,7 @@ class PetSelectModal extends Component {
                                     <th>Tên Thú Cưng</th>
                                     <th>Loại</th>
                                     <th>Giới Tính</th>
-                                    <th>Tuổi</th>
+                                    <th>Tuổi (tháng)</th>
                                     <th>Cân Nặng</th>
                                     <th>Action</th>
                                 </tr>
@@ -388,23 +379,10 @@ class PetSelectModal extends Component {
                                 {loadedPetInfo.length > 0 ? (
                                     loadedPetInfo.map((pet, index) => (
                                         <tr key={pet.PetID}>
+                                            <td>{isEditingPet === index ? <input type="text" value={pet.PetName} onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)} /> : pet.PetName}</td>
                                             <td>
                                                 {isEditingPet === index ? (
-                                                    <input
-                                                        type="text"
-                                                        value={pet.PetName}
-                                                        onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)}
-                                                    />
-                                                ) : (
-                                                    pet.PetName
-                                                )}
-                                            </td>
-                                            <td>
-                                                {isEditingPet === index ? (
-                                                    <select
-                                                        value={pet.PetType}
-                                                        onChange={(e) => this.handlePetChange(index, 'PetType', e.target.value)}
-                                                    >
+                                                    <select value={pet.PetType} onChange={(e) => this.handlePetChange(index, 'PetType', e.target.value)}>
                                                         {codePetType.map((type) => (
                                                             <option key={type.Code} value={type.Code}>
                                                                 {type.CodeValueVI}
@@ -417,10 +395,7 @@ class PetSelectModal extends Component {
                                             </td>
                                             <td>
                                                 {isEditingPet === index ? (
-                                                    <select
-                                                        value={pet.PetGender}
-                                                        onChange={(e) => this.handlePetChange(index, 'PetGender', e.target.value)}
-                                                    >
+                                                    <select value={pet.PetGender} onChange={(e) => this.handlePetChange(index, 'PetGender', e.target.value)}>
                                                         {codePetGender.map((gender) => (
                                                             <option key={gender.Code} value={gender.Code}>
                                                                 {gender.CodeValueVI}
@@ -431,32 +406,12 @@ class PetSelectModal extends Component {
                                                     codePetGender.find((gender) => gender.Code === pet.PetGender)?.CodeValueVI || pet.PetGender
                                                 )}
                                             </td>
-                                            <td>
-                                                {isEditingPet === index ? (
-                                                    <input
-                                                        type="number"
-                                                        value={pet.Age}
-                                                        onChange={(e) => this.handlePetChange(index, 'Age', e.target.value)}
-                                                    />
-                                                ) : (
-                                                    pet.Age
-                                                )}
-                                            </td>
-                                            <td>
-                                                {isEditingPet === index ? (
-                                                    <input
-                                                        type="number"
-                                                        value={pet.PetWeight}
-                                                        onChange={(e) => this.handlePetChange(index, 'PetWeight', e.target.value)}
-                                                    />
-                                                ) : (
-                                                    `${pet.PetWeight} kg`
-                                                )}
-                                            </td>
+                                            <td>{isEditingPet === index ? <input type="number" value={pet.Age} onChange={(e) => this.handlePetChange(index, 'Age', e.target.value)} /> : pet.Age}</td>
+                                            <td>{isEditingPet === index ? <input type="number" value={pet.PetWeight} onChange={(e) => this.handlePetChange(index, 'PetWeight', e.target.value)} /> : `${pet.PetWeight} kg`}</td>
                                             <td>
                                                 {isEditingPet === index ? (
                                                     <>
-                                                        <button className="btn btn-primary btn-sm" onClick={() => this.handleSavePet(index)}>
+                                                        <button className="btn btn-primary btn-sm pet-save-btn" onClick={() => this.handleSavePet(index)}>
                                                             Lưu
                                                         </button>
                                                         <button className="btn btn-danger btn-sm" onClick={() => this.handleCancelPet()}>
@@ -465,17 +420,10 @@ class PetSelectModal extends Component {
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button
-                                                            className="btn btn-primary btn-sm"
-                                                            onClick={() => this.handleSelectPet(pet.PetID)}
-                                                        >
+                                                        <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectPet(pet.PetID)}>
                                                             Chọn
                                                         </button>
-                                                        <button
-                                                            className="btn btn-warning btn-sm"
-                                                            onClick={() => this.handleEditPet(index)}
-                                                            disabled={isEditingPet !== null || isAddingPet}
-                                                        >
+                                                        <button className="btn btn-warning btn-sm" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
                                                             Sửa
                                                         </button>
                                                     </>

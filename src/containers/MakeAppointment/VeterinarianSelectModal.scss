@@ -1,6 +1,6 @@
 .veterinarian-select-modal {
   .modal-dialog {
-    min-width: 66.5rem;
+    min-width: 67rem;
   }
   .modal-header {
     padding: 0;
@@ -87,14 +87,17 @@
             display: flex;
             flex-wrap: wrap;
             gap: 2rem;
-            max-height: 33rem; /* Enough for 4 items (2 rows) */
+            row-gap: 1rem;
+            min-height: 18rem;
+            max-height: 34rem; /* Enough for 4 items (2 rows) */
             overflow-y: auto; /* Vertical scrollbar when content exceeds max-height */
             padding-right: 0.5rem; /* Space for scrollbar */
             .showdoctor-content-mid-list-item {
               box-shadow: 4px 8px 30px 0 rgba(177, 196, 218, 0.35);
               width: calc(50% - 1rem); /* Two items per row */
               height: 14.5rem;
-              margin-top: 2rem;
+              margin: 1rem 0;
+
               border-radius: 1rem;
               line-height: 1.2rem;
               display: flex;

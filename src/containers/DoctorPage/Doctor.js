@@ -13,7 +13,7 @@ import './Doctor.scss'; // Import SCSS
 import { handleLogoutApi, handleChangeAccountInfoApi, handleChangeWorkingStatusApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { handleLoadScheduleApi, handleChangeScheduleStatusApi } from '../../services/scheduleServices';
-import { handleLoadAppointmentsApi, handleChangeAppointmentStatusApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices'
+import { handleLoadAppointmentsApi, handleChangeAppointmentStatusApi, handleLoadAppointmentDetailsApi, handleGetServiceInfoApi } from '../../services/appointmentServices'
 
 import { userLogin, userLogout, saveAppointmentForCheckout } from '../../store/actions';
 import { checkLoginStatus } from '../../utils/pakage';
@@ -45,6 +45,7 @@ class Doctor extends Component {
       codeAppointmentType: [],
       codePetType: [],
       codePetGender: [],
+      serviceList: [],
       loadedPendingAppointments: [],
       loadedCompleteAppointments: [],
       loadedSchedules: [],
@@ -72,6 +73,7 @@ class Doctor extends Component {
       this.handleLoadCodeAppointmentType(),
       this.handleLoadCodePetType(),
       this.handleLoadCodePetGender(),
+      this.handleLoadServiceInfo(),
     ]);
     if (this.props.userInfo) {
       await this.handleIsLogin();
@@ -244,6 +246,31 @@ class Doctor extends Component {
     } catch (e) {
       console.log('Error loading petgender code:', e);
       toast.error('Lỗi khi tải danh sách giới tính thú cưng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleLoadServiceInfo = async () => {
+    try {
+      const response = await handleGetServiceInfoApi('ALL');
+      if (response.errCode !== 0 || !response.data || response.data.length === 0) {
+        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({
+          serviceList: [],
+        });
+        return;
+      }
+      this.setState({
+        serviceList: response.data,
+      });
+    } catch (e) {
+      toast.error('Lỗi khi tải danh sách dịch vụ!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
@@ -874,7 +901,7 @@ class Doctor extends Component {
   renderForm() {
     const { actionPage, veterinarianid, veterinarianname, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
       editField, bio, servicesList, specialization, workingstatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType, codePetType, codePetGender,
-      searchValue, filterValue, sortValue, currentPage, tempCurrentPage, date1, date2, totalAppointmentPages, fromForm } = this.state;
+      serviceList, filterValue, sortValue, currentPage, tempCurrentPage, date1, date2, totalAppointmentPages, fromForm } = this.state;
 
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
@@ -963,8 +990,17 @@ class Doctor extends Component {
                   <div className="filter-sort">
                     <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
                       <option value="ALL">Tất cả</option>
-                      <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
-                      <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
+                      <optgroup label="Theo lịch hẹn">
+                        <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
+                        <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
+                      </optgroup>
+                      <optgroup label="Theo dịch vụ">
+                        {this.state.serviceList.map((service) => (
+                          <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                            {service.ServiceName}
+                          </option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                   <div className="filter-sort">
@@ -1178,8 +1214,17 @@ class Doctor extends Component {
               <div className='filter-sort'>
                 <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
                   <option value="ALL">Tất cả</option>
-                  <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
-                  <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
+                  <optgroup label="Theo lịch hẹn">
+                    <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
+                    <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
+                  </optgroup>
+                  <optgroup label="Theo dịch vụ">
+                    {this.state.serviceList.map((service) => (
+                      <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                        {service.ServiceName}
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
                 <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
                   <option value="0">Mặc định</option>

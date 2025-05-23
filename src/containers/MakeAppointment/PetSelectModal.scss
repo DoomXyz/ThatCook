@@ -1,38 +1,81 @@
 .pet-select-modal {
+    .modal-dialog {
+        min-width: 62rem;
+    }
     .modal-content {
         padding: 20px;
     }
-    .pet-select-table {
-        max-height: 400px;
-        overflow-y: auto;
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            thead {
-                tr {
-                    th {
-                        padding: 10px;
-                        background: #f0f0f0;
-                        text-align: left;
-                        border-bottom: 1px solid #ddd;
+    .modal-header {
+        padding: 0;
+        .modal-title {
+            p {
+                margin-left: 1.2rem;
+                margin-bottom: 0.5rem;
+                color: rgb(91, 82, 82);
+
+                font-weight: bold;
+            }
+        }
+    }
+    .modal-body {
+        .pet-select-add {
+            display: flex;
+            justify-content: end;
+            button {
+                margin: 1rem 0;
+                margin-top: 0;
+                padding: 0.4rem;
+            }
+        }
+        .pet-select-table {
+            max-height: 400px;
+            overflow-y: auto;
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                thead {
+                    tr {
+                        th {
+                            padding: 10px;
+                            background: #f0f0f0;
+                            text-align: center;
+                            border-bottom: 1px solid #ddd;
+                        }
                     }
                 }
-            }
-            tbody {
-                tr {
-                    td {
-                        padding: 10px;
-                        border-bottom: 1px solid #ddd;
-                    }
-                    .select-btn {
-                        background: #007bff;
-                        color: white;
-                        border: none;
-                        padding: 5px 10px;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        &:hover {
-                            background: #0056b3;
+                tbody {
+                    tr {
+                        td {
+                            text-align: center;
+                            padding: 10px;
+                            border-bottom: 1px solid #ddd;
+                            select {
+                                height: 2.35rem;
+                                border-radius: 0.3rem;
+                            }
+                            input {
+                                text-align: center;
+                                padding: 0.3rem;
+                                border-radius: 0.3rem;
+                            }
+                            button {
+                                border-radius: 0.3rem;
+                                margin: 0 0.3rem;
+                            }
+                            .pet-save-btn {
+                                width: 3.1rem;
+                            }
+                        }
+                        .select-btn {
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            padding: 5px 10px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            &:hover {
+                                background: #0056b3;
+                            }
                         }
                     }
                 }
