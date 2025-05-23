@@ -1,29 +1,34 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
-import './Bill.scss';
-import logo from '../../assets/images/logo1.png';
-import Header from '../../components/HomeHeader';
-import Spinner from '../../components/Spinner';
-import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
-import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi } from '../../services/appointmentServices';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import RobotoRegularFont from '../../assets/fonts/Roboto-Regular-normal.js';
+
+import './Bill.scss';
+import Spinner from '../../components/Spinner';
+import Header from '../../components/HomeHeader';
+
 import { IonIcon } from '@ionic/react';
 import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBack } from 'ionicons/icons';
-import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+
+import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
+import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
+import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { clearBillSearchInfo } from '../../store/actions';
+
+import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+
+import logo from '../../assets/images/logo1.png';
 
 class Bill extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isLoading: true,
-      actionPage: 1, // 1: tìm kiếm, 2: Product, 3: Appointment, 4: Hóa đơn Appointment
-      searchValue: '',
+      actionPage: 0, // 0: tìm kiếm, 1: Product, 2: Appointment, 3: Appointment Bill
       selectedTab: 1, // 1: Product, 2: Appointment, 3: Appointment Bill
+      searchValue: '',
       billid: '',
       billtype: 0,
       loadedInvoiceDetails: null,
@@ -50,27 +55,21 @@ class Bill extends Component {
         this.handleLoadCodePetType(),
         this.handleLoadCodePetGender(),
       ]);
-
-      // Kiểm tra props.billInfo để tránh lỗi khi null
       if (this.props.billInfo) {
         const { billid, billtype } = this.props.billInfo;
-        if (billid && billtype) {
-          this.setState({ billid, billtype, actionPage: billtype === 3 ? 4 : billtype });
-          const success = await this.handleLoadBillDetails(billid, billtype);
-          if (success) {
-            this.props.clearBillSearchInfo();
-          }
+        this.setState({ billid, billtype, actionPage: billtype });
+        const success = await this.handleLoadBillDetails(billid, billtype);
+        if (success) {
+          this.props.clearBillSearchInfo();
         }
       }
     } catch (e) {
       console.error('Error in componentDidMount:', e);
-      toast.error('Lỗi khi tải dữ liệu ban đầu!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Lỗi khi tải dữ liệu từ trang trước!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     } finally {
       this.setState({ isLoading: false });
     }
   }
-
-  // Load các code từ API
   handleLoadCodePaymentType = async () => {
     try {
       const codePaymentType = await handleGetAllCodesApi('PaymentType');
@@ -84,7 +83,6 @@ class Bill extends Component {
       toast.error('Lỗi khi tải danh sách phương thức thanh toán!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-
   handleLoadCodeShippingMethod = async () => {
     try {
       const codeShippingMethod = await handleGetAllCodesApi('ShippingMethod');
@@ -98,7 +96,6 @@ class Bill extends Component {
       toast.error('Lỗi khi tải danh sách phương thức giao hàng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-
   handleLoadCodeShippingStatus = async () => {
     try {
       const codeShippingStatus = await handleGetAllCodesApi('ShippingStatus');
@@ -112,7 +109,6 @@ class Bill extends Component {
       toast.error('Lỗi khi tải danh sách trạng thái giao hàng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-
   handleLoadCodeAppointmentStatus = async () => {
     try {
       const codeAppointmentStatus = await handleGetAllCodesApi('AppointmentStatus');
@@ -126,7 +122,6 @@ class Bill extends Component {
       toast.error('Lỗi khi tải danh sách trạng thái lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-
   handleLoadCodePetType = async () => {
     try {
       const codePetType = await handleGetAllCodesApi('PetType');
@@ -140,7 +135,6 @@ class Bill extends Component {
       toast.error('Lỗi khi tải danh sách loại thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-
   handleLoadCodePetGender = async () => {
     try {
       const codePetGender = await handleGetAllCodesApi('PetGender');
@@ -154,139 +148,98 @@ class Bill extends Component {
       toast.error('Lỗi khi tải danh sách giới tính thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-
-  // Load chi tiết hóa đơn/lịch hẹn
+  loadBillData = async (id, type) => {
+    try {
+      switch (type) {
+        case 1: // Product
+          const invoiceResponse = await handleGetInvoiceDetailInfoApi(id);
+          console.log("loaded invoice detail: ", invoiceResponse)
+          if (invoiceResponse && invoiceResponse.errCode === 0) {
+            return { success: true, data: invoiceResponse.data, stateKey: 'loadedInvoiceDetails' };
+          }
+          toast.error(invoiceResponse?.errMessage || 'Không tìm thấy hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          return { success: false };
+        case 2: // Appointment
+          const appointmentResponse = await handleLoadAppointmentDetailsApi(id);
+          console.log("loaded appointment detail: ", appointmentResponse)
+          if (appointmentResponse && appointmentResponse.errCode === 0) {
+            return { success: true, data: appointmentResponse.data, stateKey: 'loadedAppointmentDetails' };
+          }
+          toast.error(appointmentResponse?.errMessage || 'Không tìm thấy lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          return { success: false };
+        case 3: // Hóa đơn Appointment
+          const appointmentBillResponse = await handleGetAppointmentBillDetailApi(id);
+          console.log("loaded appointmentbill detail: ", appointmentBillResponse)
+          if (appointmentBillResponse && appointmentBillResponse.errCode === 0) {
+            if (appointmentBillResponse.data.AppointmentBill) {
+              return { success: true, data: appointmentBillResponse.data, stateKey: 'loadedAppointmentBillDetails' };
+            }
+            toast.error('Không tìm thấy hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+            return { success: false };
+          }
+          toast.error(appointmentBillResponse?.errMessage || 'Không tìm thấy hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          return { success: false };
+        default:
+          toast.error('Loại hóa đơn không hợp lệ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          return { success: false };
+      }
+    } catch (e) {
+      console.error('Error loading bill data:', e);
+      toast.error('Lỗi khi tải thông tin!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      return { success: false };
+    }
+  };
   handleLoadBillDetails = async (billid, billtype) => {
     if (!billid || !billtype) {
       toast.error('Mã hóa đơn hoặc loại hóa đơn không hợp lệ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
       return false;
     }
-
     this.setState({ isLoading: true });
-    try {
-      switch (billtype) {
-        case 2: // Product
-          const invoiceResponse = await handleGetInvoiceDetailInfoApi(billid);
-          if (invoiceResponse && invoiceResponse.errCode === 0) {
-            this.setState({ loadedInvoiceDetails: invoiceResponse.data });
-            return true;
-          } else {
-            toast.error(invoiceResponse?.errMessage || 'Không thể tải thông tin hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-            return false;
-          }
-        case 3: // Appointment
-          const appointmentResponse = await handleLoadAppointmentDetailsApi(billid);
-          if (appointmentResponse && appointmentResponse.errCode === 0) {
-            this.setState({ loadedAppointmentDetails: appointmentResponse.data });
-            return true;
-          } else {
-            toast.error(appointmentResponse?.errMessage || 'Không thể tải thông tin lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-            return false;
-          }
-        case 4: // Hóa đơn Appointment
-          const appointmentBillResponse = await handleLoadAppointmentDetailsApi(billid);
-          if (appointmentBillResponse && appointmentBillResponse.errCode === 0) {
-            this.setState({ loadedAppointmentBillDetails: appointmentBillResponse.data });
-            return true;
-          } else {
-            toast.error(appointmentBillResponse?.errMessage || 'Không thể tải thông tin hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-            return false;
-          }
-        default:
-          toast.error('Loại hóa đơn không hợp lệ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-          return false;
-      }
-    } catch (e) {
-      console.error('Error loading bill details:', e);
-      toast.error('Lỗi khi tải thông tin hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-      return false;
-    } finally {
-      this.setState({ isLoading: false });
+    const result = await this.loadBillData(billid, billtype);
+    this.setState({ isLoading: false });
+    if (result.success) {
+      this.setState({ [result.stateKey]: result.data });
+      return true;
     }
+    return false;
   };
-
-  // Xử lý tìm kiếm
   handleSearch = async () => {
     const { searchValue, selectedTab } = this.state;
     if (!searchValue.trim()) {
-      toast.error('Vui lòng nhập mã hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.info('Vui lòng nhập mã tương ứng để tìm kiếm!', { position: 'top-right', autoClose: 500, closeOnClick: true });
       return;
     }
-
     this.setState({ isLoading: true });
-    try {
-      switch (selectedTab) {
-        case 1: // Product
-          const invoiceResponse = await handleGetInvoiceDetailInfoApi(searchValue);
-          if (invoiceResponse && invoiceResponse.errCode === 0) {
-            this.setState({
-              actionPage: 2,
-              loadedInvoiceDetails: invoiceResponse.data,
-              billid: searchValue,
-              billtype: 2,
-            });
-          } else {
-            toast.error(invoiceResponse?.errMessage || 'Không tìm thấy hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-          }
-          break;
-        case 2: // Appointment
-          const appointmentResponse = await handleLoadAppointmentDetailsApi(searchValue);
-          if (appointmentResponse && appointmentResponse.errCode === 0) {
-            this.setState({
-              actionPage: 3,
-              loadedAppointmentDetails: appointmentResponse.data,
-              billid: searchValue,
-              billtype: 3,
-            });
-          } else {
-            toast.error(appointmentResponse?.errMessage || 'Không tìm thấy lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-          }
-          break;
-        case 3: // Hóa đơn Appointment
-          const appointmentBillResponse = await handleLoadAppointmentDetailsApi(searchValue);
-          if (appointmentBillResponse && appointmentBillResponse.errCode === 0) {
-            if (appointmentBillResponse.data.AppointmentBill) {
-              this.setState({
-                actionPage: 4,
-                loadedAppointmentBillDetails: appointmentBillResponse.data,
-                billid: searchValue,
-                billtype: 4,
-              });
-            } else {
-              toast.error('Không tìm thấy hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-            }
-          } else {
-            toast.error(appointmentBillResponse?.errMessage || 'Không tìm thấy hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-          }
-          break;
-        default:
-          toast.error('Tab không hợp lệ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-      }
-    } catch (e) {
-      console.error('Error searching bill:', e);
-      toast.error('Lỗi khi tìm kiếm hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    } finally {
-      this.setState({ isLoading: false });
+    const result = await this.loadBillData(searchValue, selectedTab);
+    this.setState({ isLoading: false });
+    if (result.success) {
+      this.setState({
+        actionPage: selectedTab,
+        [result.stateKey]: result.data,
+        billid: searchValue,
+        billtype: selectedTab,
+      });
     }
   };
-
-  // Xử lý xóa input tìm kiếm
   handleClearSearch = () => {
     this.setState({ searchValue: '' });
   };
-
-  // Xử lý chọn tab
   handleTabChange = (tab) => {
-    this.setState({ selectedTab: tab, searchValue: '' });
+    this.setState({ selectedTab: tab });
   };
-
-  // Lấy phí vận chuyển
+  handleBackToSearch = () => {
+    this.setState({
+      actionPage: 0,
+      selectedTab: 1,
+      billid: '',
+      billtype: 0,
+    });
+  };
   getShippingFee = (shippingMethod) => {
     const method = this.state.codeShippingMethod.find((item) => item.Code === shippingMethod);
     return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
-
-  // Tạo PDF cho hóa đơn Product
+  //Tải pdf và gửi email
   handleGeneratePDF = () => {
     const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
     if (!loadedInvoiceDetails) {
@@ -406,14 +359,11 @@ class Bill extends Component {
 
     doc.save(`HoaDon_${this.state.billid}.pdf`);
   };
-
-  // Gửi email
   handleSendEmail = (billid) => {
     console.log(`Gửi email cho mã hóa đơn: ${billid}`);
     toast.info('Tính năng gửi email chưa được hỗ trợ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
   };
-
-  // Xác nhận nhận hàng
+  //Hàm thao tác của Product
   handleConfirmReceived = async (invoiceid) => {
     const confirmReceived = () =>
       new Promise((resolve) => {
@@ -450,8 +400,6 @@ class Bill extends Component {
       this.setState({ isLoading: false });
     }
   };
-
-  // Tiếp tục đơn hàng
   handleContinueInvoice = async (invoiceid) => {
     const confirmContinue = () =>
       new Promise((resolve) => {
@@ -488,21 +436,17 @@ class Bill extends Component {
       this.setState({ isLoading: false });
     }
   };
-
-  // Hủy đơn hàng Product
   handleSelectedCancelInvoice = (invoiceid) => {
     this.setState({
       selectedCancelInvoice: invoiceid,
       isShowCancelInvoiceModal: true,
     });
   };
-
   toggleCancelInvoiceModal = () => {
     this.setState({
       isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
     });
   };
-
   handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
     this.setState({ isLoading: true });
     try {
@@ -524,8 +468,7 @@ class Bill extends Component {
       this.setState({ isLoading: false });
     }
   };
-
-  // Hủy lịch hẹn
+  //Hàm thao tác của Appointment
   handleCancelAppointment = async (appointmentid) => {
     const confirmCancel = () =>
       new Promise((resolve) => {
@@ -563,43 +506,15 @@ class Bill extends Component {
     }
   };
 
-  // Quay lại case 1
-  handleBackToSearch = () => {
-    this.setState({
-      actionPage: 1,
-      searchValue: '',
-      selectedTab: 1,
-      billid: '',
-      billtype: 0,
-    });
-  };
-
   render() {
-    const {
-      isLoading,
-      actionPage,
-      searchValue,
-      selectedTab,
-      loadedInvoiceDetails,
-      loadedAppointmentDetails,
-      loadedAppointmentBillDetails,
-      codePaymentType,
-      codeShippingMethod,
-      codeShippingStatus,
-      codeAppointmentStatus,
-      codePetType,
-      codePetGender,
-      isShowCancelInvoiceModal,
-      selectedCancelInvoice,
-      billid,
-    } = this.state;
-
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails,
+      codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal,
+      selectedCancelInvoice, billid, } = this.state;
     if (isLoading) {
       return <Spinner />;
     }
-
     switch (actionPage) {
-      case 1: // Tìm kiếm
+      case 0: // Tìm kiếm
         return (
           <div className="view-invoice-background">
             <Header />
@@ -644,8 +559,7 @@ class Bill extends Component {
             </div>
           </div>
         );
-
-      case 2: // Hóa đơn Product
+      case 1: // Hóa đơn Product
         return (
           <div className="view-invoice-background">
             <Header />
@@ -825,8 +739,7 @@ class Bill extends Component {
             </div>
           </div>
         );
-
-      case 3: // Chi tiết lịch khám
+      case 2: // Chi tiết lịch khám
         return (
           <div className="view-invoice-background">
             <Header />
@@ -947,8 +860,7 @@ class Bill extends Component {
             </div>
           </div>
         );
-
-      case 4: // Hóa đơn Appointment
+      case 3: // Hóa đơn Appointment
         return (
           <div className="view-invoice-background">
             <Header />
@@ -1072,7 +984,6 @@ class Bill extends Component {
             </div>
           </div>
         );
-
       default:
         return null;
     }

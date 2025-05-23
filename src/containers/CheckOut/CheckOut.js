@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
+import { ToastContainer, toast } from 'react-toastify';
 
 import './CheckOut.scss';
 import Spinner from '../../components/Spinner';
@@ -8,7 +8,6 @@ import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
 
 import { IonIcon } from '@ionic/react';
-
 import { chevronBackOutline } from 'ionicons/icons';
 
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
@@ -18,7 +17,7 @@ import { handleCheckCouponApi, handleGetCouponApi } from '../../services/couponS
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
-import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout } from '../../store/actions';
+import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout, saveBillSearchInfo } from '../../store/actions';
 
 import cart from '../../assets/icons/shopping-cart.png';
 import card from '../../assets/icons/cheque.png';
@@ -523,7 +522,10 @@ class CheckOut extends Component {
             Đặt hàng thành công! Mã đơn hàng: {response.data.InvoiceID}
             <div style={{ marginTop: '10px' }}>
               <button
-                onClick={() => this.props.navigate(`/bill/${response.data.InvoiceID}`)}
+                onClick={() => {
+                  this.props.saveBillSearchInfo({ billid: response.data.InvoiceID, billtype: 1 });
+                  this.props.navigate('/bill');
+                }}
                 style={{
                   marginRight: '10px',
                   color: 'blue',
@@ -876,6 +878,7 @@ const mapDispatchToProps = (dispatch) => ({
   saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
+  saveBillSearchInfo: (billData) => dispatch(saveBillSearchInfo(billData)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CheckOut);

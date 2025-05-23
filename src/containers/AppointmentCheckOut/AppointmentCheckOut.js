@@ -8,7 +8,7 @@ import Spinner from '../../components/Spinner';
 import './AppointmentCheckOut.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import { handleLoadAppointmentDetailsApi, handleCreateAppointmentBillApi } from '../../services/appointmentServices'
-import { saveAppointmentForCheckout, clearAppointmentCheckout } from '../../store/actions';
+import { saveBillSearchInfo, clearAppointmentCheckout } from '../../store/actions';
 
 class AppointmentCheckOut extends Component {
     constructor(props) {
@@ -205,7 +205,10 @@ class AppointmentCheckOut extends Component {
                         Thanh toán thành công! Mã hóa đơn: {response.data.AppointmentBillID}
                         <div style={{ marginTop: '10px' }}>
                             <button
-                                onClick={() => this.props.navigate(`/bill/${response.data.AppointmentBillID}`)}
+                                onClick={() => {
+                                    this.props.saveBillSearchInfo({ billid: response.data.AppointmentBillID, billtype: 3 });
+                                    this.props.navigate('/bill');
+                                }}
                                 style={{
                                     marginRight: '10px',
                                     color: 'blue',
@@ -358,9 +361,9 @@ const mapStateToProps = (state) => ({
     appointmentCheckout: state.appointment.appointmentCheckout,
 });
 
-const mapDispatchToProps = {
-    saveAppointmentForCheckout,
-    clearAppointmentCheckout,
-};
+const mapDispatchToProps = (dispatch) => ({
+    saveBillSearchInfo: (billData) => dispatch(saveBillSearchInfo(billData)),
+    clearAppointmentCheckout: () => dispatch(clearAppointmentCheckout()),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(AppointmentCheckOut);
