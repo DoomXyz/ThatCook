@@ -9,10 +9,12 @@ import Header from '../../components/HomeHeader';
 import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi, handleGetVeterinarianServicesApi } from '../../services/accountServices';
-import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi } from '../../services/appointmentServices';
+import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices';
 import { handleGetAccountPetInfoApi, handleGetPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { checkLoginStatus, uploadImages } from '../../utils/pakage';
+
+import { clearFuAppointmentInfo } from '../../store/actions';
 
 import PetSelectModal from './PetSelectModal';
 import VeterinarianSelectModal from './VeterinarianSelectModal';
@@ -23,6 +25,8 @@ class MakeAppointment extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      type: 'FIRST',
+      prevAppointmentID: null,
       isLoggedIn: false,
       accountInfo: null,
       guestID: '',
@@ -54,6 +58,7 @@ class MakeAppointment extends Component {
       isShowVeterinarianSelectModal: false,
       createdAppointmentID: '',
       originalServiceList: [],
+
     };
   }
   async componentDidMount() {

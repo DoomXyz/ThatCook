@@ -2,6 +2,7 @@ import actionTypes from '../actions/actionTypes';
 
 const initialState = {
     appointmentCheckout: null,
+    fuAppointmentInfo: null,
 };
 
 const appointmentReducer = (state = initialState, action) => {
@@ -17,6 +18,16 @@ const appointmentReducer = (state = initialState, action) => {
             return {
                 ...state,
                 appointmentCheckout: null,
+            };
+        case actionTypes.SAVE_FUAPPOINTMENT_INFO:
+            return {
+                ...state,
+                fuAppointmentInfo: action.data,
+            };
+        case actionTypes.CLEAR_FUAPPOINTMENT_INFO:
+            return {
+                ...state,
+                fuAppointmentInfo: null,
             };
         default:
             return state;
