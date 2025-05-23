@@ -1,3 +1,19 @@
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$background-light: #f8f9fa;
+$background-white: #ffffff;
+$shadow-color: rgba(0, 0, 0, 0.1);
+$border-color: #e9ecef;
+$text-color: #333;
+$hover-color: #0056b3;
+
+// Biến cho kích thước và khoảng cách
+$padding-base: 20px;
+$border-radius: 8px;
+$transition: all 0.3s ease;
+
 .doctor-page {
   padding-top: 60px;
   display: flex;
@@ -63,146 +79,125 @@
   .doctor-info-form-content {
     border-top: rgb(184, 184, 184) 2px solid;
     display: flex;
-    flex-direction: row;
-    justify-content: center; // Căn giữa theo chiều ngang
-    align-items: center; // Căn giữa theo chiều dọc
+    padding: 20px;
+    flex-direction: column;
     gap: 15px;
     height: 100%;
 
-    .doctor-content-left {
-      flex: 5; // Chiếm 7/10 không gian
+    /* Các price-item xếp dọc */
+    /* Khoảng cách giữa các price-item */
+    .doctor-info-tab {
       display: flex;
-      gap: 20px;
-      padding: 20px;
-      flex-direction: column;
+      flex-direction: row;
+      padding: 10px;
+      /* label và value nằm ngang */
+      /* Căn đều hai bên hoặc tùy chỉnh */
+    }
 
-      /* Các price-item xếp dọc */
-      /* Khoảng cách giữa các price-item */
-      .doctor-info-tab {
+    .descreption-doctor {
+      display: flex;
+      font-weight: bold;
+      /* Tương tự <th> */
+      flex: 1;
+      /* Chiếm không gian tối đa bên trái */
+      justify-content: flex-start;
+      padding-right: 10px;
+    }
+
+    .doctor-value-sv {
+      padding-left: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .doctor-value {
+      display: flex;
+      color: #333;
+      padding-right: 10px;
+      /* Tùy chỉnh kiểu dáng cho value */
+      flex: 1;
+      /* Chiếm không gian tối đa bên phải */
+      text-align: right;
+      /* Căn phải cho value, tùy chỉnh nếu cần */
+      justify-content: flex-end;
+    }
+
+    /* Xóa viền focus mặc định */
+    &:focus {
+      border-bottom: 1px solid #007bff;
+      /* Đổi màu gạch chân khi focus */
+    }
+
+    .edit-button {
+      display: flex;
+      justify-content: center;
+      margin-left: 10px;
+      padding: 5px 5px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+
+    .change-info-button {
+      display: flex;
+      justify-content: center;
+
+      .button-submit {
         display: flex;
-        flex-direction: row;
-        /* label và value nằm ngang */
-        justify-content: space-between;
-        /* Căn đều hai bên hoặc tùy chỉnh */
+        margin-top: 20px;
       }
 
-      .descreption-doctor {
-        display: flex;
-        font-weight: bold;
-        /* Tương tự <th> */
-        flex: 3;
-        /* Chiếm không gian tối đa bên trái */
-        justify-content: flex-start;
-        padding-right: 10px;
-      }
-
-      .doctor-value {
-        display: flex;
-        color: #333;
-        padding-right: 10px;
-        /* Tùy chỉnh kiểu dáng cho value */
-        flex: 7;
-        /* Chiếm không gian tối đa bên phải */
-        text-align: right;
-        /* Căn phải cho value, tùy chỉnh nếu cần */
-        justify-content: flex-end;
-      }
-
-      .value-doctor-input {
-        display: flex;
-        color: #333;
-        /* Tùy chỉnh kiểu dáng cho value */
-        flex: 7;
-        /* Chiếm không gian tối đa bên phải */
-        text-align: right;
-        /* Căn phải cho value, tùy chỉnh nếu cần */
-        justify-content: flex-start;
-        border: none;
-        /* Xóa viền mặc định */
-        border-bottom: 1px solid #ccc;
-        /* Thêm gạch chân */
-        background: transparent;
-        /* Nền trong suốt */
-        outline: none;
-
-        /* Xóa viền focus mặc định */
-        &:focus {
-          border-bottom: 1px solid #007bff;
-          /* Đổi màu gạch chân khi focus */
-        }
-      }
-
-      .edit-button {
-        display: flex;
-        justify-content: center;
-        margin-left: 10px;
-        padding: 5px 5px;
+      button {
+        padding: 10px 20px;
         background-color: #007bff;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 5px;
         cursor: pointer;
 
         &:hover {
           background-color: #0056b3;
         }
       }
+    }
 
-      .change-info-button {
-        display: flex;
-        justify-content: center;
+    .gender-radio-group {
+      display: flex;
+      gap: 15px;
+      /* Khoảng cách giữa các radio button */
+    }
 
-        .button-submit {
-          display: flex;
-          margin-top: 20px;
-        }
+    .gender-radio {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
 
-        button {
-          padding: 10px 20px;
-          background-color: #007bff;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-
-          &:hover {
-            background-color: #0056b3;
-          }
-        }
-      }
-
-      .gender-radio-group {
-        display: flex;
-        gap: 15px;
-        /* Khoảng cách giữa các radio button */
-      }
-
-      .gender-radio {
-        display: flex;
-        align-items: center;
+      input[type="radio"] {
+        margin-right: 5px;
         cursor: pointer;
-
-        input[type="radio"] {
-          margin-right: 5px;
-          cursor: pointer;
-        }
       }
+    }
 
-      .gender-radio-1 {
-        display: flex;
-        align-items: center;
+    .gender-radio-1 {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding-right: 40px;
+
+      input[type="radio"] {
+        margin-right: 5px;
         cursor: pointer;
-        padding-right: 40px;
-
-        input[type="radio"] {
-          margin-right: 5px;
-          cursor: pointer;
-        }
       }
+    }
 
-      .email {
-        padding-right: 40px;
-      }
+    .email {
+      padding-right: 40px;
     }
 
     .doctor-content-right {
@@ -283,7 +278,83 @@
   justify-content: flex-start;
   /* Căn nội dung từ trên xuống */
   animation: fadeIn 0.3s ease;
+
   /* Hiệu ứng xuất hiện */
+}
+
+.doctor-head,
+.wait-appointment-filter {
+  display: flex;
+  flex-direction: row;
+
+  .doctor-head-left,
+  .filter-left {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    flex: 1;
+  }
+
+  .doctor-head-right,
+  .filter-right {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    flex: 1;
+  }
+
+  .filter-sort,
+  .date-filter {
+    padding: 5px;
+
+    label {
+      padding-right: 5px;
+    }
+  }
+}
+
+.wait-appointment-filter {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+
+  .filter-left,
+  .filter-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+
+    .filter-sort select,
+    .date-filter .date-picker {
+      padding: 8px;
+      border: 1px solid $border-color;
+      border-radius: $border-radius;
+      font-size: 14px;
+      color: $text-color;
+      background-color: $background-white;
+      transition: $transition;
+
+      &:focus {
+        border-color: $primary-color;
+        outline: none;
+      }
+    }
+
+    .date-filter {
+      position: relative;
+
+      button {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $danger-color;
+      }
+    }
+  }
 }
 
 @keyframes fadeIn {
@@ -298,6 +369,11 @@
   }
 }
 
+.wait-appointment-list {
+  padding: 10px;
+  border-top: rgb(184, 184, 184) 2px solid;
+}
+
 .wait-appointment-object {
   border: 1px solid #d3d3d3;
   /* Border màu xám nhạt để phân biệt */
@@ -305,26 +381,56 @@
   /* Bo góc cho mềm mại */
   margin-bottom: 15px;
   /* Khoảng cách giữa các object */
-  padding: 15px;
+  padding: 10px;
   /* Padding bên trong */
   background-color: #f9f9f9;
   /* Màu nền nhẹ để nổi bật */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+
+  h4 {
+    display: flex;
+    font-weight: bold;
+  }
+
   /* Đổ bóng nhẹ để tạo chiều sâu */
+  .wait-appointment-object-head {
+    border-top: #6c757d 1px solid;
+    display: flex;
+    flex-direction: row;
+    padding-top: 5px;
+
+    .wait-appointment-object-left {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .wait-appointment-object-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      text-align: right;
+    }
+
+    .wait-appointment-info {
+      display: flex;
+      flex-direction: row;
+      gap: 15px;
+    }
+
+    .descreption-wait-appointment {
+      display: flex;
+      font-weight: bold;
+    }
+  }
 
   &:hover {
     border-color: #007bff;
     /* Đổi màu border khi hover */
     background-color: #f1faff;
     /* Đổi màu nền nhẹ khi hover */
-  }
-
-  .wait-appointment-info {
-    display: flex;
-    flex-direction: column;
-    /* Đặt nội dung theo cột */
-    gap: 10px;
-    /* Khoảng cách giữa các phần tử con */
   }
 
   .wait-appointment-left,
@@ -372,19 +478,37 @@
     }
   }
 
-  .wait-appointment-descrpiton {
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 5px;
-    /* Khoảng cách giữa các dòng mô tả */
-  }
   &.vet-specific {
-    background-color: #e6f3ff; /* Xanh nhạt cho lịch bác sĩ */
-    border-left: 4px solid #007bff; /* Viền trái xanh đậm */
+    background-color: #e6f3ff;
+    /* Xanh nhạt cho lịch bác sĩ */
+    border-left: 4px solid #007bff;
+    /* Viền trái xanh đậm */
   }
+
   &.public-appointment {
-    background-color: #fff3e6; /* Cam nhạt cho lịch công khai */
-    border-left: 4px solid #ff9900; /* Viền trái cam */
+    background-color: #fff3e6;
+    /* Cam nhạt cho lịch công khai */
+    border-left: 4px solid #ff9900;
+    /* Viền trái cam */
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+
+  button {
+    background-color: #007bff;
+    padding: 8px 12px;
+    font-size: 14px;
+
+    &:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
   }
 }
 

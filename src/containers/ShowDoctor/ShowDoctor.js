@@ -214,7 +214,7 @@ class ShowDoctor extends Component {
       this.handlePageChange(page);
     }
   };
-  getAccountStatusValue = (code) => {};
+  getAccountStatusValue = (code) => { };
   render() {
     const { isOpen, toggleFromModal } = this.props;
     const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;
@@ -285,7 +285,7 @@ class ShowDoctor extends Component {
                   </div>
                 ))
               ) : (
-                <p>khoog co bs nào</p>
+                <p>Không có bác sĩ nào</p>
               )}
             </div>
           </div>

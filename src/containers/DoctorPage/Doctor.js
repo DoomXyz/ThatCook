@@ -369,7 +369,6 @@ class Doctor extends Component {
     this.setState({ isLoading: true });
     try {
       const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "PEND");
-      console.log(date1, date2, response)
       if (response && response.errCode === 0) {
         this.setState({
           loadedPendingAppointments: response.data,
@@ -473,7 +472,6 @@ class Doctor extends Component {
         this.setState({
           loadedAppointmentDetail: response.data,
         });
-        console.log(response.data)
       } else {
         toast.error('Không thể tải chi tiết lịch hẹn!', {
           position: 'top-right',
@@ -900,54 +898,57 @@ class Doctor extends Component {
       case 1:
         return (
           <form className="doctor-info-form" onSubmit={this.handleChangeVeterinarianInfo}>
-            <h3>
-              <b>Thông tin bác sĩ:</b>
-            </h3>
-            <div className="doctor-info-tab">
-              <div className="descreption-doctor">Trạng thái làm việc:</div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={workingstatus === 'WORK'}
-                  onChange={this.handleChangeWorkingStatus}
-                />
-                <span className="slider round"></span>
-              </label>
-              <div className="value-doctor">
-                {codeWorkingStatus.find(status => status.Code === workingstatus)?.CodeValueVI || workingstatus}
+            <div className='doctor-head'>
+              <div className='doctor-head-left'>
+                <h3>
+                  <b>Thông tin bác sĩ:</b>
+                </h3>
+              </div>
+              <div className='doctor-head-right'>
+
+                <div className="value-doctor">
+                  {codeWorkingStatus.find(status => status.Code === workingstatus)?.CodeValueVI || workingstatus}
+                </div>
+                <div className="descreption-doctor"> <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={workingstatus === 'WORK'}
+                    onChange={this.handleChangeWorkingStatus}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                </div>
               </div>
             </div>
+
             <div className="doctor-info-form-content">
-              <div className="doctor-content-left">
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Họ tên:</div>
-                  <div className="doctor-value">{veterinarianname}</div>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Dịch vụ thực hiện: </div>
-                  {servicesList && servicesList.length > 0 ? servicesList.map((item) => (<div className="doctor-value" key={item.ServiceID}> {item.ServiceName} </div>)) : ""}
-                  <div className="doctor-value"></div>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Chuyên Khoa: </div>
-                  {editField === 'specialization' ? <input type="text" name='specialization' value={specialization}
-                    onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{specialization}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('specialization')}>
-                    <IonIcon icon={pencil}></IonIcon>
-                  </button>
-                </div>
-                <div className="doctor-info-tab">
-                  <div className="descreption-doctor">Tiểu sử: </div>
-                  {editField === 'bio' ? <input type="text" name='bio' value={bio} onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{bio}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('bio')}>
-                    <IonIcon icon={pencil}></IonIcon>
-                  </button>
-                </div>
-                <div className="change-info-button" onSubmit={this.handleChangeVeterinarianInfo}>
-                  <button> Cập nhật </button>
-                </div>
+              <div className="doctor-info-tab">
+                <div className="descreption-doctor">Họ tên:</div>
+                <div className="doctor-value">{veterinarianname}</div>
+              </div>
+              <div className="doctor-info-tab">
+                <div className="descreption-doctor">Dịch vụ thực hiện: </div>
+                {servicesList && servicesList.length > 0 ? servicesList.map((item) => (<div className="doctor-value-sv" key={item.ServiceID}> {item.ServiceName} </div>)) : ""}</div>
+              <div className="doctor-info-tab">
+                <div className="descreption-doctor">Chuyên Khoa: </div>
+                {editField === 'specialization' ? <input type="text" name='specialization' value={specialization}
+                  onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{specialization}</div>}
+                <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('specialization')}>
+                  <IonIcon icon={pencil}></IonIcon>
+                </button>
+              </div>
+              <div className="doctor-info-tab">
+                <div className="descreption-doctor">Tiểu sử: </div>
+                {editField === 'bio' ? <input type="text" name='bio' value={bio} onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{bio}</div>}
+                <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('bio')}>
+                  <IonIcon icon={pencil}></IonIcon>
+                </button>
+              </div>
+              <div className="change-info-button" onSubmit={this.handleChangeVeterinarianInfo}>
+                <button> Cập nhật </button>
               </div>
             </div>
+
           </form>
         );
       case 2:
@@ -957,65 +958,78 @@ class Doctor extends Component {
               <h3>
                 <b>Lịch khám cần xác nhận: </b>
               </h3>
-              <div className="filter-sort">
-                <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
-                  <option value="ALL">Tất cả</option>
-                  <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
-                  <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
-                </select>
-                <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
-                  <option value="0">Mặc định</option>
-                  <option value="1">Lịch hẹn mới nhất</option>
-                  <option value="2">Lịch hẹn cũ nhất</option>
-                </select>
-              </div>
-              <div className="date-filter">
-                <label>Ngày bắt đầu:</label>
-                <DatePicker
-                  selected={date1 ? new Date(date1 + 'T00:00:00') : null}
-                  onChange={(date) => {
-                    const formattedDate = date
-                      ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
-                      : '';
-                    this.setState({ date1: formattedDate }, () => {
-                      this.handleLoadPendingAppointments();
-                    });
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="dd/mm/yyyy"
-                  className="date-picker"
-                />
-                {date1 && (
-                  <button
-                    onClick={() => this.resetDateFilter('date1')}
-                    style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    x
-                  </button>
-                )}
-                <label>Ngày kết thúc:</label>
-                <DatePicker
-                  selected={date2 ? new Date(date2 + 'T00:00:00') : null}
-                  onChange={(date) => {
-                    const formattedDate = date
-                      ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
-                      : '';
-                    this.setState({ date2: formattedDate }, () => {
-                      this.handleLoadPendingAppointments();
-                    });
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="dd/mm/yyyy"
-                  className="date-picker"
-                />
-                {date2 && (
-                  <button
-                    onClick={() => this.resetDateFilter('date2')}
-                    style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    x
-                  </button>
-                )}
+              <div className="wait-appointment-filter">
+                <div className="filter-left">
+                  <div className="filter-sort">
+                    <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
+                      <option value="ALL">Tất cả</option>
+                      <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
+                      <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
+                    </select>
+                  </div>
+                  <div className="filter-sort">
+                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
+                      <option value="0">Mặc định</option>
+                      <option value="1">Lịch hẹn mới nhất</option>
+                      <option value="2">Lịch hẹn cũ nhất</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="filter-right">
+                  <div className="date-filter">
+                    <label>Ngày:</label>
+                    <DatePicker
+                      selected={date1 ? new Date(date1 + 'T00:00:00') : null}
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                          : '';
+                        this.setState({ date1: formattedDate }, () => {
+                          this.handleLoadPendingAppointments();
+                        });
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    {date1 && (
+                      <button
+                        onClick={() => this.resetDateFilter('date1')}
+                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        x
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="date-filter">
+                    <label>đến</label>
+                    <DatePicker
+                      selected={date2 ? new Date(date2 + 'T00:00:00') : null}
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                          : '';
+                        this.setState({ date2: formattedDate }, () => {
+                          this.handleLoadPendingAppointments();
+                        });
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    {date2 && (
+                      <button
+                        onClick={() => this.resetDateFilter('date2')}
+                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        x
+                      </button>
+                    )}
+
+                  </div>
+                </div>
               </div>
               <div className="wait-appointment-list">
                 {loadedPendingAppointments.length > 0 ? (
@@ -1023,30 +1037,46 @@ class Doctor extends Component {
                     <div
                       key={appointment.AppointmentID}
                       className={`wait-appointment-object ${appointment.VeterinarianID ? 'vet-specific' : 'public-appointment'
-                        }`}
-                    >
-                      <div onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}>
-                        <p>Khách hàng: {appointment.CustomerName}</p>
-                        <p>Tên thú cưng: {appointment.PetName}</p>
-                        <p>Dịch vụ: {appointment.ServiceName}</p>
-                        <p>
-                          Ngày: {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')} -{' '}
-                          {appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}
-                        </p>
+                        }`} onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}
+                    > <h4>{appointment.ServiceName}</h4>
+                      <div className="wait-appointment-object-head" >
+                        <div className="wait-appointment-object-left" >
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment">Khách hàng: </div>
+                            <div className="value-wait-appointment">{appointment.CustomerName}</div>
+                          </div>
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment">Tên thú cưng: </div>
+                            <div className="value-wait-appointment">{appointment.PetName}</div>
+                          </div>
+                        </div>
+                        <div className="wait-appointment-object-right" >
+                          <div className="day-wait-appointment"> {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}</div>
+                          <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
+                        </div>
                       </div>
-                      <p>Ghi chú: {appointment.Notes}</p>
-                      <button
-                        type="button"
-                        onClick={() => this.handleChangeAppointmentStatus(appointment.AppointmentID, 'CONF')}
-                      >
-                        Xác nhận
-                      </button>
-                      {appointment.VeterinarianID === veterinarianid ? <button
-                        type="button"
-                        onClick={() => this.handleChangeAppointmentStatus(appointment.AppointmentID, 'CANCELED')}
-                      >
-                        Từ chối
-                      </button> : ""}
+                      <div className='wait-appointment-object-notes'>
+                        <div className="descreption-wait-appointment">Ghi chú: </div>
+                        <div className="value-wait-appointment">{appointment.Notes}</div>
+                      </div>
+                      <div className='wait-appointment-button'>
+                        <button
+                          type="button"
+                          className='wait-appointment-button-accept'
+                          onClick={() => this.handleChangeAppointmentStatus(appointment.AppointmentID, 'CONF')}
+                        >
+                          Xác nhận
+                        </button>
+                        {appointment.VeterinarianID === veterinarianid ?
+                          <button
+                            type="button"
+                            className='wait-appointment-button-refuse'
+                            onClick={() => this.handleChangeAppointmentStatus(appointment.AppointmentID, 'CANCELED')}
+                          >
+                            Từ chối
+                          </button>
+                          : ""}
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -1305,7 +1335,7 @@ class Doctor extends Component {
                     </div>
                     <div className="detail-item">
                       <label>Tuổi:</label>
-                      <span>{loadedAppointmentDetail.Pet.Age} tuổi</span>
+                      <span>{loadedAppointmentDetail.Pet.Age} tháng</span>
                     </div>
                     <div className="detail-item">
                       <label>Giới tính:</label>
@@ -1387,7 +1417,6 @@ class Doctor extends Component {
                       </div>
                     </div>
                   )}
-
                   <div className="wait-appointment-button">
                     <button
                       type="button"
@@ -1460,7 +1489,7 @@ class Doctor extends Component {
                 </div>
               )}
             </div>
-          </form >
+          </form>
         );
       default:
         return null;
