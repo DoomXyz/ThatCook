@@ -80,6 +80,7 @@ let initAPIRoutes = (app) => {
     router.get('/api/get-serviceinfo', appointmentController.handleGetServiceInfo);
     router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes)
     router.get('/api/load-appointmentdetails', appointmentController.handleLoadAppointmentDetails);
+    router.get('/api/get-appointmentbilldetail', appointmentController.handleGetAppointmentBillDetail);
 
     router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
     router.get('/api/get-petinfo', petController.handleGetPetInfo);

@@ -1264,6 +1264,121 @@ let createAppointmentBill = (veterinarianid, appointmentid, serviceprice, medica
   });
 };
 
+let getAppointmentBillDetail = (appointmentbillid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!appointmentbillid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu mã hóa đơn lịch hẹn!',
+          data: null,
+        });
+        return;
+      }
+      const appointmentBill = await db.AppointmentBill.findOne({
+        where: { AppointmentBillID: appointmentbillid },
+        attributes: [
+          'AppointmentBillID',
+          'AppointmentID',
+          'ServicePrice',
+          'MedicalPrice',
+          'TotalPayment',
+          'MedicalImage',
+          'MedicalNotes',
+          'CreatedAt',
+        ],
+        include: [
+          {
+            model: db.Appointment,
+            as: 'Appointment',
+            attributes: [
+              'CustomerName',
+              'CustomerEmail',
+              'CustomerPhone',
+              'AppointmentDate',
+              'StartTime',
+              'EndTime',
+              'AppointmentStatus',
+              'VeterinarianID',
+              'ServiceID',
+            ],
+            include: [
+              {
+                model: db.Pet,
+                as: 'Pet',
+                attributes: ['PetName'],
+                required: true,
+              },
+              {
+                model: db.Service,
+                as: 'Service',
+                attributes: ['ServiceName'],
+                required: true,
+              },
+              {
+                model: db.Account,
+                as: 'Veterinarian',
+                attributes: ['UserName'],
+                required: false,
+              },
+            ],
+            required: true,
+          },
+        ],
+        raw: false,
+        nest: true,
+      });
+      if (!appointmentBill) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Hóa đơn lịch hẹn không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+      const data = {
+        AppointmentBill: {
+          AppointmentBillID: appointmentBill.AppointmentBillID,
+          AppointmentID: appointmentBill.AppointmentID,
+          ServicePrice: appointmentBill.ServicePrice,
+          MedicalPrice: appointmentBill.MedicalPrice,
+          TotalPayment: appointmentBill.TotalPayment,
+          MedicalImage: appointmentBill.MedicalImage,
+          MedicalNotes: appointmentBill.MedicalNotes || 'Không có ghi chú',
+          CreatedAt: appointmentBill.CreatedAt,
+        },
+        CustomerName: appointmentBill.Appointment.CustomerName,
+        CustomerEmail: appointmentBill.Appointment.CustomerEmail,
+        CustomerPhone: appointmentBill.Appointment.CustomerPhone,
+        AppointmentDate: appointmentBill.Appointment.AppointmentDate,
+        StartTime: appointmentBill.Appointment.StartTime.slice(0, 5),
+        EndTime: appointmentBill.Appointment.EndTime.slice(0, 5),
+        AppointmentStatus: appointmentBill.Appointment.AppointmentStatus,
+        Pet: {
+          PetName: appointmentBill.Appointment.Pet.PetName,
+        },
+        Service: {
+          ServiceName: appointmentBill.Appointment.Service.ServiceName,
+        },
+        VeterinarianID: appointmentBill.Appointment.VeterinarianID,
+        VeterinarianName: appointmentBill.Appointment.Veterinarian ? appointmentBill.Appointment.Veterinarian.UserName : null,
+      };
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy chi tiết hóa đơn lịch hẹn thành công!',
+        data,
+      });
+    } catch (e) {
+      console.log('Error in getAppointmentBillDetailInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy chi tiết hóa đơn lịch hẹn: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
 export default {
   createAppointment,
   getAvailableTimes,
@@ -1272,4 +1387,5 @@ export default {
   loadAppointmentDetails,
   changeAppointmentStatus,
   createAppointmentBill,
+  getAppointmentBillDetail,
 };
