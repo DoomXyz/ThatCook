@@ -994,6 +994,185 @@ let loadAppointments = (veterinarianid, page, limit, search, filter, sort, date1
     }
   });
 };
+let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, date2) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!accountid || !page || !limit || page < 1 || limit < 1) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu hoặc không hợp lệ tham số accountid, page, hoặc limit!',
+          data: null,
+        });
+        return;
+      }
+      if (filter !== 'ALL' && !filter.includes('-')) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tham số filter không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      if (sort && !['0', '1', '2'].includes(sort)) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tham số sort không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      await cancelExpiredAppointments();
+
+      const offset = (page - 1) * limit;
+      let where = {
+        AccountID: accountid, // Lọc theo accountid của người dùng
+      };
+      let order = [];
+      if (search?.trim()) {
+        const searchTerm = search.trim().substring(0, 50);
+        where[Op.or] = [
+          { '$Pet.PetName$': { [Op.like]: `%${searchTerm}%` } },
+          { '$Service.ServiceName$': { [Op.like]: `%${searchTerm}%` } },
+        ];
+      }
+      let start = date1 ? new Date(date1) : null;
+      let end = date2 ? new Date(date2) : null;
+      if (start && end) {
+        if (start > end) {
+          [start, end] = [end, start];
+        }
+        start.setHours(0, 0, 0, 0); // Đầu ngày
+        end.setHours(23, 59, 59, 999); // Cuối ngày
+        where.AppointmentDate = { [Op.between]: [start, end] };
+      } else if (start) {
+        start.setHours(0, 0, 0, 0);
+        where.AppointmentDate = { [Op.gte]: start };
+      } else if (end) {
+        end.setHours(0, 0, 0, 0);
+        where.AppointmentDate = { [Op.lte]: end };
+      }
+      if (filter !== 'ALL') {
+        const [field, value] = filter.split('-');
+        if (field === 'status') {
+          if (!['PEND', 'COMP', 'CANCELED'].includes(value)) {
+            resolve({
+              errCode: 1,
+              errMessage: 'Trạng thái lịch hẹn không hợp lệ!',
+              data: null,
+            });
+            return;
+          }
+          where.AppointmentStatus = value;
+        } else if (field === 'service') {
+          const validService = await db.Service.findOne({
+            where: { ServiceID: value },
+          });
+          if (!validService) {
+            resolve({
+              errCode: 1,
+              errMessage: 'Dịch vụ không tồn tại!',
+              data: null,
+            });
+            return;
+          }
+          where.ServiceID = value;
+        } else {
+          resolve({
+            errCode: 1,
+            errMessage: 'Tham số filter không hợp lệ!',
+            data: null,
+          });
+          return;
+        }
+      }
+      switch (sort) {
+        case '1': // Mới nhất
+          order.push(['CreatedAt', 'DESC']);
+          break;
+        case '2': // Cũ nhất
+          order.push(['CreatedAt', 'ASC']);
+          break;
+        default: // Mặc định
+          order.push([db.sequelize.literal(`CONCAT(AppointmentDate, ' ', StartTime)`), 'ASC']);
+          break;
+      }
+      const { count, rows } = await db.Appointment.findAndCountAll({
+        where,
+        attributes: [
+          'AppointmentID',
+          'AppointmentDate',
+          'StartTime',
+          'EndTime',
+          'ServiceID',
+          'CustomerName',
+          'Notes',
+          'AppointmentStatus',
+          'VeterinarianID',
+        ],
+        include: [
+          {
+            model: db.Service,
+            as: 'Service',
+            attributes: ['ServiceName'],
+            required: true,
+          },
+          {
+            model: db.Pet,
+            as: 'Pet',
+            attributes: ['PetName'],
+            required: true,
+          },
+          {
+            model: db.Account,
+            as: 'Veterinarian',
+            attributes: ['UserName'],
+            required: false,
+          },
+        ],
+        limit: parseInt(limit),
+        offset,
+        order,
+        raw: false,
+        distinct: true,
+        nest: true,
+      });
+      if (!rows || rows.length === 0) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Không tìm thấy lịch hẹn nào!',
+          data: [],
+          totalItems: 0,
+        });
+        return;
+      }
+      const data = rows.map((row) => ({
+        AppointmentID: row.AppointmentID,
+        AppointmentDate: row.AppointmentDate,
+        StartTime: row.StartTime,
+        EndTime: row.EndTime,
+        ServiceName: row.Service.ServiceName,
+        PetName: row.Pet.PetName,
+        CustomerName: row.CustomerName,
+        Notes: row.Notes,
+        AppointmentStatus: row.AppointmentStatus,
+        VeterinarianName: row.Veterinarian ? row.Veterinarian.UserName : 'Chưa phân bác sĩ',
+      }));
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy danh sách lịch hẹn thành công!',
+        data,
+        totalItems: count,
+      });
+    } catch (e) {
+      console.log('Error in loadAppointmentInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy danh sách lịch hẹn: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
 let loadAppointmentDetails = (appointmentid) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -1318,7 +1497,7 @@ let getAppointmentBillDetail = (appointmentbillid) => {
               {
                 model: db.Pet,
                 as: 'Pet',
-                attributes: ['PetName'],
+                attributes: ['PetType', 'PetGender', 'PetName'],
                 required: true,
               },
               {
@@ -1367,6 +1546,8 @@ let getAppointmentBillDetail = (appointmentbillid) => {
         EndTime: appointmentBill.Appointment.EndTime.slice(0, 5),
         AppointmentStatus: appointmentBill.Appointment.AppointmentStatus,
         Pet: {
+          PetType: appointmentBill.Appointment.Pet.PetType,
+          PetGender: appointmentBill.Appointment.Pet.PetGender,
           PetName: appointmentBill.Appointment.Pet.PetName,
         },
         Service: {
@@ -1396,6 +1577,7 @@ export default {
   getAvailableTimes,
   getServiceInfo,
   loadAppointments,
+  loadAppointmentInfo,
   loadAppointmentDetails,
   changeAppointmentStatus,
   createAppointmentBill,

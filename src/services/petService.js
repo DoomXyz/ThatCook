@@ -239,7 +239,10 @@ let getAccountPetInfo = (accountid) => {
                 return;
             }
             const data = await db.Pet.findAll({
-                where: { AccountID: accountid },
+                where: {
+                    AccountID: accountid,
+                    PetStatus: 'VALID'
+                },
                 attributes: ['PetID', 'PetName', 'PetType', 'PetWeight', 'Age', 'PetGender'],
                 raw: true,
             });
@@ -377,6 +380,7 @@ let savePetInfo = (accountid, petInfo) => {
                     PetGender: petInfo.petgender,
                     PetWeight: petInfo.petweight,
                     Age: petInfo.age,
+                    PetStatus: "VALID"
                 },
                 { transaction }
             );
@@ -490,9 +494,66 @@ let changePetInfo = (petid, petInfo) => {
     });
 };
 
+let removePet = (petid) => {
+    return new Promise(async (resolve, reject) => {
+        const transaction = await db.sequelize.transaction();
+        try {
+            if (!petid) {
+                await transaction.rollback();
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu mã thú cưng!',
+                    data: null,
+                });
+                return;
+            }
+            const pet = await db.Pet.findOne({
+                where: {
+                    PetID: petid,
+                    PetStatus: 'VALID'
+                },
+                attributes: ['PetID', 'PetStatus'],
+                raw: true,
+                transaction,
+            });
+            if (!pet) {
+                await transaction.rollback();
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Thú cưng không tồn tại hoặc đã bị xóa!',
+                    data: null,
+                });
+                return;
+            }
+            await db.Pet.update(
+                { PetStatus: 'DELET' },
+                {
+                    where: { PetID: petid },
+                    transaction,
+                }
+            );
+            await transaction.commit();
+            resolve({
+                errCode: 0,
+                errMessage: 'Xóa thú cưng thành công!',
+                data: null,
+            });
+        } catch (e) {
+            await transaction.rollback();
+            console.log('Error in removePet: ', e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi xóa thú cưng: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
 module.exports = {
     getAccountPetInfo,
     getPetInfo,
     savePetInfo,
-    changePetInfo
+    changePetInfo,
+    removePet,
 };

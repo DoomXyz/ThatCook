@@ -7,6 +7,8 @@ let cancelExpiredSchedules = () => {
         const transaction = await db.sequelize.transaction();
         try {
             const currentDateTime = new Date();
+            const oneDayAgo = new Date(currentDateTime);
+            oneDayAgo.setDate(currentDateTime.getDate() - 1);
             const oneMonthAgo = new Date(currentDateTime);
             oneMonthAgo.setMonth(currentDateTime.getMonth() - 1);
             const pendingSchedules = await db.Schedule.findAll({
@@ -20,7 +22,7 @@ let cancelExpiredSchedules = () => {
             const expiredSchedules = pendingSchedules.filter(schedule => {
                 const dateStr = schedule.Date.toISOString().split('T')[0];
                 const scheduleStart = new Date(`${dateStr}T${schedule.StartTime}+07:00`);
-                return scheduleStart < currentDateTime;
+                return scheduleStart < oneDayAgo;;
             });
             if (expiredSchedules.length > 0) {
                 const scheduleIDs = expiredSchedules.map(schedule => schedule.ScheduleID);

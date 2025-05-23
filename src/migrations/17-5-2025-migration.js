@@ -140,6 +140,10 @@ module.exports = {
         type: Sequelize.STRING(20),
         allowNull: false,
       },
+      PetStatus: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
     });
 
     // Tạo bảng Service

@@ -81,11 +81,13 @@ let initAPIRoutes = (app) => {
     router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes)
     router.get('/api/load-appointmentdetails', appointmentController.handleLoadAppointmentDetails);
     router.get('/api/get-appointmentbilldetail', appointmentController.handleGetAppointmentBillDetail);
+    router.get('/api/load-appointmentinfo', appointmentController.handleLoadAppointmentInfo);
 
     router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
     router.get('/api/get-petinfo', petController.handleGetPetInfo);
     router.post('/api/save-petinfo', petController.handleSavePetInfo);
     router.put('/api/change-petinfo', petController.handleChangePetInfo);
+    router.put('/api/remove-pet', petController.handleRemovePet);
     //admin
     router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
     router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

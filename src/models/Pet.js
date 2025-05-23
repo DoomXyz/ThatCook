@@ -42,6 +42,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         // Liên kết với Code từ ALLCODES (Type = 'PetGender')
       },
+      PetStatus: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'PetStatus')
+      },
     },
     {
       sequelize,

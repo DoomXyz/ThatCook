@@ -68,6 +68,28 @@ let handleLoadAppointments = async (req, res) => {
   }
 };
 
+let handleLoadAppointmentInfo = async (req, res) => {
+  try {
+    const accountid = req.query.accountid || ''
+    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
+    const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
+    const search = req.query.search || '';
+    const filter = req.query.filter || 'ALL';
+    const sort = req.query.sort || '0';
+    const date1 = req.query.date1 || '';
+    const date2 = req.query.date2 || '';
+    let response = await appointmentService.loadAppointmentInfo(accountid, page, limit, search, filter, sort, date1, date2);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log('Error in handleLoadAppointmentInfo: ', e);
+    return res.status(500).json({
+      errCode: 3,
+      errMessage: `Lỗi từ server: ${e.message}`,
+      data: null,
+    });
+  }
+};
+
 let handleLoadAppointmentDetails = async (req, res) => {
   try {
     let response = await appointmentService.loadAppointmentDetails(req.query.appointmentid);
@@ -133,6 +155,7 @@ module.exports = {
   handleGetAvailableTimes,
   handleGetServiceInfo,
   handleLoadAppointments,
+  handleLoadAppointmentInfo,
   handleLoadAppointmentDetails,
   handleChangeAppointmentStatus,
   handleCreateAppointmentBill,
