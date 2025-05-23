@@ -111,6 +111,7 @@
                 max-height: 12rem;
               }
               div {
+                min-height: 10rem;
                 margin-top: 0.2rem;
                 margin-left: 0.5rem;
                 p:nth-child(1) {
@@ -124,6 +125,7 @@
                 }
               }
               button {
+                position: absolute;
                 background-color: #12a0f2;
                 color: white;
                 font-weight: bold;
@@ -133,8 +135,8 @@
                 border: none;
                 box-shadow: 4px 8px 30px 0 rgba(177, 196, 218, 0.35);
                 transition: 0.3s;
-                margin-top: 0.5rem;
-                margin-left: 8rem;
+
+                transform: translateX(7rem);
               }
               button:active {
                 transition: 0s;

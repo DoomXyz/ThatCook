@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import './PetSelectModal.scss';
-import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
+import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class PetSelectModal extends Component {
@@ -16,14 +16,13 @@ class PetSelectModal extends Component {
             codePetType: [],
             isEditingPet: null,
             isAddingPet: false,
-            limitPetCount: 10,
+            limitPetCount: 3,
         };
     }
 
     async componentDidMount() {
         await Promise.all([this.handleLoadCodePetType(), this.handleLoadCodePetGender()]);
     }
-
     async componentDidUpdate(prevProps) {
         if (this.props.isOpen && !prevProps.isOpen) {
             await this.handleLoadPetInfo();
@@ -51,7 +50,6 @@ class PetSelectModal extends Component {
             });
         }
     };
-
     handleLoadCodePetGender = async () => {
         try {
             const codePetGender = await handleGetAllCodesApi('PetGender');
@@ -149,7 +147,6 @@ class PetSelectModal extends Component {
             }));
         }
     };
-
     handleEditPet = (index) => {
         if (this.state.isAddingPet || this.state.isEditingPet !== null) {
             toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!', {
@@ -161,27 +158,63 @@ class PetSelectModal extends Component {
         }
         this.setState({ isEditingPet: index, isAddingPet: false });
     };
+    handleDeletePet = async (petid) => {
+        const confirmDelete = () =>
+            new Promise((resolve) => {
+                toast(
+                    <div>
+                        <p>Bạn có chắc muốn xóa thú cưng này?</p>
+                        <button
+                            className="toast-confirm-btn"
+                            onClick={() => {
+                                resolve(true);
+                                toast.dismiss();
+                            }}
+                        >
+                            Có
+                        </button>
+                        <button
+                            className="toast-cancel-btn"
+                            onClick={() => {
+                                resolve(false);
+                                toast.dismiss();
+                            }}
+                        >
+                            Không
+                        </button>
+                    </div>,
+                    { position: 'top-center', autoClose: 1000, closeOnClick: false }
+                );
+            });
 
-    handlePetChange = (index, field, value) => {
-        this.setState((prevState) => {
-            const newPets = [...prevState.loadedPetInfo];
-            newPets[index] = { ...newPets[index], [field]: value };
-            return { loadedPetInfo: newPets };
-        });
+        const isConfirmed = await confirmDelete();
+        if (isConfirmed) {
+            try {
+                const response = await handleRemovePetApi(petid);
+                if (response && response.errCode === 0) {
+                    toast.success('Xóa thú cưng thành công!', {
+                        position: 'top-right',
+                        autoClose: 500,
+                        closeOnClick: true,
+                    });
+                    await this.handleLoadPetInfo();
+                } else {
+                    toast.error(response?.errMessage || 'Xóa thú cưng thất bại!', {
+                        position: 'top-right',
+                        autoClose: 500,
+                        closeOnClick: true,
+                    });
+                }
+            } catch (e) {
+                console.error('Error deleting pet:', e);
+                toast.error('Lỗi khi xóa thú cưng, vui lòng thử lại!', {
+                    position: 'top-right',
+                    autoClose: 500,
+                    closeOnClick: true,
+                });
+            }
+        }
     };
-
-    checkValidatePet = (index) => {
-        const item = this.state.loadedPetInfo[index];
-        if (!item.PetName) return { errCode: -1, errMessage: `Tên thú cưng tại dòng ${index + 1} không được để trống!` };
-        const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-        if (!petNameRegex.test(item.PetName.trim())) return { errCode: -1, errMessage: `Tên thú cưng tại dòng ${index + 1} không hợp lệ (2-50 ký tự)!` };
-        if (!item.PetType) return { errCode: -1, errMessage: `Loại thú cưng tại dòng ${index + 1} không được để trống!` };
-        if (!item.PetGender) return { errCode: -1, errMessage: `Giới tính thú cưng tại dòng ${index + 1} không được để trống!` };
-        if (!item.Age || isNaN(item.Age) || parseInt(item.Age) < 0 || parseInt(item.Age) > 999) return { errCode: -1, errMessage: `Tuổi thú cưng tại dòng ${index + 1} không hợp lệ (0-999)!` };
-        if (!item.PetWeight || isNaN(item.PetWeight) || parseFloat(item.PetWeight) <= 0 || parseFloat(item.PetWeight) > 999.99) return { errCode: -1, errMessage: `Cân nặng thú cưng tại dòng ${index + 1} không hợp lệ (0.01-999.99)!` };
-        return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
-    };
-
     handleSavePet = async (index) => {
         const validation = this.checkValidatePet(index);
         if (validation.errCode !== 0) {
@@ -268,6 +301,28 @@ class PetSelectModal extends Component {
         }
     };
 
+    handlePetChange = (index, field, value) => {
+        this.setState((prevState) => {
+            const newPets = [...prevState.loadedPetInfo];
+            newPets[index] = { ...newPets[index], [field]: value };
+            return { loadedPetInfo: newPets };
+        });
+    };
+
+    checkValidatePet = (index) => {
+        const item = this.state.loadedPetInfo[index];
+        if (!item.PetName) return { errCode: -1, errMessage: `Tên thú cưng tại dòng ${index + 1} không được để trống!` };
+        const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+        if (!petNameRegex.test(item.PetName.trim())) return { errCode: -1, errMessage: `Tên thú cưng tại dòng ${index + 1} không hợp lệ (2-50 ký tự)!` };
+        if (!item.PetType) return { errCode: -1, errMessage: `Loại thú cưng tại dòng ${index + 1} không được để trống!` };
+        if (!item.PetGender) return { errCode: -1, errMessage: `Giới tính thú cưng tại dòng ${index + 1} không được để trống!` };
+        if (!item.Age || isNaN(item.Age) || parseInt(item.Age) < 0 || parseInt(item.Age) > 999) return { errCode: -1, errMessage: `Tuổi thú cưng tại dòng ${index + 1} không hợp lệ (0-999)!` };
+        if (!item.PetWeight || isNaN(item.PetWeight) || parseFloat(item.PetWeight) <= 0 || parseFloat(item.PetWeight) > 999.99) return { errCode: -1, errMessage: `Cân nặng thú cưng tại dòng ${index + 1} không hợp lệ (0.01-999.99)!` };
+        return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
+    };
+
+
+
     handleCancelPet = () => {
         const confirmCancel = () =>
             new Promise((resolve) => {
@@ -339,8 +394,16 @@ class PetSelectModal extends Component {
         }
     };
 
+    resetState = () => {
+        this.setState({
+            isEditingPet: null,
+            isAddingPet: false,
+        });
+    };
+
     handleSelectPet = (petID) => {
         this.props.handleSelectPetFromModal(petID);
+        this.resetState();
         this.props.toggleFromModal();
     };
 
@@ -349,14 +412,20 @@ class PetSelectModal extends Component {
         const { loadedPetInfo, codePetType, codePetGender, isEditingPet, isAddingPet, limitPetCount } = this.state;
 
         return (
-            <Modal show={isOpen} onHide={toggleFromModal} centered backdrop="static" className="pet-select-modal">
+            <Modal show={isOpen}
+                onHide={() => {
+                    this.resetState();
+                    toggleFromModal();
+                }}
+                centered backdrop="static"
+                className="pet-select-modal">
                 <Modal.Header closeButton>
                     <Modal.Title>
                         <p>Chọn Thú Cưng</p>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {loadedPetInfo.length < limitPetCount && (
+                    {loadedPetInfo.length < limitPetCount && !isAddingPet && isEditingPet === null && (
                         <div className="pet-select-add">
                             <button className="btn btn-success btn-sm" onClick={this.handleAddPet}>
                                 Thêm Thú Cưng
@@ -426,6 +495,9 @@ class PetSelectModal extends Component {
                                                         <button className="btn btn-warning btn-sm" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
                                                             Sửa
                                                         </button>
+                                                        <button className="btn btn-danger btn-sm" onClick={() => this.handleDeletePet(pet.PetID)} disabled={isEditingPet !== null || isAddingPet}>
+                                                            Xóa
+                                                        </button>
                                                     </>
                                                 )}
                                             </td>
@@ -443,7 +515,11 @@ class PetSelectModal extends Component {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={toggleFromModal}>
+                    <Button variant="secondary"
+                        onClick={() => {
+                            this.resetState();
+                            toggleFromModal();
+                        }}>
                         Đóng
                     </Button>
                 </Modal.Footer>

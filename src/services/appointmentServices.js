@@ -16,6 +16,10 @@ const handleLoadAppointmentsApi = (veterinarianid, page, limit, search, filter, 
   return axios.get(`/api/load-appointments?veterinarianid=${veterinarianid}&page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}&date1=${date1}&date2=${date2}&status=${status}`);
 };
 
+const handleLoadAppointmentInfoApi = (accountid, page, limit, search, filter, sort, date1, date2) => {
+  return axios.get(`/api/load-appointmentinfo?accountid=${accountid}&page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}&date1=${date1}&date2=${date2}`);
+};
+
 const handleLoadAppointmentDetailsApi = (appointmentid) => {
   return axios.get(`/api/load-appointmentdetails?appointmentid=${appointmentid}`);
 };
@@ -37,6 +41,7 @@ export {
   handleGetAvailableTimesApi,
   handleGetServiceInfoApi,
   handleLoadAppointmentsApi,
+  handleLoadAppointmentInfoApi,
   handleLoadAppointmentDetailsApi,
   handleChangeAppointmentStatusApi,
   handleCreateAppointmentBillApi,

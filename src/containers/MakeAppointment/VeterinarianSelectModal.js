@@ -8,7 +8,6 @@ import './VeterinarianSelectModal.scss';
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
-import doctor from '../../assets/doctor-imgs/Anh-bac-si-Web_ThS.-BS.-DOAN-TRONG-NGHIA-.jpg';
 
 class VeterinarianSelectModal extends Component {
   constructor(props) {
@@ -29,7 +28,7 @@ class VeterinarianSelectModal extends Component {
     this.debounceTimeout = null;
   }
 
-  async componentDidMount() {}
+  async componentDidMount() { }
 
   async componentDidUpdate(prevProps) {
     const { isOpen } = this.props;
@@ -222,10 +221,10 @@ class VeterinarianSelectModal extends Component {
     }
   };
 
-  getAccountStatusValue = (code) => {};
+  getAccountStatusValue = (code) => { };
 
-  handleSelectVeterinarianFromModal = (veterinarianID) => {
-    this.props.handleSelectVeterinarianFromModal(veterinarianID);
+  handleSelectVeterinarianFromModal = (veterinarianInfo) => {
+    this.props.handleSelectVeterinarianFromModal(veterinarianInfo);
     this.props.toggleFromModal();
   };
 
@@ -382,7 +381,7 @@ class VeterinarianSelectModal extends Component {
                               </p>
                             </div>
                             <div>
-                              <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectVeterinarianFromModal(item.AccountID)}>
+                              <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectVeterinarianFromModal(item)}>
                                 Đặt lịch
                               </button>
                             </div>

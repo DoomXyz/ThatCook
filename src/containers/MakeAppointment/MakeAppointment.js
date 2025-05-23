@@ -17,6 +17,8 @@ import { checkLoginStatus, uploadImages } from '../../utils/pakage';
 import PetSelectModal from './PetSelectModal';
 import VeterinarianSelectModal from './VeterinarianSelectModal';
 
+const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
+
 class MakeAppointment extends Component {
   constructor(props) {
     super(props);
@@ -34,7 +36,7 @@ class MakeAppointment extends Component {
       petgender: '',
       petweight: '',
       appointmentDateTime: null,
-      selectedVeterinarianID: '',
+      selectedVeterinarianInfo: '',
       selectedServiceID: '',
       selectedPetID: '',
       starttime: '',
@@ -350,13 +352,13 @@ class MakeAppointment extends Component {
   };
   handleLoadAvailableTimes = async () => {
     try {
-      const { appointmentDateTime, selectedVeterinarianID, selectedServiceID } = this.state;
+      const { appointmentDateTime, selectedVeterinarianInfo, selectedServiceID } = this.state;
       if (!appointmentDateTime || !selectedServiceID) {
         this.setState({ availableTimes: [], starttime: '' });
         return;
       }
       const formattedDate = appointmentDateTime.toISOString().split('T')[0];
-      const vetID = selectedVeterinarianID || 'ALL';
+      const vetID = selectedVeterinarianInfo.AccountID || 'ALL';
       const response = await handleGetAvailableTimesApi(formattedDate, vetID, selectedServiceID);
       console.log(response);
       if (response.errCode === 0) {
@@ -380,14 +382,12 @@ class MakeAppointment extends Component {
   };
   checkValidateInput = () => {
     const { customername, customeremail, customerphone, appointmentDateTime, starttime, notes, selectedServiceID, selectedPetID } = this.state;
-
     if (!customername || !customeremail || !customerphone || !appointmentDateTime || !starttime || !selectedServiceID || !selectedPetID) {
       return {
         errCode: -1,
         errMessage: 'Thiếu thông tin đặt lịch!',
       };
     }
-
     const customerNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
     if (!customerNameRegex.test(customername.trim())) return { errCode: 1, errMessage: 'Tên khách hàng sai định dạng (2-50 ký tự, chữ, số, khoảng trắng)!' };
 
@@ -418,7 +418,7 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianID, selectedServiceID, starttime, notes, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, selectedServiceID, starttime, notes, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
         toast.error(isValidateInput.errMessage, {
@@ -471,7 +471,7 @@ class MakeAppointment extends Component {
         starttime,
         notes,
         accountid: isLoggedIn ? accountInfo.AccountID : guestID,
-        veterinarianid: selectedVeterinarianID || null,
+        veterinarianid: selectedVeterinarianInfo.AccountID || null,
         serviceid: selectedServiceID,
         petid: selectedPetID,
         imageInfo: uploadedImages,
@@ -580,11 +580,12 @@ class MakeAppointment extends Component {
     }
   };
 
-  handleSelectVeterinarianFromModal = async (vetID) => {
-    this.setState({ selectedVeterinarianID: vetID }, async () => {
-      if (vetID) {
+  handleSelectVeterinarianFromModal = async (veterinarianInfo) => {
+    this.setState({ selectedVeterinarianInfo: veterinarianInfo }, async () => {
+      console.log(veterinarianInfo)
+      if (veterinarianInfo.AccountID) {
         try {
-          const response = await handleGetVeterinarianServicesApi(vetID);
+          const response = await handleGetVeterinarianServicesApi(veterinarianInfo.AccountID);
           if (response.errCode === 0 && response.data && response.data.length > 0) {
             this.setState({
               codeService: response.data,
@@ -629,7 +630,9 @@ class MakeAppointment extends Component {
     });
   };
   render() {
-    const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedPetID, selectedVeterinarianID, loadedPetList } = this.state;
+    const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight,
+      appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, selectedPetID,
+      isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
@@ -648,72 +651,72 @@ class MakeAppointment extends Component {
                 <input type="text" placeholder="Hãy nhập số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
                 <input type="text" placeholder="Hãy nhập email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
-              {isLoggedIn && loadedPetList.length > 0 ? (
+              {isLoggedIn && loadedPetList.length > 0 && (
                 <div className="makeappointment-content-pet">
-                  <button onClick={this.togglePetSelectModal}>Xem danh sách thú cưng</button>
+                  <button onClick={this.togglePetSelectModal}>Chọn thú cưng</button>
                 </div>
-              ) : (
-                ''
               )}
-              <div className="makeappointment-content-pet-info">
-                <b>*Thông tin Thú cưng</b>
-                <input
-                  type="text"
-                  placeholder="Hãy nhập Tên thú cưng"
-                  value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')}
-                  disabled={isLoggedIn && loadedPetList.length > 0}
-                />
-                <div className="f">
-                  <p>Loại: </p>
-                  <select
-                    value={pettype}
-                    onChange={(event) => this.handleOnChangeInput(event, 'pettype')}
-                    disabled={isLoggedIn && loadedPetList.length > 0}
-                  >
-                    {codePetType.length > 0 ? (
-                      codePetType.map((item) => (
-                        <option key={item.Code} value={item.Code}>
-                          {item.CodeValueVI}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">Không có dữ liệu loại thú cưng</option>
-                    )}
-                  </select>
-                  <p>Giới tính:</p>
-                  <select
-                    value={petgender}
-                    onChange={(event) => this.handleOnChangeInput(event, 'petgender')}
-                    disabled={isLoggedIn && loadedPetList.length > 0}
-                  >
-                    {codePetGender.length > 0 ? (
-                      codePetGender.map((item) => (
-                        <option key={item.Code} value={item.Code}>
-                          {item.CodeValueVI}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">Không có dữ liệu giới tính</option>
-                    )}
-                  </select>
-                </div>
-                <div className="f">
+              {(!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '') ? (
+                <div className="makeappointment-content-pet-info">
+                  <b>*Thông tin Thú cưng</b>
                   <input
                     type="text"
-                    placeholder="Hãy nhập Tuổi"
-                    value={age}
-                    onChange={(event) => this.handleOnChangeInput(event, 'age')}
+                    placeholder="Hãy nhập Tên thú cưng"
+                    value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')}
                     disabled={isLoggedIn && loadedPetList.length > 0}
                   />
-                  <input
-                    type="text"
-                    placeholder="Hãy nhập Cân nặng"
-                    value={petweight}
-                    onChange={(event) => this.handleOnChangeInput(event, 'petweight')}
-                    disabled={isLoggedIn && loadedPetList.length > 0}
-                  />
+                  <div className="f">
+                    <p>Loại: </p>
+                    <select
+                      value={pettype}
+                      onChange={(event) => this.handleOnChangeInput(event, 'pettype')}
+                      disabled={isLoggedIn && loadedPetList.length > 0}
+                    >
+                      {codePetType.length > 0 ? (
+                        codePetType.map((item) => (
+                          <option key={item.Code} value={item.Code}>
+                            {item.CodeValueVI}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Không có dữ liệu loại thú cưng</option>
+                      )}
+                    </select>
+                    <p>Giới tính:</p>
+                    <select
+                      value={petgender}
+                      onChange={(event) => this.handleOnChangeInput(event, 'petgender')}
+                      disabled={isLoggedIn && loadedPetList.length > 0}
+                    >
+                      {codePetGender.length > 0 ? (
+                        codePetGender.map((item) => (
+                          <option key={item.Code} value={item.Code}>
+                            {item.CodeValueVI}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Không có dữ liệu giới tính</option>
+                      )}
+                    </select>
+                  </div>
+                  <div className="f">
+                    <input
+                      type="text"
+                      placeholder="Hãy nhập Tuổi"
+                      value={age}
+                      onChange={(event) => this.handleOnChangeInput(event, 'age')}
+                      disabled={isLoggedIn && loadedPetList.length > 0}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Hãy nhập Cân nặng"
+                      value={petweight}
+                      onChange={(event) => this.handleOnChangeInput(event, 'petweight')}
+                      disabled={isLoggedIn && loadedPetList.length > 0}
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (<p>Chưa chọn thú cưng</p>)}
               {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && (
                 <div className="makeappointment-save-petinfo-button">
                   <button onClick={this.handleSavePetInfo}>Lưu</button>
@@ -724,7 +727,25 @@ class MakeAppointment extends Component {
               <div className="makeappointment-content-doctor">
                 <div className="f">
                   <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
-                  {!selectedVeterinarianID ? <p>*Không bắt buộc</p> : selectedVeterinarianID}
+                </div>
+                <div className="doctor-info-display">
+                  {selectedVeterinarianInfo && selectedVeterinarianInfo.AccountID ? (
+                    <div className="doctor-details f">
+                      <div className="doctor-image">
+                        <img
+                          src={selectedVeterinarianInfo.UserImage || defUserImage}
+                          alt="Ảnh bác sĩ"
+                          style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                        />
+                      </div>
+                      <div className="doctor-text">
+                        <p><b>Tên bác sĩ:</b> {selectedVeterinarianInfo.UserName}</p>
+                        <p><b>Chuyên khoa:</b> {selectedVeterinarianInfo.Specialization}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>Chưa chọn bác sĩ</p>
+                  )}
                 </div>
               </div>
               <div className="makeappointment-content-date">
@@ -766,7 +787,7 @@ class MakeAppointment extends Component {
                   </select>
                 </div>
               </div>
-              <textarea placeholder="Mô tả tình trạng thú cưng" value={notes} onChange={(event) => this.handleOnChangeInput(event, 'notes')} />
+              <textarea placeholder="Mô tả tình trạng thú cưng (nếu có)" value={notes} onChange={(event) => this.handleOnChangeInput(event, 'notes')} />
               <div className="makeappointment-content-petimgs">
                 <p>
                   <b>*Thêm hình ảnh (tối đa 3 ảnh):</b>
