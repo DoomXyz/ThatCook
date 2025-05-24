@@ -10,7 +10,10 @@ import './Admin.scss';
 import Spinner from '../../components/Spinner';
 
 import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from '../../services/accountServices';
-import { handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi } from '../../services/utilitiesServices';
+import {
+  handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi,
+  handleGetServiceStatusApi, handleLoadServiceInfoApi, handleCreateServiceApi, handleChangeServiceInfoApi, handleChangeServiceStatusApi
+} from '../../services/utilitiesServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
@@ -29,14 +32,17 @@ class Admin extends Component {
       codeAccountType: [],
       codeAccountStatus: [],
       codeTypes: [],
+      codeServiceStatus: [],
       loadedAccountInfo: [],
       loadedCodeInfo: [],
+      loadedServiceInfo: [],
       selectedAccount: null,
       selectedCode: null,
       currentPage: 1,
       tempCurrentPage: '1',
       limitAccountPerQuery: 10,
       limitCodePerQuery: 10,
+      limitServicePerQuery: 5,
       searchValue: '',
       filterValue: 'ALL',
       sortValue: '0',
@@ -46,6 +52,8 @@ class Admin extends Component {
       actionPage: 1,
       isEditingCode: null,
       isAddingCode: false,
+      isEditingService: null,
+      isAddingService: false,
     };
     this.debounceTimeout = null;
   }
@@ -58,7 +66,7 @@ class Admin extends Component {
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { codeGender, codeAccountType, codeAccountStatus, codeTypes } = this.state;
+      const { codeGender, codeAccountType, codeAccountStatus, codeTypes, codeServiceStatus } = this.state;
       switch (this.state.actionPage) {
         case 1:
           await this.handleLoadAccountInfo();
@@ -69,6 +77,10 @@ class Admin extends Component {
         case 2:
           await this.handleLoadAllCodesInfo();
           if (codeTypes.length === 0) await this.handleLoadCodeTypes();
+          break;
+        case 3:
+          await this.handleLoadServiceInfo();
+          if (codeServiceStatus.length === 0) await this.handleLoadServiceStatus();
           break;
         default:
           break;
@@ -142,6 +154,28 @@ class Admin extends Component {
       });
     }
   };
+  handleLoadServiceStatus = async () => {
+    try {
+      const codeServiceStatus = await handleGetAllCodesApi('ServiceStatus');
+      if (!codeServiceStatus || codeServiceStatus.length === 0) {
+        toast.error('Không thể tải trạng thái dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      this.setState({
+        codeServiceStatus,
+      });
+    } catch (e) {
+      console.log('Error loading service status:', e);
+      toast.error('Lỗi khi tải danh sách trạng thái dịch vụ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   handleLoadCodeTypes = async () => {
     try {
       const response = await handleGetAllCodesApi('ALL');
@@ -163,6 +197,7 @@ class Admin extends Component {
       });
     }
   };
+
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -231,6 +266,281 @@ class Admin extends Component {
       });
     }
   };
+  handleLoadServiceInfo = async () => {
+    const { currentPage, limitServicePerQuery, searchValue, filterValue, sortValue } = this.state;
+    try {
+      let response = await handleLoadServiceInfoApi(currentPage, limitServicePerQuery, searchValue, filterValue, sortValue);
+      console.log(response.data)
+      if (response && response.data.errCode === 0) {
+        this.setState({
+          loadedServiceInfo: response.data.data,
+          totalPages: Math.ceil(response.data.totalItems / limitServicePerQuery),
+        });
+      }
+    } catch (e) {
+      console.log('Error loading service info:', e);
+      toast.error('Lỗi khi load danh sách dịch vụ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  handleEditService = (index) => {
+    this.setState({ isEditingService: index, isAddingService: false });
+  };
+  handleAddService = () => {
+    if (this.state.isAddingService || this.state.isEditingService !== null) {
+      const confirmAddNew = () =>
+        new Promise((resolve) => {
+          toast(
+            <div>
+              <p>{this.state.isAddingService ? 'Bạn đang thêm dịch vụ mới chưa lưu. Lưu hoặc hủy trước khi thêm dịch vụ mới?' : 'Bạn có thay đổi chưa lưu. Hủy thay đổi và thêm dịch vụ mới?'}</p>
+              <button
+                className="toast-confirm-btn"
+                onClick={() => {
+                  resolve(true);
+                  toast.dismiss();
+                }}
+              >
+                Có
+              </button>
+              <button
+                className="toast-cancel-btn"
+                onClick={() => {
+                  resolve(false);
+                  toast.dismiss();
+                }}
+              >
+                Không
+              </button>
+            </div>,
+            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          );
+        });
+      confirmAddNew().then((isConfirmed) => {
+        if (isConfirmed) {
+          this.setState(
+            {
+              isEditingService: null,
+              isAddingService: false,
+            },
+            async () => {
+              await this.handleLoadServiceInfo();
+              this.setState((prevState) => ({
+                loadedServiceInfo: [
+                  {
+                    ServiceID: Date.now(),
+                    ServiceName: '',
+                    Price: '',
+                    Duration: '',
+                    Description: '',
+                    ServiceStatus: 'VALID',
+                  },
+                  ...prevState.loadedServiceInfo,
+                ],
+                isEditingService: 0,
+                isAddingService: true,
+              }));
+            }
+          );
+        }
+      });
+    } else {
+      this.setState((prevState) => ({
+        loadedServiceInfo: [
+          {
+            ServiceID: Date.now(),
+            ServiceName: '',
+            Price: '',
+            Duration: '',
+            Description: '',
+            ServiceStatus: 'VALID',
+          },
+          ...prevState.loadedServiceInfo,
+        ],
+        isEditingService: 0,
+        isAddingService: true,
+      }));
+    }
+  };
+
+  handleCancelService = () => {
+    this.setState(
+      {
+        isEditingService: null,
+        isAddingService: false,
+      },
+      async () => {
+        await this.handleLoadServiceInfo();
+      }
+    );
+  };
+
+  handleServiceChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newServices = [...prevState.loadedServiceInfo];
+      newServices[index] = { ...newServices[index], [field]: value };
+      return { loadedServiceInfo: newServices };
+    });
+  };
+
+  checkValidateService = (index) => {
+    const item = this.state.loadedServiceInfo[index];
+    if (!item.ServiceName) return { errCode: -1, errMessage: `Tên dịch vụ tại dòng ${index + 1} không được để trống!` };
+    const nameRegex = /^[A-Za-z0-9\s]{2,50}$/;
+    if (!nameRegex.test(item.ServiceName.trim())) return { errCode: -1, errMessage: `Tên dịch vụ tại dòng ${index + 1} không hợp lệ (2-50 ký tự, chỉ chữ, số và khoảng trắng)!` };
+    if (!item.Price || isNaN(item.Price) || parseFloat(item.Price) < 0) return { errCode: -1, errMessage: `Giá tại dòng ${index + 1} không hợp lệ (phải là số không âm)!` };
+    if (!item.Duration || isNaN(item.Duration) || parseInt(item.Duration) <= 0) return { errCode: -1, errMessage: `Thời gian tại dòng ${index + 1} không hợp lệ (phải là số nguyên dương)!` };
+    if (item.Description && item.Description.trim().length > 65535) return { errCode: -1, errMessage: `Mô tả tại dòng ${index + 1} vượt quá giới hạn ký tự (65535)!` };
+    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
+  };
+
+  handleSaveService = async (index) => {
+    const validation = this.checkValidateService(index);
+    if (validation.errCode !== 0) {
+      toast.error(validation.errMessage, {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+    const confirmSave = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận lưu thông tin dịch vụ?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+        );
+      });
+    const isConfirmed = await confirmSave();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const serviceInfo = {
+        ServiceID: this.state.loadedServiceInfo[index].ServiceID,
+        ServiceName: this.state.loadedServiceInfo[index].ServiceName.trim(),
+        Price: parseFloat(this.state.loadedServiceInfo[index].Price).toFixed(2),
+        Duration: parseInt(this.state.loadedServiceInfo[index].Duration),
+        Description: this.state.loadedServiceInfo[index].Description ? this.state.loadedServiceInfo[index].Description.trim() : null,
+      };
+      let apiResponse;
+      if (this.state.isAddingService) {
+        apiResponse = await handleCreateServiceApi(serviceInfo);
+      } else {
+        apiResponse = await handleChangeServiceInfoApi(serviceInfo);
+      }
+      const response = apiResponse.data;
+      if (response && response.errCode === 0) {
+        toast.success(this.state.isAddingService ? 'Tạo dịch vụ thành công!' : 'Chỉnh sửa dịch vụ thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadServiceInfo();
+        this.setState({
+          isEditingService: null,
+          isAddingService: false,
+        });
+      } else {
+        const errMessage = response?.errMessage || (this.state.isAddingService ? 'Tạo dịch vụ thất bại!' : 'Chỉnh sửa dịch vụ thất bại!');
+        toast.error(errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error(this.state.isAddingService ? 'Create Service:' : 'Edit Service:', e);
+      toast.error(`Xảy ra lỗi khi ${this.state.isAddingService ? 'tạo' : 'chỉnh sửa'} dịch vụ, vui lòng thử lại!`, {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+
+  handleChangeServiceStatus = async (serviceInfo) => {
+    const confirmChange = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>{`Bạn có muốn ${serviceInfo.ServiceStatus === 'VALID' ? 'vô hiệu hóa' : 'kích hoạt'} dịch vụ ${serviceInfo.ServiceName} không?`}</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-right', autoClose: 1000, closeOnClick: false }
+        );
+      });
+    let isConfirmed = await confirmChange();
+    if (isConfirmed) {
+      this.setState({ isLoading: true });
+      const newStatus = serviceInfo.ServiceStatus === 'VALID' ? 'INVALID' : 'VALID';
+      try {
+        const response = await handleChangeServiceStatusApi(serviceInfo.ServiceID, newStatus);
+        if (response && response.errCode === 0) {
+          toast.success(response.errMessage, {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        } else {
+          toast.error(response?.errMessage || 'Thay đổi trạng thái dịch vụ thất bại!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
+      } catch (e) {
+        console.log('Error changing service status:', e);
+        toast.error('Lỗi khi thay đổi trạng thái dịch vụ!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+      await this.handleLoadServiceInfo();
+      this.setState({ isLoading: false });
+    }
+  };
+
   handleSearchChange = (event, type) => {
     const value = event.target.value;
     this.setState(
@@ -250,6 +560,9 @@ class Admin extends Component {
               break;
             case 2:
               this.handleLoadAllCodesInfo();
+              break;
+            case 3:
+              this.handleLoadServiceInfo();
               break;
             default:
               break;
@@ -273,6 +586,9 @@ class Admin extends Component {
           case 2:
             this.handleLoadAllCodesInfo();
             break;
+          case 3:
+            this.handleLoadServiceInfo();
+            break;
           default:
             break;
         }
@@ -293,6 +609,9 @@ class Admin extends Component {
             break;
           case 2:
             this.handleLoadAllCodesInfo();
+            break;
+          case 3:
+            this.handleLoadServiceInfo();
             break;
           default:
             break;
@@ -316,6 +635,9 @@ class Admin extends Component {
             break;
           case 2:
             this.handleLoadAllCodesInfo();
+            break;
+          case 3:
+            this.handleLoadServiceInfo();
             break;
           default:
             break;
@@ -871,9 +1193,51 @@ class Admin extends Component {
       }
     );
   };
+
+  handleFormServiceManagement = (e) => {
+    e.preventDefault();
+    this.setState(
+      {
+        actionPage: 3,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        isEditingCode: null,
+        isAddingCode: false,
+        isEditingService: null,
+        isAddingService: false,
+        loadedCodeInfo: [],
+        loadedServiceInfo: [],
+      },
+      async () => {
+        await this.handleLoadServiceInfo();
+      }
+    );
+  };
   renderSection = () => {
-    const { loadedAccountInfo, searchValue, filterValue, sortValue, currentPage, totalPages, codeGender, codeAccountType, codeAccountStatus, tempCurrentPage, loadedCodeInfo, codeTypes, isEditingCode, isAddingCode, actionPage } = this.state;
-    switch (actionPage) {
+    const {
+      loadedAccountInfo,
+      searchValue,
+      filterValue,
+      sortValue,
+      currentPage,
+      totalPages,
+      codeGender,
+      codeAccountType,
+      codeAccountStatus,
+      tempCurrentPage,
+      loadedCodeInfo,
+      codeTypes,
+      loadedServiceInfo,
+      codeServiceStatus,
+      isEditingCode,
+      isAddingCode,
+      isEditingService,
+      isAddingService,
+      actionPage,
+    } = this.state; switch (actionPage) {
       case 1:
         return (
           <div>
@@ -1117,6 +1481,228 @@ class Admin extends Component {
             </div>
           </div>
         );
+      case 3:
+        return (
+          <div>
+            <div className="admin-search">
+              <div className="admin-search-left">
+                <div className="admin-search-box">
+                  <div className="inputbox">
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm theo tên dịch vụ hoặc mô tả"
+                      value={searchValue}
+                      onChange={(event) => this.handleSearchChange(event, 3)}
+                    />
+                    <div className="btn-search">
+                      <IonIcon icon={searchOutline} className="search-icon"></IonIcon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-search-right">
+                <button onClick={() => this.handleResetFilter(3)}>Reset</button>
+                <div className="alo">
+                  <label>Lọc:</label>
+                  <select
+                    value={filterValue}
+                    onChange={(event) => this.handleFilter(event.target.value, 3)}
+                  >
+                    <option value="ALL">Tất cả</option>
+                    <optgroup label="Theo Giá">
+                      <option value="price-LOW">Dưới 100,000 VNĐ</option>
+                      <option value="price-MED">100,000 - 500,000 VNĐ</option>
+                      <option value="price-HIGH">Trên 500,000 VNĐ</option>
+                    </optgroup>
+                    <optgroup label="Theo Thời Gian">
+                      <option value="duration-SHORT">Dưới 30 phút</option>
+                      <option value="duration-MED">30 - 60 phút</option>
+                      <option value="duration-LONG">Trên 60 phút</option>
+                    </optgroup>
+                    <optgroup label="Theo Trạng Thái">
+                      <option value="status-VALID">Hợp lệ</option>
+                      <option value="status-INVALID">Không hợp lệ</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div className="alo">
+                  <label>Sắp Xếp:</label>
+                  <select
+                    value={sortValue}
+                    onChange={(event) => this.handleSort(event.target.value, 3)}
+                    className="select-2"
+                  >
+                    <option value="0">Mặc định</option>
+                    <option value="1">Tên (A-Z)</option>
+                    <option value="2">Tên (Z-A)</option>
+                    <option value="3">Giá (Thấp-Cao)</option>
+                    <option value="4">Giá (Cao-Thấp)</option>
+                    <option value="5">Thời gian (Ngắn-Dài)</option>
+                    <option value="6">Thời gian (Dài-Ngắn)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="btn-addAC">
+                <button
+                  style={{ display: actionPage === 3 ? 'block' : 'none' }}
+                  onClick={() => this.handleAddService()}
+                  className="btn-addAC"
+                >
+                  THÊM DỊCH VỤ MỚI <IonIcon icon={addOutline}></IonIcon>
+                </button>
+              </div>
+            </div>
+            <div className="admin-list">
+              <div className="services-table">
+                <table className="table">
+                  <tbody>
+                    <tr>
+                      <th>Mã Dịch Vụ</th>
+                      <th>Tên Dịch Vụ</th>
+                      <th>Giá (VNĐ)</th>
+                      <th>Thời Gian (phút)</th>
+                      <th>Mô Tả</th>
+                      <th>Trạng Thái</th>
+                      <th>Action</th>
+                    </tr>
+                    {loadedServiceInfo.length > 0 ? (
+                      loadedServiceInfo.map((item, index) => (
+                        <tr key={item.ServiceID} className={item.ServiceStatus === 'VALID' ? 'status-act' : 'status-dis'}>
+                          <td>{item.ServiceID}</td>
+                          <td>
+                            {isEditingService === index ? (
+                              <input
+                                type="text"
+                                value={item.ServiceName}
+                                onChange={(e) => this.handleServiceChange(index, 'ServiceName', e.target.value)}
+                              />
+                            ) : (
+                              item.ServiceName
+                            )}
+                          </td>
+                          <td>
+                            {isEditingService === index ? (
+                              <input
+                                type="number"
+                                value={item.Price}
+                                onChange={(e) => this.handleServiceChange(index, 'Price', e.target.value)}
+                              />
+                            ) : (
+                              parseFloat(item.Price).toLocaleString('vi-VN')
+                            )}
+                          </td>
+                          <td>
+                            {isEditingService === index ? (
+                              <input
+                                type="number"
+                                value={item.Duration}
+                                onChange={(e) => this.handleServiceChange(index, 'Duration', e.target.value)}
+                              />
+                            ) : (
+                              item.Duration
+                            )}
+                          </td>
+                          <td>
+                            {isEditingService === index ? (
+                              <input
+                                type="text"
+                                value={item.Description ?? ''}
+                                onChange={(e) => this.handleServiceChange(index, 'Description', e.target.value)}
+                              />
+                            ) : (
+                              item.Description || 'Không có mô tả'
+                            )}
+                          </td>
+                          <td>
+                            {codeServiceStatus.find((status) => status.Code === item.ServiceStatus)?.CodeValueVI ||
+                              item.ServiceStatus}
+                          </td>
+                          <td>
+                            {isEditingService === index ? (
+                              <>
+                                <button className="save-code" onClick={() => this.handleSaveService(index)}>
+                                  Lưu
+                                </button>
+                                <button className="cancel-code" onClick={() => this.handleCancelService()}>
+                                  Hủy
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  className="btn-edit"
+                                  onClick={() => this.handleEditService(index)}
+                                  disabled={isEditingService !== null || isAddingService}
+                                >
+                                  <IonIcon icon={pencil}></IonIcon>
+                                </button>
+                                <button
+                                  className="btn-lock"
+                                  onClick={() => this.handleChangeServiceStatus(item)}
+                                  disabled={isEditingService !== null || isAddingService}
+                                >
+                                  <IonIcon icon={lockClosed}></IonIcon>
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center' }}>
+                          Không tìm thấy dịch vụ
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {totalPages > 1 && (
+                <div className="page-content">
+                  <div className="page-content-item">
+                    <button
+                      className="first"
+                      onClick={() => this.handlePageChange(1, 3)}
+                      disabled={currentPage === 1}
+                    >
+                      {'<<'}
+                    </button>
+                    <button
+                      className="prev"
+                      onClick={() => this.handlePrevPage(3)}
+                      disabled={currentPage === 1}
+                    >
+                      {'<'}
+                    </button>
+                    <input
+                      type="text"
+                      value={tempCurrentPage}
+                      onChange={(event) => this.handlePageInputChange(event, 3)}
+                      onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
+                      onBlur={() => this.handlePageInputBlur(3)}
+                    />
+                    <span className="total-pages">/ {totalPages}</span>
+                    <button
+                      className="next"
+                      onClick={() => this.handleNextPage(3)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {'>'}
+                    </button>
+                    <button
+                      className="last"
+                      onClick={() => this.handlePageChange(totalPages, 3)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {'>>'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -1160,6 +1746,11 @@ class Admin extends Component {
                 <li>
                   <a onClick={this.handleFormCodeManagement} className={actionPage === 2 ? 'active' : ''}>
                     THÔNG TIN ALLCODES
+                  </a>
+                </li>
+                <li>
+                  <a onClick={this.handleFormServiceManagement} className={actionPage === 3 ? 'active' : ''}>
+                    THÔNG TIN DỊCH VỤ
                   </a>
                 </li>
               </div>

@@ -5,12 +5,13 @@ import userReducer from '../reducers/userReducer'; // Import reducer
 import cartReducer from '../reducers/cartReducer';
 import appointmentReducer from '../reducers/appointmentReducer';
 import billReducer from '../reducers/billReducer';
+import preselectReducer from '../reducers/preselectReducer'
 
 // Cấu hình persist
 const persistConfig = {
   key: 'root',
   storage,
-  blacklist: ['bill', 'appointment'],
+  blacklist: ['bill', 'appointment', 'preselect'],
 };
 
 // Combine reducers
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   appointment: appointmentReducer,
   bill: billReducer,
+  preselect: preselectReducer
 });
 // Tạo persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -36,3 +38,4 @@ export * from './userActions';
 export * from './cartActions';
 export * from './appointmentActions'
 export * from './billActions'
+export * from './preselectActions'

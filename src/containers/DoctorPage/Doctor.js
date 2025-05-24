@@ -1491,15 +1491,27 @@ class Doctor extends Component {
                     )}
                     {fromForm === 3 && (
                       <>
-                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' ? (
-                          <button
-                            type="button"
-                            className="action-button complete-button"
-                            onClick={() => this.handleAppointmentCheckOut(loadedAppointmentDetail.AppointmentID)}
-                          >
-                            Hoàn thành
-                          </button>
-                        ) : ""}
+                        {
+                          loadedAppointmentDetail.ScheduleID &&
+                            loadedAppointmentDetail.ScheduleStatus === 'PEND' &&
+                            (() => {
+                              const today = new Date();
+                              const appointmentDay = new Date(loadedAppointmentDetail.AppointmentDate);
+                              return (
+                                today.getFullYear() === appointmentDay.getFullYear() &&
+                                today.getMonth() === appointmentDay.getMonth() &&
+                                today.getDate() === appointmentDay.getDate()
+                              );
+                            })() ? (
+                            <button
+                              type="button"
+                              className="action-button complete-button"
+                              onClick={() => this.handleAppointmentCheckOut(loadedAppointmentDetail.AppointmentID)}
+                            >
+                              Hoàn thành
+                            </button>
+                          ) : ""
+                        }
 
                         {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' ? (
                           <button

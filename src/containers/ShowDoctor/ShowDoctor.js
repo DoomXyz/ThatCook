@@ -9,7 +9,7 @@ import Footer from '../../components/HomeFooter';
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetServiceInfoApi } from '../../services/appointmentServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
-import doctor from '../../assets/doctor-imgs/Anh-bac-si-Web_ThS.-BS.-DOAN-TRONG-NGHIA-.jpg';
+import { savePreselectInfo, clearPreselectInfo } from '../../store/actions';
 
 class ShowDoctor extends Component {
   constructor(props) {
@@ -214,13 +214,30 @@ class ShowDoctor extends Component {
       this.handlePageChange(page);
     }
   };
-  getAccountStatusValue = (code) => { };
+  handlePreSelectVeterinarian = (accountID) => {
+    const { loadedVeterinarianInfo } = this.state;
+    const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === accountID);
+    if (selectedVet) {
+      this.props.savePreselectInfo('Veterinarian', accountID);
+      this.props.navigate('/makeappointment');
+    } else {
+      toast.error('Không tìm thấy thông tin bác sĩ!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
   render() {
-    const { isOpen, toggleFromModal } = this.props;
     const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;
     return (
       <div className="showdoctor-body">
-        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
+        <Header
+          navigate={this.props.navigate}
+          cartItems={this.props.cartItems}
+          userInfo={this.props.userInfo}
+          triggerCountCartItem={this.state.triggerCountCartItem}
+        />
         <div className="showdoctor-content">
           <h1>Danh sách bác sĩ</h1>
           <div className="showdoctor-content-top f  ">
@@ -259,7 +276,7 @@ class ShowDoctor extends Component {
                 loadedVeterinarianInfo.map((item) => (
                   <div className="showdoctor-content-mid-list-item " key={item.AccountID}>
                     <div className="f">
-                      <img src={item.UserImage} />
+                      <img src={item.UserImage} alt="Doctor" />
                       <div>
                         <div>
                           <p>
@@ -276,7 +293,7 @@ class ShowDoctor extends Component {
                           </p>
                         </div>
                         <div>
-                          <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectVeterinarianFromModal(item.AccountID)}>
+                          <button className="btn btn-primary btn-sm" onClick={() => this.handlePreSelectVeterinarian(item.AccountID)}>
                             Đặt lịch
                           </button>
                         </div>
@@ -285,7 +302,7 @@ class ShowDoctor extends Component {
                   </div>
                 ))
               ) : (
-                <p>khoog co bs nào</p>
+                <p>Không có bác sĩ nào</p>
               )}
             </div>
           </div>
@@ -316,7 +333,13 @@ class ShowDoctor extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
+const mapStateToProps = (state) => ({
+  userInfo: state.user.userInfo,
+  cartItems: state.cart.cartItems,
+});
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = (dispatch) => ({
+  savePreselectInfo: (type, id) => dispatch(savePreselectInfo(type, id)),
+  clearPreselectInfo: () => dispatch(clearPreselectInfo()),
+});
 export default connect(mapStateToProps, mapDispatchToProps)(ShowDoctor);

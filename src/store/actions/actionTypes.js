@@ -20,5 +20,8 @@ const actionTypes = Object.freeze({
   //bill
   SAVE_BILL_SEARCH: 'SAVE_BILL_SEARCH',
   CLEAR_BILL_SEARCH: 'CLEAR_BILL_SEARCH',
+  //preselect
+  SAVE_PRESELECT_INFO: 'SAVE_PRESELECT_INFO',
+  CLEAR_PRESELECT_INFO: 'CLEAR_PRESELECT_INFO',
 });
 export default actionTypes;

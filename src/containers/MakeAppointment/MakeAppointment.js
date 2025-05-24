@@ -8,13 +8,13 @@ import './MakeAppointment.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
-import { handleGetAccountInfoApi, handleLogoutApi, handleGetVeterinarianServicesApi } from '../../services/accountServices';
+import { handleGetAccountInfoApi, handleLogoutApi, handleGetVeterinarianInfoApi, handleGetVeterinarianServicesApi } from '../../services/accountServices';
 import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices';
 import { handleGetAccountPetInfoApi, handleGetPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { checkLoginStatus, uploadImages } from '../../utils/pakage';
 
-import { clearFuAppointmentInfo } from '../../store/actions';
+import { clearFuAppointmentInfo, saveBillSearchInfo, userLogin, userLogout, clearPreselectInfo } from '../../store/actions';
 
 import PetSelectModal from './PetSelectModal';
 import VeterinarianSelectModal from './VeterinarianSelectModal';
@@ -58,7 +58,6 @@ class MakeAppointment extends Component {
       isShowVeterinarianSelectModal: false,
       createdAppointmentID: '',
       originalServiceList: [],
-      isEditable: true,
     };
   }
   async componentDidMount() {
@@ -67,10 +66,104 @@ class MakeAppointment extends Component {
     await this.handleLoadCodePetGender();
     await this.handleLoadCodeService();
     setTimeout(() => {
-      if (!this.props.fuAppointmentInfo && this.state.accountInfo.AccountType === "V") {
-        this.props.navigate('/user/veterinarian')
+      if (!this.props.fuAppointmentInfo && this.state.accountInfo?.AccountType === "V") {
+        this.props.navigate('/user/veterinarian');
+      } else if (this.props.fuAppointmentInfo) {
+        this.setState({
+          type: 'FOLLOW_UP',
+          prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
+        }, () => {
+          this.handleLoadFollowUpAppointmentInfo();
+        });
+      } else {
+        this.setState({ type: 'FIRST' }, async () => {
+          this.handleLoadAppointmentInfo();
+          if (this.props.appointmentPreselect) {
+            if (this.props.appointmentPreselect.type === 'Veterinarian') {
+              const vetID = this.props.appointmentPreselect.selectedID;
+              try {
+                const vetResponse = await handleGetVeterinarianInfoApi(vetID);
+                if (vetResponse.errCode === 0 && vetResponse.data) {
+                  this.setState({
+                    selectedVeterinarianInfo: {
+                      AccountID: vetID,
+                      UserName: vetResponse.data.UserName,
+                      UserImage: vetResponse.data.UserImage || defUserImage,
+                      Specialization: vetResponse.data.Specialization,
+                    },
+                  }, async () => {
+                    try {
+                      const serviceResponse = await handleGetVeterinarianServicesApi(vetID);
+                      if (serviceResponse.errCode === 0 && serviceResponse.data && serviceResponse.data.length > 0) {
+                        this.setState({
+                          codeService: serviceResponse.data,
+                          selectedServiceID: serviceResponse.data[0]?.ServiceID || '',
+                        });
+                      } else {
+                        toast.error('Bác sĩ này không có dịch vụ nào!', {
+                          position: 'top-right',
+                          autoClose: 500,
+                          closeOnClick: true,
+                        });
+                        this.setState({
+                          codeService: [],
+                          selectedServiceID: '',
+                        });
+                      }
+                    } catch (e) {
+                      toast.error('Lỗi khi tải dịch vụ của bác sĩ!', {
+                        position: 'top-right',
+                        autoClose: 500,
+                        closeOnClick: true,
+                      });
+                    }
+                  });
+                } else {
+                  toast.error('Không thể tải thông tin bác sĩ!', {
+                    position: 'top-right',
+                    autoClose: 500,
+                    closeOnClick: true,
+                  });
+                }
+              } catch (e) {
+                toast.error('Lỗi khi tải thông tin bác sĩ!', {
+                  position: 'top-right',
+                  autoClose: 500,
+                  closeOnClick: true,
+                });
+              }
+            } else if (this.props.appointmentPreselect.type === 'Service') {
+              const serviceID = this.props.appointmentPreselect.selectedID;
+              try {
+                const response = await handleGetServiceInfoApi(serviceID);
+                if (response.errCode === 0 && response.data) {
+                  this.setState({
+                    selectedServiceID: serviceID,
+                    codeService: [response.data], // Giới hạn dropdown chỉ hiển thị dịch vụ đã chọn
+                    originalServiceList: [response.data],
+                  });
+                } else {
+                  toast.error('Không thể tải thông tin dịch vụ!', {
+                    position: 'top-right',
+                    autoClose: 500,
+                    closeOnClick: true,
+                  });
+                  this.setState({
+                    selectedServiceID: '',
+                  });
+                }
+              } catch (e) {
+                toast.error('Lỗi khi tải thông tin dịch vụ!', {
+                  position: 'top-right',
+                  autoClose: 500,
+                  closeOnClick: true,
+                });
+              }
+            }
+            this.props.clearPreselectInfo();
+          }
+        });
       }
-      this.handleLoadAppointmentInfo();
       this.setState({ isLoading: false });
     }, 10);
 
@@ -157,6 +250,86 @@ class MakeAppointment extends Component {
         customerphone: accountInfo.Phone,
         customeremail: accountInfo.Email,
       });
+    }
+  };
+  handleLoadFollowUpAppointmentInfo = async () => {
+    const { prevAppointmentID } = this.state;
+    try {
+      const response = await handleLoadAppointmentDetailsApi(prevAppointmentID);
+      if (response && response.errCode === 0) {
+        const data = response.data;
+        this.setState({
+          selectedPetID: data.Pet.PetID,
+          petname: data.Pet.PetName,
+          pettype: data.Pet.PetType,
+          petgender: data.Pet.PetGender,
+          age: data.Pet.Age.toString(),
+          petweight: data.Pet.PetWeight.toString(),
+          selectedVeterinarianInfo: data.Veterinarian
+            ? {
+              AccountID: data.VeterinarianID,
+              UserName: data.Veterinarian.UserName,
+              Specialization: data.Veterinarian.Specialization,
+              UserImage: data.Veterinarian.UserImage,
+            }
+            : {},
+          customername: data.CustomerName,
+          customerphone: data.CustomerPhone,
+          customeremail: data.CustomerEmail,
+        });
+      } else {
+        toast.error(response?.errMessage || 'Không thể tải thông tin lịch hẹn trước!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        this.setState({ type: 'FIRST', prevAppointmentID: null });
+        this.props.clearFuAppointmentInfo();
+      }
+    } catch (e) {
+      console.log('Error loading follow-up appointment info:', e);
+      toast.error('Lỗi khi tải thông tin lịch hẹn trước!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      this.setState({ type: 'FIRST', prevAppointmentID: null });
+      this.props.clearFuAppointmentInfo();
+    }
+  };
+  handleCancelFollowUp = async () => {
+    const confirmCancel = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hủy tái khám?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+        );
+      });
+
+    const isConfirmed = await confirmCancel();
+    if (isConfirmed) {
+      this.props.clearFuAppointmentInfo();
+      this.props.navigate('/user/veterinarian');
     }
   };
   handleLoadCodePetType = async () => {
@@ -426,7 +599,8 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, selectedServiceID, starttime, notes, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo,
+        selectedServiceID, starttime, notes, type, prevAppointmentID, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
         toast.error(isValidateInput.errMessage, {
@@ -483,7 +657,8 @@ class MakeAppointment extends Component {
         serviceid: selectedServiceID,
         petid: selectedPetID,
         imageInfo: uploadedImages,
-        type: 'FIRST',
+        type,
+        prevappointmentid: prevAppointmentID
       });
       console.log('respone: ', response);
       if (response && response.errCode === 0) {
@@ -495,6 +670,9 @@ class MakeAppointment extends Component {
           autoClose: 500,
           closeOnClick: true,
         });
+        this.props.clearFuAppointmentInfo();
+        this.props.saveBillSearchInfo({ billid: response.data.AppointmentID, billtype: 2 });
+        this.props.navigate('/bill');
       } else {
         toast.error(response.errMessage, {
           position: 'top-right',
@@ -640,7 +818,7 @@ class MakeAppointment extends Component {
   render() {
     const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight,
       appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, selectedPetID,
-      isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList } = this.state;
+      isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList, type } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
@@ -652,33 +830,33 @@ class MakeAppointment extends Component {
           <div>
             <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} />
             <div className="makeappointment-content">
-              <h1>Thông tin đặt lịch</h1>
+              <h1>{type === 'FOLLOW_UP' ? 'Đặt lịch tái khám' : 'Thông tin đặt lịch'}</h1>
               <div className="makeappointment-content-user-info">
                 <b>*Thông tin Khách hàng</b>
                 <input type="text" placeholder="Hãy nhhập tên khách hàng" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
                 <input type="text" placeholder="Hãy nhập số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
                 <input type="text" placeholder="Hãy nhập email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
-              {isLoggedIn && loadedPetList.length > 0 && (
+              {isLoggedIn && loadedPetList.length > 0 && type !== 'FOLLOW_UP' && (
                 <div className="makeappointment-content-pet">
                   <button onClick={this.togglePetSelectModal}>Chọn thú cưng</button>
                 </div>
               )}
-              {(!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '') ? (
+              {(!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '' || type === 'FOLLOW_UP') ? (
                 <div className="makeappointment-content-pet-info">
                   <b>*Thông tin Thú cưng</b>
                   <input
                     type="text"
                     placeholder="Hãy nhập Tên thú cưng"
                     value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')}
-                    disabled={isLoggedIn && loadedPetList.length > 0}
+                    disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
                   />
                   <div className="f">
                     <p>Loại: </p>
                     <select
                       value={pettype}
                       onChange={(event) => this.handleOnChangeInput(event, 'pettype')}
-                      disabled={isLoggedIn && loadedPetList.length > 0}
+                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
                     >
                       {codePetType.length > 0 ? (
                         codePetType.map((item) => (
@@ -694,7 +872,7 @@ class MakeAppointment extends Component {
                     <select
                       value={petgender}
                       onChange={(event) => this.handleOnChangeInput(event, 'petgender')}
-                      disabled={isLoggedIn && loadedPetList.length > 0}
+                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
                     >
                       {codePetGender.length > 0 ? (
                         codePetGender.map((item) => (
@@ -713,19 +891,19 @@ class MakeAppointment extends Component {
                       placeholder="Hãy nhập Tuổi"
                       value={age}
                       onChange={(event) => this.handleOnChangeInput(event, 'age')}
-                      disabled={isLoggedIn && loadedPetList.length > 0}
+                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
                     />
                     <input
                       type="text"
                       placeholder="Hãy nhập Cân nặng"
                       value={petweight}
                       onChange={(event) => this.handleOnChangeInput(event, 'petweight')}
-                      disabled={isLoggedIn && loadedPetList.length > 0}
+                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
                     />
                   </div>
                 </div>
               ) : (<p>Chưa chọn thú cưng</p>)}
-              {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && (
+              {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && type !== 'FOLLOW_UP' && (
                 <div className="makeappointment-save-petinfo-button">
                   <button onClick={this.handleSavePetInfo}>Lưu</button>
                   <div className="stra"></div>
@@ -733,9 +911,11 @@ class MakeAppointment extends Component {
               )}
               <b className="doctor-info">*Thông tin đặt lịch</b>
               <div className="makeappointment-content-doctor">
-                <div className="f">
-                  <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
-                </div>
+                {type !== 'FOLLOW_UP' && (
+                  <div className="f">
+                    <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
+                  </div>
+                )}
                 <div className="doctor-info-display">
                   {selectedVeterinarianInfo && selectedVeterinarianInfo.AccountID ? (
                     <div className="doctor-details f">
@@ -819,9 +999,18 @@ class MakeAppointment extends Component {
                   )}
                 </div>
               </div>
-              <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
-                Gửi yêu cầu
-              </button>
+              <div className="makeappointment-actions">
+                <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
+                  Gửi yêu cầu
+                </button>
+                {type === 'FOLLOW_UP' && (
+                  <button className="cancel-follow-up" onClick={this.handleCancelFollowUp}>
+                    Hủy tái khám
+                  </button>
+                )}
+              </div>
+
+
             </div>
             <Footer />
           </div>
@@ -834,7 +1023,13 @@ class MakeAppointment extends Component {
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
   fuAppointmentInfo: state.appointment.fuAppointmentInfo,
+  appointmentPreselect: state.preselect.appointmentPreselect,
 });
-
-const mapDispatchToProps = {};
+const mapDispatchToProps = (dispatch) => ({
+  clearFuAppointmentInfo: () => dispatch(clearFuAppointmentInfo()),
+  saveBillSearchInfo: (billData) => dispatch(saveBillSearchInfo(billData)),
+  userLogin: (userInfo) => dispatch(userLogin(userInfo)),
+  userLogout: () => dispatch(userLogout()),
+  clearPreselectInfo: () => dispatch(clearPreselectInfo()),
+});
 export default connect(mapStateToProps, mapDispatchToProps)(MakeAppointment);

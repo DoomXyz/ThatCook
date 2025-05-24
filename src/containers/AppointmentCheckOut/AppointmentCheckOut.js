@@ -206,7 +206,7 @@ class AppointmentCheckOut extends Component {
                         <div style={{ marginTop: '10px' }}>
                             <button
                                 onClick={() => {
-                                    this.props.saveFuAppointmentInfo({ billid: response.data.AppointmentBillID });
+                                    this.props.saveFuAppointmentInfo({ appointmentid: response.data.AppointmentID });
                                     this.props.navigate('/makeappointment');
                                 }}
                                 style={{

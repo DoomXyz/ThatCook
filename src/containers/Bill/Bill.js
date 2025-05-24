@@ -39,6 +39,7 @@ class Bill extends Component {
       codeShippingMethod: [],
       codeShippingStatus: [],
       codeAppointmentStatus: [],
+      codeAppointmentType: [],
       codePetType: [],
       codePetGender: [],
       isShowCancelInvoiceModal: false,
@@ -140,6 +141,19 @@ class Bill extends Component {
     } catch (e) {
       console.error('Error loading pet gender code:', e);
       toast.error('Lỗi khi tải danh sách giới tính thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+    }
+  };
+  handleLoadCodeAppointmentType = async () => {
+    try {
+      const codeAppointmentType = await handleGetAllCodesApi('AppointmentType');
+      if (!codeAppointmentType || codeAppointmentType.length === 0) {
+        toast.error('Không thể tải danh sách loại lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        return;
+      }
+      this.setState({ codeAppointmentType });
+    } catch (e) {
+      console.error('Error loading pet type code:', e);
+      toast.error('Lỗi khi tải danh sách loại lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
   loadBillData = async (id, type) => {
@@ -531,7 +545,7 @@ class Bill extends Component {
   };
 
   render() {
-    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid } = this.state;
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid } = this.state;
     return (
       <>
         <ToastContainer />
@@ -813,7 +827,7 @@ class Bill extends Component {
                                       <b>Dịch vụ:</b> {loadedAppointmentDetails.Service?.ServiceName || 'N/A'}
                                     </p>
                                     <p>
-                                      <b>Loại lịch hẹn:</b> {loadedAppointmentDetails.AppointmentType || 'N/A'}
+                                      <b>Loại lịch hẹn:</b>  {codeAppointmentType.find((item) => item.Code === loadedAppointmentDetails.AppointmentType)?.CodeValueVI || loadedAppointmentDetails.AppointmentType || 'N/A'}
                                     </p>
                                     <p>
                                       <b>Bác sĩ:</b> {loadedAppointmentDetails.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}
