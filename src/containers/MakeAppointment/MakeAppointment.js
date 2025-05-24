@@ -660,7 +660,7 @@ class MakeAppointment extends Component {
         petid: selectedPetID,
         imageInfo: uploadedImages,
         type,
-        prevappointmentid: prevAppointmentID
+        prevappointmentid: prevAppointmentID,
       });
       if (response && response.errCode === 0) {
         this.setState({
@@ -842,22 +842,13 @@ class MakeAppointment extends Component {
                   <button onClick={this.togglePetSelectModal}>Chọn thú cưng</button>
                 </div>
               )}
-              {(!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '' || type === 'FOLLOW_UP') ? (
+              {!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '' || type === 'FOLLOW_UP' ? (
                 <div className="makeappointment-content-pet-info">
                   <b>*Thông tin Thú cưng</b>
-                  <input
-                    type="text"
-                    placeholder="Hãy nhập Tên thú cưng"
-                    value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')}
-                    disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
-                  />
+                  <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
                   <div className="f">
                     <p>Loại: </p>
-                    <select
-                      value={pettype}
-                      onChange={(event) => this.handleOnChangeInput(event, 'pettype')}
-                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
-                    >
+                    <select value={pettype} onChange={(event) => this.handleOnChangeInput(event, 'pettype')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'}>
                       {codePetType.length > 0 ? (
                         codePetType.map((item) => (
                           <option key={item.Code} value={item.Code}>
@@ -869,11 +860,7 @@ class MakeAppointment extends Component {
                       )}
                     </select>
                     <p>Giới tính:</p>
-                    <select
-                      value={petgender}
-                      onChange={(event) => this.handleOnChangeInput(event, 'petgender')}
-                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
-                    >
+                    <select value={petgender} onChange={(event) => this.handleOnChangeInput(event, 'petgender')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'}>
                       {codePetGender.length > 0 ? (
                         codePetGender.map((item) => (
                           <option key={item.Code} value={item.Code}>
@@ -886,20 +873,8 @@ class MakeAppointment extends Component {
                     </select>
                   </div>
                   <div className="f">
-                    <input
-                      type="text"
-                      placeholder="Hãy nhập Tuổi"
-                      value={age}
-                      onChange={(event) => this.handleOnChangeInput(event, 'age')}
-                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Hãy nhập Cân nặng"
-                      value={petweight}
-                      onChange={(event) => this.handleOnChangeInput(event, 'petweight')}
-                      disabled={isLoggedIn && loadedPetList.length > 0 || type === 'FOLLOW_UP'}
-                    />
+                    <input type="text" placeholder="Hãy nhập Tuổi" value={age} onChange={(event) => this.handleOnChangeInput(event, 'age')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
+                    <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
                   </div>
                 </div>
               ) : (
@@ -915,108 +890,103 @@ class MakeAppointment extends Component {
               )}
               <b className="doctor-info">*Thông tin đặt lịch</b>
               <div className="makeappointment-content-doctor">
-                {type !== 'FOLLOW_UP' && (
-                  <div className="f">
-                    <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>
+                {' '}
+                <div className="f">
+                  {type !== 'FOLLOW_UP' && <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>}
+                  <div className="doctor-info-display">
+                    {selectedVeterinarianInfo && selectedVeterinarianInfo.AccountID ? (
+                      <div className="doctor-details f">
+                        <div className="doctor-image">
+                          <img src={selectedVeterinarianInfo.UserImage || defUserImage} alt="Ảnh bác sĩ" style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
+                        </div>
+                        <div className="doctor-text">
+                          <p>
+                            <b>Tên bác sĩ:</b> {selectedVeterinarianInfo.UserName}
+                          </p>
+                          <p>
+                            <b>Chuyên khoa:</b> {selectedVeterinarianInfo.Specialization}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>Chưa chọn bác sĩ</p>
+                    )}
                   </div>
-                )}
-                <div className="doctor-info-display">
-                  {selectedVeterinarianInfo && selectedVeterinarianInfo.AccountID ? (
-                    <div className="doctor-details f">
-                      <div className="doctor-image">
-                        <img
-                          src={selectedVeterinarianInfo.UserImage || defUserImage}
-                          alt="Ảnh bác sĩ"
-                          style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                        />
-                      </div>
-                      <div className="doctor-text">
-                        <p>
-                          <b>Tên bác sĩ:</b> {selectedVeterinarianInfo.UserName}
-                        </p>
-                        <p>
-                          <b>Chuyên khoa:</b> {selectedVeterinarianInfo.Specialization}
-                        </p>
-                      </div>
+                </div>
+              </div>
+              <div className="makeappointment-content-date">
+                <div className="f">
+                  <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
+                </div>
+              </div>
+              <div className="f">
+                <div className="makeappointment-content-service">
+                  <p>
+                    <b>*Dịch vụ</b>
+                  </p>
+                  <select value={selectedServiceID} onChange={(event) => this.handleOnChangeInput(event, 'selectedServiceID')}>
+                    {codeService.length > 0 ? (
+                      codeService.map((item) => (
+                        <option key={item.ServiceID} value={item.ServiceID}>
+                          {item.ServiceName}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Không có dữ liệu dịch vụ</option>
+                    )}
+                  </select>
+                </div>
+                <div className="makeappointment-content-time">
+                  <p>
+                    <b>*Khung giờ</b>
+                  </p>
+                  <select value={starttime} onChange={(event) => this.handleOnChangeInput(event, 'starttime')}>
+                    {availableTimes.length > 0 ? (
+                      availableTimes.map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Chưa có giờ</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+              <textarea placeholder="Mô tả tình trạng thú cưng (nếu có)" value={notes} onChange={(event) => this.handleOnChangeInput(event, 'notes')} />
+              <div className="makeappointment-content-petimgs">
+                <p>
+                  <b>*Thêm hình ảnh (tối đa 3 ảnh):</b>
+                </p>
+                <div className="makeappointment-content-petimgs-block f">
+                  {allImages.map((img, index) => (
+                    <div key={img.ImageID} className="makeappointment-content-petimgs-item ">
+                      <img src={img.Image} alt={`Hình ảnh ${index + 1}`} />
+                      <button className="delete-img" onClick={() => this.handleRemoveImage(img.ImageID)}>
+                        <IonIcon icon={closeOutline}></IonIcon>
+                      </button>
                     </div>
-                  ) : (
-                    <p>Chưa chọn bác sĩ</p>
+                  ))}
+                  {allImages.length < 3 && (
+                    <div className="add-img">
+                      <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
+                      <label htmlFor="upload-image" className="add-img-label">
+                        +
+                      </label>
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-            <div className="makeappointment-content-date">
-              <div className="f">
-                <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
-              </div>
-            </div>
-            <div className="f">
-              <div className="makeappointment-content-service">
-                <p>
-                  <b>*Dịch vụ</b>
-                </p>
-                <select value={selectedServiceID} onChange={(event) => this.handleOnChangeInput(event, 'selectedServiceID')}>
-                  {codeService.length > 0 ? (
-                    codeService.map((item) => (
-                      <option key={item.ServiceID} value={item.ServiceID}>
-                        {item.ServiceName}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Không có dữ liệu dịch vụ</option>
-                  )}
-                </select>
-              </div>
-              <div className="makeappointment-content-time">
-                <p>
-                  <b>*Khung giờ</b>
-                </p>
-                <select value={starttime} onChange={(event) => this.handleOnChangeInput(event, 'starttime')}>
-                  {availableTimes.length > 0 ? (
-                    availableTimes.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Chưa có giờ</option>
-                  )}
-                </select>
-              </div>
-            </div>
-            <textarea placeholder="Mô tả tình trạng thú cưng (nếu có)" value={notes} onChange={(event) => this.handleOnChangeInput(event, 'notes')} />
-            <div className="makeappointment-content-petimgs">
-              <p>
-                <b>*Thêm hình ảnh (tối đa 3 ảnh):</b>
-              </p>
-              <div className="makeappointment-content-petimgs-block f">
-                {allImages.map((img, index) => (
-                  <div key={img.ImageID} className="makeappointment-content-petimgs-item ">
-                    <img src={img.Image} alt={`Hình ảnh ${index + 1}`} />
-                    <button className="delete-img" onClick={() => this.handleRemoveImage(img.ImageID)}>
-                      <IonIcon icon={closeOutline}></IonIcon>
-                    </button>
-                  </div>
-                ))}
-                {allImages.length < 3 && (
-                  <div className="add-img">
-                    <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
-                    <label htmlFor="upload-image" className="add-img-label">
-                      +
-                    </label>
-                  </div>
+              <div className="makeappointment-actions">
+                <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
+                  Gửi yêu cầu
+                </button>
+                {type === 'FOLLOW_UP' && (
+                  <button className="cancel-follow-up" onClick={this.handleCancelFollowUp}>
+                    Hủy tái khám
+                  </button>
                 )}
               </div>
-            </div>
-            <div className="makeappointment-actions">
-              <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
-                Gửi yêu cầu
-              </button>
-              {type === 'FOLLOW_UP' && (
-                <button className="cancel-follow-up" onClick={this.handleCancelFollowUp}>
-                  Hủy tái khám
-                </button>
-              )}
             </div>
             <Footer />
           </div>

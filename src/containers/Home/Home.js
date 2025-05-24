@@ -456,7 +456,8 @@ class Home extends Component {
             <div className="home-banner">
               <div className="home-slide-show">
                 <div className="list-img" style={{ transform: `translateX(-${currentBannerIndex * 100}%)` }}>
-                  {loadedBannerInfo && loadedBannerInfo.length > 0 ? loadedBannerInfo.map((item, index) => <img key={index} alt="" src={item.BannerImage} onClick={() => this.handleSelectedProduct(item.ProductID)} />) : <img alt="" src={defBannerImage} />}
+                  {loadedBannerInfo && loadedBannerInfo.length > 0 ? loadedBannerInfo.map((item, index) => <img key={index} alt="" src={item.BannerImage}
+                    onClick={() => item.ProductID ? this.handleSelectedProduct(item.ProductID) : null} />) : <img alt="" src={defBannerImage} />}
                 </div>
                 <div className="btns">
                   <button className="btn-right" onClick={this.handleBannerRightClick}>

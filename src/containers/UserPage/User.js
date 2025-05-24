@@ -106,10 +106,7 @@ class User extends Component {
   }
   async componentDidMount() {
     await this.handleIsLogin();
-    await Promise.all([
-      this.handleLoadAllCodes(),
-      this.handleLoadServiceInfo(),
-    ]);
+    await Promise.all([this.handleLoadAllCodes(), this.handleLoadServiceInfo()]);
     if (this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
@@ -168,20 +165,8 @@ class User extends Component {
   };
   handleLoadAllCodes = async () => {
     try {
-      const codeTypes = [
-        'Gender',
-        'PaymentType',
-        'ShippingMethod',
-        'PaymentStatus',
-        'ShippingStatus',
-        'PetType',
-        'PetGender',
-        'AppointmentStatus',
-        'AppointmentType',
-      ];
-      const responses = await Promise.all(
-        codeTypes.map((type) => handleGetAllCodesApi(type))
-      );
+      const codeTypes = ['Gender', 'PaymentType', 'ShippingMethod', 'PaymentStatus', 'ShippingStatus', 'PetType', 'PetGender', 'AppointmentStatus', 'AppointmentType'];
+      const responses = await Promise.all(codeTypes.map((type) => handleGetAllCodesApi(type)));
       const codeData = {
         codeGender: [],
         codePaymentType: [],
@@ -1048,10 +1033,7 @@ class User extends Component {
   handleNextPage = (type) => {
     this.setState(
       (prevState) => {
-        const newPage = Math.min(
-          type === 'invoice' ? prevState.totalInvoicePages : type === 'product' ? prevState.totalProductPages : prevState.totalAppointmentPages,
-          prevState.currentPage + 1
-        );
+        const newPage = Math.min(type === 'invoice' ? prevState.totalInvoicePages : type === 'product' ? prevState.totalProductPages : prevState.totalAppointmentPages, prevState.currentPage + 1);
         return {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
@@ -1516,13 +1498,7 @@ class User extends Component {
                 <div className="user-content-right-img-content">
                   <div className="user-content-img-description">Ảnh đại diện</div>
                   <div className="user-content-img-info">
-                    <div className="user-content-img-info">
-                      {imageInfo ? (
-                        <img src={imageInfo.Image} alt="Ảnh đại diện" />
-                      ) : (
-                        <img src={userimage || defUserImage} alt="Ảnh đại diện" />
-                      )}
-                    </div>
+                    <div className="user-content-img-info">{imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : <img src={userimage || defUserImage} alt="Ảnh đại diện" />}</div>
                   </div>
                 </div>
                 <div className="user-content-img-button">
@@ -1701,13 +1677,7 @@ class User extends Component {
                     <button className="prev" onClick={() => this.handlePrevPage('invoice')} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input
-                      type="text"
-                      value={tempCurrentPage}
-                      onChange={(event) => this.handlePageInputChange(event)}
-                      onKeyDown={(event) => this.handlePageKeyDown(event, 'invoice')}
-                      onBlur={() => this.handlePageInputBlur('invoice')}
-                    />
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 'invoice')} onBlur={() => this.handlePageInputBlur('invoice')} />
                     <span className="total-pages">/ {totalInvoicePages}</span>
                     <button className="next" onClick={() => this.handleNextPage('invoice')} disabled={currentPage === totalInvoicePages}>
                       {'>'}
@@ -1864,13 +1834,7 @@ class User extends Component {
                   <button className="prev" onClick={() => this.handlePrevPage('product')} disabled={currentPage === 1}>
                     {'<'}
                   </button>
-                  <input
-                    type="text"
-                    value={tempCurrentPage}
-                    onChange={(event) => this.handlePageInputChange(event)}
-                    onKeyDown={(event) => this.handlePageKeyDown(event, 'product')}
-                    onBlur={() => this.handlePageInputBlur('product')}
-                  />
+                  <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 'product')} onBlur={() => this.handlePageInputBlur('product')} />
                   <span className="total-pages">/ {totalProductPages}</span>
                   <button className="next" onClick={() => this.handleNextPage('product')} disabled={currentPage === totalProductPages}>
                     {'>'}
@@ -1961,20 +1925,9 @@ class User extends Component {
               <h3>
                 <b>Lịch Khám:</b>
               </h3>
-              <div className="appointment-search">
-                <input
-                  type="text"
-                  placeholder="Nhập tên dịch vụ hoặc thú cưng"
-                  value={searchValue}
-                  onChange={(event) => this.handleSearchChange(event, 'appointment')}
-                />
-              </div>
-              <div className="appointment-filter f">
-                <p>Loại lịch:</p>
-                <select
-                  value={filterValue}
-                  onChange={(e) => this.handleFilter(e.target.value, 'appointment')}
-                >
+
+              <div className="appointment-filter">
+                <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 'appointment')}>
                   <option value="ALL">Tất cả</option>
                   <optgroup label="Theo trạng thái">
                     <option value="status-PEND">Chưa khám</option>
@@ -1990,24 +1943,22 @@ class User extends Component {
                 </select>
               </div>
               <div className="appointment-sort">
-                <p>Sắp xếp:</p>
                 <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 'appointment')}>
                   <option value="0">Mặc định</option>
                   <option value="1">Mới nhất</option>
                   <option value="2">Cũ nhất</option>
                 </select>
               </div>
+              <div className="appointment-search">
+                <input type="text" placeholder="Nhập tên dịch vụ hoặc thú cưng" value={searchValue} onChange={(event) => this.handleSearchChange(event, 'appointment')} />
+              </div>
               <div className="appointment-date-filter ">
                 <div className="f">
                   <div>
-                    <label>Ngày bắt đầu:</label>
-                    <br />
                     <DatePicker
                       selected={date1 ? new Date(date1 + 'T00:00:00') : null}
                       onChange={(date) => {
-                        const formattedDate = date
-                          ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
-                          : '';
+                        const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
                         this.setState({ date1: formattedDate }, () => {
                           this.handleFilter('ALL', 'appointment');
                         });
@@ -2017,23 +1968,17 @@ class User extends Component {
                       className="date-picker"
                     />
                     {date1 && (
-                      <button
-                        onClick={() => this.resetDateFilter('date1', 'appointment')}
-                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                      >
+                      <button onClick={() => this.resetDateFilter('date1', 'appointment')} style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}>
                         x
                       </button>
                     )}
                   </div>
+                  <p>-</p>
                   <div>
-                    <label>Ngày kết thúc:</label>
-                    <br />
                     <DatePicker
                       selected={date2 ? new Date(date2 + 'T00:00:00') : null}
                       onChange={(date) => {
-                        const formattedDate = date
-                          ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
-                          : '';
+                        const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
                         this.setState({ date2: formattedDate }, () => {
                           this.handleFilter('ALL', 'appointment');
                         });
@@ -2058,11 +2003,7 @@ class User extends Component {
               <div className="appointment-list">
                 {paginatedAppointmentInfo.length > 0 ? (
                   paginatedAppointmentInfo.map((appointment) => (
-                    <div
-                      key={appointment.AppointmentID}
-                      className={`appointment-list-item ${actionPage === 6 ? 'active' : ''}`}
-                      onClick={() => this.handleFormChiTietLichKham(appointment.AppointmentID)}
-                    >
+                    <div key={appointment.AppointmentID} className={`appointment-list-item ${actionPage === 6 ? 'active' : ''}`} onClick={() => this.handleFormChiTietLichKham(appointment.AppointmentID)}>
                       <div className="appointment-list-item-top-1">
                         <b>
                           Ngày Khám: {this.getDayOfWeek(new Date(appointment.AppointmentDate))}, {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')} {appointment.StartTime.slice(0, 5)}-{appointment.EndTime.slice(0, 5)}
@@ -2076,8 +2017,7 @@ class User extends Component {
                         </div>
                         <div>
                           <p>
-                            <b>Tình trạng lịch:</b>{' '}
-                            {codeAppointmentStatus?.find((status) => status.Code === appointment.AppointmentStatus)?.CodeValueVI || appointment.AppointmentStatus}
+                            <b>Tình trạng lịch:</b> {codeAppointmentStatus?.find((status) => status.Code === appointment.AppointmentStatus)?.CodeValueVI || appointment.AppointmentStatus}
                           </p>
                         </div>
                       </div>
@@ -2119,13 +2059,7 @@ class User extends Component {
                     <button className="prev" onClick={() => this.handlePrevPage('appointment')} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input
-                      type="text"
-                      value={tempCurrentPage}
-                      onChange={(event) => this.handlePageInputChange(event)}
-                      onKeyDown={(event) => this.handlePageKeyDown(event, 'appointment')}
-                      onBlur={() => this.handlePageInputBlur('appointment')}
-                    />
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 'appointment')} onBlur={() => this.handlePageInputBlur('appointment')} />
                     <span className="total-pages">/ {totalAppointmentPages}</span>
                     <button className="next" onClick={() => this.handleNextPage('appointment')} disabled={currentPage === totalAppointmentPages}>
                       {'>'}
@@ -2154,9 +2088,9 @@ class User extends Component {
           );
         }
         return (
-          <form className="user-appointment-form-detail">
-            <div className="user-appointment-form-detail-top">
-              <div className="user-appointment-form-detail-left">
+          <form className="user-appointment-form-detail-2 ">
+            <div className="user-appointment-form-detail-top-2">
+              <div className="user-appointment-form-detail-left-2">
                 <div className="back" onClick={this.handleFormDatLich}>
                   <IonIcon icon={chevronBack}></IonIcon>
                   <h5>
@@ -2164,8 +2098,8 @@ class User extends Component {
                   </h5>
                 </div>
               </div>
-              <div className="user-appointment-form-detail-right">
-                <div className="appointment-detail-tab">
+              <div className="user-appointment-form-detail-right-2">
+                <div className="appointment-detail-tab-2">
                   <div className="mlk">
                     <h5>Mã lịch khám:</h5>
                   </div>
@@ -2174,47 +2108,15 @@ class User extends Component {
                   </div>
                 </div>
                 <div className="tt">
-                  <h5 style={{ color: loadedAppointmentDetail.AppointmentStatus === 'PEND' ? '#FFA500' : 'inherit' }}>
-                    {codeAppointmentStatus?.find((status) => status.Code === loadedAppointmentDetail.AppointmentStatus)?.CodeValueVI || loadedAppointmentDetail.AppointmentStatus}
-                  </h5>
+                  <h5 style={{ color: loadedAppointmentDetail.AppointmentStatus === 'PEND' ? '#FFA500' : 'inherit' }}>{codeAppointmentStatus?.find((status) => status.Code === loadedAppointmentDetail.AppointmentStatus)?.CodeValueVI || loadedAppointmentDetail.AppointmentStatus}</h5>
                 </div>
               </div>
             </div>
-            <div className="user-appointment-form-detail-mid-1">
-              <div className="user-appointment-form-detail-mid-1-left-info">
-                <div className="f">
-                  <b>Tên khách hàng:</b> <p>{loadedAppointmentDetail.CustomerName}</p>
-                </div>
-                <div className="f">
-                  <b>Tên thú cưng:</b> <p>{loadedAppointmentDetail.Pet.PetName}</p>
-                </div>
-                <div className="f">
-                  <b>Loại thú cưng:</b> <p>{codePetType.find((type) => type.Code === loadedAppointmentDetail.Pet.PetType)?.CodeValueVI || loadedAppointmentDetail.Pet.PetType}</p>
-                </div>
-                <div className="f">
-                  <b>Giới tính:</b> <p>{codePetGender.find((gender) => gender.Code === loadedAppointmentDetail.Pet.PetGender)?.CodeValueVI || loadedAppointmentDetail.Pet.PetGender}</p>
-                </div>
-              </div>
-              <div className="user-appointment-form-detail-mid-1-right-info">
-                <div className="f">
-                  <b>Dịch vụ:</b> <p>{loadedAppointmentDetail.Service.ServiceName}</p>
-                </div>
-                <div className="f">
-                  <b>Bác sĩ:</b> <p>{loadedAppointmentDetail.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}</p>
-                </div>
-                <div className="f">
-                  <b>Loại lịch hẹn:</b> <p>{codeAppointmentType.find((type) => type.Code === loadedAppointmentDetail.AppointmentType)?.CodeValueVI || loadedAppointmentDetail.AppointmentType}</p>
-                </div>
-                <div className="f">
-                  <b>Ghi chú:</b> <p>{loadedAppointmentDetail.Notes || 'Không có ghi chú'}</p>
-                </div>
-              </div>
-            </div>
-            <div className="user-appointment-form-detail-mid-2">
-              <div className="user-appointment-form-detail-mid-2-left">
+            <div className="user-appointment-form-detail-mid-2-2">
+              <div className="user-appointment-form-detail-mid-2-left-2 sb">
                 <div className="f">
                   <b>Ngày khám:</b>
-                  <p style={{ fontSize: '18px', color: '#007bff' }}>
+                  <p style={{ fontWeight: 'bold' }}>
                     {this.getDayOfWeek(new Date(loadedAppointmentDetail.AppointmentDate))}, {new Date(loadedAppointmentDetail.AppointmentDate).toLocaleDateString('vi-VN')} {loadedAppointmentDetail.StartTime} đến {loadedAppointmentDetail.EndTime}
                   </p>
                 </div>
@@ -2229,32 +2131,65 @@ class User extends Component {
                   </div>
                 )}
               </div>
-              <div className="user-appointment-form-detail-mid-2-center">
-                <b>Hình ảnh đính kèm:</b>
-                <br />
-                {loadedAppointmentDetail.Images?.length > 0 ? (
-                  <div className="image-gallery">
-                    {loadedAppointmentDetail.Images.slice(0, 3).map((img) => (
-                      <img key={img.ImageID} src={img.Image} alt="Hình ảnh lịch hẹn" style={{ maxWidth: '100px', margin: '5px' }} />
-                    ))}
-                  </div>
-                ) : (
-                  <p>Không có hình ảnh</p>
-                )}
-              </div>
-              <div className="user-appointment-form-detail-mid-2-right"></div>
             </div>
-            {loadedAppointmentDetail.AppointmentStatus === 'PEND' && (
-              <div className="user-appointment-form-detail-bottom">
-                <button
-                  type="button"
-                  style={{ border: '2px solid #ff4500', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
-                  onClick={() => this.handleCancelAppointment(loadedAppointmentDetail.AppointmentID)}
-                >
-                  Hủy đặt lịch
-                </button>
+            <div className="user-appointment-form-detail-mid-1-2">
+              <div className="user-appointment-form-detail-mid-1-2-info sb">
+                <div className="user-appointment-form-detail-mid-1-left-info-2">
+                  <div className="f">
+                    <b>Tên khách hàng:</b> <p>{loadedAppointmentDetail.CustomerName}</p>
+                  </div>
+                  <div className="f">
+                    <b>Tên thú cưng:</b> <p>{loadedAppointmentDetail.Pet.PetName}</p>
+                  </div>
+                  <div className="f">
+                    <b>Loại thú cưng:</b> <p>{codePetType.find((type) => type.Code === loadedAppointmentDetail.Pet.PetType)?.CodeValueVI || loadedAppointmentDetail.Pet.PetType}</p>
+                  </div>
+                  <div className="f">
+                    <b>Giới tính:</b> <p>{codePetGender.find((gender) => gender.Code === loadedAppointmentDetail.Pet.PetGender)?.CodeValueVI || loadedAppointmentDetail.Pet.PetGender}</p>
+                  </div>
+                </div>
+                <div className="user-appointment-form-detail-mid-1-right-info-2">
+                  <div className="f">
+                    <b>Dịch vụ:</b> <p>{loadedAppointmentDetail.Service.ServiceName}</p>
+                  </div>
+                  <div className="f">
+                    <b>Bác sĩ:</b> <p>{loadedAppointmentDetail.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}</p>
+                  </div>
+                  <div className="f">
+                    <b>Loại lịch hẹn:</b> <p>{codeAppointmentType.find((type) => type.Code === loadedAppointmentDetail.AppointmentType)?.CodeValueVI || loadedAppointmentDetail.AppointmentType}</p>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+            <div className="user-appointment-form-detail-mid-2-center-2">
+              <div className="user-appointment-form-detail-mid-2-center-2-content sb">
+                <div>
+                  <div>
+                    <b>Hình ảnh đính kèm:</b>
+                    <br />
+                    {loadedAppointmentDetail.Images?.length > 0 ? (
+                      <div className="image-gallery">
+                        {loadedAppointmentDetail.Images.slice(0, 3).map((img) => (
+                          <img key={img.ImageID} src={img.Image} alt="Hình ảnh lịch hẹn" style={{ maxWidth: '100px', margin: '5px' }} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p>Không có hình ảnh</p>
+                    )}
+                  </div>
+                  {loadedAppointmentDetail.AppointmentStatus === 'PEND' && (
+                    <div className="user-appointment-form-detail-bottom">
+                      <button className="cancel-app" type="button" onClick={() => this.handleCancelAppointment(loadedAppointmentDetail.AppointmentID)}>
+                        Hủy đặt lịch
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="notes">
+                  <b>Ghi chú:</b> <p>{loadedAppointmentDetail.Notes || 'Không có ghi chú'}</p>
+                </div>
+              </div>
+            </div>
           </form>
         );
       case 7:
@@ -2274,115 +2209,67 @@ class User extends Component {
               <div className="user-pet-form-content-list">
                 {loadedPetInfo.length > 0 ? (
                   loadedPetInfo.map((pet, index) => (
-                    <div key={pet.PetID} className="user-pet-form-content-list-item f">
-                      <div className="user-pet-form-content-list-item-top-1">
-                        {isEditingPet === index ? (
-                          <input
-                            type="text"
-                            value={pet.PetName}
-                            onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)}
-                            placeholder="Tên thú cưng"
-                          />
-                        ) : (
-                          <b>Tên thú cưng: {pet.PetName}</b>
-                        )}
+                    <div key={pet.PetID} className="user-pet-form-content-list-item f sb">
+                      <div className="f">
+                        <div className="user-pet-form-content-list-item-top-1">{isEditingPet === index ? <input className="petname" type="text" value={pet.PetName} onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)} placeholder="Tên thú cưng" /> : <b>Tên thú cưng: {pet.PetName}</b>}</div>
+                        <div className="petype f">
+                          <b>Giống:</b>
+                          {isEditingPet === index ? (
+                            <select value={pet.PetType} onChange={(e) => this.handlePetChange(index, 'PetType', e.target.value)}>
+                              {codePetType.map((type) => (
+                                <option key={type.Code} value={type.Code}>
+                                  {type.CodeValueVI}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p>{codePetType.find((type) => type.Code === pet.PetType)?.CodeValueVI || pet.PetType}</p>
+                          )}
+                        </div>
+                        <div className="petweight f">
+                          <b>Cân nặng (kg):</b>
+                          {isEditingPet === index ? <input type="number" value={pet.PetWeight} onChange={(e) => this.handlePetChange(index, 'PetWeight', e.target.value)} placeholder="Cân nặng" /> : <p>{pet.PetWeight}</p>}
+                        </div>
+                        <div className="petold f">
+                          <b>Tuổi (Tháng):</b>
+                          {isEditingPet === index ? <input type="number" value={pet.Age} onChange={(e) => this.handlePetChange(index, 'Age', e.target.value)} placeholder="Tuổi" /> : <p>{pet.Age}</p>}
+                        </div>
+                        <div className="petgender f">
+                          <b>Giới tính:</b>
+                          {isEditingPet === index ? (
+                            <select value={pet.PetGender} onChange={(e) => this.handlePetChange(index, 'PetGender', e.target.value)}>
+                              {codePetGender.map((gender) => (
+                                <option key={gender.Code} value={gender.Code}>
+                                  {gender.CodeValueVI}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p>{codePetGender.find((gender) => gender.Code === pet.PetGender)?.CodeValueVI || pet.PetGender}</p>
+                          )}
+                        </div>
                       </div>
                       <div className="f">
-                        <b>Giống:</b>
                         {isEditingPet === index ? (
-                          <select
-                            value={pet.PetType}
-                            onChange={(e) => this.handlePetChange(index, 'PetType', e.target.value)}
-                          >
-                            {codePetType.map((type) => (
-                              <option key={type.Code} value={type.Code}>
-                                {type.CodeValueVI}
-                              </option>
-                            ))}
-                          </select>
+                          <>
+                            <button type="button" className="save-pet" onClick={() => this.handleSavePet(index)}>
+                              Lưu
+                            </button>
+                            <button type="button" className="cancel-pet" onClick={this.handleCancelPet}>
+                              Hủy
+                            </button>
+                          </>
                         ) : (
-                          <p>{codePetType.find((type) => type.Code === pet.PetType)?.CodeValueVI || pet.PetType}</p>
+                          <>
+                            <button type="button" className="edit-pet" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
+                              <IonIcon icon={pencil}></IonIcon>
+                            </button>
+                            <button type="button" className="delete-pet" onClick={() => this.handleDeletePet(pet.PetID)}>
+                              <b>X</b>
+                            </button>
+                          </>
                         )}
                       </div>
-                      <div className="f">
-                        <b>Cân nặng (kg):</b>
-                        {isEditingPet === index ? (
-                          <input
-                            type="number"
-                            value={pet.PetWeight}
-                            onChange={(e) => this.handlePetChange(index, 'PetWeight', e.target.value)}
-                            placeholder="Cân nặng"
-                          />
-                        ) : (
-                          <p>{pet.PetWeight}</p>
-                        )}
-                      </div>
-                      <div className="f">
-                        <b>Tuổi (Tháng):</b>
-                        {isEditingPet === index ? (
-                          <input
-                            type="number"
-                            value={pet.Age}
-                            onChange={(e) => this.handlePetChange(index, 'Age', e.target.value)}
-                            placeholder="Tuổi"
-                          />
-                        ) : (
-                          <p>{pet.Age}</p>
-                        )}
-                      </div>
-                      <div className="f">
-                        <b>Giới tính:</b>
-                        {isEditingPet === index ? (
-                          <select
-                            value={pet.PetGender}
-                            onChange={(e) => this.handlePetChange(index, 'PetGender', e.target.value)}
-                          >
-                            {codePetGender.map((gender) => (
-                              <option key={gender.Code} value={gender.Code}>
-                                {gender.CodeValueVI}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p>{codePetGender.find((gender) => gender.Code === pet.PetGender)?.CodeValueVI || pet.PetGender}</p>
-                        )}
-                      </div>
-                      {isEditingPet === index ? (
-                        <>
-                          <button
-                            type='button'
-                            className="save-pet"
-                            onClick={() => this.handleSavePet(index)}
-                          >
-                            Lưu
-                          </button>
-                          <button
-                            type='button'
-                            className="cancel-pet"
-                            onClick={this.handleCancelPet}
-                          >
-                            Hủy
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            type='button'
-                            className="edit-pet"
-                            onClick={() => this.handleEditPet(index)}
-                            disabled={isEditingPet !== null || isAddingPet}
-                          >
-                            <IonIcon icon={pencil}></IonIcon>
-                          </button>
-                          <button
-                            type='button'
-                            className="delete-pet"
-                            onClick={() => this.handleDeletePet(pet.PetID)}
-                          >
-                            <b>X</b>
-                          </button>
-                        </>
-                      )}
                     </div>
                   ))
                 ) : (
@@ -2403,38 +2290,17 @@ class User extends Component {
             </div>
             <div className="user-add-pet-form-content">
               <div>
-                <input
-                  type="text"
-                  placeholder="Hãy nhập tên thú cưng"
-                  value={loadedPetInfo[0]?.PetName || ''}
-                  onChange={(e) => this.handlePetChange(0, 'PetName', e.target.value)}
-                />
-                <select
-                  value={loadedPetInfo[0]?.PetGender || codePetGender[0]?.Code}
-                  onChange={(e) => this.handlePetChange(0, 'PetGender', e.target.value)}
-                >
+                <input type="text" placeholder="Hãy nhập tên thú cưng" value={loadedPetInfo[0]?.PetName || ''} onChange={(e) => this.handlePetChange(0, 'PetName', e.target.value)} />
+                <select value={loadedPetInfo[0]?.PetGender || codePetGender[0]?.Code} onChange={(e) => this.handlePetChange(0, 'PetGender', e.target.value)}>
                   {codePetGender.map((gender) => (
                     <option key={gender.Code} value={gender.Code}>
                       {gender.CodeValueVI}
                     </option>
                   ))}
                 </select>
-                <input
-                  type="number"
-                  placeholder="Hãy nhập cân nặng"
-                  value={loadedPetInfo[0]?.PetWeight || ''}
-                  onChange={(e) => this.handlePetChange(0, 'PetWeight', e.target.value)}
-                />
-                <input
-                  type="number"
-                  placeholder="Hãy nhập tuổi"
-                  value={loadedPetInfo[0]?.Age || ''}
-                  onChange={(e) => this.handlePetChange(0, 'Age', e.target.value)}
-                />
-                <select
-                  value={loadedPetInfo[0]?.PetType || codePetType[0]?.Code}
-                  onChange={(e) => this.handlePetChange(0, 'PetType', e.target.value)}
-                >
+                <input type="number" placeholder="Hãy nhập cân nặng" value={loadedPetInfo[0]?.PetWeight || ''} onChange={(e) => this.handlePetChange(0, 'PetWeight', e.target.value)} />
+                <input type="number" placeholder="Hãy nhập tuổi" value={loadedPetInfo[0]?.Age || ''} onChange={(e) => this.handlePetChange(0, 'Age', e.target.value)} />
+                <select value={loadedPetInfo[0]?.PetType || codePetType[0]?.Code} onChange={(e) => this.handlePetChange(0, 'PetType', e.target.value)}>
                   {codePetType.map((type) => (
                     <option key={type.Code} value={type.Code}>
                       {type.CodeValueVI}
@@ -2473,83 +2339,84 @@ class User extends Component {
               </div>
               <div className="user-appointment-form-detail-right">
                 <div className="appointment-detail-tab">
-                  <div className="mlk"><h5>Mã hóa đơn:</h5></div>
-                  <div className="ctmd"><h5>{loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID}</h5></div>
+                  <div className="mlk">
+                    <h5>Mã hóa đơn:</h5>
+                  </div>
+                  <div className="ctmd">
+                    <h5>{loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID}</h5>
+                  </div>
                 </div>
                 <div className="tt">
-                  <h5 style={{ color: '#008000' }}>
-                    {codeAppointmentStatus?.find((status) => status.Code === loadedAppointmentBillDetail.AppointmentStatus)?.CodeValueVI || loadedAppointmentBillDetail.AppointmentStatus}
-                  </h5>
+                  <h5 style={{ color: '#008000' }}>{codeAppointmentStatus?.find((status) => status.Code === loadedAppointmentBillDetail.AppointmentStatus)?.CodeValueVI || loadedAppointmentBillDetail.AppointmentStatus}</h5>
                 </div>
               </div>
             </div>
             <div className="user-appointment-form-detail-mid-1">
-              <h4>Thông tin khách hàng</h4>
-              <div className="user-appointment-form-detail-mid-1-left-info">
-                <div className="f">
-                  <b>Tên khách hàng:</b> <p>{loadedAppointmentBillDetail.CustomerName}</p>
+              <h4>*Thông tin khách hàng</h4>
+              <div className="sb">
+                <div className="user-appointment-form-detail-mid-1-left-info">
+                  <div className="f">
+                    <b>Tên khách hàng:</b> <p>{loadedAppointmentBillDetail.CustomerName}</p>
+                  </div>
+                  <div className="f">
+                    <b>Tên thú cưng:</b> <p>{loadedAppointmentBillDetail.Pet.PetName}</p>
+                  </div>
+                  <div className="f">
+                    <b>Loại thú cưng:</b> <p>{codePetType.find((type) => type.Code === loadedAppointmentBillDetail.Pet.PetType)?.CodeValueVI || 'N/A'}</p>
+                  </div>
+                  <div className="f">
+                    <b>Giới tính:</b> <p>{codePetGender.find((gender) => gender.Code === loadedAppointmentBillDetail.Pet.PetGender)?.CodeValueVI || 'N/A'}</p>
+                  </div>
                 </div>
-                <div className="f">
-                  <b>Tên thú cưng:</b> <p>{loadedAppointmentBillDetail.Pet.PetName}</p>
-                </div>
-                <div className="f">
-                  <b>Loại thú cưng:</b> <p>{codePetType.find((type) => type.Code === loadedAppointmentBillDetail.Pet.PetType)?.CodeValueVI || 'N/A'}</p>
-                </div>
-                <div className="f">
-                  <b>Giới tính:</b> <p>{codePetGender.find((gender) => gender.Code === loadedAppointmentBillDetail.Pet.PetGender)?.CodeValueVI || 'N/A'}</p>
-                </div>
-              </div>
-              <div className="user-appointment-form-detail-mid-1-right-info">
-                <div className="f">
-                  <b>Dịch vụ:</b> <p>{loadedAppointmentBillDetail.Service.ServiceName}</p>
-                </div>
-                <div className="f">
-                  <b>Bác sĩ:</b> <p>{loadedAppointmentBillDetail.VeterinarianName || 'Chưa chỉ định'}</p>
+                <div className="user-appointment-form-detail-mid-1-right-info">
+                  <div className="f">
+                    <b>Dịch vụ:</b> <p>{loadedAppointmentBillDetail.Service.ServiceName}</p>
+                  </div>
+                  <div className="f">
+                    <b>Bác sĩ:</b> <p>{loadedAppointmentBillDetail.VeterinarianName || 'Chưa chỉ định'}</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div className="user-appointment-form-detail-mid-2">
-              <h4>Thông tin hóa đơn</h4>
-              <div className="user-appointment-form-detail-mid-2-left">
-                <div className="f">
-                  <b>Ngày khám:</b>
-                  <p>{this.getDayOfWeek(new Date(loadedAppointmentBillDetail.AppointmentDate))}, {new Date(loadedAppointmentBillDetail.AppointmentDate).toLocaleDateString('vi-VN')} {loadedAppointmentBillDetail.StartTime} đến {loadedAppointmentBillDetail.EndTime}</p>
+              <h4>*Thông tin hóa đơn</h4>
+              <div className="sb">
+                <div className="user-appointment-form-detail-mid-2-left">
+                  <div className="f">
+                    <b>Ngày khám:</b>
+                    <p>
+                      {this.getDayOfWeek(new Date(loadedAppointmentBillDetail.AppointmentDate))}, {new Date(loadedAppointmentBillDetail.AppointmentDate).toLocaleDateString('vi-VN')} {loadedAppointmentBillDetail.StartTime} đến {loadedAppointmentBillDetail.EndTime}
+                    </p>
+                  </div>
+                  <div className="f">
+                    <b>Phí dịch vụ:</b>
+                    <p>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.ServicePrice).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                  </div>
+                  <div className="f">
+                    <b>Phí dược phẩm:</b>
+                    <p>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.MedicalPrice).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                  </div>
+                  <div className="f">
+                    <b>Tổng thanh toán:</b>
+                    <p style={{ fontSize: '18px', color: '#d32f2f' }}>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.TotalPayment).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                  </div>
+                  <div className="user-appointment-form-detail-bottom">
+                    <button type="button" onClick={() => this.handleSendEmail(loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID)} className="email-btn">
+                      Gửi qua email
+                    </button>
+                    <button type="button" onClick={() => this.handleGeneratePDF()} className="pdf-btn">
+                      Tải PDF
+                    </button>
+                  </div>
                 </div>
-                <div className="f">
-                  <b>Phí dịch vụ:</b>
-                  <p>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.ServicePrice).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                <div className="user-appointment-form-detail-mid-2-center-label">
+                  <b>*Ghi chú của bác sĩ:</b>
+                  <br />
+                  <label>{loadedAppointmentBillDetail.AppointmentBill.MedicalNotes || 'Không có ghi chú'}</label>
                 </div>
-                <div className="f">
-                  <b>Phí dược phẩm:</b>
-                  <p>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.MedicalPrice).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
-                </div>
-                <div className="f">
-                  <b>Tổng thanh toán:</b>
-                  <p style={{ fontSize: '18px', color: '#d32f2f' }}>
-                    {parseFloat(loadedAppointmentBillDetail.AppointmentBill.TotalPayment).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
-                  </p>
-                </div>
+
+                <div className="user-appointment-form-detail-mid-2-right">{loadedAppointmentBillDetail.AppointmentBill.MedicalImage ? <img src={loadedAppointmentBillDetail.AppointmentBill.MedicalImage} alt="Hóa đơn" style={{ maxWidth: '200px' }} /> : <p>Không có hình ảnh hóa đơn</p>}</div>
               </div>
-              <div className="user-appointment-form-detail-mid-2-center">
-                <b>*Ghi chú của bác sĩ:</b>
-                <br />
-                <label>{loadedAppointmentBillDetail.AppointmentBill.MedicalNotes || 'Không có ghi chú'}</label>
-              </div>
-              <div className="user-appointment-form-detail-mid-2-right">
-                {loadedAppointmentBillDetail.AppointmentBill.MedicalImage ? (
-                  <img src={loadedAppointmentBillDetail.AppointmentBill.MedicalImage} alt="Hóa đơn" style={{ maxWidth: '200px' }} />
-                ) : (
-                  <p>Không có hình ảnh hóa đơn</p>
-                )}
-              </div>
-            </div>
-            <div className="user-appointment-form-detail-bottom">
-              <button type="button" onClick={() => this.handleSendEmail(loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID)} className="email-btn">
-                Gửi qua email
-              </button>
-              <button type="button" onClick={() => this.handleGeneratePDF()} className="pdf-btn">
-                Tải PDF
-              </button>
             </div>
           </form>
         );

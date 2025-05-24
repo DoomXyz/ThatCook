@@ -20,7 +20,7 @@ import { clearBillSearchInfo } from '../../store/actions';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 import logo from '../../assets/images/logo1.png';
-const tem = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1748022960/moc-removebg-preview_l9hbp8.png'
+const tem = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1748022960/moc-removebg-preview_l9hbp8.png';
 
 class Bill extends Component {
   constructor(props) {
@@ -278,15 +278,15 @@ class Bill extends Component {
     doc.text(address, 14, 34);
 
     const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
-      ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-      : 'N/A'
+        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+        : 'N/A'
       }`;
     doc.text(dateText, 14, 42);
     doc.text(`Mã hóa đơn: ${this.state.billid}`, 150, 42, { align: 'right' });
@@ -827,7 +827,7 @@ class Bill extends Component {
                                       <b>Dịch vụ:</b> {loadedAppointmentDetails.Service?.ServiceName || 'N/A'}
                                     </p>
                                     <p>
-                                      <b>Loại lịch hẹn:</b>  {codeAppointmentType.find((item) => item.Code === loadedAppointmentDetails.AppointmentType)?.CodeValueVI || loadedAppointmentDetails.AppointmentType || 'N/A'}
+                                      <b>Loại lịch hẹn:</b> {codeAppointmentType.find((item) => item.Code === loadedAppointmentDetails.AppointmentType)?.CodeValueVI || loadedAppointmentDetails.AppointmentType || 'N/A'}
                                     </p>
                                     <p>
                                       <b>Bác sĩ:</b> {loadedAppointmentDetails.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}
@@ -868,7 +868,15 @@ class Bill extends Component {
                                       <td colSpan="6">
                                         <b>Hình ảnh:</b>
                                         <br />
-                                        {loadedAppointmentDetails.Images && loadedAppointmentDetails.Images[0] ? <img src={loadedAppointmentDetails.Images[0].Image} alt="Hình ảnh lịch hẹn" style={{ maxWidth: '200px', margin: '5px' }} /> : <span>Không có hình ảnh</span>}
+                                        {loadedAppointmentDetails.Images && loadedAppointmentDetails.Images.length > 0 ? (
+                                          <div className="appointment-images">
+                                            {loadedAppointmentDetails.Images.map((image) => (
+                                              <img key={image.ImageID} src={image.Image} alt={`Hình ảnh lịch hẹn ${image.ImageID}`} style={{ maxWidth: '200px', margin: '5px' }} />
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          <span>Không có hình ảnh</span>
+                                        )}
                                       </td>
                                     </tr>
                                   </tfoot>

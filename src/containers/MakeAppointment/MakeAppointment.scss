@@ -330,18 +330,22 @@ textarea {
       }
     }
 
-    .makeapp {
-      background-color: #4dc9f2;
-      border-radius: 0.3rem;
-      color: white;
-      font-weight: bold;
-      border: none;
-      padding: 0.4rem 0.3rem;
-      width: 7rem;
+    .makeappointment-actions {
+      .makeapp {
+        background-color: #4dc9f2;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
+        width: 7rem;
 
-      margin-top: 2rem;
-      margin-left: 28rem;
-      margin-bottom: 4rem;
+        margin-top: 2rem;
+        margin-left: 28rem;
+        margin-bottom: 4rem;
+      }
+
+      .cancel-follow-up {}
     }
   }
 }
