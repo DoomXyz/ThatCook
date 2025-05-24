@@ -69,11 +69,11 @@ module.exports = {
         },
         Phone: {
           type: Sequelize.STRING(11),
-          allowNull: true,
+          allowNull: false,
         },
         Address: {
           type: Sequelize.STRING(100),
-          allowNull: true,
+          allowNull: false,
         },
         Gender: {
           type: Sequelize.STRING(20),
@@ -89,7 +89,7 @@ module.exports = {
         },
         CreatedAt: {
           type: Sequelize.DATE,
-          allowNull: true,
+          allowNull: false,
         },
         AccountStatus: {
           type: Sequelize.STRING(20),
@@ -217,7 +217,7 @@ module.exports = {
       },
       CreatedAt: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
       },
       AppointmentStatus: {
         type: Sequelize.STRING(20),
@@ -299,7 +299,7 @@ module.exports = {
       },
       CreatedAt: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
       },
     },
       {
@@ -440,7 +440,7 @@ module.exports = {
       },
       CreatedAt: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
       },
       DetailStatus: {
         type: Sequelize.STRING(20),
@@ -644,7 +644,7 @@ module.exports = {
       },
       CreatedAt: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
       },
       CanceledAt: {
         type: Sequelize.DATE,
@@ -678,7 +678,7 @@ module.exports = {
       },
       AccountID: {
         type: Sequelize.STRING(10),
-        allowNull: true, // Cho khách vãng lai
+        allowNull: true,
       },
     },
       {

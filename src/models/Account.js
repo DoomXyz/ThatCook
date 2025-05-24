@@ -45,11 +45,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       Phone: {
         type: DataTypes.STRING(11),
-        allowNull: true,
+        allowNull: false,
       },
       Address: {
         type: DataTypes.STRING(100),
-        allowNull: true,
+        allowNull: false,
       },
       Gender: {
         type: DataTypes.STRING(20),
@@ -66,7 +66,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       CreatedAt: {
         type: DataTypes.DATE,
-        allowNull: true,
+        allowNull: false,
       },
       AccountStatus: {
         type: DataTypes.STRING(20),

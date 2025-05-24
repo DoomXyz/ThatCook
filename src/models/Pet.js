@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       AccountID: {
         type: DataTypes.STRING(10),
-        allowNull: true,
+        allowNull: false,
       },
       PetType: {
         type: DataTypes.STRING(20),

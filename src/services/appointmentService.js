@@ -1090,6 +1090,7 @@ let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, 
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
         if (field === 'status') {
+          //load theo Appointmentstatus
           if (!['PEND', 'COMP', 'CANCELED'].includes(value)) {
             resolve({
               errCode: 1,
@@ -1237,6 +1238,7 @@ let loadAppointmentDetails = (appointmentid) => {
           'PrevAppointmentID',
           'VeterinarianID',
           'AccountID',
+          'CreatedAt',
         ],
         include: [
           {
@@ -1311,6 +1313,7 @@ let loadAppointmentDetails = (appointmentid) => {
         AppointmentType: appointment.AppointmentType,
         AccountID: appointment.AccountID,
         PrevAppointmentID: appointment.PrevAppointmentID,
+        CreatedAt: appointment.CreatedAt,
         Pet: {
           PetID: appointment.Pet.PetID,
           PetName: appointment.Pet.PetName,

@@ -1655,7 +1655,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         vetInfoWhere.Specialization = value;
       }
       switch (sort) {
-        case '1': // Số lượt đặt lịch
+        case '1': // Số lượt đặt lịch (xét theo số lần xuất hiện trong bảng appointment)
           order.push([{ model: db.VeterinarianInfo, as: 'VeterinarianInfo' }, 'WorkingStatus', 'DESC']);
           break;
         case '2': // Tên A-Z
