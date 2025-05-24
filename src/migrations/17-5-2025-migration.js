@@ -170,6 +170,10 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      ServiceStatus: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
     },
       {
         indexes: [
