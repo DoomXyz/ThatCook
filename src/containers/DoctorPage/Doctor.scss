@@ -326,9 +326,7 @@ $transition: all 0.3s ease;
 
     .filter-sort select,
     .date-filter .date-picker {
-      padding: 8px;
-      border: 1px solid $border-color;
-      border-radius: $border-radius;
+      border: none;
       font-size: 14px;
       color: $text-color;
       background-color: $background-white;

@@ -1072,9 +1072,9 @@ class Doctor extends Component {
                     <div
                       key={appointment.AppointmentID}
                       className={`wait-appointment-object ${appointment.VeterinarianID ? 'vet-specific' : 'public-appointment'
-                        }`} onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}
+                        }`}
                     ><div className="wait-appointment-object-head" >
-                        <div className='title'><h4>{appointment.ServiceName}</h4></div>
+                        <div className='title' onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}><h4>{appointment.ServiceName}</h4></div>
                         <div className='wait-appointment-button'>
                           <button
                             type="button"
@@ -1094,7 +1094,7 @@ class Doctor extends Component {
                             : ""}
                         </div>
                       </div>
-                      <div className="wait-appointment-object-center" >
+                      <div className="wait-appointment-object-center" onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}>
                         <div className="wait-appointment-object-left" >
                           <div className='wait-appointment-info'>
                             <div className="descreption-wait-appointment">Khách hàng: </div>
@@ -1110,7 +1110,7 @@ class Doctor extends Component {
                           <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
                         </div>
                       </div>
-                      <div className='wait-appointment-object-notes'>
+                      <div className='wait-appointment-object-notes' onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}>
                         <div className="descreption-wait-appointment">Ghi chú: </div>
                         <div className="note-wait-appointment">{appointment.Notes}</div>
                       </div>
@@ -1190,10 +1190,10 @@ class Doctor extends Component {
                               <div className="description-appointment">Khách hàng: {schedule.CustomerName} | Tên thú cưng: {schedule.PetName}</div>
                             </div>
                             <div className='calendar-object-right'>
-                              <div className="status-appointment" data-status={schedule.ScheduleStatus}>
+                              <span className="status-appointment" data-status={schedule.ScheduleStatus}>
                                 {codeAppointmentType.find(status => status.Code === schedule.AppointmentType)?.CodeValueVI || schedule.AppointmentType}-
                                 {codeScheduleStatus.find(status => status.Code === schedule.ScheduleStatus)?.CodeValueVI || schedule.ScheduleStatus}
-                              </div>
+                              </span>
                             </div>
 
                           </div>
@@ -1300,30 +1300,39 @@ class Doctor extends Component {
                   loadedCompleteAppointments.map((appointment) => (
                     <div
                       key={appointment.AppointmentID}
-                      className="wait-appointment-object"
+                      className="wait-appointment-object" onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 4)}
                     >
-                      <div
-                        className="wait-appointment-info"
-                        onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 4)}
-                      >
-                        <div className="wait-appointment-left">
-                          <div className="wait-appointment-descrpiton">Khách hàng: {appointment.CustomerName}</div>
-                          <h3 className="wait-appointment-descrpiton">Tên thú cưng: {appointment.PetName}</h3>
-                          <div className="wait-appointment-descrpiton">Dịch vụ: {appointment.ServiceName}</div>
-                        </div>
-                        <div className="wait-appointment-right">
-                          <div className="wait-appointment-descrpiton">
-                            Ngày khám: {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}
-                          </div>
-                          <div className="wait-appointment-descrpiton">
-                            Giờ khám: {appointment.StartTime} - {appointment.EndTime}
-                          </div>
+                      <div className="wait-appointment-object-head" >
+                        <div className='title'><h4>{appointment.ServiceName}</h4></div>
+                        <div className='wait-appointment-button'>
+
                         </div>
                       </div>
+                      <div className="wait-appointment-object-center" >
+                        <div className="wait-appointment-object-left" >
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment">Khách hàng: </div>
+                            <div className="value-wait-appointment">{appointment.CustomerName}</div>
+                          </div>
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment">Tên thú cưng: </div>
+                            <div className="value-wait-appointment">{appointment.PetName}</div>
+                          </div>
+                        </div>
+                        <div className="wait-appointment-object-right" >
+                          <div className="day-wait-appointment"> {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}</div>
+                          <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
+                        </div>
+                      </div>
+                      <div className='wait-appointment-object-notes'>
+                        <div className="descreption-wait-appointment">Ghi chú: </div>
+                        <div className="note-wait-appointment">{appointment.Notes}</div>
+                      </div>
+
                     </div>
                   ))
                 ) : (
-                  <p>Không có lịch sử lịch hẹn nào.</p>
+                  <p>Không có lịch hẹn nào.</p>
                 )}
               </div>
               {totalAppointmentPages > 1 && (
@@ -1521,7 +1530,7 @@ class Doctor extends Component {
                             })() ? (
                             <button
                               type="button"
-                              className="action-button complete-button"
+                              className="action-button-complete-button"
                               onClick={() => this.handleAppointmentCheckOut(loadedAppointmentDetail.AppointmentID)}
                             >
                               Hoàn thành
@@ -1544,15 +1553,6 @@ class Doctor extends Component {
                       <button
                         type="button"
                         className="action-button-view-bill-button"
-                        onClick={() => this.handleViewBill(loadedAppointmentDetail.AppointmentBill.AppointmentBillID)}
-                      >
-                        Xem hóa đơn khám
-                      </button>
-                    )}
-                    {fromForm === 4 && loadedAppointmentDetail.AppointmentBill && (
-                      <button
-                        type="button"
-                        className="action-button view-bill-button"
                         onClick={() => this.handleViewBill(loadedAppointmentDetail.AppointmentBill.AppointmentBillID)}
                       >
                         Xem hóa đơn khám
