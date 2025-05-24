@@ -10,7 +10,7 @@ import './EditAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
-import { handleGetServiceInfoApi } from '../../services/appointmentServices';
+import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountInfoApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
@@ -186,7 +186,8 @@ class EditAccountModal extends Component {
   };
   handleLoadServiceInfo = async () => {
     try {
-      const response = await handleGetServiceInfoApi('ALL');
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
       if (response.errCode === 0 && response.data && response.data.length > 0) {
         this.setState({
           loadedServiceInfo: response.data,

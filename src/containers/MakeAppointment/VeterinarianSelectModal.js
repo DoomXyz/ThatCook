@@ -6,7 +6,7 @@ import { IonIcon } from '@ionic/react';
 import { searchOutline } from 'ionicons/icons';
 import './VeterinarianSelectModal.scss';
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
-import { handleGetServiceInfoApi } from '../../services/appointmentServices';
+import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class VeterinarianSelectModal extends Component {

@@ -10,8 +10,7 @@ import '../styles/ToastifyOverride.scss';
 
 import { handleGetAccountInfoApi, handleLogoutApi } from '../services/accountServices';
 import { handleGetCartApi } from '../services/cartServices';
-import { handleGetServiceInfoApi } from '../services/appointmentServices';
-import { handleGetAllCodesApi } from '../services/utilitiesServices';
+import { handleGetServiceInfoApi } from '../services/serviceServices';
 
 import { checkLoginStatus } from '../utils/pakage';
 import { userLogin, userLogout, clearCheckOutCart } from '../store/actions/';
@@ -110,7 +109,8 @@ class HomeHeader extends Component {
 
   handleLoadService = async () => {
     try {
-      const response = await handleGetServiceInfoApi('ALL');
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
           position: 'top-right',

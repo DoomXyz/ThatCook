@@ -13,7 +13,9 @@ import Footer from '../../components/HomeFooter';
 
 import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from '../../services/accountServices';
 import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
-import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetServiceInfoApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
+import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
+import { handleGetServiceInfoApi } from '../../services/serviceServices';
+
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
@@ -205,7 +207,8 @@ class User extends Component {
   };
   handleLoadServiceInfo = async () => {
     try {
-      const response = await handleGetServiceInfoApi('ALL');
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
           position: 'top-right',
@@ -1930,8 +1933,11 @@ class User extends Component {
                 <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 'appointment')}>
                   <option value="ALL">Tất cả</option>
                   <optgroup label="Theo trạng thái">
-                    <option value="status-PEND">Chưa khám</option>
-                    <option value="status-COMP">Đã khám</option>
+                    {codeAppointmentStatus.map((status) => (
+                      <option key={status.Code} value={`status-${status.Code}`}>
+                        {status.CodeValueVI}
+                      </option>
+                    ))}
                   </optgroup>
                   <optgroup label="Theo dịch vụ">
                     {serviceList.map((service) => (

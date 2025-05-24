@@ -7,7 +7,7 @@ import './ShowDoctor.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
-import { handleGetServiceInfoApi } from '../../services/appointmentServices';
+import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { savePreselectInfo, clearPreselectInfo } from '../../store/actions';
 

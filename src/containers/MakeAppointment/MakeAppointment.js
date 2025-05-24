@@ -9,7 +9,9 @@ import Header from '../../components/HomeHeader';
 import Spinner from '../../components/Spinner';
 import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi, handleGetVeterinarianInfoApi, handleGetVeterinarianServicesApi } from '../../services/accountServices';
-import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleGetServiceInfoApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices';
+import { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices';
+import { handleGetServiceInfoApi } from '../../services/serviceServices';
+
 import { handleGetAccountPetInfoApi, handleGetPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { checkLoginStatus, uploadImages } from '../../utils/pakage';
@@ -381,7 +383,8 @@ class MakeAppointment extends Component {
   };
   handleLoadCodeService = async () => {
     try {
-      const response = await handleGetServiceInfoApi('ALL');
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
           position: 'top-right',

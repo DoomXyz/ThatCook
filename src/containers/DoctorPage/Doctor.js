@@ -13,7 +13,8 @@ import './Doctor.scss'; // Import SCSS
 import { handleLogoutApi, handleChangeAccountInfoApi, handleChangeWorkingStatusApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { handleLoadScheduleApi, handleChangeScheduleStatusApi } from '../../services/scheduleServices';
-import { handleLoadAppointmentsApi, handleChangeAppointmentStatusApi, handleLoadAppointmentDetailsApi, handleGetServiceInfoApi } from '../../services/appointmentServices'
+import { handleLoadAppointmentsApi, handleChangeAppointmentStatusApi, handleLoadAppointmentDetailsApi } from '../../services/appointmentServices'
+import { handleGetServiceInfoApi } from '../../services/serviceServices';
 
 import { userLogin, userLogout, saveAppointmentForCheckout } from '../../store/actions';
 import { checkLoginStatus } from '../../utils/pakage';
@@ -51,7 +52,7 @@ class Doctor extends Component {
       loadedSchedules: [],
       currentPage: 1,
       tempCurrentPage: '1',
-      limitAppointmentPerQuery: 5,
+      limitAppointmentPerQuery: 1,
       totalAppointmentPages: 1,
       searchValue: '',
       filterValue: 'ALL',
@@ -254,7 +255,8 @@ class Doctor extends Component {
   };
   handleLoadServiceInfo = async () => {
     try {
-      const response = await handleGetServiceInfoApi('ALL');
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
           position: 'top-right',
@@ -740,7 +742,7 @@ class Doctor extends Component {
       }
     );
   };
-  handleSearchChange = (event) => {
+  handleSearchChange = (event, type) => {
     const value = event.target.value;
     this.setState(
       {
@@ -751,29 +753,60 @@ class Doctor extends Component {
       () => {
         if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
         this.debounceTimeout = setTimeout(() => {
-          this.handleLoadPendingAppointments();
+          switch (type) {
+            case 2:
+              this.handleLoadPendingAppointments()
+              break;
+            case 4:
+              this.handleLoadCompleteAppointments()
+              break;
+            default:
+              break;
+          }
         }, 500);
       }
     );
   };
-  handleFilter = (value) => {
+  handleFilter = (value, type) => {
     this.setState(
       {
         filterValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
       },
-      () => this.handleLoadPendingAppointments()
+      () => {
+        switch (type) {
+          case 2:
+            this.handleLoadPendingAppointments()
+            break;
+          case 4:
+            this.handleLoadCompleteAppointments()
+            break;
+          default:
+            break;
+        }
+      }
     );
   };
-  handleSort = (value) => {
+  handleSort = (value, type) => {
     this.setState(
       {
         sortValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
       },
-      () => this.handleLoadPendingAppointments()
+      () => {
+        switch (type) {
+          case 2:
+            this.handleLoadPendingAppointments()
+            break;
+          case 4:
+            this.handleLoadCompleteAppointments()
+            break;
+          default:
+            break;
+        }
+      }
     );
   };
   handlePageChange = (page, type) => {
@@ -782,6 +815,9 @@ class Doctor extends Component {
     let totalPages;
     switch (type) {
       case 2:
+        totalPages = totalAppointmentPages;
+        break;
+      case 4:
         totalPages = totalAppointmentPages;
         break;
       default:
@@ -795,6 +831,9 @@ class Doctor extends Component {
         switch (type) {
           case 2:
             this.handleLoadPendingAppointments()
+            break;
+          case 4:
+            this.handleLoadCompleteAppointments()
             break;
           default:
             break;
@@ -817,6 +856,9 @@ class Doctor extends Component {
           case 2:
             this.handleLoadPendingAppointments();
             break;
+          case 4:
+            this.handleLoadCompleteAppointments()
+            break;
           default:
             break;
         }
@@ -825,12 +867,14 @@ class Doctor extends Component {
     );
   };
   handleNextPage = (type) => {
-
     this.setState(
       (prevState) => {
         let totalPages;
         switch (type) {
           case 2:
+            totalPages = prevState.totalAppointmentPages;
+            break;
+          case 4:
             totalPages = prevState.totalAppointmentPages;
             break;
           default:
@@ -847,6 +891,9 @@ class Doctor extends Component {
         switch (type) {
           case 2:
             this.handleLoadPendingAppointments();
+            break;
+          case 4:
+            this.handleLoadCompleteAppointments()
             break;
           default:
             break;
@@ -987,7 +1034,7 @@ class Doctor extends Component {
               <div className="wait-appointment-filter">
                 <div className="filter-left">
                   <div className="filter-sort">
-                    <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
+                    <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 2)}>
                       <option value="ALL">Tất cả</option>
                       <optgroup label="Theo lịch hẹn">
                         <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
@@ -1003,7 +1050,7 @@ class Doctor extends Component {
                     </select>
                   </div>
                   <div className="filter-sort">
-                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
+                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 2)}>
                       <option value="0">Mặc định</option>
                       <option value="1">Lịch hẹn mới nhất</option>
                       <option value="2">Lịch hẹn cũ nhất</option>
@@ -1218,12 +1265,8 @@ class Doctor extends Component {
               <div className="wait-appointment-filter">
                 <div className="filter-left">
                   <div className="filter-sort">
-                    <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value)}>
+                    <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 4)}>
                       <option value="ALL">Tất cả</option>
-                      <optgroup label="Theo lịch hẹn">
-                        <option value="veterinarian-PUBLIC">Lịch hẹn công khai</option>
-                        <option value="veterinarian-PRIVATE">Lịch hẹn của tôi</option>
-                      </optgroup>
                       <optgroup label="Theo dịch vụ">
                         {this.state.serviceList.map((service) => (
                           <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
@@ -1234,7 +1277,7 @@ class Doctor extends Component {
                     </select>
                   </div>
                   <div className="filter-sort">
-                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value)}>
+                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 4)}>
                       <option value="0">Mặc định</option>
                       <option value="1">Lịch hẹn mới nhất</option>
                       <option value="2">Lịch hẹn cũ nhất</option>

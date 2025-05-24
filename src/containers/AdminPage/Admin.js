@@ -11,9 +11,10 @@ import Spinner from '../../components/Spinner';
 
 import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from '../../services/accountServices';
 import {
-  handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi,
-  handleGetServiceStatusApi, handleLoadServiceInfoApi, handleCreateServiceApi, handleChangeServiceInfoApi, handleChangeServiceStatusApi
+  handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi
 } from '../../services/utilitiesServices';
+
+import { handleLoadServiceInfoApi, handleCreateServiceApi, handleChangeServiceInfoApi, handleChangeServiceStatusApi } from '../../services/serviceServices'
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
@@ -269,12 +270,12 @@ class Admin extends Component {
   handleLoadServiceInfo = async () => {
     const { currentPage, limitServicePerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
-      let response = await handleLoadServiceInfoApi(currentPage, limitServicePerQuery, searchValue, filterValue, sortValue);
-      console.log(response.data)
-      if (response && response.data.errCode === 0) {
+      let responseApi = await handleLoadServiceInfoApi(currentPage, limitServicePerQuery, searchValue, filterValue, sortValue);
+      const response = responseApi.data
+      if (response && response.errCode === 0) {
         this.setState({
-          loadedServiceInfo: response.data.data,
-          totalPages: Math.ceil(response.data.totalItems / limitServicePerQuery),
+          loadedServiceInfo: response.data,
+          totalPages: Math.ceil(response.totalItems / limitServicePerQuery),
         });
       }
     } catch (e) {
@@ -514,7 +515,8 @@ class Admin extends Component {
       this.setState({ isLoading: true });
       const newStatus = serviceInfo.ServiceStatus === 'VALID' ? 'INVALID' : 'VALID';
       try {
-        const response = await handleChangeServiceStatusApi(serviceInfo.ServiceID, newStatus);
+        const responseApi = await handleChangeServiceStatusApi(serviceInfo.ServiceID, newStatus);
+        const response = responseApi.data
         if (response && response.errCode === 0) {
           toast.success(response.errMessage, {
             position: 'top-right',
@@ -877,6 +879,9 @@ class Admin extends Component {
           case 2:
             this.handleLoadAllCodesInfo();
             break;
+          case 3:
+            this.handleLoadServiceInfo();
+            break;
           default:
             break;
         }
@@ -901,6 +906,9 @@ class Admin extends Component {
           case 2:
             this.handleLoadAllCodesInfo();
             break;
+          case 3:
+            this.handleLoadServiceInfo();
+            break;
           default:
             break;
         }
@@ -924,6 +932,9 @@ class Admin extends Component {
             break;
           case 2:
             this.handleLoadAllCodesInfo();
+            break;
+          case 3:
+            this.handleLoadServiceInfo();
             break;
           default:
             break;
@@ -1237,6 +1248,8 @@ class Admin extends Component {
       isEditingService,
       isAddingService,
       actionPage,
+      limitCodePerQuery,
+      limitServicePerQuery
     } = this.state; switch (actionPage) {
       case 1:
         return (
@@ -1301,7 +1314,7 @@ class Admin extends Component {
                 <table className="table">
                   <tbody>
                     <tr>
-                      <th>Mã TK</th>
+                      <th>Mã tài khoản</th>
                       <th>Email</th>
                       <th>Họ tên người dùng</th>
                       <th>Giới tính</th>
@@ -1415,17 +1428,17 @@ class Admin extends Component {
                 <table className="table">
                   <tbody>
                     <tr>
-                      <th>Mã Code</th>
-                      <th>Type</th>
-                      <th>Code</th>
-                      <th>CodeValue</th>
-                      <th>Giá trị thêm</th>
+                      <th>STT</th>
+                      <th>Loại</th>
+                      <th>Mã</th>
+                      <th>Tên gọi</th>
+                      <th>Giá trị bổ sung</th>
                       <th>Action</th>
                     </tr>
                     {loadedCodeInfo.length > 0 ? (
                       loadedCodeInfo.map((item, index) => (
                         <tr key={item.CodeID}>
-                          <td>{item.CodeID}</td>
+                          <td>{(currentPage - 1) * limitCodePerQuery + index + 1}</td>
                           <td>{isEditingCode === index ? <input type="text" value={item.Type} onChange={(e) => this.handleCodeChange(index, 'Type', e.target.value)} disabled={!isAddingCode} /> : item.Type}</td>
                           <td>{isEditingCode === index ? <input type="text" value={item.Code} onChange={(e) => this.handleCodeChange(index, 'Code', e.target.value)} disabled={!isAddingCode} /> : item.Code}</td>
                           <td>{isEditingCode === index ? <input type="text" value={item.CodeValueVI} onChange={(e) => this.handleCodeChange(index, 'CodeValueVI', e.target.value)} /> : item.CodeValueVI}</td>
@@ -1520,8 +1533,12 @@ class Admin extends Component {
                       <option value="duration-LONG">Trên 60 phút</option>
                     </optgroup>
                     <optgroup label="Theo Trạng Thái">
-                      <option value="status-VALID">Hợp lệ</option>
-                      <option value="status-INVALID">Không hợp lệ</option>
+                      {codeServiceStatus.map((status) => (
+                        console.log(codeAccountStatus),
+                        <option key={status.Code} value={`status-${status.Code}`}>
+                          {status.CodeValueVI}
+                        </option>
+                      ))}
                     </optgroup>
                   </select>
                 </div>
@@ -1557,18 +1574,18 @@ class Admin extends Component {
                 <table className="table">
                   <tbody>
                     <tr>
-                      <th>Mã Dịch Vụ</th>
-                      <th>Tên Dịch Vụ</th>
-                      <th>Giá (VNĐ)</th>
-                      <th>Thời Gian (phút)</th>
-                      <th>Mô Tả</th>
-                      <th>Trạng Thái</th>
+                      <th>STT</th>
+                      <th>Tên dịch vụ</th>
+                      <th>Giá (vnđ)</th>
+                      <th>Thời gian (phút)</th>
+                      <th>Mô tả</th>
+                      <th>Trạng thái</th>
                       <th>Action</th>
                     </tr>
                     {loadedServiceInfo.length > 0 ? (
                       loadedServiceInfo.map((item, index) => (
                         <tr key={item.ServiceID} className={item.ServiceStatus === 'VALID' ? 'status-act' : 'status-dis'}>
-                          <td>{item.ServiceID}</td>
+                          <td>{(currentPage - 1) * limitServicePerQuery + index + 1}</td>
                           <td>
                             {isEditingService === index ? (
                               <input
