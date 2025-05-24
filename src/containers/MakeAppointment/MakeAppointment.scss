@@ -1,12 +1,15 @@
 f {
   display: flex;
 }
+
 input {
   outline: none;
 }
+
 textarea {
   outline: none;
 }
+
 .makeappointment-body {
   background-color: white;
   background-image: url('../../assets/doctor-imgs/bg-ck.png');
@@ -15,6 +18,7 @@ textarea {
   width: 100%;
   align-items: center;
   min-height: 100vh;
+
   .header-container {
     background-color: rgb(255, 255, 255) !important;
     border-bottom: 1px solid black;
@@ -22,6 +26,7 @@ textarea {
   }
 
   justify-content: center;
+
   .makeappointment-content {
     margin-top: 6rem;
     width: 40rem;
@@ -36,12 +41,14 @@ textarea {
 
     .makeappointment-content-user-info {
       margin-left: 5rem;
+
       b {
         margin-top: 0.7rem;
         display: block;
 
         margin-bottom: 1rem;
       }
+
       input {
         background-color: transparent;
         padding: 0.2rem;
@@ -53,16 +60,20 @@ textarea {
         border-bottom: 1px solid black;
         padding-left: 0.5rem;
       }
+
       input:last-child {
         margin-bottom: 2rem;
       }
     }
+
     .makeappointment-content-pet-info {
       margin-left: 5rem;
+
       b {
         margin: 1rem 0;
         display: block;
       }
+
       input {
         background-color: transparent;
         padding: 0.2rem;
@@ -74,15 +85,18 @@ textarea {
         border-bottom: 1px solid black;
         padding-left: 0.5rem;
       }
+
       .f {
         input {
           width: 14.5rem;
           margin: 0;
           margin-bottom: 1rem;
         }
+
         input:first-child {
           margin-right: 1rem;
         }
+
         select {
           margin-top: 1rem;
           background-color: #4dc9f2;
@@ -94,6 +108,7 @@ textarea {
           margin-bottom: 2rem;
           border: none;
         }
+
         p {
           margin-right: 1rem;
           margin-top: 1.3rem;
@@ -102,19 +117,23 @@ textarea {
         p:first-of-type {
           margin-left: 0.4rem;
         }
+
         select:first-of-type {
           margin-right: 7.4rem;
         }
       }
     }
+
     .makeappointment-save-petinfo-button {
       text-align: end;
       margin-right: 5rem;
+
       button {
         padding: 0.3rem;
         width: 4rem;
         border-radius: 0.3rem;
       }
+
       .stra {
         margin: 1rem 0;
         margin-left: 5rem;
@@ -123,12 +142,15 @@ textarea {
         background-color: black;
       }
     }
+
     .doctor-info {
       margin-left: 5rem;
     }
+
     .makeappointment-content-doctor {
       margin-top: 1rem;
       margin-left: 5rem;
+
       button {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -137,14 +159,22 @@ textarea {
         border: none;
         padding: 0.4rem 0.3rem;
         width: 10rem;
+        max-height: 2.5rem;
       }
+
       p {
         margin-left: 1rem;
       }
+
+      .doctor-info-display {
+        margin-left: 1.2rem;
+      }
     }
+
     .makeappointment-content-date {
       margin-top: 1rem;
       margin-left: 5rem;
+
       .date-picker {
         &::placeholder {
           color: white;
@@ -152,6 +182,7 @@ textarea {
           padding-left: 0.15rem;
         }
       }
+
       button:last-child {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -162,6 +193,7 @@ textarea {
         width: 5rem;
         margin-left: 1rem;
       }
+
       input {
         width: 10rem;
         padding: 0.4rem 0.3rem;
@@ -171,13 +203,16 @@ textarea {
         background-color: #4dc9f2;
       }
     }
+
     .makeappointment-content-service {
       margin-top: 1rem;
       margin-left: 5rem;
+
       p {
         margin: 0;
         margin-bottom: 0.7rem;
       }
+
       select {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -188,13 +223,16 @@ textarea {
         width: 10rem;
       }
     }
+
     .makeappointment-content-time {
       margin-top: 1rem;
       margin-left: 1rem;
+
       p {
         margin: 0;
         margin-bottom: 0.7rem;
       }
+
       select {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -205,9 +243,11 @@ textarea {
         width: 10rem;
       }
     }
+
     .makeappointment-content-pet {
       margin-bottom: 1.5rem;
       margin-left: 5rem;
+
       button {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -218,6 +258,7 @@ textarea {
         width: 13rem;
       }
     }
+
     textarea {
       background-color: transparent;
       padding: 0.2rem;
@@ -226,24 +267,31 @@ textarea {
       width: 30rem;
       margin-left: 5rem;
     }
+
     .makeappointment-content-petimgs {
       margin-top: 0.7rem;
+
       p {
         margin-bottom: 1rem;
       }
+
       margin-left: 5rem;
+
       .makeappointment-content-petimgs-block {
         min-width: 30rem;
         max-width: 30rem;
         min-height: 11rem;
         border: 1px solid black;
+
         .makeappointment-content-petimgs-item {
           display: inline-block;
           margin: 1rem 0;
+
           img {
             margin-left: 0.7rem;
             max-width: 9rem;
           }
+
           button {
             background-color: red;
             position: absolute;
@@ -254,6 +302,7 @@ textarea {
             border-top-right-radius: 0;
             border: none;
             transform: translateX(-1.5rem);
+
             ion-icon {
               margin-top: 0.25rem;
             }
@@ -270,6 +319,7 @@ textarea {
           font-size: 4rem;
           color: black;
           text-align: center;
+
           label {
             cursor: pointer;
             margin-top: 1rem;
@@ -279,6 +329,7 @@ textarea {
         }
       }
     }
+
     .makeapp {
       background-color: #4dc9f2;
       border-radius: 0.3rem;

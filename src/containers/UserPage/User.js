@@ -829,7 +829,6 @@ class User extends Component {
     if (isConfirmed) {
       this.setState({ isLoading: true });
       const response = await handleRemovePetApi(petid);
-      console.log(response)
       if (response && response.errCode === 0) {
         toast.success('Xóa thú cưng thành công!', {
           position: 'top-right',
@@ -1455,7 +1454,7 @@ class User extends Component {
       showOldPassword,
       showNewPassword,
       showConfirmPassword,
-      isAddingPet
+      isAddingPet,
     } = this.state;
     switch (actionPage) {
       case 1:
@@ -1959,7 +1958,9 @@ class User extends Component {
         return (
           <form className="user-appointment-form">
             <div className="f">
-              <h3><b>Lịch Khám:</b></h3>
+              <h3>
+                <b>Lịch Khám:</b>
+              </h3>
               <div className="appointment-search">
                 <input
                   type="text"
@@ -1988,63 +1989,69 @@ class User extends Component {
                   </optgroup>
                 </select>
               </div>
-              <div className="appointment-sort f">
-                <select
-                  value={sortValue}
-                  onChange={(e) => this.handleSort(e.target.value, 'appointment')}
-                >
+              <div className="appointment-sort">
+                <p>Sắp xếp:</p>
+                <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 'appointment')}>
                   <option value="0">Mặc định</option>
                   <option value="1">Mới nhất</option>
                   <option value="2">Cũ nhất</option>
                 </select>
               </div>
-              <div className="appointment-date-filter f">
-                <label>Ngày bắt đầu:</label>
-                <DatePicker
-                  selected={date1 ? new Date(date1 + 'T00:00:00') : null}
-                  onChange={(date) => {
-                    const formattedDate = date
-                      ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
-                      : '';
-                    this.setState({ date1: formattedDate }, () => {
-                      this.handleFilter('ALL', 'appointment');
-                    });
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="dd/mm/yyyy"
-                  className="date-picker"
-                />
-                {date1 && (
-                  <button
-                    onClick={() => this.resetDateFilter('date1', 'appointment')}
-                    style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    x
-                  </button>
-                )}
-                <label>Ngày kết thúc:</label>
-                <DatePicker
-                  selected={date2 ? new Date(date2 + 'T00:00:00') : null}
-                  onChange={(date) => {
-                    const formattedDate = date
-                      ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
-                      : '';
-                    this.setState({ date2: formattedDate }, () => {
-                      this.handleFilter('ALL', 'appointment');
-                    });
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="dd/mm/yyyy"
-                  className="date-picker"
-                />
-                {date2 && (
-                  <button
-                    onClick={() => this.resetDateFilter('date2', 'appointment')} // Thêm type
-                    style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    x
-                  </button>
-                )}
+              <div className="appointment-date-filter ">
+                <div className="f">
+                  <div>
+                    <label>Ngày bắt đầu:</label>
+                    <br />
+                    <DatePicker
+                      selected={date1 ? new Date(date1 + 'T00:00:00') : null}
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                          : '';
+                        this.setState({ date1: formattedDate }, () => {
+                          this.handleFilter('ALL', 'appointment');
+                        });
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    {date1 && (
+                      <button
+                        onClick={() => this.resetDateFilter('date1', 'appointment')}
+                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        x
+                      </button>
+                    )}
+                  </div>
+                  <div>
+                    <label>Ngày kết thúc:</label>
+                    <br />
+                    <DatePicker
+                      selected={date2 ? new Date(date2 + 'T00:00:00') : null}
+                      onChange={(date) => {
+                        const formattedDate = date
+                          ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                          : '';
+                        this.setState({ date2: formattedDate }, () => {
+                          this.handleFilter('ALL', 'appointment');
+                        });
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="date-picker"
+                    />
+                    {date2 && (
+                      <button
+                        onClick={() => this.resetDateFilter('date2', 'appointment')} // Thêm type
+                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        x
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="user-appointment-form-content">
@@ -2063,7 +2070,9 @@ class User extends Component {
                       </div>
                       <div className="appointment-list-item-top">
                         <div>
-                          <p><b>Mã lịch khám:</b> {appointment.AppointmentID}</p>
+                          <p>
+                            <b>Mã lịch khám:</b> {appointment.AppointmentID}
+                          </p>
                         </div>
                         <div>
                           <p>
@@ -2073,9 +2082,15 @@ class User extends Component {
                         </div>
                       </div>
                       <div className="appointment-list-item-mid">
-                        <p><b>Tên khách hàng:</b> {appointment.CustomerName}</p>
-                        <p><b>Tên thú cưng:</b> {appointment.PetName}</p>
-                        <p><b>Tên dịch vụ:</b> {appointment.ServiceName}</p>
+                        <p>
+                          <b>Tên khách hàng:</b> {appointment.CustomerName}
+                        </p>
+                        <p>
+                          <b>Tên thú cưng:</b> {appointment.PetName}
+                        </p>
+                        <p>
+                          <b>Tên dịch vụ:</b> {appointment.ServiceName}
+                        </p>
                       </div>
                       <div className="appointment-list-item-bottom">
                         {appointment.AppointmentStatus === 'PEND' && (
@@ -2130,7 +2145,9 @@ class User extends Component {
             <div>
               <div className="back" onClick={this.handleFormDatLich}>
                 <IonIcon icon={chevronBack}></IonIcon>
-                <h5><b>Trở lại</b></h5>
+                <h5>
+                  <b>Trở lại</b>
+                </h5>
               </div>
               <p>Không thể tải chi tiết lịch khám. Vui lòng thử lại!</p>
             </div>
@@ -2142,13 +2159,19 @@ class User extends Component {
               <div className="user-appointment-form-detail-left">
                 <div className="back" onClick={this.handleFormDatLich}>
                   <IonIcon icon={chevronBack}></IonIcon>
-                  <h5><b>Trở lại</b></h5>
+                  <h5>
+                    <b>Trở lại</b>
+                  </h5>
                 </div>
               </div>
               <div className="user-appointment-form-detail-right">
                 <div className="appointment-detail-tab">
-                  <div className="mlk"><h5>Mã lịch khám:</h5></div>
-                  <div className="ctmd"><h5>{loadedAppointmentDetail.AppointmentID}</h5></div>
+                  <div className="mlk">
+                    <h5>Mã lịch khám:</h5>
+                  </div>
+                  <div className="ctmd">
+                    <h5>{loadedAppointmentDetail.AppointmentID}</h5>
+                  </div>
                 </div>
                 <div className="tt">
                   <h5 style={{ color: loadedAppointmentDetail.AppointmentStatus === 'PEND' ? '#FFA500' : 'inherit' }}>
@@ -2238,9 +2261,13 @@ class User extends Component {
         return (
           <form className="user-pet-form">
             <div className="user-pet-form-top">
-              <h3><b>Thông tin thú cưng:</b></h3>
+              <h3>
+                <b>Thông tin thú cưng:</b>
+              </h3>
               {loadedPetInfo.length < limitPetCount && (
-                <button type='button' onClick={this.handleAddPet}>Thêm thú cưng</button>
+                <button type="button" onClick={this.handleAddPet}>
+                  Thêm thú cưng
+                </button>
               )}
             </div>
             <div className="user-pet-form-content">
@@ -2369,7 +2396,9 @@ class User extends Component {
         return (
           <form className="user-add-pet-form">
             <div className="user-add-pet-form-top">
-              <h3><b>Thêm thú cưng:</b></h3>
+              <h3>
+                <b>Thêm thú cưng:</b>
+              </h3>
               <button onClick={this.handleFromThuCung}>Hủy</button>
             </div>
             <div className="user-add-pet-form-content">
@@ -2423,7 +2452,9 @@ class User extends Component {
             <div>
               <div className="back" onClick={this.handleFormDatLich}>
                 <IonIcon icon={chevronBack}></IonIcon>
-                <h5><b>Trở lại</b></h5>
+                <h5>
+                  <b>Trở lại</b>
+                </h5>
               </div>
               <p>Không thể tải chi tiết hóa đơn lịch khám. Vui lòng thử lại!</p>
             </div>
@@ -2435,7 +2466,9 @@ class User extends Component {
               <div className="user-appointment-form-detail-left">
                 <div className="back" onClick={this.handleFormDatLich}>
                   <IonIcon icon={chevronBack}></IonIcon>
-                  <h5><b>Trở lại</b></h5>
+                  <h5>
+                    <b>Trở lại</b>
+                  </h5>
                 </div>
               </div>
               <div className="user-appointment-form-detail-right">

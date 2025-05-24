@@ -369,6 +369,8 @@ $transition: all 0.3s ease;
   }
 }
 
+
+
 .wait-appointment-list {
   padding: 10px;
   border-top: rgb(184, 184, 184) 2px solid;
@@ -386,14 +388,72 @@ $transition: all 0.3s ease;
   background-color: #f9f9f9;
   /* Màu nền nhẹ để nổi bật */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+  /* Đảm bảo không vượt quá container cha */
+  box-sizing: border-box;
 
+  /* Đảm bảo padding không làm tăng kích thước */
   h4 {
     display: flex;
     font-weight: bold;
   }
 
-  /* Đổ bóng nhẹ để tạo chiều sâu */
   .wait-appointment-object-head {
+    display: flex;
+    flex-direction: row;
+
+    .title {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+      /* Khoảng cách giữa các nút */
+    }
+
+    .wait-appointment-button {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+      /* Khoảng cách giữa các nút */
+      /* Khoảng cách phía trên nút */
+      justify-content: flex-end;
+      padding-bottom: 5px;
+    }
+
+    .wait-appointment-button-accept,
+    .wait-appointment-button-refuse {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .wait-appointment-button-accept {
+      background-color: #28a745;
+      /* Màu xanh cho nút xác nhận */
+      color: white;
+
+      &:hover {
+        background-color: #218838;
+        /* Đậm hơn khi hover */
+      }
+    }
+
+    .wait-appointment-button-refuse {
+      background-color: #dc3545;
+      /* Màu đỏ cho nút từ chối */
+      color: white;
+
+      &:hover {
+        background-color: #c82333;
+        /* Đậm hơn khi hover */
+      }
+    }
+
+  }
+
+  /* Đổ bóng nhẹ để tạo chiều sâu */
+  .wait-appointment-object-center {
     border-top: #6c757d 1px solid;
     display: flex;
     flex-direction: row;
@@ -426,6 +486,41 @@ $transition: all 0.3s ease;
     }
   }
 
+  .note-wait-appointment {
+    display: flex;
+    color: #333;
+    padding-right: 10px;
+    flex: 3;
+    text-align: right;
+    justify-content: flex-end;
+    max-width: 100%;
+    /* Đảm bảo không vượt quá chiều rộng container cha */
+    overflow-wrap: break-word;
+    /* Buộc các từ dài xuống dòng */
+    white-space: normal;
+    /* Cho phép văn bản xuống dòng tự nhiên */
+    word-break: break-all;
+    /* Nếu chuỗi không có khoảng trắng, vẫn cắt và xuống dòng */
+  }
+
+  .wait-appointment-object-notes {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    width: 100%;
+    /* Đảm bảo chiếm toàn bộ chiều rộng của container cha */
+    max-width: 100%;
+    /* Ngăn không cho vượt quá chiều rộng của container */
+    overflow-wrap: break-word;
+    /* Buộc các từ dài xuống dòng */
+    white-space: normal;
+    /* Cho phép văn bản xuống dòng tự nhiên */
+    text-overflow: ellipsis;
+    /* Tùy chọn: Thêm dấu ba chấm cho văn bản tràn */
+    padding: 5px 0;
+    /* Thêm khoảng đệm để đẹp mắt hơn */
+  }
+
   &:hover {
     border-color: #007bff;
     /* Đổi màu border khi hover */
@@ -439,44 +534,7 @@ $transition: all 0.3s ease;
     /* Chia đều không gian */
   }
 
-  .wait-appointment-button {
-    display: flex;
-    gap: 10px;
-    /* Khoảng cách giữa các nút */
-    margin-top: 10px;
-    /* Khoảng cách phía trên nút */
-  }
 
-  .wait-appointment-button-accept,
-  .wait-appointment-button-refuse {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  .wait-appointment-button-accept {
-    background-color: #28a745;
-    /* Màu xanh cho nút xác nhận */
-    color: white;
-
-    &:hover {
-      background-color: #218838;
-      /* Đậm hơn khi hover */
-    }
-  }
-
-  .wait-appointment-button-refuse {
-    background-color: #dc3545;
-    /* Màu đỏ cho nút từ chối */
-    color: white;
-
-    &:hover {
-      background-color: #c82333;
-      /* Đậm hơn khi hover */
-    }
-  }
 
   &.vet-specific {
     background-color: #e6f3ff;
@@ -527,6 +585,8 @@ $transition: all 0.3s ease;
   letter-spacing: 1.2px;
   border-bottom: 2px solid #007bff;
   padding-bottom: 10px;
+
+
 }
 
 .appointment-detail-content {
@@ -553,6 +613,66 @@ $transition: all 0.3s ease;
   gap: 15px;
   padding: 10px 0;
   border-bottom: 1px solid #e9ecef;
+
+  .note-wait-appointment {
+    display: flex;
+    color: #333;
+    padding-right: 10px;
+    flex: 3;
+    text-align: right;
+    justify-content: flex-end;
+    max-width: 100%;
+    /* Đảm bảo không vượt quá chiều rộng container cha */
+    overflow-wrap: break-word;
+    /* Buộc các từ dài xuống dòng */
+    white-space: normal;
+    /* Cho phép văn bản xuống dòng tự nhiên */
+    word-break: break-all;
+    /* Nếu chuỗi không có khoảng trắng, vẫn cắt và xuống dòng */
+  }
+}
+
+.button-detail {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  /* Khoảng cách giữa các nút */
+  /* Khoảng cách phía trên nút */
+  justify-content: flex-end;
+  padding-bottom: 5px;
+}
+
+.action-button-confirm-button,
+.action-button-cancel-button,
+.action-button-view-bill-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.action-button-confirm-button,
+.action-button-view-bill-button {
+  background-color: #28a745;
+  /* Màu xanh cho nút xác nhận */
+  color: white;
+
+  &:hover {
+    background-color: #218838;
+    /* Đậm hơn khi hover */
+  }
+}
+
+.action-button-cancel-button {
+  background-color: #dc3545;
+  /* Màu đỏ cho nút từ chối */
+  color: white;
+
+  &:hover {
+    background-color: #c82333;
+    /* Đậm hơn khi hover */
+  }
 }
 
 .detail-item:last-child {
@@ -704,41 +824,149 @@ $transition: all 0.3s ease;
 }
 
 .calendar-object {
-  display: grid;
-  grid-template-columns: 100px 1fr 2fr;
-  /* Cột: Thời gian, Dịch vụ, Chủ/Thú cưng */
-  gap: 10px;
+  display: flex;
+  width: 100%;
   background-color: #ffffff;
-  border-left: 4px solid #28a745;
-  /* Đường viền trái màu xanh */
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #28a745;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   align-items: center;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  .calendar-object-left {
+    display: flex;
+    flex-direction: column;
+    /* Đảm bảo lấp đầy chiều cao */
+    flex-grow: 1;
+    margin-bottom: 0px;
+    border-right: 1px black solid;
+    /* Bo góc dưới trái */
+
+    .description-appointment {
+      display: flex;
+      text-align: right;
+      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      font-weight: bold;
+    }
+
+    .description-appointment :nth-child(1) {
+      color: red;
+    }
+  }
+
+  .calendar-object-center {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    min-height: 100%;
+    /* Đảm bảo lấp đầy chiều cao */
+    flex-grow: 1;
+    /* Giãn ra để lấp không gian */
+    padding: 20px;
+
+    .description-appointment {
+      display: flex;
+      text-align: center;
+      font-size: 15px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+    }
+
+  }
+
+  .calendar-object-right {
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100%;
+    /* Đảm bảo lấp đầy chiều cao */
+    flex-grow: 1;
+    /* Giãn ra để lấp không gian */
+    padding: 20px;
+    margin-bottom: 0px;
+    border-bottom-left-radius: 10px;
+    /* Bo góc dưới trái */
+    border-bottom-right-radius: 10px;
+
+
+    .status-appointment {
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      font-size: 15px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      color: #fff;
+      background-color: #6c757d;
+
+      &[data-status="PEND"] {
+        background-color: #ffc107;
+        color: #333;
+      }
+
+      &[data-status="COMP"] {
+        background-color: #28a745;
+        color: #fff;
+        ;
+      }
+
+      &[data-status="CANCELED"] {
+        background-color: #dc3545;
+        color: #333;
+      }
+    }
+  }
+
+  &:hover {
+    background-color: #f0f7ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+
 }
 
-.calendar-object:hover {
-  background-color: #e8f4ff;
-  /* Màu nền khi hover */
-}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .calendar-object {
+    grid-template-columns: 1fr;
+    /* Chuyển thành cột trên màn hình nhỏ */
+    gap: 8px;
+    /* Giảm khoảng cách */
+    padding: 10px;
+    /* Giảm padding */
+    text-align: left;
+    /* Căn trái để dễ đọc */
 
-.description-appointment {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.5;
-}
+    .description-appointment {
+      font-size: 13px;
+      /* Giảm kích thước chữ */
+      line-height: 1.5;
+    }
 
-.description-appointment:nth-child(1) {
-  font-weight: bold;
-  color: #dc3545;
-  /* Thời gian nổi bật màu đỏ */
-}
+    .description-appointment:nth-child(1) {
+      padding: 3px 6px;
+      /* Giảm padding */
+    }
 
-.description-appointment:nth-child(2) {
-  font-style: italic;
-  /* Dịch vụ in nghiêng */
+    .description-appointment:nth-child(3) {
+      font-size: 12px;
+      /* Nhỏ hơn nữa cho khách hàng/thú cưng */
+    }
+
+    .description-appointment:nth-child(4) {
+      font-size: 12px;
+      padding: 3px 6px;
+    }
+  }
 }
 
 .description-non {
@@ -752,11 +980,6 @@ $transition: all 0.3s ease;
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .calendar-object {
-    grid-template-columns: 1fr;
-    /* Chuyển thành cột trên màn hình nhỏ */
-    text-align: left;
-  }
 
   .celendar-button {
     flex-direction: column;
@@ -806,10 +1029,10 @@ $transition: all 0.3s ease;
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #2196f3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(26px);
 }
