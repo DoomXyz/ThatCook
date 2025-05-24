@@ -1236,6 +1236,7 @@ let loadAppointmentDetails = (appointmentid) => {
           'AppointmentType',
           'PrevAppointmentID',
           'VeterinarianID',
+          'AccountID',
         ],
         include: [
           {
@@ -1308,6 +1309,7 @@ let loadAppointmentDetails = (appointmentid) => {
         Notes: appointment.Notes || 'Không có ghi chú',
         AppointmentStatus: appointment.AppointmentStatus,
         AppointmentType: appointment.AppointmentType,
+        AccountID: appointment.AccountID,
         PrevAppointmentID: appointment.PrevAppointmentID,
         Pet: {
           PetID: appointment.Pet.PetID,
