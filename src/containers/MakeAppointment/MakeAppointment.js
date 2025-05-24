@@ -29,6 +29,7 @@ class MakeAppointment extends Component {
       prevAppointmentID: null,
       isLoggedIn: false,
       accountInfo: null,
+      fuaAccountID: '',
       guestID: '',
       loadedPetList: [],
       customername: '',
@@ -274,6 +275,7 @@ class MakeAppointment extends Component {
               UserImage: data.Veterinarian.UserImage,
             }
             : {},
+          FuAccountID: data.AccountID,
           customername: data.CustomerName,
           customerphone: data.CustomerPhone,
           customeremail: data.CustomerEmail,
@@ -599,7 +601,7 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo,
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, fuaAccountID,
         selectedServiceID, starttime, notes, type, prevAppointmentID, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
@@ -652,7 +654,7 @@ class MakeAppointment extends Component {
         appointmentdate,
         starttime,
         notes,
-        accountid: isLoggedIn ? accountInfo.AccountID : guestID,
+        accountid: (isLoggedIn && type === "FIRST") ? accountInfo.AccountID : (type !== "FIRST") ? fuaAccountID : guestID,
         veterinarianid: selectedVeterinarianInfo.AccountID || null,
         serviceid: selectedServiceID,
         petid: selectedPetID,
