@@ -30,7 +30,6 @@ let handleGetServiceInfo = async (req, res) => {
 
 let handleLoadServiceInfo = async (req, res) => {
     try {
-        console.log("calling: ", req.query)
         const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
         const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
         const search = req.query.search || '';

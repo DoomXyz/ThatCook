@@ -7,7 +7,7 @@ module.exports = {
       [
         // Coupon 1: Khuyến mãi khai trương
         {
-          CouponCode: 'GRANDOPEN25',
+          CouponCode: 'GRANDOPEN',
           CouponDescription: 'Khuyến mãi khai trương, giảm 10% cho đơn hàng lớn',
           MinOrderValue: 500000.00,
           DiscountValue: 10.00,
