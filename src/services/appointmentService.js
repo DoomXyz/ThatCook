@@ -144,7 +144,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
     };
   } else {
     const validService = await db.Service.findOne({
-      where: { ServiceID: serviceid }
+      where: { ServiceID: serviceid, ServiceStatus: 'VALID' }
     });
     if (!validService) {
       return {
@@ -497,7 +497,8 @@ let createAppointment = (customername, customeremail, customerphone, appointment
         return;
       }
       const existService = await db.Service.findOne({
-        where: { ServiceID: serviceid }
+        where: { ServiceID: serviceid, ServiceStatus: 'VALID' },
+        transaction,
       });
       if (!existService) {
         resolve({
@@ -512,20 +513,39 @@ let createAppointment = (customername, customeremail, customerphone, appointment
       const startDateTime = new Date(appointmentdate);
       startDateTime.setHours(startHours, startMinutes);
       const endTime = new Date(startDateTime.getTime() + duration * 60000);
+      let finalVeterinarianID = veterinarianid;
+      if (type === 'FOLLOW_UP' && prevappointmentid) {
+        const prevAppointment = await db.Appointment.findOne({
+          where: { AppointmentID: prevappointmentid },
+          attributes: ['VeterinarianID'],
+          transaction,
+        });
+        if (!prevAppointment || !prevAppointment.VeterinarianID) {
+          await transaction.rollback();
+          resolve({
+            errCode: 2,
+            errMessage: 'Lịch hẹn trước không tồn tại hoặc chưa có bác sĩ!',
+            data: null,
+          });
+          return;
+        }
+        finalVeterinarianID = prevAppointment.VeterinarianID;
+      }
       const appointments = await db.Appointment.findAll({
         where: {
           AppointmentDate: appointmentdate,
-          VeterinarianID: veterinarianid ? veterinarianid : { [Op.ne]: null },
+          VeterinarianID: finalVeterinarianID ? finalVeterinarianID : { [Op.ne]: null },
         },
         attributes: ['AppointmentID', 'AppointmentDate', 'StartTime', 'EndTime', 'VeterinarianID'],
         raw: true,
+        transaction,
       });
-      if (veterinarianid) {
+      if (finalVeterinarianID) {
         const isConflict = appointments.some((app) => {
           const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
           const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
           return (
-            app.VeterinarianID === veterinarianid &&
+            app.VeterinarianID === finalVeterinarianID &&
             startDateTime < appEnd &&
             endTime > appStart
           );
@@ -542,6 +562,7 @@ let createAppointment = (customername, customeremail, customerphone, appointment
         const veterinarians = await db.VeterinarianInfo.findAll({
           attributes: ['AccountID'],
           raw: true,
+          transaction,
         });
         const hasAvailableVet = veterinarians.some((vet) => {
           const vetAppointments = appointments.filter((app) => app.VeterinarianID === vet.AccountID);
@@ -566,6 +587,7 @@ let createAppointment = (customername, customeremail, customerphone, appointment
         return;
       }
       const createdAt = new Date();
+      const appointmentStatus = type === 'FOLLOW_UP' ? 'CONF' : 'PEND';
       await db.Appointment.create({
         AppointmentID: appointmentID,
         CustomerName: customername,
@@ -576,13 +598,24 @@ let createAppointment = (customername, customeremail, customerphone, appointment
         EndTime: endTime.toTimeString().slice(0, 5),
         Notes: notes,
         AccountID: accountid,
-        VeterinarianID: veterinarianid,
+        VeterinarianID: finalVeterinarianID,
         ServiceID: serviceid,
         PetID: petid,
         CreatedAt: createdAt,
-        AppointmentStatus: 'PEND',
-        AppointmentType: 'FIRST'
+        AppointmentStatus: appointmentStatus,
+        AppointmentType: type,
+        PrevAppointmentID: prevappointmentid,
       }, { transaction });
+      if (type === 'FOLLOW_UP' && finalVeterinarianID) {
+        await db.Schedule.create({
+          VeterinarianID: finalVeterinarianID,
+          AppointmentID: appointmentID,
+          Date: appointmentdate,
+          StartTime: starttime,
+          EndTime: endTime.toTimeString().slice(0, 5),
+          ScheduleStatus: 'PEND',
+        }, { transaction });
+      }
       if (imageInfo && imageInfo.length > 0) {
         if (imageInfo.length > 3) {
           await transaction.rollback();
@@ -649,7 +682,9 @@ let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
         });
         return;
       }
-      const service = await db.Service.findOne({ where: { ServiceID: serviceID } });
+      const service = await db.Service.findOne({
+        where: { ServiceID: serviceID, ServiceStatus: 'VALID' }
+      });
       if (!service) {
         resolve({
           errCode: 1,
@@ -747,6 +782,7 @@ let getServiceInfo = (serviceid) => {
       let data = null;
       if (serviceid === 'ALL') {
         const services = await db.Service.findAll({
+          where: { ServiceStatus: 'VALID' },
           attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
           raw: true,
         });
@@ -761,7 +797,7 @@ let getServiceInfo = (serviceid) => {
         data = services;
       } else {
         const service = await db.Service.findOne({
-          where: { ServiceID: serviceid },
+          where: { ServiceID: serviceid, ServiceStatus: 'VALID' },
           attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
           raw: true,
         });
@@ -1211,7 +1247,7 @@ let loadAppointmentDetails = (appointmentid) => {
           {
             model: db.Pet,
             as: 'Pet',
-            attributes: ['PetName', 'PetType', 'PetWeight', 'Age', 'PetGender'],
+            attributes: ['PetID', 'PetName', 'PetType', 'PetWeight', 'Age', 'PetGender'],
             required: true,
           },
           {
@@ -1232,6 +1268,20 @@ let loadAppointmentDetails = (appointmentid) => {
             as: 'Schedule',
             attributes: ['ScheduleID', 'ScheduleStatus'],
             required: false,
+          },
+          {
+            model: db.Account,
+            as: 'Veterinarian',
+            attributes: ['UserName', 'UserImage'],
+            required: false,
+            include: [
+              {
+                model: db.VeterinarianInfo,
+                as: 'VeterinarianInfo',
+                attributes: ['Specialization'],
+                required: false,
+              },
+            ],
           },
         ],
         raw: false,
@@ -1260,6 +1310,7 @@ let loadAppointmentDetails = (appointmentid) => {
         AppointmentType: appointment.AppointmentType,
         PrevAppointmentID: appointment.PrevAppointmentID,
         Pet: {
+          PetID: appointment.Pet.PetID,
           PetName: appointment.Pet.PetName,
           PetType: appointment.Pet.PetType,
           PetWeight: appointment.Pet.PetWeight,
@@ -1275,7 +1326,15 @@ let loadAppointmentDetails = (appointmentid) => {
         Images: appointment.Images || [],
         ScheduleID: appointment.Schedule ? appointment.Schedule.ScheduleID : null,
         ScheduleStatus: appointment.Schedule ? appointment.Schedule.ScheduleStatus : null,
-        VeterinarianID: appointment.VeterinarianID
+        VeterinarianID: appointment.VeterinarianID,
+        Veterinarian: appointment.Veterinarian
+          ? {
+            AccountID: appointment.VeterinarianID,
+            UserName: appointment.Veterinarian.UserName,
+            UserImage: appointment.Veterinarian.UserImage,
+            Specialization: appointment.Veterinarian.VeterinarianInfo?.Specialization || null,
+          }
+          : null,
       };
 
       resolve({
@@ -1442,7 +1501,7 @@ let createAppointmentBill = (veterinarianid, appointmentid, serviceprice, medica
       resolve({
         errCode: 0,
         errMessage: 'Tạo hóa đơn lịch hẹn thành công!',
-        data: { AppointmentBillID: appointmentBill.AppointmentBillID },
+        data: { AppointmentID: appointmentBill.AppointmentID },
       });
     } catch (e) {
       await transaction.rollback();

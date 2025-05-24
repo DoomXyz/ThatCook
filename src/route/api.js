@@ -96,6 +96,10 @@ let initAPIRoutes = (app) => {
     router.post('/api/create-code', utilitiesController.handleCreateCode);
     router.put('/api/change-codeinfo', utilitiesController.handleChangeCodeInfo)
 
+    router.get('/api/load-serviceinfo', utilitiesController.handleLoadServiceInfo);
+    router.post('/api/create-service', utilitiesController.handleCreateService);
+    router.put('/api/change-serviceinfo', utilitiesController.handleChangeServiceInfo);
+    router.put('/api/change-servicestatus', utilitiesController.handleChangeServiceStatus);
     //owner
     router.get('/api/load-productinfo', productController.handleLoadProductInfo);
     router.get('/api/get-productinfo', productController.handleGetProductInfo);

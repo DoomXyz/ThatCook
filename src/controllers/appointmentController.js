@@ -149,7 +149,6 @@ let handleGetAppointmentBillDetail = async (req, res) => {
   }
 };
 
-
 module.exports = {
   handleCreateAppointment,
   handleGetAvailableTimes,

@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      ServiceStatus: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        // Liên kết với Code từ ALLCODES (Type = 'ServiceStatus')
+      },
     },
     {
       sequelize,

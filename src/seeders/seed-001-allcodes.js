@@ -102,6 +102,10 @@ module.exports = {
         // PetStatus
         { Type: 'PetStatus', Code: 'VALID', CodeValueVI: 'Hiện diện', ExtraValue: null },
         { Type: 'PetStatus', Code: 'DELET', CodeValueVI: 'Đã xóa', ExtraValue: null },
+
+        // ServiceStatus
+        { Type: 'ServiceStatus', Code: 'VALID', CodeValueVI: 'Hoạt động', ExtraValue: null },
+        { Type: 'ServiceStatus', Code: 'INVALID', CodeValueVI: 'Tạm dừng', ExtraValue: null },
       ],
       {}
     );
