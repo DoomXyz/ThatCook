@@ -1,35 +1,20 @@
 import productService from '../services/productService';
 
-let handleLoadProductInfo = async (req, res) => {
-  try {
-    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
-    const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
-    const search = req.query.search || '';
-    const filter = req.query.filter || 'ALL';
-    const sort = req.query.sort || '0';
-    let response = await productService.loadProductInfo(page, limit, search, filter, sort);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log('Error in handleLoadProductInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
-  }
+const handleError = (res, e) => {
+  console.log(e);
+  return res.status(500).json({
+    errCode: 3,
+    errMessage: `Lỗi từ server: ${e.message}`,
+    data: null,
+  });
 };
 
-let handleGetProductInfo = async (req, res) => {
+let handleGetSaleProductInfo = async (req, res) => {
   try {
-    let response = await productService.getProductInfo(req.query.productid);
+    let response = await productService.getSaleProductInfo(req.query.productid);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleGetProductInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -43,26 +28,30 @@ let handleLoadSaleProductInfo = async (req, res) => {
     let response = await productService.loadSaleProductInfo(page, limit, search, filter, sort);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleLoadSaleProductInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
-let handleGetSaleProductInfo = async (req, res) => {
+let handleGetProductInfo = async (req, res) => {
   try {
-    let response = await productService.getSaleProductInfo(req.query.productid);
+    let response = await productService.getProductInfo(req.query.productid);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleGetSaleProductInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
+  }
+};
+
+let handleLoadProductInfo = async (req, res) => {
+  try {
+    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
+    const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
+    const search = req.query.search || '';
+    const filter = req.query.filter || 'ALL';
+    const sort = req.query.sort || '0';
+    let response = await productService.loadProductInfo(page, limit, search, filter, sort);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
   }
 };
 
@@ -72,12 +61,7 @@ let handleGetProductDetailInfo = async (req, res) => {
     let response = await productService.getProductDetailInfo(productid, productdetailid);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleGetProductDetailInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -86,12 +70,7 @@ let handleCreateProduct = async (req, res) => {
     let response = await productService.createProduct(req.body);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -100,12 +79,7 @@ let handleChangeProductInfo = async (req, res) => {
     let response = await productService.changeProductInfo(req.body);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -116,20 +90,15 @@ let handleLoadFilteredProductInfo = async (req, res) => {
     let response = await productService.loadFilteredProductInfo(filterProductType, filterPetType);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleLoadFilteredProductInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
 module.exports = {
-  handleLoadProductInfo,
-  handleGetProductInfo,
-  handleLoadSaleProductInfo,
   handleGetSaleProductInfo,
+  handleLoadSaleProductInfo,
+  handleGetProductInfo,
+  handleLoadProductInfo,
   handleGetProductDetailInfo,
   handleCreateProduct,
   handleChangeProductInfo,

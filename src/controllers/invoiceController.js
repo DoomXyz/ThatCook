@@ -1,46 +1,20 @@
 import invoiceService from '../services/invoiceService';
 
-let handleCreateInvoice = async (req, res) => {
-  try {
-    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid } = req.body;
-    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
+const handleError = (res, e) => {
+  console.log(e);
+  return res.status(500).json({
+    errCode: 3,
+    errMessage: `Lỗi từ server: ${e.message}`,
+    data: null,
+  });
 };
 
 let handleGetAccountInvoiceInfo = async (req, res) => {
   try {
-    const mataikhoan = req.query.mataikhoan;
     let response = await invoiceService.getAccountInvoiceInfo(req.query.accountid);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-
-let handleGetInvoiceDetailInfo = async (req, res) => {
-  try {
-    let response = await invoiceService.getInvoiceDetailInfo(req.query.invoiceid);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log('Error in handleGetProductDetailInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -55,12 +29,26 @@ let handleLoadInvoiceInfo = async (req, res) => {
     let response = await invoiceService.loadInvoiceInfo(page, limit, search, filter, sort, date);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleLoadInvoiceInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
+  }
+};
+
+let handleGetInvoiceDetailInfo = async (req, res) => {
+  try {
+    let response = await invoiceService.getInvoiceDetailInfo(req.query.invoiceid);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+let handleCreateInvoice = async (req, res) => {
+  try {
+    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid } = req.body;
+    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
   }
 };
 
@@ -71,17 +59,14 @@ let handleChangeInvoiceStatus = async (req, res) => {
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
+
 module.exports = {
-  handleCreateInvoice,
   handleGetAccountInvoiceInfo,
-  handleGetInvoiceDetailInfo,
   handleLoadInvoiceInfo,
+  handleGetInvoiceDetailInfo,
+  handleCreateInvoice,
   handleChangeInvoiceStatus,
 };

@@ -1,102 +1,4 @@
-import { where } from 'sequelize';
 import db from '../models/index';
-
-let addToCart = (accountid, cartInfo) => {
-  return new Promise(async (resolve, reject) => {
-    const transaction = await db.sequelize.transaction();
-    try {
-      if (!accountid || !cartInfo || !Array.isArray(cartInfo) || cartInfo.length === 0) {
-        await transaction.rollback();
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu hoặc sai định dạng tham số!',
-          data: null,
-        });
-        return;
-      }
-      const account = await db.Account.findOne({
-        where: { AccountID: accountid },
-        transaction,
-      });
-      if (!account) {
-        await transaction.rollback();
-        resolve({
-          errCode: 1,
-          errMessage: 'Tài khoản không tồn tại!',
-          data: null,
-        });
-        return;
-      }
-      for (const item of cartInfo) {
-        const { ProductID, ProductDetailID, ItemPrice, ItemQuantity } = item;
-        if (!ProductID || !ProductDetailID || ItemPrice === undefined || ItemQuantity === undefined || ItemQuantity <= 0 || ItemPrice < 0) {
-          await transaction.rollback();
-          resolve({
-            errCode: 1,
-            errMessage: 'Thông tin sản phẩm không hợp lệ!',
-            data: null,
-          });
-          return;
-        }
-        const productDetail = await db.ProductDetail.findOne({
-          where: { ProductID, ProductDetailID, DetailStatus: 'AVAIL' },
-          attributes: ['Stock'],
-          transaction,
-        });
-        if (!productDetail) {
-          await transaction.rollback();
-          resolve({
-            errCode: 1,
-            errMessage: `Chi tiết sản phẩm ${ProductID}-${ProductDetailID} không tồn tại hoặc hết hàng!`,
-            data: null,
-          });
-          return;
-        }
-        if (ItemQuantity > productDetail.Stock) {
-          await transaction.rollback();
-          resolve({
-            errCode: 1,
-            errMessage: `Số lượng yêu cầu vượt quá tồn kho cho sản phẩm ${ProductID}!`,
-            data: null,
-          });
-          return;
-        }
-        let cartItem = await db.CartItem.findOne({
-          where: { AccountID: accountid, ProductID, ProductDetailID },
-          raw: false,
-          transaction,
-        });
-        if (cartItem) {
-          cartItem.ItemQuantity += ItemQuantity;
-          cartItem.ItemPrice = ItemPrice;
-          await cartItem.save({ transaction });
-        } else {
-          await db.CartItem.create({
-            AccountID: accountid,
-            ProductID,
-            ProductDetailID,
-            ItemPrice,
-            ItemQuantity,
-          }, { transaction });
-        }
-      }
-      await transaction.commit();
-      resolve({
-        errCode: 0,
-        errMessage: 'Thêm vào giỏ hàng thành công!',
-        data: null,
-      });
-    } catch (e) {
-      await transaction.rollback();
-      console.log('Error in addToCart: ', e);
-      resolve({
-        errCode: 3,
-        errMessage: `Lỗi khi thêm vào giỏ hàng: ${e.message}`,
-        data: null,
-      });
-    }
-  });
-};
 
 let getCart = (accountid) => {
   return new Promise(async (resolve, reject) => {
@@ -297,6 +199,103 @@ let getDetailList = (cartInfo) => {
   });
 };
 
+let addToCart = (accountid, cartInfo) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      if (!accountid || !cartInfo || !Array.isArray(cartInfo) || cartInfo.length === 0) {
+        await transaction.rollback();
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu hoặc sai định dạng tham số!',
+          data: null,
+        });
+        return;
+      }
+      const account = await db.Account.findOne({
+        where: { AccountID: accountid },
+        transaction,
+      });
+      if (!account) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Tài khoản không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+      for (const item of cartInfo) {
+        const { ProductID, ProductDetailID, ItemPrice, ItemQuantity } = item;
+        if (!ProductID || !ProductDetailID || ItemPrice === undefined || ItemQuantity === undefined || ItemQuantity <= 0 || ItemPrice < 0) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Thông tin sản phẩm không hợp lệ!',
+            data: null,
+          });
+          return;
+        }
+        const productDetail = await db.ProductDetail.findOne({
+          where: { ProductID, ProductDetailID, DetailStatus: 'AVAIL' },
+          attributes: ['Stock'],
+          transaction,
+        });
+        if (!productDetail) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: `Chi tiết sản phẩm ${ProductID}-${ProductDetailID} không tồn tại hoặc hết hàng!`,
+            data: null,
+          });
+          return;
+        }
+        if (ItemQuantity > productDetail.Stock) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: `Số lượng yêu cầu vượt quá tồn kho cho sản phẩm ${ProductID}!`,
+            data: null,
+          });
+          return;
+        }
+        let cartItem = await db.CartItem.findOne({
+          where: { AccountID: accountid, ProductID, ProductDetailID },
+          raw: false,
+          transaction,
+        });
+        if (cartItem) {
+          cartItem.ItemQuantity += ItemQuantity;
+          cartItem.ItemPrice = ItemPrice;
+          await cartItem.save({ transaction });
+        } else {
+          await db.CartItem.create({
+            AccountID: accountid,
+            ProductID,
+            ProductDetailID,
+            ItemPrice,
+            ItemQuantity,
+          }, { transaction });
+        }
+      }
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Thêm vào giỏ hàng thành công!',
+        data: null,
+      });
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Error in addToCart: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi thêm vào giỏ hàng: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
 let updateQuantity = (accountid, productid, productdetailid, quantity) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
@@ -387,64 +386,6 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
     } catch (e) {
       await transaction.rollback();
       console.log('Error in updateQuantity: ', e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
-let removeFromCart = (accountid, productid, productdetailid) => {
-  return new Promise(async (resolve, reject) => {
-    const transaction = await db.sequelize.transaction();
-    try {
-      if (!accountid || !productid || !productdetailid) {
-        await transaction.rollback();
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      const cartItem = await db.CartItem.findOne({
-        where: {
-          AccountID: accountid,
-          ProductID: productid,
-          ProductDetailID: productdetailid,
-        },
-        transaction,
-      });
-      if (!cartItem) {
-        await transaction.rollback();
-        resolve({
-          errCode: 2,
-          errMessage: 'Sản phẩm không tồn tại trong giỏ hàng!',
-          data: null,
-        });
-        return;
-      }
-
-      await db.CartItem.destroy({
-        where: {
-          AccountID: accountid,
-          ProductID: productid,
-          ProductDetailID: productdetailid,
-        },
-        transaction,
-      });
-
-      await transaction.commit();
-      resolve({
-        errCode: 0,
-        errMessage: 'Xóa sản phẩm khỏi giỏ hàng thành công!',
-        data: null,
-      });
-    } catch (e) {
-      await transaction.rollback();
-      console.log('Error in removeFromCart: ', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
@@ -670,13 +611,71 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
   });
 };
 
+let removeFromCart = (accountid, productid, productdetailid) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      if (!accountid || !productid || !productdetailid) {
+        await transaction.rollback();
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const cartItem = await db.CartItem.findOne({
+        where: {
+          AccountID: accountid,
+          ProductID: productid,
+          ProductDetailID: productdetailid,
+        },
+        transaction,
+      });
+      if (!cartItem) {
+        await transaction.rollback();
+        resolve({
+          errCode: 2,
+          errMessage: 'Sản phẩm không tồn tại trong giỏ hàng!',
+          data: null,
+        });
+        return;
+      }
+
+      await db.CartItem.destroy({
+        where: {
+          AccountID: accountid,
+          ProductID: productid,
+          ProductDetailID: productdetailid,
+        },
+        transaction,
+      });
+
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Xóa sản phẩm khỏi giỏ hàng thành công!',
+        data: null,
+      });
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Error in removeFromCart: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
 module.exports = {
-  addToCart,
   getCart,
   getCartDetail,
   getDetailList,
+  addToCart,
   updateQuantity,
-  removeFromCart,
   updateCartDetail,
   mergeCartDetail,
+  removeFromCart,
 };

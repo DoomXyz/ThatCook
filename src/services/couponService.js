@@ -1,6 +1,7 @@
 import db from '../models/index';
-import { Op, literal } from 'sequelize';
-import { checkDiscountType, checkCouponStatus } from './utilitiesService';
+import { Op } from 'sequelize';
+import { checkValidAllCode } from './utilitiesService';
+
 let validateCouponInput = async (couponInfo) => {
     if (!couponInfo || Object.keys(couponInfo).length === 0) {
         return {
@@ -34,7 +35,7 @@ let validateCouponInput = async (couponInfo) => {
     if (!discounttype) {
         return { errCode: -1, errMessage: 'Loại giảm giá không được để trống!', data: null };
     } else {
-        const validDiscountType = checkDiscountType(discounttype);
+        const validDiscountType = await checkValidAllCode('DiscountType', discounttype);
         if (!validDiscountType) {
             return {
                 errCode: 1,
@@ -99,78 +100,6 @@ let checkCouponCodeExist = (couponcode) => {
             resolve({
                 errCode: 3,
                 errMessage: 'Lỗi khi kiểm tra tên tài khoản: ' + e.message,
-                data: null,
-            });
-        }
-    });
-};
-
-let checkCoupon = (couponcode, price) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (!couponcode || !price) {
-                resolve({
-                    errCode: -1,
-                    errMessage: 'Thiếu tham số!',
-                    data: null,
-                });
-                return;
-            }
-            let discountAmout = 0;
-            const couponInfo = await db.Coupon.findOne({
-                where: { CouponCode: couponcode, CouponStatus: 'ACTIVE' },
-                attributes: ['DiscountType', 'DiscountValue', 'MaxDiscount', 'MinOrderValue', 'StartDate', 'EndDate'],
-            });
-            if (!couponInfo) {
-                resolve({
-                    errCode: 1,
-                    errMessage: 'Mã giảm giá không tồn tại hoặc đã hết hạn!',
-                    data: discountAmout,
-                });
-                return;
-            }
-            const currentDate = new Date();
-            if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
-                resolve({
-                    errCode: 2,
-                    errMessage: 'Mã giảm giá không trong thời gian hiệu lực!',
-                    data: discountAmout,
-                });
-                return;
-            }
-            if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
-                resolve({
-                    errCode: 2,
-                    errMessage: 'Mã giảm giá chưa bắt đầu!',
-                    data: discountAmout,
-                });
-                return;
-            }
-            if (parseFloat(price) < parseFloat(couponInfo.MinOrderValue)) {
-                resolve({
-                    errCode: 2,
-                    errMessage: 'Không thể áp dụng mã giảm giá!',
-                    data: discountAmout,
-                });
-                return;
-            }
-            let discountValue = 0;
-            if (couponInfo.DiscountType === 'FIXED') {
-                discountValue = parseFloat(couponInfo.DiscountValue);
-            } else {
-                discountValue = price * (parseFloat(couponInfo.DiscountValue) / 100);
-            }
-            discountValue = price - discountValue > couponInfo.MaxDiscount ? couponInfo.MaxDiscount : discountValue;
-            resolve({
-                errCode: 0,
-                errMessage: 'Kiểm tra giảm giá thành công!',
-                data: discountValue,
-            });
-        } catch (e) {
-            console.log(e);
-            resolve({
-                errCode: 3,
-                errMessage: 'Lỗi khi kiểm tra thông tin: ' + e.message,
                 data: null,
             });
         }
@@ -287,7 +216,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
             if (filter !== 'ALL') {
                 const [field, value] = filter.split('-');
                 if (field === 'couponstatus') {
-                    const validCouponStatus = await checkCouponStatus(value);
+                    const validCouponStatus = await checkValidAllCode('CouponStatus', value);
                     if (!validCouponStatus) {
                         resolve({
                             errCode: 1,
@@ -298,7 +227,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                     }
                     where.CouponStatus = value;
                 } else if (field === 'discounttype') {
-                    const validDiscountType = await checkDiscountType(value);
+                    const validDiscountType = await checkValidAllCode('DiscountType', value);
                     if (!validDiscountType) {
                         resolve({
                             errCode: 1,
@@ -474,9 +403,81 @@ let createCoupon = (couponInfo) => {
     });
 };
 
+let checkCoupon = (couponcode, price) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!couponcode || !price) {
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu tham số!',
+                    data: null,
+                });
+                return;
+            }
+            let discountAmout = 0;
+            const couponInfo = await db.Coupon.findOne({
+                where: { CouponCode: couponcode, CouponStatus: 'ACTIVE' },
+                attributes: ['DiscountType', 'DiscountValue', 'MaxDiscount', 'MinOrderValue', 'StartDate', 'EndDate'],
+            });
+            if (!couponInfo) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Mã giảm giá không tồn tại hoặc đã hết hạn!',
+                    data: discountAmout,
+                });
+                return;
+            }
+            const currentDate = new Date();
+            if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Mã giảm giá không trong thời gian hiệu lực!',
+                    data: discountAmout,
+                });
+                return;
+            }
+            if (couponInfo.StartDate > currentDate || couponInfo.EndDate < currentDate) {
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Mã giảm giá chưa bắt đầu!',
+                    data: discountAmout,
+                });
+                return;
+            }
+            if (parseFloat(price) < parseFloat(couponInfo.MinOrderValue)) {
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Không thể áp dụng mã giảm giá!',
+                    data: discountAmout,
+                });
+                return;
+            }
+            let discountValue = 0;
+            if (couponInfo.DiscountType === 'FIXED') {
+                discountValue = parseFloat(couponInfo.DiscountValue);
+            } else {
+                discountValue = price * (parseFloat(couponInfo.DiscountValue) / 100);
+            }
+            discountValue = price - discountValue > couponInfo.MaxDiscount ? couponInfo.MaxDiscount : discountValue;
+            resolve({
+                errCode: 0,
+                errMessage: 'Kiểm tra giảm giá thành công!',
+                data: discountValue,
+            });
+        } catch (e) {
+            console.log(e);
+            resolve({
+                errCode: 3,
+                errMessage: 'Lỗi khi kiểm tra thông tin: ' + e.message,
+                data: null,
+            });
+        }
+    });
+};
+
 module.exports = {
-    checkCoupon,
     getCouponInfo,
     loadCouponInfo,
     createCoupon,
+    checkCoupon,
 };

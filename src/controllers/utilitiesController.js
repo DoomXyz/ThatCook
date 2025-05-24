@@ -1,16 +1,20 @@
 import utilitiesService from '../services/utilitiesService';
 
+const handleError = (res, e) => {
+  console.log(e);
+  return res.status(500).json({
+    errCode: 3,
+    errMessage: `Lỗi từ server: ${e.message}`,
+    data: null,
+  });
+};
+
 let handleGetAllCodes = async (req, res) => {
   try {
     let response = await utilitiesService.getAllCodes(req.query.type);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleGetAllCodes: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -24,12 +28,7 @@ let handleLoadAllCodesInfo = async (req, res) => {
     let response = await utilitiesService.loadAllCodesInfo(page, limit, search, filter, sort);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleLoadAllCodesInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -38,12 +37,7 @@ let handleCreateCode = async (req, res) => {
     let response = await utilitiesService.createCode(req.body);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -52,75 +46,7 @@ let handleChangeCodeInfo = async (req, res) => {
     let response = await utilitiesService.changeCodeInfo(req.body);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-
-let handleLoadServiceInfo = async (req, res) => {
-  try {
-    console.log("calling: ", req.query)
-    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
-    const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
-    const search = req.query.search || '';
-    const filter = req.query.filter || 'ALL';
-    const sort = req.query.sort || '0';
-    let response = await utilitiesService.loadServiceInfo(page, limit, search, filter, sort);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log('Error in handleLoadServiceInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
-  }
-};
-
-let handleCreateService = async (req, res) => {
-  try {
-    let response = await utilitiesService.createService(req.body);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log('Error in handleCreateService: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
-  }
-};
-
-let handleChangeServiceInfo = async (req, res) => {
-  try {
-    let response = await serviceService.changeServiceInfo(req.body);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log('Error in handleChangeServiceInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
-  }
-};
-
-let handleChangeServiceStatus = async (req, res) => {
-  try {
-    const { serviceID, newStatus } = req.body;
-    let response = await serviceService.changeServiceStatus(serviceID, newStatus);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log('Error in handleChangeServiceStatus: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: `Lỗi từ server: ${e.message}`,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -129,8 +55,4 @@ module.exports = {
   handleLoadAllCodesInfo,
   handleCreateCode,
   handleChangeCodeInfo,
-  handleLoadServiceInfo,
-  handleCreateService,
-  handleChangeServiceInfo,
-  handleChangeServiceStatus,
 };

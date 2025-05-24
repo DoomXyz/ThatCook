@@ -1,6 +1,6 @@
 import db from '../models/index';
-import { Op, literal } from 'sequelize';
-import { checkScheduleStatus } from './utilitiesService';
+import { Op } from 'sequelize';
+import { checkValidAllCode } from './utilitiesService';
 
 let cancelExpiredSchedules = () => {
     return new Promise(async (resolve, reject) => {
@@ -58,6 +58,7 @@ let cancelExpiredSchedules = () => {
         }
     });
 };
+
 const rejectSchedule = async (scheduleid, transaction) => {
     try {
         const schedule = await db.Schedule.findOne({
@@ -118,6 +119,7 @@ const rejectSchedule = async (scheduleid, transaction) => {
         throw new Error(`Lỗi khi hủy lịch làm việc: ${e.message}`);
     }
 };
+
 let loadSchedule = (veterinarianid, startDate) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -211,6 +213,7 @@ let loadSchedule = (veterinarianid, startDate) => {
         }
     });
 };
+
 const changeScheduleStatus = (scheduleid, schedulestatus) => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
@@ -224,7 +227,7 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                 });
                 return;
             }
-            const validScheduleStatus = await checkScheduleStatus(schedulestatus);
+            const validScheduleStatus = await checkValidAllCode('ScheduleStatus', schedulestatus);
             if (!validScheduleStatus) {
                 await transaction.rollback();
                 resolve({
@@ -293,6 +296,7 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
         }
     });
 };
+
 module.exports = {
     loadSchedule,
     changeScheduleStatus

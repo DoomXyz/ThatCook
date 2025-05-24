@@ -1,6 +1,6 @@
 import db from '../models/index';
 import { Op, literal } from 'sequelize';
-import { checkProductType, checkPetType, checkDetailStatus } from './utilitiesService';
+import { checkValidAllCode, generateID } from './utilitiesService';
 
 let validateProductInput = async (productInfo) => {
   if (!productInfo || Object.keys(productInfo).length === 0) {
@@ -35,7 +35,7 @@ let validateProductInput = async (productInfo) => {
       data: null,
     };
   } else {
-    const validProductType = await checkProductType(ProductType);
+    const validProductType = await checkValidAllCode('ProductType', ProductType);
     if (!validProductType) {
       return {
         errCode: 1,
@@ -78,7 +78,7 @@ let validateProductInput = async (productInfo) => {
     };
   } else {
     for (const petType of PetType) {
-      const validPetType = await checkPetType(petType);
+      const validPetType = await checkValidAllCode('PetType', petType);
       if (!validPetType) {
         return {
           errCode: 1,
@@ -159,7 +159,7 @@ let validateProductInput = async (productInfo) => {
           data: null,
         };
       } else {
-        const validDetailStatus = await checkDetailStatus(detail.DetailStatus);
+        const validDetailStatus = await checkValidAllCode('DetailStatus', detail.DetailStatus);
         if (!validDetailStatus) {
           return {
             errCode: 1,
@@ -218,45 +218,6 @@ let checkProductNameExist = (productName, excludeProductId) => {
   });
 };
 
-let generateProductID = () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const prefix = 'P'; // Prefix cho Product
-      const timestamp = Date.now().toString();
-      const timestampDigits = timestamp.slice(-9); // Lấy 9 chữ số cuối
-      let productId = `${prefix}${timestampDigits}`;
-      let existingProduct = await db.Product.findOne({
-        where: { ProductID: productId },
-      });
-      let attempts = 0;
-      while (existingProduct && attempts < 5) {
-        const newTimestamp = Date.now().toString();
-        const newTimestampDigits = newTimestamp.slice(-9);
-        productId = `${prefix}${newTimestampDigits}`;
-        attempts++;
-        existingProduct = await db.Product.findOne({
-          where: { ProductID: productId },
-        });
-      }
-      if (attempts >= 5) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Tạo mã sản phẩm thất bại!',
-          data: null,
-        });
-      }
-      resolve(productId);
-    } catch (e) {
-      console.log(e);
-      resolve({
-        errCode: 3,
-        errMessage: 'Lỗi khi tạo mã sản phẩm: ' + e.message,
-        data: null,
-      });
-    }
-  });
-};
-
 let updateOutOfStock = (productid) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
@@ -283,6 +244,449 @@ let updateOutOfStock = (productid) => {
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi cập nhật trạng thái chi tiết sản phẩm: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
+let getSaleProductInfo = (productid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!productid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+
+      await updateOutOfStock();
+
+      let data = null;
+      if (productid === 'ALL') {
+        const products = await db.Product.findAll({
+          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
+          raw: true,
+        });
+
+        if (!products || products.length === 0) {
+          resolve({
+            errCode: 0,
+            errMessage: 'Không tìm thấy sản phẩm nào!',
+            data: [],
+          });
+          return;
+        }
+
+        data = await Promise.all(
+          products.map(async (product) => {
+            const petType = await db.ProductPetType.findAll({
+              where: { ProductID: product.ProductID },
+              attributes: ['PetType'],
+              raw: true,
+            });
+            const detail = await db.ProductDetail.findAll({
+              where: { ProductID: product.ProductID, DetailStatus: 'AVAIL' },
+              attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion'],
+              raw: true,
+            });
+            const image = await db.Image.findAll({
+              where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
+              attributes: ['ImageID', 'Image'],
+              raw: true,
+            });
+            return {
+              ProductID: product.ProductID,
+              ProductName: product.ProductName,
+              ProductDescription: product.ProductDescription,
+              ProductPrice: product.ProductPrice,
+              ProductImage: product.ProductImage,
+              ProductType: product.ProductType,
+              PetType: petType.map(pt => pt.PetType),
+              ProductDetail: detail,
+              Image: image,
+            };
+          })
+        );
+      } else {
+        const product = await db.Product.findOne({
+          where: { ProductID: productid },
+          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
+          raw: true,
+        });
+
+        if (!product) {
+          resolve({
+            errCode: 2,
+            errMessage: 'Sản phẩm không tồn tại!',
+            data: null,
+          });
+          return;
+        }
+
+        const petType = await db.ProductPetType.findAll({
+          where: { ProductID: product.ProductID },
+          attributes: ['PetType'],
+          raw: true,
+        });
+        const detail = await db.ProductDetail.findAll({
+          where: { ProductID: product.ProductID, DetailStatus: 'AVAIL' },
+          attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion'],
+          raw: true,
+        });
+        const image = await db.Image.findAll({
+          where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
+          attributes: ['ImageID', 'Image'],
+          raw: true,
+        });
+
+        data = {
+          ProductID: product.ProductID,
+          ProductName: product.ProductName,
+          ProductDescription: product.ProductDescription,
+          ProductPrice: product.ProductPrice,
+          ProductImage: product.ProductImage,
+          ProductType: product.ProductType,
+          PetType: petType.map(pt => pt.PetType),
+          ProductDetail: detail,
+          Image: image,
+        };
+      }
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin sản phẩm thành công!',
+        data,
+      });
+    } catch (e) {
+      console.log('Error in getSaleProductInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy thông tin sản phẩm: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
+let loadSaleProductInfo = (page, limit, search, filter, sort) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!page || !limit || page < 1 || limit < 1) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Tham số page hoặc limit không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      if (filter !== 'ALL' && filter !== 'PROMOTION' && !filter.includes('-')) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tham số filter không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      if (sort && !['0', '1', '2', '3', '4'].includes(sort)) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tham số sort không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+
+      await updateOutOfStock();
+
+      const offset = (page - 1) * limit;
+      let where = {};
+      let order = [];
+
+      if (search?.trim()) {
+        const searchTerm = search.trim().substring(0, 100);
+        where[Op.or] = [{ ProductName: { [Op.like]: `%${searchTerm}%` } }];
+      }
+
+      if (filter !== 'ALL') {
+        if (filter === 'PROMOTION') {
+          const detail = await db.ProductDetail.findAll({
+            where: {
+              Promotion: { [Op.gt]: 0 },
+              Stock: { [Op.gt]: 0 },
+              DetailStatus: 'AVAIL',
+            },
+            attributes: ['ProductID'],
+            raw: true,
+          });
+          const productIds = [...new Set(detail.map(d => d.ProductID))];
+          if (productIds.length === 0) {
+            resolve({
+              errCode: 0,
+              errMessage: 'Không tìm thấy sản phẩm khuyến mãi!',
+              data: [],
+              totalItems: 0,
+            });
+            return;
+          }
+          where.ProductID = { [Op.in]: productIds };
+        } else {
+          const [field, value] = filter.split('-');
+          if (field === 'producttype') {
+            const validProductType = await checkValidAllCode('ProductType', value);
+            if (!validProductType) {
+              resolve({
+                errCode: 1,
+                errMessage: 'Loại sản phẩm không hợp lệ!',
+                data: null,
+              });
+              return;
+            }
+            where.ProductType = value;
+          } else if (field === 'pettype') {
+            const validPetType = await checkValidAllCode('PetType', value);
+            if (!validPetType) {
+              resolve({
+                errCode: 1,
+                errMessage: 'Loại thú cưng không hợp lệ!',
+                data: null,
+              });
+              return;
+            }
+            const products = await db.ProductPetType.findAll({
+              where: { PetType: value },
+              attributes: ['ProductID'],
+              raw: true,
+            });
+            const productIds = products.map(p => p.ProductID);
+            if (productIds.length === 0) {
+              resolve({
+                errCode: 0,
+                errMessage: 'Không tìm thấy sản phẩm nào!',
+                data: [],
+                totalItems: 0,
+              });
+              return;
+            }
+            where.ProductID = { [Op.in]: productIds };
+          } else {
+            resolve({
+              errCode: 1,
+              errMessage: 'Tham số filter không hợp lệ!',
+              data: null,
+            });
+            return;
+          }
+        }
+      }
+
+      switch (sort) {
+        case '1':
+          order.push([literal(`(SELECT SUM(SoldCount) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID)`), 'DESC']);
+          break;
+        case '2':
+          order.push([literal(`(SELECT MIN((ProductPrice + ExtraPrice) * (1 - Promotion / 100)) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID AND ProductDetail.Stock > 0 AND ProductDetail.DetailStatus = 'AVAIL')`), 'ASC']);
+          break;
+        case '3':
+          order.push([literal(`(SELECT MIN((ProductPrice + ExtraPrice) * (1 - Promotion / 100)) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID AND ProductDetail.Stock > 0 AND ProductDetail.DetailStatus = 'AVAIL')`), 'DESC']);
+          break;
+        case '4':
+          order.push([literal(`(SELECT MAX(CreatedAt) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID)`), 'DESC']);
+          break;
+        default:
+          order.push([literal(`(SELECT MAX(CreatedAt) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID)`), 'DESC']);
+          break;
+      }
+
+      const { count, rows } = await db.Product.findAndCountAll({
+        where,
+        attributes: ['ProductID', 'ProductName', 'ProductPrice', 'ProductImage'],
+        raw: true,
+        limit: parseInt(limit),
+        offset,
+        order,
+        distinct: true,
+      });
+
+      if (!rows || rows.length === 0) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Không tìm thấy sản phẩm nào!',
+          data: [],
+          totalItems: 0,
+        });
+        return;
+      }
+
+      const productIds = rows.map(p => p.ProductID);
+      const detail = await db.ProductDetail.findAll({
+        where: {
+          ProductID: { [Op.in]: productIds },
+          DetailStatus: 'AVAIL',
+          Stock: { [Op.gt]: 0 },
+        },
+        attributes: ['ProductID', 'ProductDetailID', 'DetailName', 'Stock', 'ExtraPrice', 'Promotion'],
+        order: [['ProductDetailID', 'ASC']],
+        raw: true,
+      });
+
+      const detailMap = detail.reduce((map, detail) => {
+        if (!map[detail.ProductID]) {
+          map[detail.ProductID] = { defaultDetail: null };
+        }
+        if (!map[detail.ProductID].defaultDetail) {
+          map[detail.ProductID].defaultDetail = detail;
+        }
+        return map;
+      }, {});
+
+      const data = rows
+        .map(item => {
+          const detail = detailMap[item.ProductID]?.defaultDetail;
+          if (!detail) {
+            return null;
+          }
+          const price = (parseFloat(item.ProductPrice) + parseFloat(detail.ExtraPrice)) * (1 - parseFloat(detail.Promotion) / 100);
+          return {
+            ProductID: item.ProductID,
+            ProductName: item.ProductName,
+            ItemPrice: price.toFixed(2),
+            ProductImage: item.ProductImage,
+            ProductDetailID: detail.ProductDetailID,
+            DetailName: detail.DetailName,
+            Promotion: detail.Promotion,
+          };
+        })
+        .filter(item => item !== null);
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy danh sách sản phẩm thành công!',
+        data,
+        totalItems: count,
+      });
+    } catch (e) {
+      console.log('Error in loadSaleProductInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy danh sách sản phẩm: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
+let getProductInfo = (productid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!productid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      await updateOutOfStock();
+      let data = null;
+      if (productid === 'ALL') {
+        const products = await db.Product.findAll({
+          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
+          raw: true,
+        });
+
+        if (!products || products.length === 0) {
+          resolve({
+            errCode: 0,
+            errMessage: 'Không tìm thấy sản phẩm nào!',
+            data: [],
+          });
+          return;
+        }
+        data = await Promise.all(
+          products.map(async (product) => {
+            const petType = await db.ProductPetType.findAll({
+              where: { ProductID: product.ProductID },
+              attributes: ['PetType'],
+              raw: true,
+            });
+            const detail = await db.ProductDetail.findAll({
+              where: { ProductID: product.ProductID },
+              attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion', 'DetailStatus'],
+              raw: true,
+            });
+            const image = await db.Image.findAll({
+              where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
+              attributes: ['ImageID', 'Image'],
+              raw: true,
+            });
+            return {
+              ProductID: product.ProductID,
+              ProductName: product.ProductName,
+              ProductDescription: product.ProductDescription,
+              ProductPrice: product.ProductPrice,
+              ProductImage: product.ProductImage,
+              ProductType: product.ProductType,
+              PetType: petType.map(pt => pt.PetType),
+              ProductDetail: detail,
+              Image: image,
+            };
+          })
+        );
+      } else {
+        const product = await db.Product.findOne({
+          where: { ProductID: productid },
+          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
+          raw: true,
+        });
+
+        if (!product) {
+          resolve({
+            errCode: 2,
+            errMessage: 'Sản phẩm không tồn tại!',
+            data: null,
+          });
+          return;
+        }
+        const petType = await db.ProductPetType.findAll({
+          where: { ProductID: product.ProductID },
+          attributes: ['PetType'],
+          raw: true,
+        });
+        const detail = await db.ProductDetail.findAll({
+          where: { ProductID: product.ProductID },
+          attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion', 'DetailStatus'],
+          raw: true,
+        });
+        const image = await db.Image.findAll({
+          where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
+          attributes: ['ImageID', 'Image'],
+          raw: true,
+        });
+        data = {
+          ProductID: product.ProductID,
+          ProductName: product.ProductName,
+          ProductDescription: product.ProductDescription,
+          ProductPrice: product.ProductPrice,
+          ProductImage: product.ProductImage,
+          ProductType: product.ProductType,
+          PetType: petType.map(pt => pt.PetType),
+          ProductDetail: detail,
+          Image: image,
+        };
+      }
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin sản phẩm thành công!',
+        data,
+      });
+    } catch (e) {
+      console.log('Error in getProductInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy thông tin sản phẩm: ${e.message}`,
         data: null,
       });
     }
@@ -331,7 +735,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
       if (filter !== 'ALL' && filter !== 'PROMOTION') {
         const [field, value] = filter.split('-');
         if (field === 'producttype') {
-          const validProductType = await checkProductType(value);
+          const validProductType = await checkValidAllCode('ProductType', value);
           if (!validProductType) {
             resolve({
               errCode: 1,
@@ -342,7 +746,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
           }
           where.ProductType = value;
         } else if (field === 'pettype') {
-          const validPetType = await checkPetType(value);
+          const validPetType = await checkValidAllCode('PetType', value);
           if (!validPetType) {
             resolve({
               errCode: 1,
@@ -484,449 +888,6 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
   });
 };
 
-let getProductInfo = (productid) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!productid) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      await updateOutOfStock();
-      let data = null;
-      if (productid === 'ALL') {
-        const products = await db.Product.findAll({
-          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductYPpe'],
-          raw: true,
-        });
-
-        if (!products || products.length === 0) {
-          resolve({
-            errCode: 0,
-            errMessage: 'Không tìm thấy sản phẩm nào!',
-            data: [],
-          });
-          return;
-        }
-        data = await Promise.all(
-          products.map(async (product) => {
-            const petType = await db.ProductPetType.findAll({
-              where: { ProductID: product.ProductID },
-              attributes: ['PetType'],
-              raw: true,
-            });
-            const detail = await db.ProductDetail.findAll({
-              where: { ProductID: product.ProductID },
-              attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion', 'DetailStatus'],
-              raw: true,
-            });
-            const image = await db.Image.findAll({
-              where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
-              attributes: ['ImageID', 'Image'],
-              raw: true,
-            });
-            return {
-              ProductID: product.ProductID,
-              ProductName: product.ProductName,
-              ProductDescription: product.ProductDescription,
-              ProductPrice: product.ProductPrice,
-              ProductImage: product.ProductImage,
-              ProductType: product.ProductType,
-              PetType: petType.map(pt => pt.PetType),
-              ProductDetail: detail,
-              Image: image,
-            };
-          })
-        );
-      } else {
-        const product = await db.Product.findOne({
-          where: { ProductID: productid },
-          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
-          raw: true,
-        });
-
-        if (!product) {
-          resolve({
-            errCode: 2,
-            errMessage: 'Sản phẩm không tồn tại!',
-            data: null,
-          });
-          return;
-        }
-        const petType = await db.ProductPetType.findAll({
-          where: { ProductID: product.ProductID },
-          attributes: ['PetType'],
-          raw: true,
-        });
-        const detail = await db.ProductDetail.findAll({
-          where: { ProductID: product.ProductID },
-          attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion', 'DetailStatus'],
-          raw: true,
-        });
-        const image = await db.Image.findAll({
-          where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
-          attributes: ['ImageID', 'Image'],
-          raw: true,
-        });
-        data = {
-          ProductID: product.ProductID,
-          ProductName: product.ProductName,
-          ProductDescription: product.ProductDescription,
-          ProductPrice: product.ProductPrice,
-          ProductImage: product.ProductImage,
-          ProductType: product.ProductType,
-          PetType: petType.map(pt => pt.PetType),
-          ProductDetail: detail,
-          Image: image,
-        };
-      }
-      resolve({
-        errCode: 0,
-        errMessage: 'Lấy thông tin sản phẩm thành công!',
-        data,
-      });
-    } catch (e) {
-      console.log('Error in getProductInfo: ', e);
-      resolve({
-        errCode: 3,
-        errMessage: `Lỗi khi lấy thông tin sản phẩm: ${e.message}`,
-        data: null,
-      });
-    }
-  });
-};
-
-let loadSaleProductInfo = (page, limit, search, filter, sort) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!page || !limit || page < 1 || limit < 1) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Tham số page hoặc limit không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-      if (filter !== 'ALL' && filter !== 'PROMOTION' && !filter.includes('-')) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Tham số filter không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-      if (sort && !['0', '1', '2', '3', '4'].includes(sort)) {
-        resolve({
-          errCode: 1,
-          errMessage: 'Tham số sort không hợp lệ!',
-          data: null,
-        });
-        return;
-      }
-
-      await updateOutOfStock();
-
-      const offset = (page - 1) * limit;
-      let where = {};
-      let order = [];
-
-      if (search?.trim()) {
-        const searchTerm = search.trim().substring(0, 100);
-        where[Op.or] = [{ ProductName: { [Op.like]: `%${searchTerm}%` } }];
-      }
-
-      if (filter !== 'ALL') {
-        if (filter === 'PROMOTION') {
-          const detail = await db.ProductDetail.findAll({
-            where: {
-              Promotion: { [Op.gt]: 0 },
-              Stock: { [Op.gt]: 0 },
-              DetailStatus: 'AVAIL',
-            },
-            attributes: ['ProductID'],
-            raw: true,
-          });
-          const productIds = [...new Set(detail.map(d => d.ProductID))];
-          if (productIds.length === 0) {
-            resolve({
-              errCode: 0,
-              errMessage: 'Không tìm thấy sản phẩm khuyến mãi!',
-              data: [],
-              totalItems: 0,
-            });
-            return;
-          }
-          where.ProductID = { [Op.in]: productIds };
-        } else {
-          const [field, value] = filter.split('-');
-          if (field === 'producttype') {
-            const validProductType = await checkProductType(value);
-            if (!validProductType) {
-              resolve({
-                errCode: 1,
-                errMessage: 'Loại sản phẩm không hợp lệ!',
-                data: null,
-              });
-              return;
-            }
-            where.ProductType = value;
-          } else if (field === 'pettype') {
-            const validPetType = await checkPetType(value);
-            if (!validPetType) {
-              resolve({
-                errCode: 1,
-                errMessage: 'Loại thú cưng không hợp lệ!',
-                data: null,
-              });
-              return;
-            }
-            const products = await db.ProductPetType.findAll({
-              where: { PetType: value },
-              attributes: ['ProductID'],
-              raw: true,
-            });
-            const productIds = products.map(p => p.ProductID);
-            if (productIds.length === 0) {
-              resolve({
-                errCode: 0,
-                errMessage: 'Không tìm thấy sản phẩm nào!',
-                data: [],
-                totalItems: 0,
-              });
-              return;
-            }
-            where.ProductID = { [Op.in]: productIds };
-          } else {
-            resolve({
-              errCode: 1,
-              errMessage: 'Tham số filter không hợp lệ!',
-              data: null,
-            });
-            return;
-          }
-        }
-      }
-
-      switch (sort) {
-        case '1':
-          order.push([literal(`(SELECT SUM(SoldCount) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID)`), 'DESC']);
-          break;
-        case '2':
-          order.push([literal(`(SELECT MIN((ProductPrice + ExtraPrice) * (1 - Promotion / 100)) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID AND ProductDetail.Stock > 0 AND ProductDetail.DetailStatus = 'AVAIL')`), 'ASC']);
-          break;
-        case '3':
-          order.push([literal(`(SELECT MIN((ProductPrice + ExtraPrice) * (1 - Promotion / 100)) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID AND ProductDetail.Stock > 0 AND ProductDetail.DetailStatus = 'AVAIL')`), 'DESC']);
-          break;
-        case '4':
-          order.push([literal(`(SELECT MAX(CreatedAt) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID)`), 'DESC']);
-          break;
-        default:
-          order.push([literal(`(SELECT MAX(CreatedAt) FROM ProductDetail WHERE ProductDetail.ProductID = Product.ProductID)`), 'DESC']);
-          break;
-      }
-
-      const { count, rows } = await db.Product.findAndCountAll({
-        where,
-        attributes: ['ProductID', 'ProductName', 'ProductPrice', 'ProductImage'],
-        raw: true,
-        limit: parseInt(limit),
-        offset,
-        order,
-        distinct: true,
-      });
-
-      if (!rows || rows.length === 0) {
-        resolve({
-          errCode: 0,
-          errMessage: 'Không tìm thấy sản phẩm nào!',
-          data: [],
-          totalItems: 0,
-        });
-        return;
-      }
-
-      const productIds = rows.map(p => p.ProductID);
-      const detail = await db.ProductDetail.findAll({
-        where: {
-          ProductID: { [Op.in]: productIds },
-          DetailStatus: 'AVAIL',
-          Stock: { [Op.gt]: 0 },
-        },
-        attributes: ['ProductID', 'ProductDetailID', 'DetailName', 'Stock', 'ExtraPrice', 'Promotion'],
-        order: [['ProductDetailID', 'ASC']],
-        raw: true,
-      });
-
-      const detailMap = detail.reduce((map, detail) => {
-        if (!map[detail.ProductID]) {
-          map[detail.ProductID] = { defaultDetail: null };
-        }
-        if (!map[detail.ProductID].defaultDetail) {
-          map[detail.ProductID].defaultDetail = detail;
-        }
-        return map;
-      }, {});
-
-      const data = rows
-        .map(item => {
-          const detail = detailMap[item.ProductID]?.defaultDetail;
-          if (!detail) {
-            return null;
-          }
-          const price = (parseFloat(item.ProductPrice) + parseFloat(detail.ExtraPrice)) * (1 - parseFloat(detail.Promotion) / 100);
-          return {
-            ProductID: item.ProductID,
-            ProductName: item.ProductName,
-            ItemPrice: price.toFixed(2),
-            ProductImage: item.ProductImage,
-            ProductDetailID: detail.ProductDetailID,
-            DetailName: detail.DetailName,
-            Promotion: detail.Promotion,
-          };
-        })
-        .filter(item => item !== null);
-
-      resolve({
-        errCode: 0,
-        errMessage: 'Lấy danh sách sản phẩm thành công!',
-        data,
-        totalItems: count,
-      });
-    } catch (e) {
-      console.log('Error in loadSaleProductInfo: ', e);
-      resolve({
-        errCode: 3,
-        errMessage: `Lỗi khi lấy danh sách sản phẩm: ${e.message}`,
-        data: null,
-      });
-    }
-  });
-};
-
-let getSaleProductInfo = (productid) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!productid) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-
-      await updateOutOfStock();
-
-      let data = null;
-      if (productid === 'ALL') {
-        const products = await db.Product.findAll({
-          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
-          raw: true,
-        });
-
-        if (!products || products.length === 0) {
-          resolve({
-            errCode: 0,
-            errMessage: 'Không tìm thấy sản phẩm nào!',
-            data: [],
-          });
-          return;
-        }
-
-        data = await Promise.all(
-          products.map(async (product) => {
-            const petType = await db.ProductPetType.findAll({
-              where: { ProductID: product.ProductID },
-              attributes: ['PetType'],
-              raw: true,
-            });
-            const detail = await db.ProductDetail.findAll({
-              where: { ProductID: product.ProductID, DetailStatus: 'AVAIL' },
-              attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion'],
-              raw: true,
-            });
-            const image = await db.Image.findAll({
-              where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
-              attributes: ['ImageID', 'Image'],
-              raw: true,
-            });
-            return {
-              ProductID: product.ProductID,
-              ProductName: product.ProductName,
-              ProductDescription: product.ProductDescription,
-              ProductPrice: product.ProductPrice,
-              ProductImage: product.ProductImage,
-              ProductType: product.ProductType,
-              PetType: petType.map(pt => pt.PetType),
-              ProductDetail: detail,
-              Image: image,
-            };
-          })
-        );
-      } else {
-        const product = await db.Product.findOne({
-          where: { ProductID: productid },
-          attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
-          raw: true,
-        });
-
-        if (!product) {
-          resolve({
-            errCode: 2,
-            errMessage: 'Sản phẩm không tồn tại!',
-            data: null,
-          });
-          return;
-        }
-
-        const petType = await db.ProductPetType.findAll({
-          where: { ProductID: product.ProductID },
-          attributes: ['PetType'],
-          raw: true,
-        });
-        const detail = await db.ProductDetail.findAll({
-          where: { ProductID: product.ProductID, DetailStatus: 'AVAIL' },
-          attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion'],
-          raw: true,
-        });
-        const image = await db.Image.findAll({
-          where: { ReferenceType: 'Product', ReferenceID: product.ProductID },
-          attributes: ['ImageID', 'Image'],
-          raw: true,
-        });
-
-        data = {
-          ProductID: product.ProductID,
-          ProductName: product.ProductName,
-          ProductDescription: product.ProductDescription,
-          ProductPrice: product.ProductPrice,
-          ProductImage: product.ProductImage,
-          ProductType: product.ProductType,
-          PetType: petType.map(pt => pt.PetType),
-          ProductDetail: detail,
-          Image: image,
-        };
-      }
-
-      resolve({
-        errCode: 0,
-        errMessage: 'Lấy thông tin sản phẩm thành công!',
-        data,
-      });
-    } catch (e) {
-      console.log('Error in getSaleProductInfo: ', e);
-      resolve({
-        errCode: 3,
-        errMessage: `Lỗi khi lấy thông tin sản phẩm: ${e.message}`,
-        data: null,
-      });
-    }
-  });
-};
-
 let getProductDetailInfo = (productid, productdetailid) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -1025,13 +986,13 @@ let createProduct = (productInfo) => {
         });
         return;
       }
-
-      const productId = await generateProductID();
-      if (typeof productId === 'object' && productId.errCode) {
+      const productIdResult = await generateID('P', 9, 'Product', 'ProductID');
+      if (productIdResult.errCode !== 0) {
         await transaction.rollback();
-        resolve(productId);
+        resolve(productIdResult);
         return;
       }
+      const productId = productIdResult.data;
 
       const createdAt = new Date();
       await db.Product.create({
@@ -1294,7 +1255,7 @@ let loadFilteredProductInfo = (filterProductType, filterPetType) => {
       }
 
       if (filterProductType && filterProductType !== 'ALL') {
-        const validProductType = await checkProductType(filterProductType);
+        const validProductType = await checkValidAllCode('ProductType', filterProductType);
         if (!validProductType) {
           resolve({
             errCode: 1,
@@ -1307,7 +1268,7 @@ let loadFilteredProductInfo = (filterProductType, filterPetType) => {
 
       if (parsedPetType.length > 0 && parsedPetType[0] !== 'ALL') {
         for (const petType of parsedPetType) {
-          const validPetType = await checkPetType(petType);
+          const validPetType = await checkValidAllCode('PetType', petType);
           if (!validPetType) {
             resolve({
               errCode: 1,
@@ -1367,10 +1328,10 @@ let loadFilteredProductInfo = (filterProductType, filterPetType) => {
 };
 
 module.exports = {
-  loadProductInfo,
-  getProductInfo,
-  loadSaleProductInfo,
   getSaleProductInfo,
+  loadSaleProductInfo,
+  getProductInfo,
+  loadProductInfo,
   getProductDetailInfo,
   createProduct,
   changeProductInfo,

@@ -105,34 +105,6 @@ const checkOwnerJWT = (req, res, next) => {
   }
 };
 
-const checkCustomerJWT = (req, res, next) => {
-  let cookies = req.cookies;
-  if (cookies && cookies.token) {
-    let token = cookies.token;
-    let decoded = verifyJWT(token);
-    if (decoded) {
-      if (decoded.AccountType && decoded.AccountType === 'C') {
-        next();
-      } else {
-        return res.status(401).json({
-          errCode: -1,
-          errMessage: 'Not authorized! Customer access required.',
-        });
-      }
-    } else {
-      return res.status(401).json({
-        errCode: -2,
-        errMessage: 'Invalid token!',
-      });
-    }
-  } else {
-    return res.status(401).json({
-      errCode: -3,
-      errMessage: 'No token provided!',
-    });
-  }
-};
-
 const checkVeterinarianJWT = (req, res, next) => {
   let cookies = req.cookies;
   if (cookies && cookies.token) {
@@ -167,6 +139,5 @@ module.exports = {
   clearCookie,
   checkAdminJWT,
   checkOwnerJWT,
-  checkCustomerJWT,
   checkVeterinarianJWT,
 };

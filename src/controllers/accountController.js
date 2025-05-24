@@ -1,19 +1,34 @@
 import accountService from '../services/accountService';
 import { createJWT, verifyJWT } from '../middleware/jwtController';
 
+const handleError = (res, e) => {
+  console.log(e);
+  return res.status(500).json({
+    errCode: 3,
+    errMessage: `Lỗi từ server: ${e.message}`,
+    data: null,
+  });
+};
+
+let handleVerifyToken = async (req, res) => {
+  try {
+    let token = req.cookies.token;
+    let response = await accountService.verifyToken(token);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 let handleRegister = async (req, res) => {
   try {
     let response = await accountService.userRegister(req.body);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
+
 let handleLogin = async (req, res) => {
   try {
     let response = await accountService.userLogin(req.body);
@@ -23,63 +38,13 @@ let handleLogin = async (req, res) => {
         httpOnly: true,
         maxAge: req.body.rememberLogin ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
       });
-      return res.status(200).json(response);
     }
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
-let handleGetAccountInfo = async (req, res) => {
-  try {
-    let response = await accountService.getAccountInfo(req.query.accountid);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-let handleLoadAccountInfo = async (req, res) => {
-  try {
-    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
-    const limit = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
-    const search = req.query.search || '';
-    const filter = req.query.filter || 'ALL';
-    const sort = req.query.sort || '0';
-    let response = await accountService.loadAccountInfo(page, limit, search, filter, sort);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-let handleVerifyToken = async (req, res) => {
-  try {
-    let token = req.cookies.token;
-    let response = await accountService.verifyToken(token);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
+
 let handleLogout = async (req, res) => {
   try {
     let token = req.cookies.token;
@@ -94,120 +59,88 @@ let handleLogout = async (req, res) => {
     let data = verifyJWT(token);
     let response = await accountService.userLogout(token, data);
     res.clearCookie('token');
-    return res.status(response.errCode === 0 ? 200 : response.errCode === -1 ? 400 : 500).json(response);
-  } catch (e) {
-    console.log(e);
-    res.clearCookie('token');
-    return res.status(500).json({
-      errCode: 1,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-let handleChangeAccountStatus = async (req, res) => {
-  try {
-    let response = await accountService.changeAccountStatus(req.body.accountid, req.body.accountstatus);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    res.clearCookie('token');
+    return handleError(res, e);
   }
 };
+
+let handleGetAccountInfo = async (req, res) => {
+  try {
+    let response = await accountService.getAccountInfo(req.query.accountid);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+let handleLoadAccountInfo = async (req, res) => {
+  try {
+    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
+    const limit = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
+    const search = req.query.search || '';
+    const filter = req.query.filter || 'ALL';
+    const sort = req.query.sort || '0';
+    let response = await accountService.loadAccountInfo(page, limit, search, filter, sort);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 let handleChangeAccountInfo = async (req, res) => {
   try {
     let response = await accountService.changeAccountInfo(req.body);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
+
+let handleSendForgotToken = async (req, res) => {
+  try {
+    let response = await accountService.sendForgotToken(req.body.email);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+let handleVerifyForgotToken = async (req, res) => {
+  try {
+    let response = await accountService.verifyForgotToken(req.body.accountid, req.body.token);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 let handleChangePassword = async (req, res) => {
   try {
     const { accountid, password, newpassword } = req.body;
     let response = await accountService.changePassword(accountid, password, newpassword);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleChangePassword: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
-let handleGetPaymentInfo = async (req, res) => {
+
+let handleChangeAccountStatus = async (req, res) => {
   try {
-    let response = await accountService.getPaymentInfo(req.query.accountid);
+    let response = await accountService.changeAccountStatus(req.body.accountid, req.body.accountstatus);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error in handleGetPaymentInfo: ', e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
+
 let handleGetVeterinarianInfo = async (req, res) => {
   try {
     let response = await accountService.getVeterinarianInfo(req.query.accountid);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-let handleGetVeterinarianService = async (req, res) => {
-  try {
-    let response = await accountService.getVeterinarianService(req.query.accountid);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-let handleSendForgotToken = async (req, res) => {
-  try {
-    let response = await accountService.sendForgotToken(req.body.email);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
-  }
-};
-let handleVerifyForgotToken = async (req, res) => {
-  try {
-    let response = await accountService.verifyForgotToken(req.body.accountid, req.body.token);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -221,12 +154,7 @@ let handleLoadVeterinarianInfo = async (req, res) => {
     let response = await accountService.loadVeterinarianInfo(page, limit, search, filter, sort);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -236,30 +164,23 @@ let handleChangeWorkingStatus = async (req, res) => {
     let response = await accountService.changeWorkingStatus(accountid, workingstatus);
     return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: 3,
-      errMessage: 'Lỗi từ server: ' + e.message,
-      data: null,
-    });
+    return handleError(res, e);
   }
 };
 
 module.exports = {
   handleRegister,
   handleLogin,
+  handleLogout,
+  handleVerifyToken,
   handleGetAccountInfo,
   handleLoadAccountInfo,
-  handleVerifyToken,
-  handleLogout,
-  handleChangeAccountStatus,
   handleChangeAccountInfo,
+  handleChangeAccountStatus,
   handleChangePassword,
-  handleGetPaymentInfo,
-  handleGetVeterinarianInfo,
-  handleGetVeterinarianService,
   handleSendForgotToken,
   handleVerifyForgotToken,
+  handleGetVeterinarianInfo,
   handleLoadVeterinarianInfo,
   handleChangeWorkingStatus,
 };

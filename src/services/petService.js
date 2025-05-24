@@ -1,6 +1,5 @@
-import { raw } from 'body-parser';
 import db from '../models/index';
-import { checkPetType, checkPetGender } from './utilitiesService';
+import { generateID, checkValidAllCode } from './utilitiesService';
 
 let deleteUnlinkedGuestPets = () => {
     return new Promise(async (resolve, reject) => {
@@ -99,7 +98,7 @@ let validatePetInput = async (petInfo) => {
             data: null,
         };
     } else {
-        const validPetType = await checkPetType(pettype);
+        const validPetType = await checkValidAllCode('PetType', pettype);
         if (!validPetType) {
             return {
                 errCode: 1,
@@ -115,7 +114,7 @@ let validatePetInput = async (petInfo) => {
             data: null,
         };
     } else {
-        const validPetGender = await checkPetGender(petgender);
+        const validPetGender = await checkValidAllCode('PetGender', petgender);
         if (!validPetGender) {
             return {
                 errCode: 1,
@@ -139,92 +138,6 @@ let validatePetInput = async (petInfo) => {
         };
     }
     return null;
-};
-
-let generateGuestID = () => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const prefix = 'G';
-            // Lấy timestamp
-            const timestamp = Date.now().toString();
-            // Lấy 9 chữ số từ timestamp
-            const timestampDigits = timestamp.slice(-9); // Lấy 9 chữ số cuối
-            let accountId = `${prefix}${timestampDigits}`;
-            // Kiểm tra xem accountId có trùng trong DB không
-            let existingAccount = await db.Account.findOne({
-                where: { AccountID: accountId },
-            });
-            // Nếu trùng, thử lại với timestamp mới (tối đa 5 lần)
-            let attempts = 0;
-            while (existingAccount && attempts < 5) {
-                const newTimestamp = Date.now().toString();
-                const newTimestampDigits = newTimestamp.slice(-9);
-                accountId = `${prefix}${newTimestampDigits}`;
-                attempts++;
-                existingAccount = await db.Account.findOne({
-                    where: { AccountID: accountId },
-                });
-            }
-            if (attempts >= 5) {
-                resolve({
-                    errCode: 1,
-                    errMessage: 'Tạo mã khách hàng thất bại!',
-                    data: null,
-                });
-            }
-            resolve(accountId);
-        } catch (e) {
-            console.log(e);
-            resolve({
-                errCode: 3,
-                errMessage: 'Lỗi khi tạo mã khách hàng: ' + e.message,
-                data: null,
-            });
-        }
-    });
-};
-
-let generatePetID = () => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const prefix = 'P';
-            // Lấy timestamp
-            const timestamp = Date.now().toString();
-            // Lấy 9 chữ số từ timestamp
-            const timestampDigits = timestamp.slice(-9); // Lấy 9 chữ số cuối
-            let petId = `${prefix}${timestampDigits}`;
-            // Kiểm tra xem petId có trùng trong DB không
-            let existingPet = await db.Pet.findOne({
-                where: { PetID: petId },
-            });
-            // Nếu trùng, thử lại với timestamp mới (tối đa 5 lần)
-            let attempts = 0;
-            while (existingPet && attempts < 5) {
-                const newTimestamp = Date.now().toString();
-                const newTimestampDigits = newTimestamp.slice(-9);
-                petId = `${prefix}${newTimestampDigits}`;
-                attempts++;
-                existingPet = await db.Pet.findOne({
-                    where: { PetID: petId },
-                });
-            }
-            if (attempts >= 5) {
-                resolve({
-                    errCode: 1,
-                    errMessage: 'Tạo mã thú cưng thất bại!',
-                    data: null,
-                });
-            }
-            resolve(petId);
-        } catch (e) {
-            console.log(e);
-            resolve({
-                errCode: 3,
-                errMessage: 'Lỗi khi tạo mã thú cưng: ' + e.message,
-                data: null,
-            });
-        }
-    });
 };
 
 let getAccountPetInfo = (accountid) => {
@@ -333,13 +246,13 @@ let savePetInfo = (accountid, petInfo) => {
             }
             let guestID = null;
             if (!accountid) {
-                const generatedGuestID = await generateGuestID();
-                if (typeof generatedGuestID === 'object' && generatedGuestID.errCode) {
+                const guestIdResult = await generateID('G', 9, 'Account', 'AccountID');
+                if (guestIdResult.errCode !== 0) {
                     await transaction.rollback();
-                    resolve(generatedGuestID);
+                    resolve(guestIdResult);
                     return;
                 }
-                guestID = generatedGuestID;
+                guestID = guestIdResult.data;
             } else {
                 const existingPets = await db.Pet.findAll({
                     where: { AccountID: accountid },
@@ -365,12 +278,13 @@ let savePetInfo = (accountid, petInfo) => {
                     return;
                 }
             }
-            const petID = await generatePetID();
-            if (typeof petID === 'object' && petID.errCode) {
+            const petIdResult = await generateID('P', 9, 'Pet', 'PetID');
+            if (petIdResult.errCode !== 0) {
                 await transaction.rollback();
-                resolve(petID);
+                resolve(petIdResult);
                 return;
             }
+            const petID = petIdResult.data;
             await db.Pet.create(
                 {
                     PetID: petID,

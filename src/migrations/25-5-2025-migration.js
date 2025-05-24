@@ -1,5 +1,6 @@
 'use strict';
 
+//Ngày cuối chỉnh sửa: 25/05/2025
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // Tạo bảng AllCodes

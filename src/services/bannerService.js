@@ -1,7 +1,6 @@
 import db from '../models/index';
 import { Op } from 'sequelize';
-import { checkBannerStatus } from './utilitiesService';
-import { raw } from 'body-parser';
+import { checkValidAllCode } from './utilitiesService';
 
 let validateBannerInput = async (bannerInfo) => {
   if (!bannerInfo || Object.keys(bannerInfo).length === 0) {
@@ -36,7 +35,7 @@ let validateBannerInput = async (bannerInfo) => {
       data: null,
     };
   } else {
-    const validBannerStatus = await checkBannerStatus(BannerStatus);
+    const validBannerStatus = await checkValidAllCode('BannerStatus', BannerStatus);
     if (!validBannerStatus) {
       return {
         errCode: 1,
@@ -187,6 +186,72 @@ let getBannerSaleInfo = (productid) => {
   });
 };
 
+let getBannerInfo = (bannerid) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!bannerid) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const banner = await db.Banner.findOne({
+        where: { BannerID: bannerid },
+        attributes: ['BannerID', 'BannerImage', 'CreatedAt', 'HiddenAt', 'BannerStatus', 'ProductID'],
+        include: [
+          {
+            model: db.Product,
+            attributes: ['ProductName', 'ProductType'],
+            required: false,
+            include: [
+              {
+                model: db.ProductPetType,
+                attributes: ['PetType'],
+                required: false,
+              },
+            ],
+          },
+        ],
+        raw: true,
+      });
+      if (!banner) {
+        resolve({
+          errCode: 2,
+          errMessage: 'Banner không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+      const data = {
+        BannerID: banner.BannerID,
+        BannerImage: banner.BannerImage,
+        CreatedAt: banner.CreatedAt,
+        HiddenAt: banner.HiddenAt ? new Date(banner.HiddenAt).toISOString() : null,
+        BannerStatus: banner.BannerStatus,
+        ProductID: banner.ProductID,
+        ProductName: banner['Product.ProductName'] || null,
+        ProductType: banner['Product.ProductType'] || null,
+        PetTypes: banner['Product.ProductPetTypes']?.map(pt => pt.PetType) || [],
+      };
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy thông tin banner thành công!',
+        data,
+      });
+    } catch (e) {
+      console.log('Error in getBannerInfo: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi lấy thông tin banner: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
 let loadBannerInfo = (page, limit, search, filter, sort, date) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -266,7 +331,7 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
         if (field === 'bannerstatus') {
-          const validBannerStatus = await checkBannerStatus(value);
+          const validBannerStatus = await checkValidAllCode('BannerStatus', value);
           if (!validBannerStatus) {
             resolve({
               errCode: 1,
@@ -352,72 +417,6 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi lấy danh sách banner: ${e.message}`,
-        data: null,
-      });
-    }
-  });
-};
-
-let getBannerInfo = (bannerid) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!bannerid) {
-        resolve({
-          errCode: -1,
-          errMessage: 'Thiếu tham số!',
-          data: null,
-        });
-        return;
-      }
-      const banner = await db.Banner.findOne({
-        where: { BannerID: bannerid },
-        attributes: ['BannerID', 'BannerImage', 'CreatedAt', 'HiddenAt', 'BannerStatus', 'ProductID'],
-        include: [
-          {
-            model: db.Product,
-            attributes: ['ProductName', 'ProductType'],
-            required: false,
-            include: [
-              {
-                model: db.ProductPetType,
-                attributes: ['PetType'],
-                required: false,
-              },
-            ],
-          },
-        ],
-        raw: true,
-      });
-      if (!banner) {
-        resolve({
-          errCode: 2,
-          errMessage: 'Banner không tồn tại!',
-          data: null,
-        });
-        return;
-      }
-      const data = {
-        BannerID: banner.BannerID,
-        BannerImage: banner.BannerImage,
-        CreatedAt: banner.CreatedAt,
-        HiddenAt: banner.HiddenAt ? new Date(banner.HiddenAt).toISOString() : null,
-        BannerStatus: banner.BannerStatus,
-        ProductID: banner.ProductID,
-        ProductName: banner['Product.ProductName'] || null,
-        ProductType: banner['Product.ProductType'] || null,
-        PetTypes: banner['Product.ProductPetTypes']?.map(pt => pt.PetType) || [],
-      };
-
-      resolve({
-        errCode: 0,
-        errMessage: 'Lấy thông tin banner thành công!',
-        data,
-      });
-    } catch (e) {
-      console.log('Error in getBannerInfo: ', e);
-      resolve({
-        errCode: 3,
-        errMessage: `Lỗi khi lấy thông tin banner: ${e.message}`,
         data: null,
       });
     }
@@ -558,8 +557,8 @@ let changeBannerInfo = (bannerInfo) => {
 
 module.exports = {
   getBannerSaleInfo,
-  loadBannerInfo,
   getBannerInfo,
+  loadBannerInfo,
   createBanner,
   changeBannerInfo,
 };
