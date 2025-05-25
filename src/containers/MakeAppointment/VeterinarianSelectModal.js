@@ -28,7 +28,7 @@ class VeterinarianSelectModal extends Component {
     this.debounceTimeout = null;
   }
 
-  async componentDidMount() { }
+  async componentDidMount() {}
 
   async componentDidUpdate(prevProps) {
     const { isOpen } = this.props;
@@ -64,7 +64,7 @@ class VeterinarianSelectModal extends Component {
   handleLoadServiceFilterValue = async () => {
     try {
       const response = await handleGetServiceInfoApi('ALL');
-      const loadedFilterValue = response.data
+      const loadedFilterValue = response.data;
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error('Không thể tải danh sách lọc!', {
           position: 'top-right',
@@ -222,7 +222,7 @@ class VeterinarianSelectModal extends Component {
     }
   };
 
-  getAccountStatusValue = (code) => { };
+  getAccountStatusValue = (code) => {};
 
   handleSelectVeterinarianFromModal = (veterinarianInfo) => {
     this.props.handleSelectVeterinarianFromModal(veterinarianInfo);
@@ -347,16 +347,18 @@ class VeterinarianSelectModal extends Component {
                   <p>Lọc:</p>
                   <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                     <option value="ALL">Tất cả</option>
-                    {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
-                      console.log(loadedServiceFilterValue),
-                      <optgroup label="Dịch vụ khám">
-                        {loadedServiceFilterValue.map((service) => (
-                          <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
-                            {service.ServiceName}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
+                    {loadedServiceFilterValue &&
+                      loadedServiceFilterValue.length > 0 &&
+                      (console.log(loadedServiceFilterValue),
+                      (
+                        <optgroup label="Dịch vụ khám">
+                          {loadedServiceFilterValue.map((service) => (
+                            <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                              {service.ServiceName}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                   </select>
                 </div>
               </div>
@@ -392,7 +394,7 @@ class VeterinarianSelectModal extends Component {
                       </div>
                     ))
                   ) : (
-                    <p>khoog co bs nào</p>
+                    <p className="no-see">Không tìm thấy bác sĩ</p>
                   )}
                 </div>
               </div>

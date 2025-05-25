@@ -277,17 +277,18 @@ class Bill extends Component {
     const address = '136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM';
     doc.text(address, 14, 34);
 
-    const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
+    const dateText = `Thời gian: ${
+      loadedInvoiceDetails.CreatedAt
         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        })
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          })
         : 'N/A'
-      }`;
+    }`;
     doc.text(dateText, 14, 42);
     doc.text(`Mã hóa đơn: ${this.state.billid}`, 150, 42, { align: 'right' });
 
@@ -547,7 +548,7 @@ class Bill extends Component {
   render() {
     const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid } = this.state;
     return (
-      <>
+      <div className="view-invoice">
         <ToastContainer />
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} />
         {isLoading ? (
@@ -602,19 +603,19 @@ class Bill extends Component {
                                 <div className="view-invoice-modal-content-top-address">
                                   <p>136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
                                 </div>
-                                <div className="f">
+                                <div className="sb f">
                                   <div className="view-invoice-modal-content-top-time">
                                     <p>
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                          second: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -800,12 +801,12 @@ class Bill extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -926,14 +927,14 @@ class Bill extends Component {
                                   <div className="view-invoice-modal-content-top-time-appointment">
                                     <p>
                                       <b>Thời gian:</b>
-                                      {loadedAppointmentBillDetails.CreatedAt
-                                        ? new Date(loadedAppointmentBillDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                      {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
+                                        ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -1035,7 +1036,7 @@ class Bill extends Component {
             })()}
           </div>
         )}
-      </>
+      </div>
     );
   }
 }

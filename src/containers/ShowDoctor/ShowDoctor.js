@@ -65,7 +65,7 @@ class ShowDoctor extends Component {
   handleLoadServiceFilterValue = async () => {
     try {
       const response = await handleGetServiceInfoApi('ALL');
-      const loadedFilterValue = response.data
+      const loadedFilterValue = response.data;
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error('Không thể tải danh sách lọc!', {
           position: 'top-right',
@@ -231,12 +231,7 @@ class ShowDoctor extends Component {
     const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;
     return (
       <div className="showdoctor-body">
-        <Header
-          navigate={this.props.navigate}
-          cartItems={this.props.cartItems}
-          userInfo={this.props.userInfo}
-          triggerCountCartItem={this.state.triggerCountCartItem}
-        />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <div className="showdoctor-content">
           <h1>Danh sách bác sĩ</h1>
           <div className="showdoctor-content-top f  ">
@@ -301,7 +296,7 @@ class ShowDoctor extends Component {
                   </div>
                 ))
               ) : (
-                <p>Không có bác sĩ nào</p>
+                <p className="no-see">Không có bác sĩ nào</p>
               )}
             </div>
           </div>

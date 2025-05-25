@@ -746,6 +746,47 @@ class MakeAppointment extends Component {
     this.setState({ isShowVeterinarianSelectModal: !this.state.isShowVeterinarianSelectModal });
   };
 
+  handlePetListChange = async () => {
+    try {
+      const { accountInfo, selectedPetID } = this.state;
+      const response = await handleGetAccountPetInfoApi(accountInfo.AccountID);
+      if (response && response.errCode === 0) {
+        const newPetList = response.data;
+        const selectedPet = newPetList.find((pet) => pet.PetID === selectedPetID);
+        this.setState({
+          loadedPetList: newPetList,
+          ...(selectedPet
+            ? {
+                petname: selectedPet.PetName,
+                pettype: selectedPet.PetType,
+                petgender: selectedPet.PetGender,
+                age: selectedPet.Age.toString(),
+                petweight: selectedPet.PetWeight.toString(),
+              }
+            : {
+                petname: '',
+                pettype: this.state.codePetType[0].Code || '',
+                petgender: this.state.codePetGender[0].Code || '',
+                age: '',
+                petweight: '',
+              }),
+        });
+      } else {
+        toast.error('Không thể tải danh sách thú cưng!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      toast.error('Lỗi khi tải danh sách thú cưng của người dùng!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+
   handleSelectPetFromModal = async (petID) => {
     try {
       const response = await handleGetPetInfoApi(petID);
@@ -827,7 +868,7 @@ class MakeAppointment extends Component {
     return (
       <div className="makeappointment-body">
         <ToastContainer />
-        <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} accountID={isLoggedIn ? accountInfo.AccountID : null} handleSelectPetFromModal={this.handleSelectPetFromModal} />
+        <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} accountID={isLoggedIn ? accountInfo.AccountID : null} handleSelectPetFromModal={this.handleSelectPetFromModal} onPetListChange={this.handlePetListChange} />
         <VeterinarianSelectModal isOpen={isShowVeterinarianSelectModal} toggleFromModal={this.toggleVeterinarianSelectModal} handleSelectVeterinarianFromModal={this.handleSelectVeterinarianFromModal} />
         {isLoading ? (
           <Spinner />
@@ -895,7 +936,6 @@ class MakeAppointment extends Component {
               )}
               <b className="doctor-info">*Thông tin đặt lịch</b>
               <div className="makeappointment-content-doctor">
-                {' '}
                 <div className="f">
                   {type !== 'FOLLOW_UP' && <button onClick={this.toggleVeterinarianSelectModal}>Chọn bác sĩ</button>}
                   <div className="doctor-info-display">
@@ -912,6 +952,7 @@ class MakeAppointment extends Component {
                             <b>Chuyên khoa:</b> {selectedVeterinarianInfo.Specialization}
                           </p>
                         </div>
+                        <button className="cancel-doctor-btn">X</button>
                       </div>
                     ) : (
                       <p>Chưa chọn bác sĩ</p>
@@ -919,12 +960,16 @@ class MakeAppointment extends Component {
                   </div>
                 </div>
               </div>
-              <div className="makeappointment-content-date">
-                <div className="f">
-                  <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
-                </div>
-              </div>
               <div className="f">
+                <div className="makeappointment-content-date">
+                  <p>
+                    <b>*Ngày khám:</b>
+                  </p>
+                  <div>
+                    <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
+                  </div>
+                </div>
+
                 <div className="makeappointment-content-service">
                   <p>
                     <b>*Dịch vụ</b>

@@ -3,9 +3,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { handleLoadVeterinarianInfoApi } from '../../services/accountServices'; // Import all required
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
-
+import { handleLoadVeterinarianInfoApi } from '../../services/accountServices'; // Import all required APIs
 import HomeProductModal from '../Home/HomeProductModal';
 import bannerimg1 from '../../assets/bannerimgs/1.webp';
 import tongquat from '../../assets/doctor-imgs/img1.png';
@@ -38,7 +36,7 @@ class HomeAppointment extends Component {
       filterValue: 'ALL', // Filter by service
       sortValue: '0', // Sort option
       currentPage: 1, // Current page for API
-      limitItemPerQuery: 5, // Limit to 10 veterinarians for slideshow
+      limitItemPerQuery: 10, // Limit to 10 veterinarians for slideshow
       totalPages: 1, // Total pages from API
       loadedServiceFilterValue: [], // Service filter options
       codeWorkingStatus: [], // Working status codes
@@ -49,7 +47,7 @@ class HomeAppointment extends Component {
 
   async componentDidMount() {
     await this.handleLoadVeterinarianInfo();
-    await this.handleLoadWorkingStatus();
+
     this.bannerIntervalId = setInterval(this.changeSlide, 4000);
   }
 
@@ -136,29 +134,6 @@ class HomeAppointment extends Component {
     }));
   };
 
-  handleLoadWorkingStatus = async () => {
-    try {
-      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
-      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
-        toast.error('Không thể tải trạng thái làm việc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeWorkingStatus,
-      });
-    } catch (e) {
-      console.log('Error loading workingstatus code:', e);
-      toast.error('Lỗi khi tải trạng thái làm việc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
   // Navigate to appointment page for selected veterinarian
   handlePreSelectVeterinarian = (accountID) => {
     const { loadedVeterinarianInfo } = this.state;
@@ -186,7 +161,7 @@ class HomeAppointment extends Component {
         <div className="top-doctor">
           <div className="f">
             <h1>CÁC BÁC SĨ NỔI BẬT</h1>
-            <p onClick={() => this.props.navigate('/showdoctor')}>Xem tất cả bác sĩ</p>
+            <p onClick={() => this.props.navigate('/user/showdoctor')}>Xem tất cả bác sĩ</p>
           </div>
           <div className="stra"></div>
           <div className="doctor-slide-show">
@@ -197,11 +172,11 @@ class HomeAppointment extends Component {
               <div
                 className="doctor-list"
                 style={{
-                  transform: `translateX(calc(50% - 7rem - ${doctorIndex * 15.75}rem))`,
+                  transform: `translateX(calc(50% - 7rem - ${doctorIndex * 14}rem))`,
                 }}
               >
                 {loadedVeterinarianInfo.length > 0 ? (
-                  loadedVeterinarianInfo.map((doctor, index, item) => (
+                  loadedVeterinarianInfo.map((doctor, index) => (
                     <div className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`} key={doctor.AccountID}>
                       <img src={doctor.UserImage} alt={doctor.UserName} />
                       <p>{doctor.UserName}</p>
@@ -253,10 +228,10 @@ class HomeAppointment extends Component {
               <div className="stra"></div>
               <p>Website Thú Y Mincow luôn nỗ lực để đạt được sự hài lòng và tín nhiệm bằng chất lượng dịch vụ, trải nghiệm hoàn hảo với chi phí hợp lý. Đáp ứng kỳ vọng của khách hàng, đạt được sự tin tưởng gắn kết với sứ mệnh phát triển và nâng cao sức khoẻ cho thú cưng Việt Nam.</p>
               <div className="f">
-                <img src={im3} />
-                <img src={im4} />
                 <img src={im1} />
                 <img src={im2} />
+                <img src={im3} />
+                <img src={im4} />
               </div>
             </div>
             <div className="bottom-right">

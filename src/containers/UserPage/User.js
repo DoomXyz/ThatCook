@@ -2215,7 +2215,16 @@ class User extends Component {
                   loadedPetInfo.map((pet, index) => (
                     <div key={pet.PetID} className="user-pet-form-content-list-item f sb">
                       <div className="f">
-                        <div className="user-pet-form-content-list-item-top-1">{isEditingPet === index ? <input className="petname" type="text" value={pet.PetName} onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)} placeholder="Tên thú cưng" /> : <b>Tên thú cưng: {pet.PetName}</b>}</div>
+                        <div className="user-pet-form-content-list-item-top-1 ">
+                          {isEditingPet === index ? (
+                            <input className="petname" type="text" value={pet.PetName} onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)} placeholder="Tên thú cưng" />
+                          ) : (
+                            <div className="f">
+                              <b>Tên thú cưng: </b>
+                              {pet.PetName}
+                            </div>
+                          )}
+                        </div>
                         <div className="petype f">
                           <b>Giống:</b>
                           {isEditingPet === index ? (
@@ -2356,7 +2365,7 @@ class User extends Component {
               </div>
             </div>
             <div className="user-appointment-form-detail-mid-1">
-              <h4>*Thông tin khách hàng</h4>
+              <h4>*Thông tin khách hàng:</h4>
               <div className="sb">
                 <div className="user-appointment-form-detail-mid-1-left-info">
                   <div className="f">
@@ -2383,7 +2392,7 @@ class User extends Component {
               </div>
             </div>
             <div className="user-appointment-form-detail-mid-2">
-              <h4>*Thông tin hóa đơn</h4>
+              <h4>*Thông tin hóa đơn:</h4>
               <div className="sb">
                 <div className="user-appointment-form-detail-mid-2-left">
                   <div className="f">

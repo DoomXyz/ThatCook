@@ -13,10 +13,12 @@
 .cen {
   text-align: center;
 }
-.header-container {
-  background-color: rgb(255, 255, 255) !important;
-  border-bottom: 1px solid black;
-  height: 5rem;
+.view-invoice {
+  .header-container {
+    background-color: rgb(255, 255, 255) !important;
+    border-bottom: 1px solid black;
+    height: 5rem;
+  }
 }
 .view-invoice-background {
   background-image: url('../../assets/images/login_bg.jpg');
@@ -114,7 +116,7 @@
       max-width: 650px;
       background-color: white;
       border: 1px solid rgb(91, 82, 82);
-      padding: 20px;
+
       box-sizing: border-box;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -140,21 +142,10 @@
         }
 
         .view-invoice-modal-content-top-time {
-          text-align: left;
-          margin-left: 10px;
-
-          p {
-            width: 250px;
-          }
         }
 
         .view-invoice-modal-content-top-invoiceid {
-          position: relative;
-          margin-left: 225px;
-
-          p {
-            width: 200px;
-          }
+          margin-right: 26.5rem;
         }
 
         .view-invoice-modal-content-top-cusname-1 {

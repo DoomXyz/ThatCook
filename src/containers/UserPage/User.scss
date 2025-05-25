@@ -1167,7 +1167,6 @@
       }
 
       .f:nth-child(2) {
-        width: 20.5rem;
         padding: 0.3rem;
         margin-left: 1rem;
 
@@ -1243,12 +1242,16 @@
     }
 
     .user-appointment-form-detail-mid-2-center-label {
+      width: 25rem;
       textarea {
         height: 12.7rem;
       }
 
       label {
-        max-width: 25rem;
+        max-width: 100%; // Ensure the paragraph takes full width of td
+        word-wrap: break-word; // Break long words to prevent overflow
+        overflow-wrap: break-word; // Modern equivalent of word-wrap
+        margin: 0;
       }
     }
 
@@ -1493,7 +1496,9 @@
 
           border-top-left-radius: 0.7rem;
           border-top-right-radius: 0.7rem;
-
+          b {
+            margin-right: 0.5rem;
+          }
           .petname {
             border-radius: 0.3rem;
             margin-top: -1rem;
