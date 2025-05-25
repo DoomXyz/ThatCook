@@ -255,7 +255,7 @@ let savePetInfo = (accountid, petInfo) => {
                 guestID = guestIdResult.data;
             } else {
                 const existingPets = await db.Pet.findAll({
-                    where: { AccountID: accountid },
+                    where: { AccountID: accountid, PetStatus: 'VALID' },
                     attributes: ['PetID', 'PetName', 'PetType', 'PetGender', 'Age', 'PetWeight'],
                     raw: true,
                     transaction,

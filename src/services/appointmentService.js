@@ -397,7 +397,6 @@ const confirmAppointment = async (appointmentid, veterinarianid, transaction) =>
   }
 };
 let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
-  console.log(appointmentDate, veterinarianID);
   return new Promise(async (resolve, reject) => {
     try {
       // Kiểm tra tham số
@@ -430,7 +429,6 @@ let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
         return;
       }
       const duration = service.Duration;
-      console.log(duration)
       const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00'];
       let availableTimes = [...fixedTimes];
 
@@ -488,7 +486,6 @@ let getAvailableTimes = (appointmentDate, veterinarianID, serviceID) => {
           return !allVetsScheduled;
         });
       }
-      console.log(availableTimes)
       resolve({
         errCode: 0,
         errMessage: 'Lấy khung giờ thành công!',
@@ -565,7 +562,6 @@ let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, 
         const [field, value] = filter.split('-');
         if (field === 'status') {
           //load theo Appointmentstatus
-          console.log(field, value)
           const validStatus = await checkValidAllCode('AppointmentStatus', value);
           if (!validStatus) {
             resolve({
