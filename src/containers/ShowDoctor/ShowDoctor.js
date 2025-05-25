@@ -36,7 +36,6 @@ class ShowDoctor extends Component {
   }
   async componentDidUpdate(prevProps) {
     const { isOpen } = this.props;
-    console.log('ShowDoctor componentDidUpdate:', { isOpen, prevIsOpen: prevProps.isOpen });
     if (isOpen && !prevProps.isOpen) {
       await this.handleLoadVeterinarianInfo();
       await this.handleLoadServiceFilterValue();
@@ -48,7 +47,6 @@ class ShowDoctor extends Component {
 
     try {
       const response = await handleLoadVeterinarianInfoApi(currentPage, limitItemPerQuery, searchValue, filterValue, sortValue);
-      console.log(response);
       if (response && response.errCode === 0) {
         this.setState({
           loadedVeterinarianInfo: response.data,
@@ -66,7 +64,8 @@ class ShowDoctor extends Component {
   };
   handleLoadServiceFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetServiceInfoApi('ALL');
+      const response = await handleGetServiceInfoApi('ALL');
+      const loadedFilterValue = response.data
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error('Không thể tải danh sách lọc!', {
           position: 'top-right',
@@ -255,7 +254,7 @@ class ShowDoctor extends Component {
               </select>
             </div>
             <div className="showdoctor-content-top-filter f">
-              <p>Chuyên ngành: </p>
+              <p>Lọc: </p>
               <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                 <option value="ALL">Tất cả</option>
                 {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
