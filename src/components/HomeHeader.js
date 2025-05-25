@@ -273,7 +273,7 @@ class HomeHeader extends Component {
                         this.props.navigate('/homeappointment');
                       }}
                     >
-                      <IonIcon icon={newspaperOutline}></IonIcon>Đặt Lịch
+                      <IonIcon icon={newspaperOutline}></IonIcon>Dịch vụ
                     </a>
                   </li>
                 </ul>
@@ -307,7 +307,7 @@ class HomeHeader extends Component {
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === 'C' ? (
                   <li>
-                    <a onClick={() => this.props.navigate('/bill')}>Tra cứu</a>
+                    <a onClick={() => this.props.navigate('/track')}>Tra cứu</a>
                   </li>
                 ) : (
                   <li>

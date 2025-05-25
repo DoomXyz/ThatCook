@@ -524,7 +524,7 @@ class CheckOut extends Component {
               <button
                 onClick={() => {
                   this.props.saveBillSearchInfo({ billid: response.data.InvoiceID, billtype: 1 });
-                  this.props.navigate('/bill');
+                  this.props.navigate('/track');
                 }}
                 style={{
                   marginRight: '10px',

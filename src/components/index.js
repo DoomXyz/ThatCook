@@ -9,7 +9,7 @@ import UserPage from '../containers/UserPage/User';
 import CheckOut from '../containers/CheckOut/CheckOut';
 import ForgotPassword from '../containers/UserUtilities/ForgotPassword';
 import Cart from '../containers/Cart/Cart';
-import Bill from '../containers/Bill/Bill';
+import Bill from '../containers/Track/Track';
 import OwnerPage from '../containers/OwnerPage/Owner';
 import MainPage from '../containers/MainPage/MainPage';
 import HomeAppointment from '../containers/HomeAppointment/HomeAppointment';
@@ -47,7 +47,7 @@ const AppRoutes = () => {
 
       <Route path="/cart" element={<Cart navigate={navigate} />} />
       <Route path="/checkout" element={<CheckOut navigate={navigate} />} />
-      <Route path="/bill/:madonhang" element={<Bill navigate={navigate} />} />
+      <Route path="/track" element={<Bill navigate={navigate} />} />
       <Route path="/user/doctor" element={<DoctorPage navigate={navigate} />} />
       <Route path="/forgotpassword" element={<ForgotPassword navigate={navigate} />} />
       <Route path="/user/customer" element={<UserPage navigate={navigate} />} />

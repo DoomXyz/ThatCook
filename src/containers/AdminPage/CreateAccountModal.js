@@ -1,20 +1,22 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
-import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
+import Select from 'react-select';
+
 import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline, informationCircleOutline, idCardOutline, invertModeOutline } from 'ionicons/icons';
+
 import './CreateAccountModal.scss';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import Select from 'react-select';
+
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+
+import { getAllCodes, validateAccountInput, validateVeterinarianInput } from '../../utils/pakage'
 
 class CreateAccountModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      accounttype: '',
       accountname: '',
       email: '',
       password: '',
@@ -22,6 +24,7 @@ class CreateAccountModal extends Component {
       phone: '',
       address: '',
       gender: '',
+      accounttype: '',
       confirmPassword: '',
       bio: '',
       specialization: '',
@@ -35,92 +38,34 @@ class CreateAccountModal extends Component {
       selectedServices: [],
     };
   }
-
   async componentDidMount() {
-    await this.handleLoadCodeGender();
-    await this.handleLoadCodeAccountType();
-    await this.handleLoadCodeWorkingStatus();
-    await this.handleLoadServiceInfo();
+    await this.resetState();
   }
-
-  async componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps, prevState) {
     if (prevProps.isOpen !== this.props.isOpen) {
-      this.resetState();
-    }
-  }
-
-  handleLoadCodeGender = async () => {
-    try {
-      const codeGender = await handleGetAllCodesApi('Gender');
-      if (!codeGender || codeGender.length === 0) {
-        toast.error('Không thể tải danh sách giới tính!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeGender,
-        gender: codeGender.length > 0 ? codeGender[0].Code : '',
-      });
-    } catch (e) {
-      console.log('Error loading gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      await this.resetState();
     }
   };
-
-  handleLoadCodeAccountType = async () => {
+  handleLoadCode = async (codeTypes) => {
     try {
-      const codeAccountType = await handleGetAllCodesApi('AccountType');
-      if (!codeAccountType || codeAccountType.length === 0) {
-        toast.error('Không thể tải danh sách phân quyền!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeAccountType,
-        accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
       });
-    } catch (e) {
-      console.log('Error loading accounttype code:', e);
-      toast.error('Lỗi khi tải danh sách phân quyền!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
     }
   };
-
-  handleLoadCodeWorkingStatus = async () => {
-    try {
-      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
-      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái làm việc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeWorkingStatus,
-        workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
-      });
-    } catch (e) {
-      console.log('Error loading working status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái làm việc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadServiceInfo = async () => {
+  handleGetServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
       const response = responseApi.data
@@ -129,58 +74,47 @@ class CreateAccountModal extends Component {
           loadedServiceInfo: response.data,
         });
       } else {
-        toast.error('Không thể tải danh sách dịch vụ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Không thể tải danh sách dịch vụ!');
       }
     } catch (e) {
       console.log('Error loading service info:', e);
-      toast.error('Lỗi khi tải danh sách dịch vụ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách dịch vụ!');
     }
   };
-
-  resetState = () => {
+  resetState = async () => {
     this.setState({
-      accounttype: '',
       accountname: '',
       email: '',
       password: '',
       username: '',
       phone: '',
       address: '',
+      gender: '',
+      accounttype: '',
       confirmPassword: '',
       bio: '',
       specialization: '',
+      workingstatus: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       selectedServices: [],
     });
+    await this.handleLoadCode(['Gender', 'AccountType', 'WorkingStatus']);
+    await this.handleGetServiceInfo();
   };
-
-  handleServiceChange = (selectedOptions) => {
-    const selectedServiceIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
-    this.setState({ selectedServices: selectedServiceIds });
-  };
-
   toggle = async () => {
-    this.resetState();
+    await this.resetState();
     this.props.toggleFromModal();
   };
-
-  handleTogglePassword1 = () => {
-    this.setState({ isTogglePassword1: !this.state.isTogglePassword1 });
-  };
-
-  handleTogglePassword2 = () => {
-    this.setState({ isTogglePassword2: !this.state.isTogglePassword2 });
-  };
-
+  handleTogglePassword = (type) => {
+    let value;
+    switch (type) {
+      case 1: value = 'isTogglePassword1';
+        break;
+      case 2: value = 'isTogglePassword2';
+    }
+    this.setState((prevState) => ({ [value]: !prevState[value] }));
+  }
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -188,83 +122,54 @@ class CreateAccountModal extends Component {
       ...copyState,
     });
   };
-
-  checkValidateInput = () => {
-    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender, specialization, selectedServices, accounttype } = this.state;
-    const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    const phoneRegex = /^[0-9]{10,11}$/;
-    const specializationRegex = /^$|^[A-Za-zÀ-ỹ\s]{0,50}$/;
-    console.log(this.state);
-    if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
-    if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
-
-    if (!email) return { errCode: -1, errMessage: 'Email trống!' };
-    if (!emailRegex.test(email)) return { errCode: 1, errMessage: 'Email sai định dạng!' };
-
-    if (!password) return { errCode: -1, errMessage: 'Mật khẩu trống!' };
-    if (!passwordRegex.test(password)) return { errCode: 1, errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)' };
-
-    if (!username) return { errCode: -1, errMessage: 'Tên người dùng trống!' };
-    if (!userNameRegex.test(username)) return { errCode: 1, errMessage: 'Tên người dùng không hợp lệ!' };
-
-    if (!phone) return { errCode: -1, errMessage: 'Số điện thoại trống!' };
-    if (!phoneRegex.test(phone)) return { errCode: 1, errMessage: 'Số điện thoại không hợp lệ!' };
-
-    if (!address) return { errCode: -1, errMessage: 'Địa chỉ trống!' };
-
-    const validGenderCode = codeGender.map((item) => item.Code);
-    if (!gender) return { errCode: -1, errMessage: 'Giới tính không tồn tại!' };
-    if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: 'Giới tính không hợp lệ!' };
-
-    if (password !== confirmPassword) return { errCode: 1, errMessage: 'Mật khẩu không trùng khớp!' };
-
-    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên khoa không hợp lệ!' };
-
-    if (accounttype === 'V' && selectedServices.length === 0) {
-      return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
-    }
-
-    return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+  handleServiceChange = (selectedOptions) => {
+    const selectedServiceIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
+    this.setState({ selectedServices: selectedServiceIds });
   };
-
-  handleCreateAccount = () => {
-    let isValidateInput = this.checkValidateInput();
-    if (isValidateInput.errCode === 0) {
-      const { accounttype, accountname, email, password, username, phone, address, gender, bio, specialization, workingstatus, selectedServices } = this.state;
-      const userInfo = {
-        accounttype,
-        accountname,
-        email,
-        password,
-        username,
-        phone,
-        address,
-        gender,
+  handleCreateAccount = async () => {
+    const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus, selectedServices } = this.state;
+    if (password !== confirmPassword) {
+      toast.error('Mật khẩu không trùng khớp!');
+      this.setState({ isLoading: false });
+      return;
+    }
+    const userInfo = {
+      accountname,
+      email,
+      password,
+      username,
+      phone,
+      address,
+      gender,
+      accounttype,
+    };
+    const isValidateAccountInput = await validateAccountInput(userInfo, "REG");
+    if (!isValidateAccountInput.valid) {
+      toast.error(isValidateAccountInput.errMessage);
+      this.setState({ isLoading: false });
+      return;
+    }
+    if (accounttype === 'V') {
+      userInfo.veterinarianInfo = {
+        bio: bio || null,
+        specialization: specialization || null,
+        workingstatus: workingstatus || null,
+        selectedServicesList: selectedServices,
       };
-      if (accounttype === 'V') {
-        userInfo.veterinarianInfo = {
-          bio: bio || null,
-          specialization: specialization || null,
-          workingstatus: workingstatus || null,
-          selectedServicesList: selectedServices,
-        };
+      const isValidateVeterinarianInput = await validateVeterinarianInput(userInfo.veterinarianInfo);
+      if (!isValidateVeterinarianInput.valid) {
+        toast.error(isValidateVeterinarianInput.errMessage);
+        this.setState({ isLoading: false });
+        return;
       }
-      this.props.handleCreateAccountFromModal(userInfo);
-    } else {
-      toast.error(isValidateInput.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
     }
+    this.props.handleCreateAccountFromModal(userInfo);
   };
-
   render() {
     const { isOpen } = this.props;
-    const { accounttype, accountname, email, password, username, phone, address, gender, confirmPassword, bio, specialization, workingstatus, isTogglePassword1, isTogglePassword2, codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices } = this.state;
+    const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus,
+      isTogglePassword1, isTogglePassword2, selectedServices,
+      codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo } = this.state;
     const serviceOptions = loadedServiceInfo.map((service) => ({
       value: service.ServiceID,
       label: service.ServiceName,
@@ -272,7 +177,7 @@ class CreateAccountModal extends Component {
     return (
       <Modal show={isOpen} onHide={this.toggle} className="create-user-modal" centered backdrop="static">
         <Modal.Header closeButton>
-          <Modal.Title>Tạo người dùng mới</Modal.Title>
+          <Modal.Title>Tạo tài khoản mới</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="R1">
@@ -353,7 +258,7 @@ class CreateAccountModal extends Component {
             </div>
             <div className="inputbox">
               <div className="toggle-password">
-                <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={this.handleTogglePassword1}></IonIcon>
+                <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={() => this.handleTogglePassword(1)}></IonIcon>
               </div>
               <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={password} onChange={(event) => this.handleOnChangeInput(event, 'password')} />
               <label>Mật khẩu</label>
@@ -377,7 +282,7 @@ class CreateAccountModal extends Component {
             </div>
             <div className="inputbox">
               <div className="toggle-password">
-                <IonIcon icon={isTogglePassword2 ? eyeOutline : eyeOffOutline} onClick={this.handleTogglePassword2}></IonIcon>
+                <IonIcon icon={isTogglePassword2 ? eyeOutline : eyeOffOutline} onClick={() => this.handleTogglePassword(2)}></IonIcon>
               </div>
               <input type={isTogglePassword2 ? 'text' : 'password'} placeholder="" value={confirmPassword} onChange={(event) => this.handleOnChangeInput(event, 'confirmPassword')} />
               <label>Xác nhận mật khẩu</label>
@@ -404,7 +309,4 @@ class CreateAccountModal extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
-const mapDispatchToProps = {};
-
-export default connect(mapStateToProps, mapDispatchToProps)(CreateAccountModal);
+export default CreateAccountModal;

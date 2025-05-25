@@ -5,24 +5,24 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import RobotoRegularFont from '../../assets/fonts/Roboto-Regular-normal.js';
 
-import './Bill.scss';
-import Spinner from '../../components/Spinner';
-import Header from '../../components/HomeHeader';
+import './Track.scss';
+import Spinner from '../../components/Spinner.js';
+import Header from '../../components/HomeHeader.js';
 
 import { IonIcon } from '@ionic/react';
 import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBack } from 'ionicons/icons';
 
-import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
-import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
-import { clearBillSearchInfo } from '../../store/actions';
+import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices.js';
+import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
+import { handleGetAllCodesApi } from '../../services/utilitiesServices.js';
+import { clearBillSearchInfo } from '../../store/actions/index.js';
 
-import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
 import logo from '../../assets/images/logo1.png';
 const tem = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1748022960/moc-removebg-preview_l9hbp8.png';
 
-class Bill extends Component {
+class Track extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -277,18 +277,17 @@ class Bill extends Component {
     const address = '136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM';
     doc.text(address, 14, 34);
 
-    const dateText = `Thời gian: ${
-      loadedInvoiceDetails.CreatedAt
-        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          })
-        : 'N/A'
-    }`;
+    const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
+      ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+      : 'N/A'
+      }`;
     doc.text(dateText, 14, 42);
     doc.text(`Mã hóa đơn: ${this.state.billid}`, 150, 42, { align: 'right' });
 
@@ -545,6 +544,12 @@ class Bill extends Component {
     }
   };
 
+  getCodeValue = (code, codeType) => {
+    const codeList = this.state[`code${codeType}`] || [];
+    const item = codeList.find((item) => item.Code === code);
+    return item ? item.CodeValueVI : code || 'N/A';
+  };
+
   render() {
     const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid } = this.state;
     return (
@@ -609,13 +614,13 @@ class Bill extends Component {
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            second: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          second: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -801,12 +806,12 @@ class Bill extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -856,7 +861,7 @@ class Bill extends Component {
                                       <td>{codePetType.find((item) => item.Code === loadedAppointmentDetails.Pet?.PetType)?.CodeValueVI || loadedAppointmentDetails.Pet?.PetType || 'N/A'}</td>
                                       <td>{loadedAppointmentDetails.Pet?.PetWeight ? `${loadedAppointmentDetails.Pet.PetWeight} kg` : 'N/A'}</td>
                                       <td>{loadedAppointmentDetails.Pet?.Age ? `${loadedAppointmentDetails.Pet.Age} tuổi` : 'N/A'}</td>
-                                      <td>{codePetGender.find((item) => item.Code === loadedAppointmentDetails.Pet?.PetGender)?.CodeValueVI || loadedAppointmentDetails.Pet?.PetGender || 'N/A'}</td>
+                                      <td>{this.getCodeValue(loadedAppointmentDetails.Pet.PetGender, "PetGender")}</td>
                                     </tr>
                                   </tbody>
                                   <tfoot>
@@ -929,12 +934,12 @@ class Bill extends Component {
                                       <b>Thời gian:</b>
                                       {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
                                         ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -1050,4 +1055,4 @@ const mapDispatchToProps = (dispatch) => ({
   clearBillSearchInfo: () => dispatch(clearBillSearchInfo()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Bill);
+export default connect(mapStateToProps, mapDispatchToProps)(Track);

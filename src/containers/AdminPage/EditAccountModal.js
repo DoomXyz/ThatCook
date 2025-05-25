@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
-import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 import Select from 'react-select';
 
@@ -12,7 +11,8 @@ import Modal from 'react-bootstrap/Modal';
 
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountInfoApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+
+import { getAllCodes, confirmAction, validateVeterinarianInput, validateAccountInput } from '../../utils/pakage'
 
 class EditAccountModal extends Component {
   constructor(props) {
@@ -20,13 +20,13 @@ class EditAccountModal extends Component {
     this.state = {
       loadedAccountInfo: null,
       selectedAccountID: null,
-      accounttype: '',
       accountname: '',
       email: '',
       username: '',
       phone: '',
       address: '',
       gender: '',
+      accounttype: '',
       bio: '',
       specialization: '',
       workingstatus: '',
@@ -42,43 +42,86 @@ class EditAccountModal extends Component {
     if (selectedAccountID) {
       this.loadAccountInfo(selectedAccountID);
     }
-    await this.handleLoadCodeGender();
-    await this.handleLoadCodeAccountType();
-    await this.handleLoadCodeWorkingStatus();
-    await this.handleLoadServiceInfo();
+    await this.resetState();
   }
-  async componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps, prevState) {
     const { selectedAccountID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
-      await this.handleLoadCodeGender();
-      await this.handleLoadCodeAccountType();
-      await this.handleLoadCodeWorkingStatus();
-      await this.handleLoadServiceInfo();
-      this.resetState();
+      await this.resetState();
       if (selectedAccountID) {
         this.loadAccountInfo(selectedAccountID);
       }
     }
   }
-  resetState = () => {
+  handleLoadCode = async (codeTypes) => {
+    try {
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
+  handleGetServiceInfo = async () => {
+    try {
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
+      if (response.errCode === 0 && response.data && response.data.length > 0) {
+        this.setState({
+          loadedServiceInfo: response.data,
+        });
+      } else {
+        toast.error('Không thể tải danh sách dịch vụ!');
+      }
+    } catch (e) {
+      console.log('Error loading service info:', e);
+      toast.error('Lỗi khi tải danh sách dịch vụ!');
+    }
+  };
+  resetState = async () => {
     this.setState({
-      loadedAccountInfo: null,
-      selectedAccountID: null,
-      accounttype: '',
       accountname: '',
       email: '',
       username: '',
       phone: '',
       address: '',
       gender: '',
+      accounttype: '',
       bio: '',
       specialization: '',
+      workingstatus: '',
       selectedServices: [],
+    });
+    await this.handleLoadCode(['Gender', 'AccountType', 'WorkingStatus']);
+    await this.handleGetServiceInfo();
+  };
+  toggle = async () => {
+    await this.resetState();
+    this.props.toggleFromModal();
+  };
+  handleOnChangeInput = (event, type) => {
+    let copyState = { ...this.state };
+    copyState[type] = event.target.value;
+    this.setState({
+      ...copyState,
     });
   };
   loadAccountInfo = async (accountid) => {
     try {
-      const [accountResponse, vetResponse] = await Promise.all([handleGetAccountInfoApi(accountid), handleGetVeterinarianInfoApi(accountid)]);
+      const [accountResponse, vetResponse] = await Promise.all([
+        handleGetAccountInfoApi(accountid),
+        handleGetVeterinarianInfoApi(accountid)
+      ]);
       if (accountResponse && accountResponse.errCode === 0) {
         const accountInfo = accountResponse.data;
         const vetInfo = vetResponse && vetResponse.errCode === 0 ? vetResponse.data : null;
@@ -97,131 +140,18 @@ class EditAccountModal extends Component {
           workingstatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
           selectedServices: vetResponse && vetResponse.errCode === 0 && vetResponse.data.services ? vetResponse.data.services.map((service) => service.ServiceID) : [],
         });
-        console.log(vetResponse.data);
       } else {
         this.resetState();
-        toast.error('Tải tài khoản thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Tải tài khoản thất bại!');
       }
     } catch (e) {
       this.resetState();
-      toast.error('Lỗi khi tải tài khoản!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadCodeGender = async () => {
-    try {
-      const codeGender = await handleGetAllCodesApi('Gender');
-      if (!codeGender || codeGender.length === 0) {
-        toast.error('Không thể tải danh sách giới tính!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeGender,
-        gender: codeGender.length > 0 ? codeGender[0].Code : '',
-      });
-    } catch (e) {
-      console.log('Error loading gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadCodeAccountType = async () => {
-    try {
-      const codeAccountType = await handleGetAllCodesApi('AccountType');
-      if (!codeAccountType || codeAccountType.length === 0) {
-        toast.error('Không thể tải danh sách phân quyền!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeAccountType,
-        accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
-      });
-    } catch (e) {
-      console.log('Error loading accounttype code:', e);
-      toast.error('Lỗi khi tải danh sách phân quyền!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadCodeWorkingStatus = async () => {
-    try {
-      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
-      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái làm việc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeWorkingStatus,
-        workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
-      });
-    } catch (e) {
-      console.log('Error loading working status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái làm việc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadServiceInfo = async () => {
-    try {
-      const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
-      if (response.errCode === 0 && response.data && response.data.length > 0) {
-        this.setState({
-          loadedServiceInfo: response.data,
-        });
-      } else {
-        toast.error('Không thể tải danh sách dịch vụ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.log('Error loading service info:', e);
-      toast.error('Lỗi khi tải danh sách dịch vụ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải tài khoản!');
     }
   };
   handleServiceChange = (selectedOptions) => {
     const selectedServiceIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
     this.setState({ selectedServices: selectedServiceIds });
-  };
-  toggle = async () => {
-    this.resetState();
-    this.props.toggleFromModal();
-  };
-  handleOnChangeInput = (event, type) => {
-    let copyState = { ...this.state };
-    copyState[type] = event.target.value;
-    this.setState({
-      ...copyState,
-    });
   };
   checkValidateInput = () => {
     const { accountname, username, phone, address, gender, codeGender, specialization, selectedServices, accounttype } = this.state;
@@ -254,68 +184,52 @@ class EditAccountModal extends Component {
     return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
   };
   handleEditAccount = async () => {
-    const confirmEdit = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận sửa chỉnh sửa thông tin người dùng?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
-        );
-      });
-    let isConfirmed = await confirmEdit();
+    let isConfirmed = await confirmAction('Xác nhận sửa thông tin người dùng?', 'Có', 'Không');
     if (isConfirmed) {
-      let isValidateInput = this.checkValidateInput();
-      if (isValidateInput.errCode === 0) {
-        const { selectedAccountID, accounttype, accountname, username, phone, address, gender, bio, specialization, workingstatus, selectedServices } = this.state;
-        const userInfo = {
-          accountid: selectedAccountID,
-          accounttype,
-          accountname,
-          username,
-          phone,
-          address,
-          gender,
-        };
-        if (accounttype === 'V') {
-          userInfo.veterinarianInfo = {
-            bio: bio || null,
-            specialization: specialization || null,
-            workingstatus: workingstatus || null,
-            selectedServicesList: selectedServices,
-          };
-        }
-        this.props.handleEditAccountFromModal(userInfo);
-      } else {
-        toast.error(isValidateInput.errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+      const { selectedAccountID, accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus, selectedServices } = this.state;
+      if (password !== confirmPassword) {
+        toast.error('Mật khẩu không trùng khớp!');
+        this.setState({ isLoading: false });
+        return;
       }
+      const userInfo = {
+        accountid: selectedAccountID,
+        accountname,
+        email,
+        password,
+        username,
+        phone,
+        address,
+        gender,
+        accounttype,
+      };
+      const isValidateAccountInput = await validateAccountInput(userInfo, "EDIT");
+      if (!isValidateAccountInput.valid) {
+        toast.error(isValidateAccountInput.errMessage);
+        this.setState({ isLoading: false });
+        return;
+      }
+      if (accounttype === 'V') {
+        userInfo.veterinarianInfo = {
+          bio: bio || null,
+          specialization: specialization || null,
+          workingstatus: workingstatus || null,
+          selectedServicesList: selectedServices,
+        };
+        const isValidateVeterinarianInput = await validateVeterinarianInput(userInfo.veterinarianInfo);
+        if (!isValidateVeterinarianInput.valid) {
+          toast.error(isValidateVeterinarianInput.errMessage);
+          this.setState({ isLoading: false });
+          return;
+        }
+      }
+      this.props.handleEditAccountFromModal(userInfo);
     }
   };
   render() {
     const { isOpen } = this.props;
-    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, codeGender, codeAccountType, codeWorkingStatus, bio, specialization, workingstatus, loadedServiceInfo, selectedServices } = this.state;
+    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, bio, specialization, workingstatus,
+      codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices } = this.state;
     if (!loadedAccountInfo) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="edit-user-modal" centered backdrop="static">
@@ -457,8 +371,4 @@ class EditAccountModal extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
-
-const mapDispatchToProps = {};
-
-export default connect(mapStateToProps, mapDispatchToProps)(EditAccountModal);
+export default EditAccountModal;

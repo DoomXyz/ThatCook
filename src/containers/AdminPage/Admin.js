@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import Select from 'react-select';
@@ -8,32 +8,29 @@ import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutli
 
 import './Admin.scss';
 import Spinner from '../../components/Spinner';
-
-import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from '../../services/accountServices';
-import {
-  handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi
-} from '../../services/utilitiesServices';
-
-import { handleLoadServiceInfoApi, handleCreateServiceApi, handleChangeServiceInfoApi, handleChangeServiceStatusApi } from '../../services/serviceServices'
-
-import { checkLoginStatus } from '../../utils/pakage';
-import { userLogin, userLogout } from '../../store/actions';
-
 import CreateAccountModal from './CreateAccountModal';
 import EditAccountModal from './EditAccountModal';
+
+import { handleLoadAccountInfoApi, handleRegisterApi, handleChangeAccountInfoApi, handleLogoutApi, handleChangeAccountStatusApi } from '../../services/accountServices';
+import { handleLoadServiceInfoApi, handleCreateServiceApi, handleChangeServiceInfoApi, handleChangeServiceStatusApi } from '../../services/serviceServices'
+import { handleGetAllCodesApi, handleLoadAllCodesInfoApi, handleCreateCodeApi, handleChangeCodeApi } from '../../services/utilitiesServices';
+
+import { getAllCodes, checkLoginStatus, validateCodeInput, validateServiceInput } from '../../utils/pakage';
+import { userLogin, userLogout } from '../../store/actions';
 
 class Admin extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoggedIn: false,
+      actionPage: 1,
       isLoading: true,
+      isLoggedIn: false,
       accountInfo: null,
       codeGender: [],
       codeAccountType: [],
       codeAccountStatus: [],
-      codeTypes: [],
       codeServiceStatus: [],
+      codeTypeFilter: [],
       loadedAccountInfo: [],
       loadedCodeInfo: [],
       loadedServiceInfo: [],
@@ -50,7 +47,6 @@ class Admin extends Component {
       totalPages: 1,
       isShowCreateAccountModal: false,
       isShowEditAccountModal: false,
-      actionPage: 1,
       isEditingCode: null,
       isAddingCode: false,
       isEditingService: null,
@@ -61,144 +57,28 @@ class Admin extends Component {
   async componentDidMount() {
     await this.handleIsLogin();
     await this.handleLoadAccountInfo();
-    await this.handleLoadGender();
-    await this.handleLoadAccountType();
-    await this.handleLoadAccountStatus();
+    await this.handleLoadCode(['Gender', 'AccountType', 'AccountStatus', 'ServiceStatus']);
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { codeGender, codeAccountType, codeAccountStatus, codeTypes, codeServiceStatus } = this.state;
+      const { codeTypeFilter } = this.state;
       switch (this.state.actionPage) {
         case 1:
           await this.handleLoadAccountInfo();
-          if (codeGender.length === 0) await this.handleLoadGender();
-          if (codeAccountType.length === 0) await this.handleLoadAccountType();
-          if (codeAccountStatus.length === 0) await this.handleLoadAccountStatus();
           break;
         case 2:
           await this.handleLoadAllCodesInfo();
-          if (codeTypes.length === 0) await this.handleLoadCodeTypes();
+          if (codeTypeFilter.length === 0) await this.handleLoadCodeTypeFilter();
           break;
         case 3:
           await this.handleLoadServiceInfo();
-          if (codeServiceStatus.length === 0) await this.handleLoadServiceStatus();
           break;
         default:
           break;
       }
     }
   }
-
-  handleLoadGender = async () => {
-    try {
-      const codeGender = await handleGetAllCodesApi('Gender');
-      if (!codeGender || codeGender.length === 0) {
-        toast.error('Không thể tải danh sách giới tính!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeGender,
-      });
-    } catch (e) {
-      console.log('Error loading gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadAccountType = async () => {
-    try {
-      const codeAccountType = await handleGetAllCodesApi('AccountType');
-      if (!codeAccountType || codeAccountType.length === 0) {
-        toast.error('Không thể tải danh sách quyền hạn!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeAccountType,
-      });
-    } catch (e) {
-      console.log('Error loading accounttype code:', e);
-      toast.error('Lỗi khi tải danh sách quyền hạn!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadAccountStatus = async () => {
-    try {
-      const codeAccountStatus = await handleGetAllCodesApi('AccountStatus');
-      if (!codeAccountStatus || codeAccountStatus.length === 0) {
-        toast.error('Không thể tải trạng thái tài khoản!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeAccountStatus,
-      });
-    } catch (e) {
-      console.log('Error loading accountstatus code:', e);
-      toast.error('Lỗi khi tải trạng thái tài khoản!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadServiceStatus = async () => {
-    try {
-      const codeServiceStatus = await handleGetAllCodesApi('ServiceStatus');
-      if (!codeServiceStatus || codeServiceStatus.length === 0) {
-        toast.error('Không thể tải trạng thái dịch vụ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeServiceStatus,
-      });
-    } catch (e) {
-      console.log('Error loading service status:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái dịch vụ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadCodeTypes = async () => {
-    try {
-      const response = await handleGetAllCodesApi('ALL');
-      if (response && response.length !== 0) {
-        this.setState({ codeTypes: response });
-      } else {
-        toast.error('Không thể tải danh sách Type!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.log('Error loading code types:', e);
-      toast.error('Lỗi khi tải danh sách Type!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
+  //login logout
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -221,23 +101,138 @@ class Admin extends Component {
       }
     } catch (e) {
       this.props.navigate('/login');
-      console.log('Token not found!');
     }
     this.setState({
       isLoading: false,
     });
+  };
+  handleLogout = async () => {
+    const confirmLogout = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận đăng xuất?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { autoClose: 1000, closeOnClick: false }
+        );
+      });
+    const isConfirmed = await confirmLogout();
+    if (isConfirmed) {
+      try {
+        await handleLogoutApi();
+        this.props.userLogout();
+        this.setState({
+          isLoggedIn: false,
+          accountInfo: null,
+        });
+        this.props.navigate('/home');
+        toast.success('Đăng xuất thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      } catch (e) {
+        console.log(e);
+        toast.error('Đăng xuất thất bại. Vui lòng thử lại!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    }
+  };
+  //load filter/code
+  handleLoadCode = async (codeTypeFilter) => {
+    try {
+      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`, {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
+        newState[`code${type}`] = response.data;
+        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      this.setState({ isLoading: false });
+    }
+  };
+  handleLoadCodeTypeFilter = async () => {
+    try {
+      const response = await handleGetAllCodesApi('ALL');
+      if (response && response.length !== 0) {
+        this.setState({ codeTypeFilter: response });
+      } else {
+        toast.error('Không thể tải danh sách Type!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.log('Error loading code types:', e);
+      toast.error('Lỗi khi tải danh sách Type!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+  };
+  //load data info
+  handleReloadData = (type) => {
+    switch (type) {
+      case 1:
+        this.handleLoadAccountInfo();
+        break;
+      case 2:
+        this.handleLoadAllCodesInfo();
+        break;
+      case 3:
+        this.handleLoadServiceInfo();
+        break;
+      default:
+        break;
+    }
   };
   handleLoadAccountInfo = async () => {
     const { currentPage, limitAccountPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
       const response = await handleLoadAccountInfoApi(currentPage, limitAccountPerQuery, searchValue, filterValue, sortValue);
       if (response && response.errCode === 0) {
-        this.setState((prevState) => ({
+        this.setState({
           loadedAccountInfo: response.data,
           totalPages: Math.ceil(response.totalItems / limitAccountPerQuery),
-          currentPage: Math.min(prevState.currentPage, prevState.totalPages),
-          tempCurrentPage: Math.min(prevState.currentPage, prevState.totalPages),
-        }));
+        });
       }
     } catch (e) {
       console.log('Error loading accountinfo:', e);
@@ -287,131 +282,66 @@ class Admin extends Component {
       });
     }
   };
-  handleEditService = (index) => {
-    this.setState({ isEditingService: index, isAddingService: false });
-  };
-  handleAddService = () => {
-    if (this.state.isAddingService || this.state.isEditingService !== null) {
-      const confirmAddNew = () =>
-        new Promise((resolve) => {
-          toast(
-            <div>
-              <p>{this.state.isAddingService ? 'Bạn đang thêm dịch vụ mới chưa lưu. Lưu hoặc hủy trước khi thêm dịch vụ mới?' : 'Bạn có thay đổi chưa lưu. Hủy thay đổi và thêm dịch vụ mới?'}</p>
-              <button
-                className="toast-confirm-btn"
-                onClick={() => {
-                  resolve(true);
-                  toast.dismiss();
-                }}
-              >
-                Có
-              </button>
-              <button
-                className="toast-cancel-btn"
-                onClick={() => {
-                  resolve(false);
-                  toast.dismiss();
-                }}
-              >
-                Không
-              </button>
-            </div>,
-            { position: 'top-center', autoClose: 2000, closeOnClick: false }
-          );
-        });
-      confirmAddNew().then((isConfirmed) => {
-        if (isConfirmed) {
-          this.setState(
-            {
-              isEditingService: null,
-              isAddingService: false,
-            },
-            async () => {
-              await this.handleLoadServiceInfo();
-              this.setState((prevState) => ({
-                loadedServiceInfo: [
-                  {
-                    ServiceID: Date.now(),
-                    ServiceName: '',
-                    Price: '',
-                    Duration: '',
-                    Description: '',
-                    ServiceStatus: 'VALID',
-                  },
-                  ...prevState.loadedServiceInfo,
-                ],
-                isEditingService: 0,
-                isAddingService: true,
-              }));
-            }
-          );
-        }
-      });
-    } else {
-      this.setState((prevState) => ({
-        loadedServiceInfo: [
-          {
-            ServiceID: Date.now(),
-            ServiceName: '',
-            Price: '',
-            Duration: '',
-            Description: '',
-            ServiceStatus: 'VALID',
-          },
-          ...prevState.loadedServiceInfo,
-        ],
-        isEditingService: 0,
-        isAddingService: true,
-      }));
-    }
-  };
-
-  handleCancelService = () => {
+  //search filter sort
+  handleSearchChange = (event, type) => {
+    const value = event.target.value;
     this.setState(
       {
-        isEditingService: null,
-        isAddingService: false,
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
       },
-      async () => {
-        await this.handleLoadServiceInfo();
+      () => {
+        if (this.debounceTimeout) { clearTimeout(this.debounceTimeout); }
+        this.debounceTimeout = setTimeout(() => {
+          this.handleReloadData(type);
+        }, 500)
       }
     );
   };
-
-  handleServiceChange = (index, field, value) => {
-    this.setState((prevState) => {
-      const newServices = [...prevState.loadedServiceInfo];
-      newServices[index] = { ...newServices[index], [field]: value };
-      return { loadedServiceInfo: newServices };
-    });
+  handleFilter = (value, type) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
   };
-
-  checkValidateService = (index) => {
-    const item = this.state.loadedServiceInfo[index];
-    if (!item.ServiceName) return { errCode: -1, errMessage: `Tên dịch vụ tại dòng ${index + 1} không được để trống!` };
-    const nameRegex = /^[A-Za-z0-9\s]{2,50}$/;
-    if (!nameRegex.test(item.ServiceName.trim())) return { errCode: -1, errMessage: `Tên dịch vụ tại dòng ${index + 1} không hợp lệ (2-50 ký tự, chỉ chữ, số và khoảng trắng)!` };
-    if (!item.Price || isNaN(item.Price) || parseFloat(item.Price) < 0) return { errCode: -1, errMessage: `Giá tại dòng ${index + 1} không hợp lệ (phải là số không âm)!` };
-    if (!item.Duration || isNaN(item.Duration) || parseInt(item.Duration) <= 0) return { errCode: -1, errMessage: `Thời gian tại dòng ${index + 1} không hợp lệ (phải là số nguyên dương)!` };
-    if (item.Description && item.Description.trim().length > 65535) return { errCode: -1, errMessage: `Mô tả tại dòng ${index + 1} vượt quá giới hạn ký tự (65535)!` };
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
+  handleSort = (value, type) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      }, () => {
+        this.handleReloadData(type);
+      }
+    );
   };
-
-  handleSaveService = async (index) => {
-    const validation = this.checkValidateService(index);
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-    const confirmSave = () =>
+  handleResetFilter = (type) => {
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+      }, () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  //modal action
+  handleChangeAccountStatus = async (userInfo) => {
+    const confirmChange = () =>
       new Promise((resolve) => {
         toast(
           <div>
-            <p>Xác nhận lưu thông tin dịch vụ?</p>
+            <p>{`Bạn có muốn ${userInfo.AccountStatus === 'ACT' ? 'khóa' : 'mở khóa'} tài khoản ${userInfo.UserName} không?`}</p>
             <button
               className="toast-confirm-btn"
               onClick={() => {
@@ -431,57 +361,43 @@ class Admin extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          { position: 'top-right', autoClose: 1000, closeOnClick: false }
         );
       });
-    const isConfirmed = await confirmSave();
-    if (!isConfirmed) return;
-    this.setState({ isLoading: true });
-    try {
-      const serviceInfo = {
-        ServiceID: this.state.loadedServiceInfo[index].ServiceID,
-        ServiceName: this.state.loadedServiceInfo[index].ServiceName.trim(),
-        Price: parseFloat(this.state.loadedServiceInfo[index].Price).toFixed(2),
-        Duration: parseInt(this.state.loadedServiceInfo[index].Duration),
-        Description: this.state.loadedServiceInfo[index].Description ? this.state.loadedServiceInfo[index].Description.trim() : null,
-      };
-      let apiResponse;
-      if (this.state.isAddingService) {
-        apiResponse = await handleCreateServiceApi(serviceInfo);
-      } else {
-        apiResponse = await handleChangeServiceInfoApi(serviceInfo);
-      }
-      const response = apiResponse.data;
-      if (response && response.errCode === 0) {
-        toast.success(this.state.isAddingService ? 'Tạo dịch vụ thành công!' : 'Chỉnh sửa dịch vụ thành công!', {
+    let isConfirmed = await confirmChange();
+    if (isConfirmed) {
+      this.setState({ isLoading: true });
+      if (userInfo.AccountType === 'A') {
+        toast.info('Không thể khóa tài khoản quản trị viên!', {
           position: 'top-right',
           autoClose: 500,
           closeOnClick: true,
         });
-        await this.handleLoadServiceInfo();
-        this.setState({
-          isEditingService: null,
-          isAddingService: false,
-        });
       } else {
-        const errMessage = response?.errMessage || (this.state.isAddingService ? 'Tạo dịch vụ thất bại!' : 'Chỉnh sửa dịch vụ thất bại!');
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        const newStatus = userInfo.AccountStatus === 'ACT' ? 'DIS' : 'ACT';
+        try {
+          const response = await handleChangeAccountStatusApi(userInfo.AccountID, newStatus);
+          if (response) {
+            toast.success(response.errMessage, {
+              position: 'top-right',
+              autoClose: 500,
+              closeOnClick: true,
+            });
+            await this.handleLoadAccountInfo();
+          }
+        } catch (e) {
+          console.log('Error changing accountstatus:', e);
+          toast.error('Lỗi khi thay đổi trạng thái tài khoản!', {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
       }
-    } catch (e) {
-      console.error(this.state.isAddingService ? 'Create Service:' : 'Edit Service:', e);
-      toast.error(`Xảy ra lỗi khi ${this.state.isAddingService ? 'tạo' : 'chỉnh sửa'} dịch vụ, vui lòng thử lại!`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
     }
+    await this.handleLoadAccountInfo();
     this.setState({ isLoading: false });
   };
-
   handleChangeServiceStatus = async (serviceInfo) => {
     const confirmChange = () =>
       new Promise((resolve) => {
@@ -523,12 +439,7 @@ class Admin extends Component {
             autoClose: 500,
             closeOnClick: true,
           });
-        } else {
-          toast.error(response?.errMessage || 'Thay đổi trạng thái dịch vụ thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          await this.handleLoadServiceInfo();
         }
       } catch (e) {
         console.log('Error changing service status:', e);
@@ -541,111 +452,6 @@ class Admin extends Component {
       await this.handleLoadServiceInfo();
       this.setState({ isLoading: false });
     }
-  };
-
-  handleSearchChange = (event, type) => {
-    const value = event.target.value;
-    this.setState(
-      {
-        searchValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        if (this.debounceTimeout) {
-          clearTimeout(this.debounceTimeout);
-        }
-        this.debounceTimeout = setTimeout(() => {
-          switch (type) {
-            case 1:
-              this.handleLoadAccountInfo();
-              break;
-            case 2:
-              this.handleLoadAllCodesInfo();
-              break;
-            case 3:
-              this.handleLoadServiceInfo();
-              break;
-            default:
-              break;
-          }
-        }, 500);
-      }
-    );
-  };
-  handleFilter = (value, type) => {
-    this.setState(
-      {
-        filterValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadAccountInfo();
-            break;
-          case 2:
-            this.handleLoadAllCodesInfo();
-            break;
-          case 3:
-            this.handleLoadServiceInfo();
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handleSort = (value, type) => {
-    this.setState(
-      {
-        sortValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadAccountInfo();
-            break;
-          case 2:
-            this.handleLoadAllCodesInfo();
-            break;
-          case 3:
-            this.handleLoadServiceInfo();
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handleResetFilter = (type) => {
-    this.setState(
-      {
-        currentPage: 1,
-        tempCurrentPage: '1',
-        searchValue: '',
-        filterValue: 'ALL',
-        sortValue: '0',
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadAccountInfo();
-            break;
-          case 2:
-            this.handleLoadAllCodesInfo();
-            break;
-          case 3:
-            this.handleLoadServiceInfo();
-            break;
-          default:
-            break;
-        }
-      }
-    );
   };
   //ẩn hiện modal tạo tài khoản
   toggleCreateUserModal = () => {
@@ -739,121 +545,7 @@ class Admin extends Component {
       isLoading: false,
     });
   };
-  handleChangeAccountStatus = async (userInfo) => {
-    const confirmChange = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>{`Bạn có muốn ${userInfo.AccountStatus === 'ACT' ? 'khóa' : 'mở khóa'} tài khoản ${userInfo.UserName} không?`}</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-right', autoClose: 1000, closeOnClick: false }
-        );
-      });
-    let isConfirmed = await confirmChange();
-    if (isConfirmed) {
-      this.setState({ isLoading: true });
-      if (userInfo.AccountType === 'A') {
-        toast.info('Không thể khóa tài khoản quản trị viên!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      } else {
-        const newStatus = userInfo.AccountStatus === 'ACT' ? 'DIS' : 'ACT';
-        try {
-          const response = await handleChangeAccountStatusApi(userInfo.AccountID, newStatus);
-          if (response) {
-            toast.success(response.errMessage, {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
-          }
-        } catch (e) {
-          console.log('Error changing accountstatus:', e);
-          toast.error('Lỗi khi thay đổi trạng thái tài khoản!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
-        }
-      }
-    }
-    await this.handleLoadAccountInfo();
-    this.setState({ isLoading: false });
-  };
-  handleLogout = async () => {
-    const confirmLogout = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận đăng xuất?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { autoClose: 1000, closeOnClick: false }
-        );
-      });
-    const isConfirmed = await confirmLogout();
-    if (isConfirmed) {
-      try {
-        await handleLogoutApi();
-        this.props.userLogout();
-        this.setState({
-          isLoggedIn: false,
-          accountInfo: null,
-        });
-        this.props.navigate('/home');
-        toast.success('Đăng xuất thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      } catch (e) {
-        console.log(e);
-        toast.error('Đăng xuất thất bại. Vui lòng thử lại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    }
-  };
-
+  //pagination
   handlePageChange = (page, type) => {
     this.setState({
       isLoading: true,
@@ -865,30 +557,14 @@ class Admin extends Component {
     } else if (page > totalPages) {
       newPage = totalPages;
     }
-    this.setState(
-      {
-        isLoading: false,
-        currentPage: newPage,
-        tempCurrentPage: newPage.toString(),
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadAccountInfo();
-            break;
-          case 2:
-            this.handleLoadAllCodesInfo();
-            break;
-          case 3:
-            this.handleLoadServiceInfo();
-            break;
-          default:
-            break;
-        }
-      }
-    );
+    this.setState({
+      isLoading: false,
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString(),
+    }, () => {
+      this.handleReloadData(type)
+    });
   };
-
   handlePrevPage = (type) => {
     this.setState(
       (prevState) => {
@@ -897,25 +573,11 @@ class Admin extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadAccountInfo();
-            break;
-          case 2:
-            this.handleLoadAllCodesInfo();
-            break;
-          case 3:
-            this.handleLoadServiceInfo();
-            break;
-          default:
-            break;
-        }
+      }, () => {
+        this.handleReloadData(type);
       }
     );
   };
-
   handleNextPage = (type) => {
     this.setState(
       (prevState) => {
@@ -924,36 +586,20 @@ class Admin extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadAccountInfo();
-            break;
-          case 2:
-            this.handleLoadAllCodesInfo();
-            break;
-          case 3:
-            this.handleLoadServiceInfo();
-            break;
-          default:
-            break;
-        }
+      }, () => {
+        this.handleReloadData(type);
       }
     );
   };
-
-  handlePageInputChange = (event, type) => {
+  handlePageInputChange = (event) => {
     const value = event.target.value;
     this.setState({ tempCurrentPage: value });
   };
-
   handlePageInputBlur = (type) => {
     const { tempCurrentPage } = this.state;
     const page = parseInt(tempCurrentPage, 10);
     this.handlePageChange(page, type);
   };
-
   handlePageKeyDown = (event, type) => {
     if (event.key === 'Enter') {
       const { tempCurrentPage } = this.state;
@@ -961,6 +607,188 @@ class Admin extends Component {
       this.handlePageChange(page, type);
     }
   };
+  //on table change action (service)
+  handleEditService = (index) => {
+    this.setState({ isEditingService: index, isAddingService: false });
+  };
+  handleAddService = () => {
+    if (this.state.isAddingService || this.state.isEditingService !== null) {
+      const confirmAddNew = () =>
+        new Promise((resolve) => {
+          toast(
+            <div>
+              <p>{this.state.isAddingService ? 'Bạn đang thêm dịch vụ mới chưa lưu. Lưu hoặc hủy trước khi thêm dịch vụ mới?' : 'Bạn có thay đổi chưa lưu. Hủy thay đổi và thêm dịch vụ mới?'}</p>
+              <button
+                className="toast-confirm-btn"
+                onClick={() => {
+                  resolve(true);
+                  toast.dismiss();
+                }}
+              >
+                Có
+              </button>
+              <button
+                className="toast-cancel-btn"
+                onClick={() => {
+                  resolve(false);
+                  toast.dismiss();
+                }}
+              >
+                Không
+              </button>
+            </div>,
+            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          );
+        });
+      confirmAddNew().then((isConfirmed) => {
+        if (isConfirmed) {
+          this.setState(
+            {
+              isEditingService: null,
+              isAddingService: false,
+            },
+            async () => {
+              await this.handleLoadServiceInfo();
+              this.setState((prevState) => ({
+                loadedServiceInfo: [
+                  {
+                    ServiceID: Date.now(),
+                    ServiceName: '',
+                    Price: '',
+                    Duration: '',
+                    Description: '',
+                    ServiceStatus: 'VALID',
+                  },
+                  ...prevState.loadedServiceInfo,
+                ],
+                isEditingService: 0,
+                isAddingService: true,
+              }));
+            }
+          );
+        }
+      });
+    } else {
+      this.setState((prevState) => ({
+        loadedServiceInfo: [
+          {
+            ServiceID: Date.now(),
+            ServiceName: '',
+            Price: '',
+            Duration: '',
+            Description: '',
+            ServiceStatus: 'VALID',
+          },
+          ...prevState.loadedServiceInfo,
+        ],
+        isEditingService: 0,
+        isAddingService: true,
+      }));
+    }
+  };
+  handleCancelService = () => {
+    this.setState(
+      {
+        isEditingService: null,
+        isAddingService: false,
+      },
+      async () => {
+        await this.handleLoadServiceInfo();
+      }
+    );
+  };
+  handleServiceChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newServices = [...prevState.loadedServiceInfo];
+      newServices[index] = { ...newServices[index], [field]: value };
+      return { loadedServiceInfo: newServices };
+    });
+  };
+  handleSaveService = async (index) => {
+    const isValidateInput = validateServiceInput(this.state.loadedServiceInfo[index]);
+    if (!isValidateInput.valid) {
+      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`, {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      return;
+    }
+    const confirmSave = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận lưu thông tin dịch vụ?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+        );
+      });
+    const isConfirmed = await confirmSave();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const serviceInfo = {
+        ServiceID: this.state.loadedServiceInfo[index].ServiceID,
+        ServiceName: this.state.loadedServiceInfo[index].ServiceName.trim(),
+        Price: parseFloat(this.state.loadedServiceInfo[index].Price).toFixed(2),
+        Duration: parseInt(this.state.loadedServiceInfo[index].Duration),
+        Description: this.state.loadedServiceInfo[index].Description ? this.state.loadedServiceInfo[index].Description.trim() : null,
+      };
+      let apiResponse;
+      if (this.state.isAddingService) {
+        apiResponse = await handleCreateServiceApi(serviceInfo);
+      } else {
+        apiResponse = await handleChangeServiceInfoApi(serviceInfo);
+      }
+      const response = apiResponse.data;
+      if (response && response.errCode === 0) {
+        toast.success(this.state.isAddingService ? 'Tạo dịch vụ thành công!' : 'Chỉnh sửa dịch vụ thành công!', {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+        await this.handleLoadServiceInfo();
+        this.setState({
+          isEditingService: null,
+          isAddingService: false,
+        });
+      } else {
+        const errMessage = response?.errMessage || (this.state.isAddingService ? 'Tạo dịch vụ thất bại!' : 'Chỉnh sửa dịch vụ thất bại!');
+        toast.error(errMessage, {
+          position: 'top-right',
+          autoClose: 500,
+          closeOnClick: true,
+        });
+      }
+    } catch (e) {
+      console.error(this.state.isAddingService ? 'Create Service:' : 'Edit Service:', e);
+      toast.error(`Xảy ra lỗi khi ${this.state.isAddingService ? 'tạo' : 'chỉnh sửa'} dịch vụ, vui lòng thử lại!`, {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+    }
+    this.setState({ isLoading: false });
+  };
+  //on table change action (code)
   handleEditCode = (index) => {
     this.setState({ isEditingCode: index, isAddingCode: false });
   };
@@ -1056,38 +884,16 @@ class Admin extends Component {
       return { loadedCodeInfo: newCodes };
     });
   };
-  checkValidateCode = (index) => {
-    const item = this.state.loadedCodeInfo[index];
-
-    if (!item.Type) return { errCode: -1, errMessage: `Type tại dòng ${index + 1} không được để trống!` };
-    const typeRegex = /^[A-Za-z0-9]{2,30}$/;
-    if (!typeRegex.test(item.Type.trim())) return { errCode: -1, errMessage: `Type tại dòng ${index + 1} không hợp lệ (2-30 ký tự, chỉ chữ và số)!` };
-
-    if (!item.Code) return { errCode: -1, errMessage: `Code tại dòng ${index + 1} không được để trống!` };
-    const codeRegex = /^[A-Za-z0-9]{1,20}$/;
-    if (!codeRegex.test(item.Code.trim())) return { errCode: -1, errMessage: `Code tại dòng ${index + 1} không hợp lệ (1-20 ký tự, chỉ chữ và số)!` };
-
-    if (!item.CodeValueVI) return { errCode: -1, errMessage: `CodeValueVI tại dòng ${index + 1} không được để trống!` };
-    const valueRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
-    if (!valueRegex.test(item.CodeValueVI.trim())) return { errCode: -1, errMessage: `CodeValueVI tại dòng ${index + 1} không hợp lệ (2-50 ký tự, có ít nhất một chữ cái)!` };
-
-    if (item.ExtraValue && (isNaN(item.ExtraValue) || parseFloat(item.ExtraValue) < 0)) {
-      return { errCode: -1, errMessage: `ExtraValue tại dòng ${index + 1} phải là số không âm!` };
-    }
-
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
-  };
   handleSaveCode = async (index) => {
-    const validation = this.checkValidateCode(index);
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
+    const isValidateInput = validateCodeInput(this.state.loadedCodeInfo[index]);
+    if (!isValidateInput.valid) {
+      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`, {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
       return;
     }
-
     const confirmSave = () =>
       new Promise((resolve) => {
         toast(
@@ -1165,6 +971,7 @@ class Admin extends Component {
     }
     this.setState({ isLoading: false });
   };
+  //form controller
   handleFormAccountManagement = (e) => {
     e.preventDefault();
     this.setState(
@@ -1177,14 +984,13 @@ class Admin extends Component {
         sortValue: '0',
         isEditingCode: null,
         isAddingCode: false,
-        loadedCodeInfo: [],
-      },
-      async () => {
+        isEditingService: null,
+        isAddingService: false,
+      }, async () => {
         await this.handleLoadAccountInfo();
       }
     );
   };
-
   handleFormCodeManagement = (e) => {
     e.preventDefault();
     this.setState(
@@ -1197,14 +1003,13 @@ class Admin extends Component {
         sortValue: '0',
         isEditingCode: null,
         isAddingCode: false,
-        loadedCodeInfo: [],
-      },
-      async () => {
+        isEditingService: null,
+        isAddingService: false,
+      }, async () => {
         await this.handleLoadAllCodesInfo();
       }
     );
   };
-
   handleFormServiceManagement = (e) => {
     e.preventDefault();
     this.setState(
@@ -1219,38 +1024,18 @@ class Admin extends Component {
         isAddingCode: false,
         isEditingService: null,
         isAddingService: false,
-        loadedCodeInfo: [],
-        loadedServiceInfo: [],
-      },
-      async () => {
+      }, async () => {
         await this.handleLoadServiceInfo();
       }
     );
   };
   renderSection = () => {
-    const {
-      loadedAccountInfo,
-      searchValue,
-      filterValue,
-      sortValue,
-      currentPage,
-      totalPages,
-      codeGender,
-      codeAccountType,
-      codeAccountStatus,
-      tempCurrentPage,
-      loadedCodeInfo,
-      codeTypes,
-      loadedServiceInfo,
-      codeServiceStatus,
-      isEditingCode,
-      isAddingCode,
-      isEditingService,
-      isAddingService,
-      actionPage,
-      limitCodePerQuery,
-      limitServicePerQuery
-    } = this.state; switch (actionPage) {
+    const { actionPage, searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages,
+      codeGender, codeAccountType, codeAccountStatus, codeServiceStatus, codeTypeFilter,
+      loadedAccountInfo, loadedCodeInfo, loadedServiceInfo,
+      isEditingCode, isAddingCode, isEditingService, isAddingService,
+      limitCodePerQuery, limitServicePerQuery } = this.state;
+    switch (actionPage) {
       case 1:
         return (
           <div>
@@ -1258,7 +1043,7 @@ class Admin extends Component {
               <div className="admin-search-left">
                 <div className="admin-search-box">
                   <div className="inputbox">
-                    <input type="text" placeholder="Tìm kiếm theo tên, email, SĐT" value={searchValue} onChange={(event) => this.handleSearchChange(event, 1)} />
+                    <input type="text" placeholder="Tìm kiếm theo tên người dùng, email hoặc SĐT" value={searchValue} onChange={(event) => this.handleSearchChange(event, 1)} />
                     <div className="btn-search">
                       <IonIcon icon={searchOutline} className="search-icon"></IonIcon>
                     </div>
@@ -1272,19 +1057,25 @@ class Admin extends Component {
                   <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                     <option value="ALL">Mặc định (Tất cả)</option>
                     <optgroup label="Theo Quyền Hạn">
-                      <option value="accounttype-A">Admin</option>
-                      <option value="accounttype-O">Chủ cửa hàng</option>
-                      <option value="accounttype-V">Bác sĩ thú y</option>
-                      <option value="accounttype-C">Khách hàng</option>
+                      {codeAccountType.map((item) => (
+                        <option key={item.Code} value={`accounttype-${item.Code}`}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))}
                     </optgroup>
                     <optgroup label="Theo Giới Tính">
-                      <option value="gender-M">Nam</option>
-                      <option value="gender-F">Nữ</option>
-                      <option value="gender-O">Khác</option>
+                      {codeGender.map((item) => (
+                        <option key={item.Code} value={`gender-${item.Code}`}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))}
                     </optgroup>
                     <optgroup label="Theo Trạng Thái">
-                      <option value="accountstatus-ACT">Hoạt động</option>
-                      <option value="accountstatus-DIS">Không hoạt động</option>
+                      {codeAccountStatus.map((item) => (
+                        <option key={item.Code} value={`accountstatus-${item.Code}`}>
+                          {item.CodeValueVI}
+                        </option>
+                      ))}
                     </optgroup>
                   </select>
                 </div>
@@ -1292,23 +1083,19 @@ class Admin extends Component {
                   <label>Sắp Xếp:</label>
                   <select value={sortValue} onChange={(event) => this.handleSort(event.target.value, 1)} className="select-2">
                     <option value="0">Mặc định</option>
-                    <option value="1">A-Z</option>
-                    <option value="2">Z-A</option>
-                    <option value="3">Theo Quyền Hạn</option>
-                    <option value="4">Theo Trạng Thái</option>
-                    <option value="5">Theo Giới tính</option>
-                    <option value="6">Thời gian tạo mới nhất</option>
-                    <option value="7">Thời gian tạo cũ nhất</option>
+                    <option value="1">Tên (A-Z)</option>
+                    <option value="2">Tên (Z-A)</option>
+                    <option value="3">Thời gian tạo mới nhất</option>
+                    <option value="4">Thời gian tạo cũ nhất</option>
                   </select>
                 </div>
               </div>
               <div className="btn-addTK" onClick={() => this.toggleCreateUserModal()}>
                 <button>
-                  THÊM TÀI KHOẢN <IonIcon icon={addOutline}></IonIcon>
+                  TẠO TÀI KHOẢN <IonIcon icon={addOutline}></IonIcon>
                 </button>
               </div>
             </div>
-
             <div className="admin-list">
               <div className="users-table">
                 <table className="table">
@@ -1323,7 +1110,7 @@ class Admin extends Component {
                       <th>Quyền Hạn</th>
                       <th>Trạng Thái</th>
                       <th>Thời gian tạo</th>
-                      <th>Action</th>
+                      <th></th>
                     </tr>
                     {loadedAccountInfo.length > 0 ? (
                       loadedAccountInfo.map((item) => (
@@ -1352,7 +1139,7 @@ class Admin extends Component {
                     ) : (
                       <tr>
                         <td colSpan="12" style={{ textAlign: 'center' }}>
-                          Không tìm thấy người dùng
+                          Không tìm thấy tài khoản phù hợp
                         </td>
                       </tr>
                     )}
@@ -1368,7 +1155,7 @@ class Admin extends Component {
                     <button className="prev" onClick={() => this.handlePrevPage(1)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 1)} onKeyDown={(event) => this.handlePageKeyDown(event, 1)} onBlur={() => this.handlePageInputBlur(1)} />
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(1)} />
                     <span className="total-pages">/ {totalPages}</span>
                     <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalPages}>
                       {'>'}
@@ -1404,12 +1191,12 @@ class Admin extends Component {
                     className="type-filter-select"
                     options={[
                       { value: 'ALL', label: 'Tất cả' },
-                      ...codeTypes.map((type) => ({
+                      ...codeTypeFilter.map((type) => ({
                         value: `type-${type.Type}`,
                         label: type.Type,
                       })),
                     ]}
-                    value={filterValue === 'ALL' ? { value: 'ALL', label: 'Tất cả' } : codeTypes.find((type) => `type-${type.Type}` === filterValue) ? { value: filterValue, label: codeTypes.find((type) => `type-${type.Type}` === filterValue).Type } : null}
+                    value={filterValue === 'ALL' ? { value: 'ALL', label: 'Tất cả' } : codeTypeFilter.find((type) => `type-${type.Type}` === filterValue) ? { value: filterValue, label: codeTypeFilter.find((type) => `type-${type.Type}` === filterValue).Type } : null}
                     onChange={(selectedOption) => this.handleFilter(selectedOption ? selectedOption.value : 'ALL', 2)}
                     placeholder="Chọn loại"
                     isClearable
@@ -1419,7 +1206,7 @@ class Admin extends Component {
               </div>
               <div className="btn-addAC">
                 <button style={{ display: actionPage === 2 ? 'block' : 'none' }} onClick={() => this.handleAddCode()} className="btn-addAC">
-                  THÊM CODE MỚI <IonIcon icon={addOutline}></IonIcon>
+                  THÊM MÃ MỚI <IonIcon icon={addOutline}></IonIcon>
                 </button>
               </div>
             </div>
@@ -1429,11 +1216,11 @@ class Admin extends Component {
                   <tbody>
                     <tr>
                       <th>STT</th>
-                      <th>Loại</th>
+                      <th>Tham chiếu</th>
                       <th>Mã</th>
                       <th>Tên gọi</th>
                       <th>Giá trị bổ sung</th>
-                      <th>Action</th>
+                      <th></th>
                     </tr>
                     {loadedCodeInfo.length > 0 ? (
                       loadedCodeInfo.map((item, index) => (
@@ -1480,7 +1267,7 @@ class Admin extends Component {
                     <button className="prev" onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event, 2)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
                     <span className="total-pages">/ {totalPages}</span>
                     <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalPages}>
                       {'>'}
@@ -1534,7 +1321,6 @@ class Admin extends Component {
                     </optgroup>
                     <optgroup label="Theo Trạng Thái">
                       {codeServiceStatus.map((status) => (
-                        console.log(codeAccountStatus),
                         <option key={status.Code} value={`status-${status.Code}`}>
                           {status.CodeValueVI}
                         </option>
@@ -1580,7 +1366,7 @@ class Admin extends Component {
                       <th>Thời gian (phút)</th>
                       <th>Mô tả</th>
                       <th>Trạng thái</th>
-                      <th>Action</th>
+                      <th></th>
                     </tr>
                     {loadedServiceInfo.length > 0 ? (
                       loadedServiceInfo.map((item, index) => (
@@ -1695,7 +1481,7 @@ class Admin extends Component {
                     <input
                       type="text"
                       value={tempCurrentPage}
-                      onChange={(event) => this.handlePageInputChange(event, 3)}
+                      onChange={(event) => this.handlePageInputChange(event)}
                       onKeyDown={(event) => this.handlePageKeyDown(event, 3)}
                       onBlur={() => this.handlePageInputBlur(3)}
                     />
@@ -1726,12 +1512,20 @@ class Admin extends Component {
   };
 
   render() {
-    const { isLoading, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, actionPage } = this.state;
+    const { actionPage, isLoading, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount } = this.state;
     return (
       <div className="admin-container">
-        <CreateAccountModal isOpen={isShowCreateAccountModal} toggleFromModal={this.toggleCreateUserModal} handleCreateAccountFromModal={this.handleCreateAccountFromModal} />
-        <EditAccountModal isOpen={isShowEditAccountModal} toggleFromModal={this.toggleEditAccountModal} selectedAccountID={selectedAccount} handleEditAccountFromModal={this.handleEditAccountFromModal} />
-        <ToastContainer />
+        <CreateAccountModal
+          isOpen={isShowCreateAccountModal}
+          toggleFromModal={this.toggleCreateUserModal}
+          handleCreateAccountFromModal={this.handleCreateAccountFromModal}
+        />
+        <EditAccountModal
+          isOpen={isShowEditAccountModal}
+          toggleFromModal={this.toggleEditAccountModal}
+          selectedAccountID={selectedAccount}
+          handleEditAccountFromModal={this.handleEditAccountFromModal}
+        />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -1762,7 +1556,7 @@ class Admin extends Component {
                 </li>
                 <li>
                   <a onClick={this.handleFormCodeManagement} className={actionPage === 2 ? 'active' : ''}>
-                    THÔNG TIN ALLCODES
+                    THÔNG TIN MÃ
                   </a>
                 </li>
                 <li>

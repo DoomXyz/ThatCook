@@ -17,7 +17,6 @@ import { userLogin, userLogout, clearCart, clearCheckOutCart } from '../../store
 class Login extends Component {
   constructor(props) {
     super(props);
-    //set all state cần quản lý ở giá trị mặc định
     this.state = {
       accountname: '',
       password: '',
@@ -29,16 +28,11 @@ class Login extends Component {
   async componentDidMount() {
     await this.handleIsLogin();
   }
-  //state khi thay đổi ô email để set ô email theo người dùng nhập ở thời gian thực
-  handleOnChangeAccountName = (event) => {
+  handleOnChangeInput = (event, type) => {
+    let copyState = { ...this.state };
+    copyState[type] = event.target.value;
     this.setState({
-      accountname: event.target.value,
-    });
-  };
-  //tương tự trên nhưng là password
-  handleOnChangePassword = (event) => {
-    this.setState({
-      password: event.target.value,
+      ...copyState,
     });
   };
   //quản lý state ẩn hiện password
@@ -72,7 +66,6 @@ class Login extends Component {
       }
     } catch (e) {
       this.props.navigate('/login');
-      console.log('Token not found!');
     }
     this.setState({
       isLoading: false,
@@ -101,11 +94,6 @@ class Login extends Component {
         if (this.props.cartItems.length !== 0) {
           const responseCart = await handleAddToCartApi(accountInfo.AccountID, this.props.cartItems);
           if (responseCart) {
-            toast.info('Đồng bộ giỏ hàng thành công!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
             this.props.clearCart();
           }
         }
@@ -166,7 +154,7 @@ class Login extends Component {
                     //set value của ô input bằng dữ liệu của state
                     value={accountname}
                     //quản lý event khi thay đổi thì gọi hàm handleOnChangeEmail để chuyển state
-                    onChange={(event) => this.handleOnChangeAccountName(event)}
+                    onChange={(event) => this.handleOnChangeInput(event, 'accountname')}
                     required
                   />
                   <label>Tên đăng nhập</label>
@@ -188,7 +176,7 @@ class Login extends Component {
                     id="password"
                     placeholder=""
                     value={password}
-                    onChange={(event) => this.handleOnChangePassword(event)}
+                    onChange={(event) => this.handleOnChangeInput(event, 'password')}
                     required
                   />
                   <label>Mật khẩu</label>

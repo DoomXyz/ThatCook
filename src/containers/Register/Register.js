@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 
 import { keyOutline, home, mailOutline, eyeOffOutline, eyeOutline, call, person, maleFemaleOutline, location } from 'ionicons/icons';
@@ -9,20 +8,22 @@ import './Register.scss';
 import Spinner from '../../components/Spinner';
 
 import { handleRegisterApi } from '../../services/accountServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+
+import { getAllCodes, validateAccountInput } from '../../utils/pakage'
 
 class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      accountname: 'admin',
-      email: 'admin@gmail.com',
-      password: '12345678',
-      username: 'admeow',
-      phone: '0919097895',
-      address: 'nhà admin nghèo',
-      gender: 'M',
-      confirmPassword: '12345678',
+      accountname: '',
+      email: '',
+      password: '',
+      username: '',
+      phone: '',
+      address: '',
+      gender: '',
+      accounttype: 'C', //mặc định tạo khách hàng
+      confirmPassword: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       codeGender: [],
@@ -30,39 +31,47 @@ class Register extends Component {
     };
   }
   async componentDidMount() {
+    await this.handleLoadCode(['Gender']);
+  }
+  //load các code cần trong mảng
+  handleLoadCode = async (codeTypes) => {
     try {
-      const codeGender = await handleGetAllCodesApi('Gender');
-      if (!codeGender || codeGender.length === 0) {
-        toast.error('Không thể tải danh sách giới tính!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeGender,
-        gender: codeGender.length > 0 ? codeGender[0].Code : '',
-        isLoading: false,
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`, {
+            position: 'top-right',
+            autoClose: 500,
+            closeOnClick: true,
+          });
+        }
+        newState[`code${type}`] = response.data;
+        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
       });
-    } catch (e) {
-      console.log('Error loading gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính!', {
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!', {
         position: 'top-right',
         autoClose: 500,
         closeOnClick: true,
       });
       this.setState({ isLoading: false });
     }
-  }
+  };
   //ẩn hiện pass
-  handleTogglePassword1 = () => {
-    this.setState({ isTogglePassword1: !this.state.isTogglePassword1 });
-  };
-  //ẩn hiện confirmpass
-  handleTogglePassword2 = () => {
-    this.setState({ isTogglePassword2: !this.state.isTogglePassword2 });
-  };
-  //quản lý state nhập
+  handleTogglePassword = (type) => {
+    let value;
+    switch (type) {
+      case 1: value = 'isTogglePassword1';
+        break;
+      case 2: value = 'isTogglePassword2';
+    }
+    this.setState((prevState) => ({ [value]: !prevState[value] }));
+  }
+  //quản lý state nhập  
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -70,45 +79,31 @@ class Register extends Component {
       ...copyState,
     });
   };
-  //kiểm tra thông tin trc khi gửi đi
-  checkValidateInput = () => {
-    const { accountname, email, password, username, phone, address, gender, confirmPassword, codeGender } = this.state;
-    const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/; //cần ít nhất 8 ký tự
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/; //chứa chữ cái, số hoặc khoảng trắng, dài từ 2-50 ký tự
-    const phoneRegex = /^[0-9]{10,11}$/; //chỉ chứa số và có độ dài từ 10-11 ký tự
-
-    if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
-    if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
-
-    if (!email) return { errCode: -1, errMessage: 'Email trống!' };
-    if (!emailRegex.test(email)) return { errCode: 1, errMessage: 'Email sai định dạng!' };
-
-    if (!password) return { errCode: -1, errMessage: 'Mật khẩu trống!' };
-    if (!passwordRegex.test(password)) return { errCode: 1, errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)' };
-
-    if (!username) return { errCode: -1, errMessage: 'Tên người dùng trống!' };
-    if (!userNameRegex.test(username)) return { errCode: 1, errMessage: 'Tên người dùng không hợp lệ!' };
-
-    if (!phone) return { errCode: -1, errMessage: 'Số điện thoại trống!' };
-    if (!phoneRegex.test(phone)) return { errCode: 1, errMessage: 'Số điện thoại không hợp lệ!' };
-
-    if (!address) return { errCode: -1, errMessage: 'Địa chỉ trống!' };
-
-    const validGenderCode = codeGender.map((item) => item.Code);
-    if (!gender) return { errCode: -1, errMessage: 'Giới tính không tồn tại!' };
-    if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: 'Giới tính không hợp lệ!' };
-
-    if (password !== confirmPassword) return { errCode: 1, errMessage: 'Mật khẩu không trùng khớp!' };
-
-    return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
-  };
   //thực hiện đăng ký
-  handleRegister = async (stateInfo) => {
+  handleRegister = async () => {
     this.setState({ isLoading: true });
-    let isValidateInput = this.checkValidateInput();
-    if (isValidateInput.errCode !== 0) {
+    const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword } = this.state;
+    if (password !== confirmPassword) {
+      toast.error('Mật khẩu không trùng khớp!', {
+        position: 'top-right',
+        autoClose: 500,
+        closeOnClick: true,
+      });
+      this.setState({ isLoading: false });
+      return;
+    }
+    const userInfo = {
+      accountname,
+      email,
+      password,
+      username,
+      phone,
+      address,
+      gender,
+      accounttype,
+    };
+    const isValidateInput = await validateAccountInput(userInfo, "REG");
+    if (!isValidateInput.valid) {
       toast.error(isValidateInput.errMessage, {
         position: 'top-right',
         autoClose: 500,
@@ -118,16 +113,6 @@ class Register extends Component {
       return;
     }
     try {
-      const userInfo = {
-        accountname: stateInfo.accountname,
-        email: stateInfo.email,
-        password: stateInfo.password,
-        username: stateInfo.username,
-        phone: stateInfo.phone,
-        address: stateInfo.address,
-        gender: stateInfo.gender,
-        accounttype: 'C',
-      };
       const response = await handleRegisterApi(userInfo);
       if (response && response.errCode === 0) {
         toast.success('Đăng ký tài khoản thành công!', {
@@ -205,7 +190,7 @@ class Register extends Component {
                   </div>
                   <div className="inputbox">
                     <div className="toggle-password">
-                      <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={this.handleTogglePassword1}></IonIcon>
+                      <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={() => this.handleTogglePassword(1)}></IonIcon>
                     </div>
                     <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={password} onChange={(event) => this.handleOnChangeInput(event, 'password')} />
                     <label>Mật khẩu</label>
@@ -229,7 +214,7 @@ class Register extends Component {
                   </div>
                   <div className="inputbox">
                     <div className="toggle-password">
-                      <IonIcon icon={isTogglePassword2 ? eyeOutline : eyeOffOutline} onClick={this.handleTogglePassword2}></IonIcon>
+                      <IonIcon icon={isTogglePassword2 ? eyeOutline : eyeOffOutline} onClick={() => this.handleTogglePassword(2)}></IonIcon>
                     </div>
                     <input type={isTogglePassword2 ? 'text' : 'password'} placeholder="" value={confirmPassword} onChange={(event) => this.handleOnChangeInput(event, 'confirmPassword')} />
                     <label>Xác nhận mật khẩu</label>
@@ -242,7 +227,7 @@ class Register extends Component {
                     <label>Địa chỉ</label>
                   </div>
                 </div>
-                <button className="register-button" onClick={() => this.handleRegister(this.state)}>
+                <button className="register-button" onClick={this.handleRegister}>
                   <p>Đăng ký</p>
                 </button>
                 <div className="login">
@@ -258,7 +243,4 @@ class Register extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
-const mapDispatchToProps = {};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Register);
+export default Register;

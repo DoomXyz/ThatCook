@@ -288,12 +288,6 @@ class User extends Component {
           loadedInvoiceInfo: response.data,
           totalInvoicePages: Math.ceil(response.data.length / this.state.limitInvoicePerQuery),
         });
-      } else {
-        toast.error('Tải thông tin đơn hàng thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
       }
     } catch (e) {
       console.log('Lỗi khi tải thông tin đơn hàng:', e);
@@ -1813,9 +1807,9 @@ class User extends Component {
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString('vi-VN', {
-                                style: 'currency',
-                                currency: 'VND',
-                              })
+                              style: 'currency',
+                              currency: 'VND',
+                            })
                             : 'N/A'}
                         </div>
                       </div>
@@ -1867,9 +1861,9 @@ class User extends Component {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
                     return shipping
                       ? parseFloat(shipping.ExtraValue).toLocaleString('vi-VN', {
-                          style: 'currency',
-                          currency: 'VND',
-                        })
+                        style: 'currency',
+                        currency: 'VND',
+                      })
                       : '0 ₫';
                   })()}
                 </div>
