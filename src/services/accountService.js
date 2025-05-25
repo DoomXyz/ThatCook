@@ -1507,7 +1507,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         });
         return;
       }
-      if (sort && !['0', '1', '2'].includes(sort)) {
+      if (sort && !['0', '1', '2', '3'].includes(sort)) {
         resolve({
           errCode: 1,
           errMessage: 'Tham số sort không hợp lệ!',
@@ -1516,20 +1516,40 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         return;
       }
       const offset = (page - 1) * limit;
-      let where = { AccountType: 'V' };
+      let accountWhere = { AccountType: 'V' };
+      let veterinarianServiceWhere = {};
       let order = [];
 
       if (search?.trim()) {
         const searchTerm = search.trim().substring(0, 50);
-        where.UserName = { [Op.like]: `%${searchTerm}%` };
+        accountWhere.UserName = { [Op.like]: `%${searchTerm}%` };
       }
-      let vetInfoWhere = {};
       if (filter !== 'ALL') {
-        const [, value] = filter.split('-');
-        vetInfoWhere.Specialization = value;
+        const [field, value] = filter.split('-');
+        if (field === 'service') {
+          const validService = await db.Service.findOne({
+            where: { ServiceID: value },
+          });
+          if (!validService) {
+            resolve({
+              errCode: 1,
+              errMessage: 'Dịch vụ không tồn tại!',
+              data: null,
+            });
+            return;
+          }
+          veterinarianServiceWhere = { ServiceID: value };
+        } else {
+          resolve({
+            errCode: 1,
+            errMessage: 'Tham số filter không hợp lệ!',
+            data: null,
+          });
+          return;
+        }
       }
       switch (sort) {
-        case '1': // Số lượt đặt lịch (xét theo số lần xuất hiện trong bảng appointment)
+        case '1': // Số lượt đặt lịch
           order.push([
             db.sequelize.literal(
               '(SELECT COUNT(*) FROM Appointment WHERE Appointment.VeterinarianID = Account.AccountID)'
@@ -1540,12 +1560,15 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         case '2': // Tên A-Z
           order.push(['UserName', 'ASC']);
           break;
+        case '3': // Tên Z-A
+          order.push(['UserName', 'DESC']);
+          break;
         default: // Mặc định
-          order.push(['UserName', 'ASC']);
+          order.push(['AccountID', 'ASC']);
           break;
       }
       const { count, rows } = await db.Account.findAndCountAll({
-        where,
+        where: accountWhere,
         attributes: [
           'AccountID',
           'UserName',
@@ -1561,9 +1584,15 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
           {
             model: db.VeterinarianInfo,
             as: 'VeterinarianInfo',
-            attributes: ['Specialization', 'Bio', 'WorkingStatus',],
-            where: vetInfoWhere,
+            attributes: ['Bio', 'WorkingStatus'],
             required: true,
+          },
+          {
+            model: db.VeterinarianService,
+            as: 'VeterinarianServices',
+            attributes: [],
+            where: veterinarianServiceWhere,
+            required: filter !== 'ALL',
           },
         ],
         limit: parseInt(limit),
@@ -1587,7 +1616,6 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         AccountID: row.AccountID,
         UserName: row.UserName,
         UserImage: row.UserImage,
-        Specialization: row.VeterinarianInfo.Specialization,
         Bio: row.VeterinarianInfo.Bio,
         WorkingStatus: row.VeterinarianInfo.WorkingStatus,
         BookingCount: parseInt(row.BookingCount) || 0,
