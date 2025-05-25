@@ -15,7 +15,7 @@ module.exports = {
             AccountName: `vet${index + 1}`,
             Email: `vet${index + 1}@clinic.com`,
             Password: defaultPassword,
-            UserName: `Bác sĩ ${index + 1}`,
+            UserName: `${String.fromCharCode(65 + index)} Bác sĩ ${index + 1}`,
             UserImage: 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg',
             Phone: `090${String(1000000 + index).padStart(7, '0')}`,
             Address: `Địa chỉ ${index + 1}, TP.HCM`,
