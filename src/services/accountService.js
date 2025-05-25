@@ -130,7 +130,7 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!address || address.trim().length > 100) {
+  if (!address || address.trim().length === 0 || address.trim().length > 100) {
     return {
       errCode: -1,
       errMessage: 'Địa chỉ không hợp lệ hoặc vượt quá 100 ký tự!',
@@ -171,6 +171,52 @@ let validateAccountInput = async (userInfo) => {
   }
   return null;
 };
+let validateVeterinarianInput = async (veterinarianInfo) => {
+  if (!veterinarianInfo || Object.keys(veterinarianInfo).length === 0) {
+    return {
+      errCode: -1,
+      errMessage: 'Thiếu thông tin bác sĩ thú y!',
+      data: null,
+    };
+  }
+  const { bio, specialization, workingstatus } = veterinarianInfo;
+  if (bio) {
+    if (bio.trim().length > 65535) {
+      return {
+        errCode: 1,
+        errMessage: 'Bio vượt quá độ dài tối đa (65535 ký tự)!',
+        data: null,
+      };
+    }
+  }
+  if (specialization) {
+    const specializationRegex = /^[A-Za-zÀ-ỹ0-9\s]{1,50}$/;
+    if (!specializationRegex.test(specialization.trim())) {
+      return {
+        errCode: 1,
+        errMessage: 'Chuyên khoa không hợp lệ hoặc vượt quá 50 ký tự!',
+        data: null,
+      };
+    }
+  }
+  if (!workingstatus) {
+    return {
+      errCode: -1,
+      errMessage: 'Trạng thái làm việc không được để trống!',
+      data: null,
+    };
+  } else {
+    const validStatus = await checkValidAllCode('WorkingStatus', workingstatus);
+    if (!validStatus) {
+      return {
+        errCode: 1,
+        errMessage: 'Trạng thái làm việc không hợp lệ!',
+        data: null,
+      };
+    }
+  }
+  return null;
+}
 let validateAccountEdit = async (userInfo) => {
   if (!userInfo || Object.keys(userInfo).length === 0) {
     return {
@@ -214,8 +260,7 @@ let validateAccountEdit = async (userInfo) => {
     }
   }
   if (address) {
-    const addressTrimmed = address.trim();
-    if (!addressTrimmed || addressTrimmed.length > 100) {
+    if (address.trim().length === 0 || address.trim().length > 100) {
       return {
         errCode: 1,
         errMessage: 'Địa chỉ không hợp lệ hoặc vượt quá 100 ký tự!',
@@ -472,13 +517,15 @@ let userRegister = (userInfo) => {
       }, { transaction });
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
         const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
-        if (!workingstatus) {
+        const veterinarianInfo = {
+          bio,
+          specialization,
+          workingstatus
+        }
+        const isValidateInput = await validateVeterinarianInput(veterinarianInfo);
+        if (isValidateInput) {
           await transaction.rollback();
-          resolve({
-            errCode: 1,
-            errMessage: 'Trạng thái làm việc của bác sĩ không được để trống!',
-            data: null,
-          });
+          resolve(isValidateInput);
           return;
         }
         if (!selectedServicesList || !Array.isArray(selectedServicesList) || selectedServicesList.length === 0) {
@@ -493,6 +540,7 @@ let userRegister = (userInfo) => {
         const validServices = await db.Service.findAll({
           where: {
             ServiceID: selectedServicesList,
+            ServiceStatus: 'VALID'
           },
           attributes: ['ServiceID'],
           transaction,
@@ -508,9 +556,9 @@ let userRegister = (userInfo) => {
         }
         await db.VeterinarianInfo.create({
           AccountID: accountID,
-          Bio: bio?.trim() || null,
-          Specialization: specialization?.trim() || null,
-          WorkingStatus: workingstatus.trim(),
+          Bio: bio || null,
+          Specialization: specialization || null,
+          WorkingStatus: workingstatus,
         }, { transaction });
         for (const serviceid of selectedServicesList) {
           await db.VeterinarianService.create({
@@ -570,7 +618,7 @@ let userLogin = (userInfo) => {
         await transaction.rollback();
         resolve({
           errCode: 2,
-          errMessage: 'Tên tài khoản không tồn tại!',
+          errMessage: 'Tài khoản không tồn tại!',
           data: null,
         });
         return;
@@ -758,7 +806,7 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
         });
         return;
       }
-      if (sort && !['0', '1', '2', '3', '4', '5', '6', '7'].includes(sort)) {
+      if (sort && !['0', '1', '2', '3', '4'].includes(sort)) {
         resolve({
           errCode: 1,
           errMessage: 'Tham số sort không hợp lệ!',
@@ -781,40 +829,12 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
       // Lọc
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        if (field === 'accounttype') {
-          const validAccountType = await checkValidAllCode('AccountType', value);
-          if (!validAccountType) {
-            resolve({
-              errCode: 1,
-              errMessage: 'Loại tài khoản không hợp lệ!',
-              data: null,
-            });
-            return;
-          }
-          where.AccountType = value;
-        } else if (field === 'gender') {
-          const validGender = await checkValidAllCode('Gender', value);
-          if (!validGender) {
-            resolve({
-              errCode: 1,
-              errMessage: 'Giới tính không hợp lệ!',
-              data: null,
-            });
-            return;
-          }
-          where.Gender = value;
-        } else if (field === 'accountstatus') {
-          const validAccountStatus = await checkValidAllCode('AccountStatus', value);
-          if (!validAccountStatus) {
-            resolve({
-              errCode: 1,
-              errMessage: 'Trạng thái tài khoản không hợp lệ!',
-              data: null,
-            });
-            return;
-          }
-          where.AccountStatus = value;
-        } else {
+        const fieldMap = {
+          accounttype: 'AccountType',
+          gender: 'Gender',
+          accountstatus: 'AccountStatus',
+        };
+        if (!fieldMap[field]) {
           resolve({
             errCode: 1,
             errMessage: 'Tham số filter không hợp lệ!',
@@ -822,6 +842,16 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
           });
           return;
         }
+        const validCode = await checkValidAllCode(fieldMap[field], value);
+        if (!validCode) {
+          resolve({
+            errCode: 1,
+            errMessage: `${fieldMap[field]} không hợp lệ!`,
+            data: null,
+          });
+          return;
+        }
+        where[fieldMap[field]] = value;
       }
       // Sắp xếp
       switch (sort) {
@@ -831,23 +861,14 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
         case '2':
           order.push(['UserName', 'DESC']);
           break;
-        case '3':
-          order.push(['AccountType', 'ASC']);
-          break;
         case '4':
-          order.push(['AccountStatus', 'ASC']);
-          break;
-        case '5':
-          order.push(['Gender', 'DESC']);
-          break;
-        case '6':
           order.push(['CreatedAt', 'DESC']);
           break;
-        case '7':
+        case '5':
           order.push(['CreatedAt', 'ASC']);
           break;
         default:
-          order.push(['CreatedAt', 'DESC']);
+          order.push(['AccountID', 'DESC']);
           break;
       }
       const { count, rows } = await db.Account.findAndCountAll({
@@ -860,7 +881,7 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
       });
       if (!rows || rows.length === 0) {
         resolve({
-          errCode: 1,
+          errCode: 0,
           errMessage: 'Không tìm thấy tài khoản nào!',
           data: [],
           totalItems: 0,
@@ -992,14 +1013,15 @@ let changeAccountInfo = (userInfo) => {
       }
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
         const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
-        const validWorkingStatus = await checkValidAllCode('WorkingStatus', workingstatus);
-        if (!validWorkingStatus) {
+        const veterinarianInfo = {
+          bio,
+          specialization,
+          workingstatus
+        }
+        const isValidateInput = await validateVeterinarianInput(veterinarianInfo);
+        if (isValidateInput) {
           await transaction.rollback();
-          resolve({
-            errCode: 1,
-            errMessage: 'Trạng thái làm việc không hợp lệ!',
-            data: null,
-          });
+          resolve(isValidateInput);
           return;
         }
         if (!selectedServicesList || !Array.isArray(selectedServicesList) || selectedServicesList.length === 0) {

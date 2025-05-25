@@ -98,7 +98,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
   }
   if (notes) {
     const notesCheck = notes.trim();
-    if (!notesCheck || notesCheck.length > 65535) {
+    if (notesCheck.length > 65535) {
       return {
         errCode: 1,
         errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!',
@@ -113,7 +113,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
       data: null,
     };
   } else {
-    const validAccount = await db.Pet.findOne({
+    const validAccount = await db.Account.findOne({
       where: { AccountID: accountid }
     });
     if (!validAccount) {
@@ -273,7 +273,7 @@ let validateAppointmentBillInput = async (appointmentBillInfo) => {
   }
   if (medicalnotes) {
     const notesCheck = medicalnotes.trim();
-    if (!notesCheck || notesCheck.length > 65535) {
+    if (notesCheck.length > 65535) {
       return {
         errCode: 1,
         errMessage: 'Ghi chú y tế không hợp lệ hoặc vượt quá giới hạn ký tự!',

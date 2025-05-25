@@ -330,18 +330,10 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
 
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        if (field === 'bannerstatus') {
-          const validBannerStatus = await checkValidAllCode('BannerStatus', value);
-          if (!validBannerStatus) {
-            resolve({
-              errCode: 1,
-              errMessage: 'Trạng thái banner không hợp lệ!',
-              data: null,
-            });
-            return;
-          }
-          where.BannerStatus = value;
-        } else {
+        const fieldMap = {
+          bannerstatus: 'BannerStatus',
+        };
+        if (!fieldMap[field]) {
           resolve({
             errCode: 1,
             errMessage: 'Tham số filter không hợp lệ!',
@@ -349,6 +341,16 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
           });
           return;
         }
+        const validCode = await checkValidAllCode(fieldMap[field], value);
+        if (!validCode) {
+          resolve({
+            errCode: 1,
+            errMessage: `${fieldMap[field]} không hợp lệ!`,
+            data: null,
+          });
+          return;
+        }
+        where[fieldMap[field]] = value;
       }
 
       switch (sort) {
