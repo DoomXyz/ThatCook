@@ -13,9 +13,13 @@
 .cen {
   text-align: center;
 }
-
+.header-container {
+  background-color: rgb(255, 255, 255) !important;
+  border-bottom: 1px solid black;
+  height: 5rem;
+}
 .view-invoice-background {
-  background-image: url("../../assets/images/login_bg.jpg");
+  background-image: url('../../assets/images/login_bg.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -286,7 +290,7 @@
   }
 }
 .view-invoice-background-appointment {
-  background-image: url("../../assets/images/login_bg.jpg");
+  background-image: url('../../assets/images/login_bg.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -506,7 +510,7 @@
   }
 }
 .view-invoice-background {
-  background-image: url("../../assets/images/login_bg.jpg");
+  background-image: url('../../assets/images/login_bg.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -602,6 +606,9 @@
           margin-top: 0.5rem;
           line-height: 1rem;
           text-align: left;
+          b {
+            margin-right: 0.2rem;
+          }
         }
 
         .view-invoice-modal-content-top-invoiceid-app {

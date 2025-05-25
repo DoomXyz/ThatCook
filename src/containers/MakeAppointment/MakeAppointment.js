@@ -69,15 +69,18 @@ class MakeAppointment extends Component {
     await this.handleLoadCodePetGender();
     await this.handleLoadCodeService();
     setTimeout(() => {
-      if (!this.props.fuAppointmentInfo && this.state.accountInfo?.AccountType === "V") {
+      if (!this.props.fuAppointmentInfo && this.state.accountInfo?.AccountType === 'V') {
         this.props.navigate('/user/veterinarian');
       } else if (this.props.fuAppointmentInfo) {
-        this.setState({
-          type: 'FOLLOW_UP',
-          prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
-        }, () => {
-          this.handleLoadFollowUpAppointmentInfo();
-        });
+        this.setState(
+          {
+            type: 'FOLLOW_UP',
+            prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
+          },
+          () => {
+            this.handleLoadFollowUpAppointmentInfo();
+          }
+        );
       } else {
         this.setState({ type: 'FIRST' }, async () => {
           this.handleLoadAppointmentInfo();
@@ -87,40 +90,43 @@ class MakeAppointment extends Component {
               try {
                 const vetResponse = await handleGetVeterinarianInfoApi(vetID);
                 if (vetResponse.errCode === 0 && vetResponse.data) {
-                  this.setState({
-                    selectedVeterinarianInfo: {
-                      AccountID: vetID,
-                      UserName: vetResponse.data.UserName,
-                      UserImage: vetResponse.data.UserImage || defUserImage,
-                      Specialization: vetResponse.data.Specialization,
+                  this.setState(
+                    {
+                      selectedVeterinarianInfo: {
+                        AccountID: vetID,
+                        UserName: vetResponse.data.UserName,
+                        UserImage: vetResponse.data.UserImage || defUserImage,
+                        Specialization: vetResponse.data.Specialization,
+                      },
                     },
-                  }, async () => {
-                    try {
-                      const serviceResponse = await handleGetVeterinarianServicesApi(vetID);
-                      if (serviceResponse.errCode === 0 && serviceResponse.data && serviceResponse.data.length > 0) {
-                        this.setState({
-                          codeService: serviceResponse.data,
-                          selectedServiceID: serviceResponse.data[0]?.ServiceID || '',
-                        });
-                      } else {
-                        toast.error('Bác sĩ này không có dịch vụ nào!', {
+                    async () => {
+                      try {
+                        const serviceResponse = await handleGetVeterinarianServicesApi(vetID);
+                        if (serviceResponse.errCode === 0 && serviceResponse.data && serviceResponse.data.length > 0) {
+                          this.setState({
+                            codeService: serviceResponse.data,
+                            selectedServiceID: serviceResponse.data[0]?.ServiceID || '',
+                          });
+                        } else {
+                          toast.error('Bác sĩ này không có dịch vụ nào!', {
+                            position: 'top-right',
+                            autoClose: 500,
+                            closeOnClick: true,
+                          });
+                          this.setState({
+                            codeService: [],
+                            selectedServiceID: '',
+                          });
+                        }
+                      } catch (e) {
+                        toast.error('Lỗi khi tải dịch vụ của bác sĩ!', {
                           position: 'top-right',
                           autoClose: 500,
                           closeOnClick: true,
                         });
-                        this.setState({
-                          codeService: [],
-                          selectedServiceID: '',
-                        });
                       }
-                    } catch (e) {
-                      toast.error('Lỗi khi tải dịch vụ của bác sĩ!', {
-                        position: 'top-right',
-                        autoClose: 500,
-                        closeOnClick: true,
-                      });
                     }
-                  });
+                  );
                 } else {
                   toast.error('Không thể tải thông tin bác sĩ!', {
                     position: 'top-right',
@@ -169,7 +175,6 @@ class MakeAppointment extends Component {
       }
       this.setState({ isLoading: false });
     }, 10);
-
   }
 
   async componentDidUpdate(prevProps) {
@@ -271,11 +276,11 @@ class MakeAppointment extends Component {
           petweight: data.Pet.PetWeight.toString(),
           selectedVeterinarianInfo: data.Veterinarian
             ? {
-              AccountID: data.VeterinarianID,
-              UserName: data.Veterinarian.UserName,
-              Specialization: data.Veterinarian.Specialization,
-              UserImage: data.Veterinarian.UserImage,
-            }
+                AccountID: data.VeterinarianID,
+                UserName: data.Veterinarian.UserName,
+                Specialization: data.Veterinarian.Specialization,
+                UserImage: data.Veterinarian.UserImage,
+              }
             : {},
           FuAccountID: data.AccountID,
           customername: data.CustomerName,
@@ -384,7 +389,7 @@ class MakeAppointment extends Component {
   handleLoadCodeService = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
+      const response = responseApi.data;
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
           position: 'top-right',
@@ -604,8 +609,7 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, fuaAccountID,
-        selectedServiceID, starttime, notes, type, prevAppointmentID, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, fuaAccountID, selectedServiceID, starttime, notes, type, prevAppointmentID, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
         toast.error(isValidateInput.errMessage, {
@@ -657,7 +661,7 @@ class MakeAppointment extends Component {
         appointmentdate,
         starttime,
         notes,
-        accountid: (isLoggedIn && type === "FIRST") ? accountInfo.AccountID : (type !== "FIRST") ? fuaAccountID : guestID,
+        accountid: isLoggedIn && type === 'FIRST' ? accountInfo.AccountID : type !== 'FIRST' ? fuaAccountID : guestID,
         veterinarianid: selectedVeterinarianInfo.AccountID || null,
         serviceid: selectedServiceID,
         petid: selectedPetID,
@@ -819,9 +823,7 @@ class MakeAppointment extends Component {
     });
   };
   render() {
-    const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight,
-      appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, selectedPetID,
-      isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList, type } = this.state;
+    const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, codeService, starttime, availableTimes, notes, allImages, selectedPetID, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList, type } = this.state;
     return (
       <div className="makeappointment-body">
         <ToastContainer />
@@ -980,15 +982,15 @@ class MakeAppointment extends Component {
                   )}
                 </div>
               </div>
-              <div className="makeappointment-actions">
-                <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
-                  Gửi yêu cầu
-                </button>
+              <div className="makeappointment-actions sb">
                 {type === 'FOLLOW_UP' && (
                   <button className="cancel-follow-up" onClick={this.handleCancelFollowUp}>
                     Hủy tái khám
                   </button>
                 )}
+                <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
+                  Gửi yêu cầu
+                </button>
               </div>
             </div>
             <Footer />

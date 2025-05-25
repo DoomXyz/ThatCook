@@ -208,7 +208,7 @@ class User extends Component {
   handleLoadServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
+      const response = responseApi.data;
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
           position: 'top-right',
@@ -1230,7 +1230,7 @@ class User extends Component {
     });
   };
 
-  handleFormHoSoNguoiDugn = (e) => {
+  handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 1, editField: null, currentPage: 1, tempCurrentPage: '1' });
   };
@@ -1242,7 +1242,7 @@ class User extends Component {
     e.preventDefault();
     this.setState({ actionPage: 5, currentPage: 1, tempCurrentPage: '1' });
   };
-  handleFromThuCung = (e) => {
+  handleFormThuCung = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 7, currentPage: 1, tempCurrentPage: '1' });
   };
@@ -1813,9 +1813,9 @@ class User extends Component {
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString('vi-VN', {
-                              style: 'currency',
-                              currency: 'VND',
-                            })
+                                style: 'currency',
+                                currency: 'VND',
+                              })
                             : 'N/A'}
                         </div>
                       </div>
@@ -1867,9 +1867,9 @@ class User extends Component {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
                     return shipping
                       ? parseFloat(shipping.ExtraValue).toLocaleString('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                      })
+                          style: 'currency',
+                          currency: 'VND',
+                        })
                       : '0 ₫';
                   })()}
                 </div>
@@ -2290,7 +2290,7 @@ class User extends Component {
               <h3>
                 <b>Thêm thú cưng:</b>
               </h3>
-              <button onClick={this.handleFromThuCung}>Hủy</button>
+              <button onClick={this.handleFormThuCung}>Hủy</button>
             </div>
             <div className="user-add-pet-form-content">
               <div>
@@ -2444,7 +2444,7 @@ class User extends Component {
               <div className={`user-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
                 Hồ sơ người dùng
               </div>
-              <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}||${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFromThuCung}>
+              <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}||${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormThuCung}>
                 Thông tin thú cưng
               </div>
               <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}||${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>

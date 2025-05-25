@@ -9,6 +9,10 @@ input {
 textarea {
   outline: none;
 }
+.sb {
+  display: flex;
+  justify-content: space-between;
+}
 
 .makeappointment-body {
   background-color: white;
@@ -331,6 +335,8 @@ textarea {
     }
 
     .makeappointment-actions {
+      margin-left: 5rem;
+      max-width: 30rem;
       .makeapp {
         background-color: #4dc9f2;
         border-radius: 0.3rem;
@@ -341,11 +347,22 @@ textarea {
         width: 7rem;
 
         margin-top: 2rem;
-        margin-left: 28rem;
+
         margin-bottom: 4rem;
       }
+      .cancel-follow-up {
+        background-color: #fe5238;
+        border-radius: 0.3rem;
+        color: white;
+        font-weight: bold;
+        border: none;
+        padding: 0.4rem 0.3rem;
+        width: 7rem;
 
-      .cancel-follow-up {}
+        margin-top: 2rem;
+
+        margin-bottom: 4rem;
+      }
     }
   }
 }
