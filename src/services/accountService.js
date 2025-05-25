@@ -1517,8 +1517,15 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
       }
       const offset = (page - 1) * limit;
       let accountWhere = { AccountType: 'V' };
-      let veterinarianServiceWhere = {};
       let order = [];
+      let include = [
+        {
+          model: db.VeterinarianInfo,
+          as: 'VeterinarianInfo',
+          attributes: ['Bio', 'WorkingStatus'],
+          required: true,
+        },
+      ];
 
       if (search?.trim()) {
         const searchTerm = search.trim().substring(0, 50);
@@ -1538,7 +1545,13 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
             });
             return;
           }
-          veterinarianServiceWhere = { ServiceID: value };
+          include.push({
+            model: db.VeterinarianService,
+            as: 'VeterinarianServices',
+            attributes: [],
+            where: { ServiceID: value },
+            required: true,
+          });
         } else {
           resolve({
             errCode: 1,
@@ -1580,29 +1593,14 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
             'BookingCount'
           ],
         ],
-        include: [
-          {
-            model: db.VeterinarianInfo,
-            as: 'VeterinarianInfo',
-            attributes: ['Bio', 'WorkingStatus'],
-            required: true,
-          },
-          {
-            model: db.VeterinarianService,
-            as: 'VeterinarianServices',
-            attributes: [],
-            where: veterinarianServiceWhere,
-            required: filter !== 'ALL',
-          },
-        ],
+        include,
         limit: parseInt(limit),
         offset,
         order,
         raw: true,
-        distinct: true,
+        distinct: 'Account.AccountID',
         nest: true,
       });
-
       if (!rows || rows.length === 0) {
         resolve({
           errCode: 0,
