@@ -249,41 +249,76 @@ let checkEmailExist = (userEmail) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!userEmail) {
-        return { errCode: -1, errMessage: 'Thiếu email để kiểm tra!', data: null };
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu email để kiểm tra!',
+          data: null,
+        });
+        return;
       }
       let exist = await db.Account.findOne({
         where: { Email: userEmail },
       });
-      return { errCode: 0, errMessage: '', data: !!exist };
+      resolve(exist ? true : false);
     } catch (e) {
       console.log(e);
-      return { errCode: 3, errMessage: 'Lỗi khi kiểm tra email: ' + e.message, data: null };
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra email: ' + e.message,
+        data: null,
+      });
     }
   });
 };
-let checkAccountNameExist = async (userAccountName) => {
-  try {
-    if (!userAccountName) {
-      return { errCode: -1, errMessage: 'Thiếu tên tài khoản để kiểm tra!', data: null };
+let checkAccountNameExist = (userAccountName) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!userAccountName) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tên tài khoản để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.Account.findOne({
+        where: { AccountName: userAccountName },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra tên tài khoản: ' + e.message,
+        data: null,
+      });
     }
-    let exist = await db.Account.findOne({ where: { AccountName: userAccountName } });
-    return { errCode: 0, errMessage: '', data: !!exist };
-  } catch (e) {
-    console.log(e);
-    return { errCode: 3, errMessage: 'Lỗi khi kiểm tra tên tài khoản: ' + e.message, data: null };
-  }
+  });
 };
-let checkPhoneExist = async (userPhone) => {
-  try {
-    if (!userPhone) {
-      return { errCode: -1, errMessage: 'Thiếu số điện thoại để kiểm tra!', data: null };
+let checkPhoneExist = (userPhone) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!userPhone) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu số điện thoại để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.Account.findOne({
+        where: { Phone: userPhone },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra số điện thoại: ' + e.message,
+        data: null,
+      });
     }
-    let exist = await db.Account.findOne({ where: { Phone: userPhone } });
-    return { errCode: 0, errMessage: '', data: !!exist };
-  } catch (e) {
-    console.log(e);
-    return { errCode: 3, errMessage: 'Lỗi khi kiểm tra số điện thoại: ' + e.message, data: null };
-  }
+  });
 };
 let sendVerificationEmail = async (email, code) => {
   try {
