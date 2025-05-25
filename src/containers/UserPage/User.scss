@@ -272,6 +272,13 @@
       height: 100px;
       background-color: #ccc;
       border-radius: 50%;
+
+      img {
+        width: 100px;
+        height: 100px;
+        background-color: #ccc;
+        border-radius: 50%;
+      }
     }
 
     .button-submit {
@@ -1209,14 +1216,6 @@
         margin-top: 1rem;
         margin-left: 1rem;
 
-        .cancel-app {
-          padding: 0.3rem 0.5rem;
-          background-color: rgb(235, 0, 0);
-          border-radius: 0.3rem;
-          color: white;
-          border: none;
-        }
-
         .email-btn {
           color: white;
           background-color: rgb(59, 131, 255);
@@ -1389,6 +1388,14 @@
           overflow-wrap: break-word; // Modern equivalent of word-wrap
           margin: 0;
         }
+      }
+
+      .cancel-app {
+        padding: 0.3rem 0.5rem;
+        background-color: rgb(235, 0, 0);
+        border-radius: 0.3rem;
+        color: white;
+        border: none;
       }
     }
   }

@@ -7,7 +7,7 @@ import { uploadImages } from '../../utils/pakage';
 import Spinner from '../../components/Spinner';
 import './AppointmentCheckOut.scss'; //import scss
 import Header from '../../components/HomeHeader';
-import { handleLoadAppointmentDetailsApi, handleCreateAppointmentBillApi } from '../../services/appointmentServices'
+import { handleLoadAppointmentDetailsApi, handleCreateAppointmentBillApi } from '../../services/appointmentServices';
 import { saveFuAppointmentInfo, clearAppointmentCheckout } from '../../store/actions';
 
 class AppointmentCheckOut extends Component {
@@ -27,18 +27,18 @@ class AppointmentCheckOut extends Component {
     }
     async componentDidMount() {
         if (this.props.appointmentCheckout) {
-            const { veterinarianid, appointmentid } = this.props.appointmentCheckout.appointmentData
+            const { veterinarianid, appointmentid } = this.props.appointmentCheckout.appointmentData;
             this.setState({
                 veterinarianid,
-                appointmentid
-            })
+                appointmentid,
+            });
             await this.handleLoadAppointmentDetails(appointmentid);
         } else {
-            this.props.navigate('/home')
+            this.props.navigate('/home');
         }
         setTimeout(() => {
-            console.log(this.state.loadedAppointmentDetail)
-        }, 100)
+            console.log(this.state.loadedAppointmentDetail);
+        }, 100);
     }
     componentWillUnmount() {
         if (this.state.image?.Image && this.state.image?.file) {
@@ -155,7 +155,7 @@ class AppointmentCheckOut extends Component {
     handleCreateAppointmentBill = async () => {
         try {
             this.setState({ isLoading: true });
-            const { veterinarianid, medicalNotes, medicalPrice, loadedAppointmentDetail, image, isUploading } = this.state
+            const { veterinarianid, medicalNotes, medicalPrice, loadedAppointmentDetail, image, isUploading } = this.state;
             const isValidateInput = this.checkValidateInput();
             if (isValidateInput.errCode !== 0) {
                 toast.error(isValidateInput.errMessage, {
@@ -175,7 +175,7 @@ class AppointmentCheckOut extends Component {
                 this.setState({ isLoading: false });
                 return;
             }
-            let medicalImage = null
+            let medicalImage = null;
             if (image) {
                 this.setState({ isUploading: true });
                 const uploadResult = await uploadImages([{ file: image.file }]);
@@ -188,7 +188,7 @@ class AppointmentCheckOut extends Component {
                     this.setState({ isUploading: false });
                     return;
                 }
-                medicalImage = uploadResult.images[0].Image
+                medicalImage = uploadResult.images[0].Image;
             }
             const appointmentBillInfo = {
                 veterinarianid,
@@ -196,8 +196,8 @@ class AppointmentCheckOut extends Component {
                 serviceprice: loadedAppointmentDetail.Service.Price,
                 medicalprice: medicalPrice,
                 medicalimage: medicalImage,
-                medicalnotes: medicalNotes
-            }
+                medicalnotes: medicalNotes,
+            };
             const response = await handleCreateAppointmentBillApi(appointmentBillInfo);
             if (response && response.errCode === 0) {
                 toast.success(
@@ -242,7 +242,7 @@ class AppointmentCheckOut extends Component {
                     }
                 );
             } else {
-                this.setState({ isLoading: false })
+                this.setState({ isLoading: false });
                 toast.error(response.errMessage, {
                     position: 'top-right',
                     autoClose: 500,
@@ -250,7 +250,7 @@ class AppointmentCheckOut extends Component {
                 });
             }
         } catch (e) {
-            this.setState({ isLoading: false })
+            this.setState({ isLoading: false });
             toast.error(`Lỗi khi tải ảnh: ${e.message}`, {
                 position: 'top-right',
                 autoClose: 1000,
@@ -259,8 +259,10 @@ class AppointmentCheckOut extends Component {
         }
     };
     render() {
-        const { isLoading, image, isUploading, loadedAppointmentDetail } = this.state
-        if (!loadedAppointmentDetail) { return (<Spinner />) }
+        const { isLoading, image, isUploading, loadedAppointmentDetail } = this.state;
+        if (!loadedAppointmentDetail) {
+            return <Spinner />;
+        }
         const { CustomerName, CustomerEmail, CustomerPhone, Pet, Service } = loadedAppointmentDetail;
         return (
             <div className="appointment-check-out-body">
@@ -276,11 +278,26 @@ class AppointmentCheckOut extends Component {
                         <div className="f">
                             <div className="appointment-check-out-content-left ">
                                 <div className="appointment-check-out-content-left-cus-info">
-                                    <p>*Thông tin khách hàng</p>
-                                    Tên khách hàng: <label>{CustomerName}</label><br />
-                                    Email: <label>{CustomerEmail}</label><br />
-                                    Số điện thoại: <label>{CustomerPhone}</label><br />
-                                    Tên thú cưng: <label>{Pet.PetName}</label>
+                                    <h1>*Thông tin khách hàng:</h1>
+                                    <div className="f">
+                                        <p>Tên khách hàng:</p> <label>{CustomerName}</label>
+                                    </div>
+                                    <br />
+                                    <div className="f">
+                                        <p>Email:</p> <label>{CustomerEmail}</label>
+                                    </div>
+
+                                    <br />
+                                    <div className="f">
+                                        <p>Số điện thoại: </p>
+                                        <label>{CustomerPhone}</label>
+                                    </div>
+
+                                    <br />
+                                    <div className="f">
+                                        <p>Tên thú cưng:</p>
+                                        <label>{Pet.PetName}</label>
+                                    </div>
                                 </div>
                                 <div className="appointment-check-out-content-left-service-medicine-total">
                                     <table>
@@ -298,13 +315,18 @@ class AppointmentCheckOut extends Component {
                                             </tr>
                                         </tbody>
                                         <tfoot>
-                                            <tr><td>Tiền thuốc</td><td><input
-                                                type="text"
-                                                placeholder="Nhập phí thuốc"
-                                                value={this.state.medicalPrice}
-                                                onChange={(e) => this.handleOnChangeInput(e, 'medicalPrice')}
-                                            /></td><td>vnđ</td></tr>
-                                            <tr><td>TỔNG CỘNG</td><td>{this.state.totalPayment.toLocaleString('vi-VN')}</td><td>vnđ</td></tr>
+                                            <tr>
+                                                <td>Tiền thuốc</td>
+                                                <td>
+                                                    <input type="text" placeholder="Nhập phí thuốc" value={this.state.medicalPrice} onChange={(e) => this.handleOnChangeInput(e, 'medicalPrice')} />
+                                                </td>
+                                                <td>vnđ</td>
+                                            </tr>
+                                            <tr>
+                                                <td>TỔNG CỘNG</td>
+                                                <td>{this.state.totalPayment.toLocaleString('vi-VN')}</td>
+                                                <td>vnđ</td>
+                                            </tr>
                                         </tfoot>
                                     </table>
                                 </div>
@@ -321,14 +343,7 @@ class AppointmentCheckOut extends Component {
                                     )}
                                     {!image && (
                                         <div className="add-img">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={this.handleAddImage}
-                                                style={{ display: 'none' }}
-                                                id="upload-image"
-                                                disabled={isUploading}
-                                            />
+                                            <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" disabled={isUploading} />
                                             <label htmlFor="upload-image" className="add-img-label">
                                                 +
                                             </label>
@@ -338,21 +353,19 @@ class AppointmentCheckOut extends Component {
                                 <div className="appointment-check-out-content-right-notes">
                                     <p>*Thêm ghi chú nếu có</p>
                                     <div className="appointment-check-out-content-right-notes-item">
-                                        <textarea
-                                            value={this.state.medicalNotes}
-                                            onChange={(e) => this.handleOnChangeInput(e, 'medicalNotes')}
-                                            placeholder="Nhập ghi chú y tế"
-                                        ></textarea>
+                                        <textarea value={this.state.medicalNotes} onChange={(e) => this.handleOnChangeInput(e, 'medicalNotes')} placeholder="Nhập ghi chú y tế"></textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div className="appointment-check-out-content-bottom">
-                            <button onClick={this.handleCreateAppointmentBill} disabled={isUploading}>Xác nhận</button>
+                            <button onClick={this.handleCreateAppointmentBill} disabled={isUploading}>
+                                Xác nhận
+                            </button>
                         </div>
                     </div>
                 )}
-            </div >
+            </div>
         );
     }
 }

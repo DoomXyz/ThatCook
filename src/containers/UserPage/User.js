@@ -1500,9 +1500,7 @@ class User extends Component {
               <div className="user-content-right">
                 <div className="user-content-right-img-content">
                   <div className="user-content-img-description">Ảnh đại diện</div>
-                  <div className="user-content-img-info">
-                    <div className="user-content-img-info">{imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : <img src={userimage || defUserImage} alt="Ảnh đại diện" />}</div>
-                  </div>
+                  <div className="user-content-img-info">{imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : <img src={userimage || defUserImage} alt="Ảnh đại diện" />}</div>
                 </div>
                 <div className="user-content-img-button">
                   <input type="file" accept="image/*" id="upload-avatar" onChange={this.handleAddImage} />
@@ -2446,13 +2444,13 @@ class User extends Component {
               <div className={`user-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
                 Hồ sơ người dùng
               </div>
-              <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFromThuCung}>
+              <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}||${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFromThuCung}>
                 Thông tin thú cưng
               </div>
-              <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
+              <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}||${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
                 Lịch sử đơn hàng
               </div>
-              <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
+              <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}|| ${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
                 Lịch Khám
               </div>{' '}
               <div className={`user-action-change-pw ${actionPage === 3 ? 'active' : ''}`} onClick={this.handleFormDoiMatKhau}>
