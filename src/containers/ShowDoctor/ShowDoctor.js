@@ -260,9 +260,9 @@ class ShowDoctor extends Component {
                 <option value="ALL">Tất cả</option>
                 {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
                   <optgroup label="Dịch vụ khám">
-                    {loadedServiceFilterValue.map((item) => (
-                      <option key={item.ServiceID} value={item.ServiceID}>
-                        {item.ServiceName}
+                    {loadedServiceFilterValue.map((service) => (
+                      <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                        {service.ServiceName}
                       </option>
                     ))}
                   </optgroup>

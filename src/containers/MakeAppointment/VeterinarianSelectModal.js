@@ -63,7 +63,8 @@ class VeterinarianSelectModal extends Component {
 
   handleLoadServiceFilterValue = async () => {
     try {
-      const loadedFilterValue = await handleGetServiceInfoApi('ALL');
+      const response = await handleGetServiceInfoApi('ALL');
+      const loadedFilterValue = response.data
       if (!loadedFilterValue || loadedFilterValue.length === 0) {
         toast.error('Không thể tải danh sách lọc!', {
           position: 'top-right',
@@ -347,10 +348,11 @@ class VeterinarianSelectModal extends Component {
                   <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                     <option value="ALL">Tất cả</option>
                     {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
+                      console.log(loadedServiceFilterValue),
                       <optgroup label="Dịch vụ khám">
-                        {loadedServiceFilterValue.map((item) => (
-                          <option key={item.ServiceID} value={item.ServiceID}>
-                            {item.ServiceName}
+                        {loadedServiceFilterValue.map((service) => (
+                          <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                            {service.ServiceName}
                           </option>
                         ))}
                       </optgroup>
@@ -371,7 +373,7 @@ class VeterinarianSelectModal extends Component {
                                 Bác sĩ: <b>{item.UserName}</b>
                               </p>
                               <p>
-                                <b>Chuyên ngành:</b> {item.Specialization}
+                                <b>Chuyên khoa:</b> {item.Specialization}
                               </p>
                               <p>
                                 <b>Số lượt đặt lịch:</b> {item.BookingCount || 0}
