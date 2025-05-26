@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { chevronBackOutline } from 'ionicons/icons';
+import { arrowBackOutline, cartOutline, cardOutline } from 'ionicons/icons';
 
 import './CheckOut.scss';
 import Spinner from '../../components/Spinner';
@@ -18,8 +18,6 @@ import { handleCheckCouponApi, handleGetCouponApi } from '../../services/couponS
 import { checkLoginStatus, getAllCodes } from '../../utils/pakage';
 import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout, saveTrackInfo } from '../../store/actions';
 
-import cart from '../../assets/icons/shopping-cart.png';
-import card from '../../assets/icons/cheque.png';
 import visa from '../../assets/icons/visa.png';
 import mastercard from '../../assets/icons/card.png';
 
@@ -331,7 +329,8 @@ class CheckOut extends Component {
     }
   };
   handleCompleteOrder = async () => {
-    const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment } = this.state;
+    const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode,
+      totalPriceAfterPromo, discountAmout, totalPayment, isBuyNow } = this.state;
     await this.loadCheckOutCart();
     let couponID = null;
     try {
@@ -391,6 +390,7 @@ class CheckOut extends Component {
       shippingmethod: shippingmethod,
       couponid: couponID,
       cartinfo: cardInfo,
+      isBuyNow,
     };
     this.setState({ isLoading: true });
     try {
@@ -426,6 +426,15 @@ class CheckOut extends Component {
     const paginatedCheckOutCartDetailInfo = loadedCheckOutCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div className="none-logged-body">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         {isLoading ? (
           <Spinner />
@@ -435,16 +444,16 @@ class CheckOut extends Component {
               <div className="pay-top-warp">
                 <div className="pay-top">
                   <div className="pay-top-cart pay-top-item">
-                    <img src={cart} alt="Cart" />
+                    <IonIcon icon={cartOutline}></IonIcon>
                   </div>
                   <div className="pay-top-moneycheck pay-top-item">
-                    <img src={card} alt="Payment" />
+                    <IonIcon icon={cardOutline}></IonIcon>
                   </div>
                 </div>
               </div>
               <div className="delivery-content-left-button row">
                 <a href="/cart" className="f">
-                  <IonIcon icon={chevronBackOutline}></IonIcon>
+                  <IonIcon icon={arrowBackOutline}></IonIcon>
                   <p
                     style={{
                       color: 'rgba(91, 82, 82)',

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { cogOutline } from 'ionicons/icons';
+import { cogOutline, cartOutline, cardOutline } from 'ionicons/icons';
 
 import './Cart.scss';
 import Spinner from '../../components/Spinner';
@@ -16,9 +16,6 @@ import { handleGetProductDetailInfoApi } from '../../services/productServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { updateItemQuantity, removeFromCart, updateCartDetail, mergeCartDetail, saveCartForCheckOut, clearCheckOutCart, userLogout } from '../../store/actions';
-
-import cart from '../../assets/icons/shopping-cart.png';
-import card from '../../assets/icons/cheque.png';
 
 class Cart extends Component {
   constructor(props) {
@@ -36,8 +33,11 @@ class Cart extends Component {
       tempCurrentPage: '1',
       limitProductPerQuery: 10,
       totalPages: 1,
-      disabledRemoveButton: false,
       triggerCountCartItem: false,
+      disabledButtons: {
+        removeFromCart: false,
+        mergeCart: false,
+      },
     };
   }
   async componentDidMount() {
@@ -261,7 +261,7 @@ class Cart extends Component {
     this.handleQuantityChange(productid, productdetailid, newQuantity);
   };
   handleRemoveFromCart = async (productid, productdetailid) => {
-    this.setState({ disabledRemoveButton: true });
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, removeFromCart: true } });
     const { isSaveDelete } = this.state;
     let isConfirmed = false;
     if (isSaveDelete) {
@@ -290,7 +290,9 @@ class Cart extends Component {
               </button>
             </div>,
             {
-              onClose: () => { this.setState({ disabledRemoveButton: false }); },
+              autoClose: 2000,
+              closeOnClick: false,
+              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, removeFromCart: false } }); },
             }
           );
         });
@@ -348,6 +350,7 @@ class Cart extends Component {
       }
     } else {
       const { isSaveMerge } = this.state;
+      this.setState({ disabledButtons: { ...this.state.disabledButtons, mergeCart: true } });
       let isConfirmed = false;
       if (isSaveMerge) {
         const confirmAction = () =>
@@ -373,7 +376,12 @@ class Cart extends Component {
                 >
                   Không
                 </button>
-              </div>
+              </div>,
+              {
+                autoClose: 2000,
+                closeOnClick: false,
+                onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, mergeCart: false } }); },
+              }
             );
           });
         isConfirmed = await confirmAction();
@@ -471,7 +479,7 @@ class Cart extends Component {
   };
 
   render() {
-    const { isLoading, loadedCartDetailInfo, loadedCartDetailList, currentPage, tempCurrentPage, limitProductPerQuery, totalPages, disabledRemoveButton } = this.state;
+    const { isLoading, loadedCartDetailInfo, loadedCartDetailList, currentPage, tempCurrentPage, limitProductPerQuery, totalPages, disabledButtons } = this.state;
     const price = this.handleTotalProductPrice() || 0;
     const priceAfterPromo = this.handleTotalPriceAfterPromotion() || 0;
 
@@ -480,6 +488,15 @@ class Cart extends Component {
     const paginatedCartDetailInfo = loadedCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div>
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -511,10 +528,10 @@ class Cart extends Component {
               <div className="cart-top-warp">
                 <div className="cart-top">
                   <div className="cart-top-cart cart-top-item">
-                    <img src={cart} alt="Cart Icon" />
+                    <IonIcon icon={cartOutline}></IonIcon>
                   </div>
                   <div className="cart-top-moneycheck cart-top-item">
-                    <img src={card} alt="Payment Icon" />
+                    <IonIcon icon={cardOutline}></IonIcon>
                   </div>
                 </div>
               </div>
@@ -561,7 +578,7 @@ class Cart extends Component {
                               </select>
                             </td>
                             <td>
-                              <button className="minus" onClick={() => this.handleDecreaseQuantity(item.ProductID, item.ProductDetailID, item.ItemQuantity - 1)} disabled={disabledRemoveButton}>
+                              <button className="minus" onClick={() => this.handleDecreaseQuantity(item.ProductID, item.ProductDetailID, item.ItemQuantity - 1)} disabled={disabledButtons.removeFromCart}>
                                 -
                               </button>
                               <input type="text" value={item.ItemQuantity} onChange={(e) => this.handleQuantityInputChange(item.ProductID, item.ProductDetailID, e)} min="1" />
@@ -585,7 +602,7 @@ class Cart extends Component {
                               </div>
                             </td>
                             <td>
-                              <button onClick={() => this.handleRemoveFromCart(item.ProductID, item.ProductDetailID)} disabled={disabledRemoveButton}>
+                              <button onClick={() => this.handleRemoveFromCart(item.ProductID, item.ProductDetailID)} disabled={disabledButtons.removeFromCart}>
                                 <p>x</p>
                               </button>
                             </td>

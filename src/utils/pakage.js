@@ -173,8 +173,9 @@ const validateServiceInput = (serviceInfo) => {
   if (!serviceInfo || !Object.keys(serviceInfo).length) return { valid: false, errMessage: 'Thiếu thông tin dịch vụ!' };
 
   const { ServiceName, Price, Duration, Description } = serviceInfo;
-  const nameRegex = /^[A-Za-z0-9\s]{2,50}$/;
+  const nameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
 
+  console.log(ServiceName)
   if (!ServiceName?.trim()) return { valid: false, errMessage: 'Tên dịch vụ không được để trống!' };
   if (!nameRegex.test(ServiceName.trim())) return { valid: false, errMessage: 'Tên dịch vụ không hợp lệ (2-50 ký tự, chỉ chữ, số và khoảng trắng)!' };
 

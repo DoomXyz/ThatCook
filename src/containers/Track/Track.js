@@ -1,23 +1,23 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
+import { IonIcon } from '@ionic/react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import RobotoRegularFont from '../../assets/fonts/Roboto-Regular-normal.js';
+
+import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
 import './Track.scss';
 import Spinner from '../../components/Spinner.js';
 import Header from '../../components/HomeHeader.js';
 
-import { IonIcon } from '@ionic/react';
-import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBack } from 'ionicons/icons';
-
 import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
 import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices.js';
-import { clearTrackInfo } from '../../store/actions/index.js';
 
-import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
+import { getAllCodes } from '../../utils/pakage';
+import { clearTrackInfo } from '../../store/actions/index.js';
 
 import logo from '../../assets/images/logo1.png';
 const tem = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1748022960/moc-removebg-preview_l9hbp8.png';
@@ -38,19 +38,24 @@ class Track extends Component {
       codePaymentType: [],
       codeShippingMethod: [],
       codeShippingStatus: [],
-      codeAppointmentStatus: [],
       codeAppointmentType: [],
+      codeAppointmentStatus: [],
       codePetType: [],
       codePetGender: [],
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
       email: '',
+      disabledButtons: {
+        confirmReceived: false,
+        continueInvoice: false,
+        cancelAppointment: false,
+      },
     };
   }
 
   async componentDidMount() {
     try {
-      await Promise.all([this.handleLoadCodePaymentType(), this.handleLoadCodeShippingMethod(), this.handleLoadCodeShippingStatus(), this.handleLoadCodeAppointmentStatus(), this.handleLoadCodePetType(), this.handleLoadCodePetGender()]);
+      await this.handleLoadCode(['PaymentType', 'ShippingMethod', 'ShippingStatus', 'AppointmentType', 'AppointmentStatus', 'PetType', 'PetGender']);
       if (this.props.trackInfo) {
         const { billid, billtype } = this.props.trackInfo;
         this.setState({ billid, billtype, actionPage: billtype });
@@ -61,100 +66,27 @@ class Track extends Component {
       }
     } catch (e) {
       console.error('Error in componentDidMount:', e);
-      toast.error('Lỗi khi tải dữ liệu từ trang trước!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Lỗi khi tải dữ liệu từ trang trước!');
     } finally {
       this.setState({ isLoading: false });
     }
   }
-  handleLoadCodePaymentType = async () => {
+  handleLoadCode = async (codeTypeFilter) => {
     try {
-      const codePaymentType = await handleGetAllCodesApi('PaymentType');
-      if (!codePaymentType || codePaymentType.length === 0) {
-        toast.error('Không thể tải danh sách phương thức thanh toán!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codePaymentType });
-    } catch (e) {
-      console.error('Error loading payment type code:', e);
-      toast.error('Lỗi khi tải danh sách phương thức thanh toán!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    }
-  };
-  handleLoadCodeShippingMethod = async () => {
-    try {
-      const codeShippingMethod = await handleGetAllCodesApi('ShippingMethod');
-      if (!codeShippingMethod || codeShippingMethod.length === 0) {
-        toast.error('Không thể tải danh sách phương thức giao hàng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codeShippingMethod });
-    } catch (e) {
-      console.error('Error loading shipping method code:', e);
-      toast.error('Lỗi khi tải danh sách phương thức giao hàng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    }
-  };
-  handleLoadCodeShippingStatus = async () => {
-    try {
-      const codeShippingStatus = await handleGetAllCodesApi('ShippingStatus');
-      if (!codeShippingStatus || codeShippingStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái giao hàng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codeShippingStatus });
-    } catch (e) {
-      console.error('Error loading shipping status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái giao hàng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    }
-  };
-  handleLoadCodeAppointmentStatus = async () => {
-    try {
-      const codeAppointmentStatus = await handleGetAllCodesApi('AppointmentStatus');
-      if (!codeAppointmentStatus || codeAppointmentStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codeAppointmentStatus });
-    } catch (e) {
-      console.error('Error loading appointment status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    }
-  };
-  handleLoadCodePetType = async () => {
-    try {
-      const codePetType = await handleGetAllCodesApi('PetType');
-      if (!codePetType || codePetType.length === 0) {
-        toast.error('Không thể tải danh sách loại thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codePetType });
-    } catch (e) {
-      console.error('Error loading pet type code:', e);
-      toast.error('Lỗi khi tải danh sách loại thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    }
-  };
-  handleLoadCodePetGender = async () => {
-    try {
-      const codePetGender = await handleGetAllCodesApi('PetGender');
-      if (!codePetGender || codePetGender.length === 0) {
-        toast.error('Không thể tải danh sách giới tính thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codePetGender });
-    } catch (e) {
-      console.error('Error loading pet gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính thú cưng!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-    }
-  };
-  handleLoadCodeAppointmentType = async () => {
-    try {
-      const codeAppointmentType = await handleGetAllCodesApi('AppointmentType');
-      if (!codeAppointmentType || codeAppointmentType.length === 0) {
-        toast.error('Không thể tải danh sách loại lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
-        return;
-      }
-      this.setState({ codeAppointmentType });
-    } catch (e) {
-      console.error('Error loading pet type code:', e);
-      toast.error('Lỗi khi tải danh sách loại lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
     }
   };
   loadtrackData = async (id, type) => {
@@ -166,7 +98,7 @@ class Track extends Component {
           if (invoiceResponse && invoiceResponse.errCode === 0) {
             return { success: true, data: invoiceResponse.data, stateKey: 'loadedInvoiceDetails' };
           }
-          toast.error(invoiceResponse?.errMessage || 'Không tìm thấy hóa đơn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          toast.error(invoiceResponse?.errMessage || 'Không tìm thấy hóa đơn!');
           return { success: false };
         case 2: // Appointment
           const appointmentResponse = await handleLoadAppointmentDetailsApi(id);
@@ -174,7 +106,7 @@ class Track extends Component {
           if (appointmentResponse && appointmentResponse.errCode === 0) {
             return { success: true, data: appointmentResponse.data, stateKey: 'loadedAppointmentDetails' };
           }
-          toast.error(appointmentResponse?.errMessage || 'Không tìm thấy lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          toast.error(appointmentResponse?.errMessage || 'Không tìm thấy lịch hẹn!');
           return { success: false };
         case 3: // Hóa đơn Appointment
           const appointmentBillResponse = await handleGetAppointmentBillDetailApi(id);
@@ -183,24 +115,24 @@ class Track extends Component {
             if (appointmentBillResponse.data.AppointmentBill) {
               return { success: true, data: appointmentBillResponse.data, stateKey: 'loadedAppointmentBillDetails' };
             }
-            toast.error('Không tìm thấy hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+            toast.error('Không tìm thấy hóa đơn lịch hẹn!');
             return { success: false };
           }
-          toast.error(appointmentBillResponse?.errMessage || 'Không tìm thấy hóa đơn lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          toast.error(appointmentBillResponse?.errMessage || 'Không tìm thấy hóa đơn lịch hẹn!');
           return { success: false };
         default:
-          toast.error('Loại hóa đơn không hợp lệ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+          toast.error('Loại hóa đơn không hợp lệ!');
           return { success: false };
       }
     } catch (e) {
       console.error('Error loading bill data:', e);
-      toast.error('Lỗi khi tải thông tin!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Lỗi khi tải thông tin!');
       return { success: false };
     }
   };
   handleLoadBillDetails = async (billid, billtype) => {
     if (!billid || !billtype) {
-      toast.error('Mã hóa đơn hoặc loại hóa đơn không hợp lệ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Mã hóa đơn hoặc loại hóa đơn không hợp lệ!');
       return false;
     }
     this.setState({ isLoading: true });
@@ -215,7 +147,7 @@ class Track extends Component {
   handleSearch = async () => {
     const { searchValue, selectedTab } = this.state;
     if (!searchValue.trim()) {
-      toast.info('Vui lòng nhập mã tương ứng để tìm kiếm!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.info('Vui lòng nhập mã tương ứng để tìm kiếm!');
       return;
     }
     this.setState({ isLoading: true });
@@ -252,7 +184,7 @@ class Track extends Component {
   handleGeneratePDF = () => {
     const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
     if (!loadedInvoiceDetails) {
-      toast.error('Không có dữ liệu hóa đơn để tạo PDF!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Không có dữ liệu hóa đơn để tạo PDF!');
       return;
     }
 
@@ -364,7 +296,6 @@ class Track extends Component {
   };
   handleSendEmail = async (billid) => {
     const { email } = this.state;
-
     try {
       if (!email) {
         toast.info('Email không được bỏ trống!')
@@ -377,19 +308,20 @@ class Track extends Component {
       }
       const response = await handleSendInvoiceEmailApi(sendInfo);
       if (response && response.errCode === 0) {
-        toast.success('Gửi email thành công!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.success('Gửi email thành công!');
         this.setState({ actionPage: 0 })
       } else {
-        toast.error(response?.errMessage || 'Gửi email thất bại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.error(response?.errMessage || 'Gửi email thất bại!');
       }
     } catch (e) {
       console.log('Lỗi khi gửi email:', e);
-      toast.error('Lỗi khi gửi email!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Lỗi khi gửi email!');
     }
     this.setState({ isLoading: false })
   };
   //Hàm thao tác của Product
   handleConfirmReceived = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: true } });
     const confirmReceived = () =>
       new Promise((resolve) => {
         toast(
@@ -414,7 +346,11 @@ class Track extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } }); },
+          }
         );
       });
 
@@ -425,19 +361,20 @@ class Track extends Component {
     try {
       const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
       if (response && response.errCode === 0) {
-        toast.success('Xác nhận nhận hàng thành công!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.success('Xác nhận nhận hàng thành công!');
         await this.handleLoadBillDetails(invoiceid, this.state.billtype);
       } else {
-        toast.error(response?.errMessage || 'Xác nhận nhận hàng thất bại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.error(response?.errMessage || 'Xác nhận nhận hàng thất bại!');
       }
     } catch (e) {
       console.error('Error confirming received:', e);
-      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!');
     } finally {
       this.setState({ isLoading: false });
     }
   };
   handleContinueInvoice = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: true } });
     const confirmContinue = () =>
       new Promise((resolve) => {
         toast(
@@ -462,7 +399,11 @@ class Track extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } }); },
+          }
         );
       });
 
@@ -473,14 +414,14 @@ class Track extends Component {
     try {
       const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
       if (response && response.errCode === 0) {
-        toast.success('Tiếp tục đơn hàng thành công!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.success('Tiếp tục đơn hàng thành công!');
         await this.handleLoadBillDetails(invoiceid, this.state.billtype);
       } else {
-        toast.error(response?.errMessage || 'Tiếp tục đơn hàng thất bại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.error(response?.errMessage || 'Tiếp tục đơn hàng thất bại!');
       }
     } catch (e) {
       console.error('Error continuing invoice:', e);
-      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!');
     } finally {
       this.setState({ isLoading: false });
     }
@@ -501,24 +442,25 @@ class Track extends Component {
     try {
       const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND_CANCEL', cancelreason);
       if (response && response.errCode === 0) {
-        toast.success('Gửi yêu cầu hủy đơn hàng thành công!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.success('Gửi yêu cầu hủy đơn hàng thành công!');
         await this.handleLoadBillDetails(invoiceid, this.state.billtype);
         this.setState({
           isShowCancelInvoiceModal: false,
           selectedCancelInvoice: null,
         });
       } else {
-        toast.error(response?.errMessage || 'Gửi yêu cầu hủy đơn hàng thất bại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.error(response?.errMessage || 'Gửi yêu cầu hủy đơn hàng thất bại!');
       }
     } catch (e) {
       console.error('Error canceling invoice:', e);
-      toast.error('Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!');
     } finally {
       this.setState({ isLoading: false });
     }
   };
   //Hàm thao tác của Appointment
   handleCancelAppointment = async (appointmentid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: true } });
     const confirmCancel = () =>
       new Promise((resolve) => {
         toast(
@@ -543,7 +485,11 @@ class Track extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } }); },
+          }
         );
       });
 
@@ -554,14 +500,14 @@ class Track extends Component {
     try {
       const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', this.state.loadedAppointmentDetails?.AccountID || '');
       if (response && response.errCode === 0) {
-        toast.success('Hủy lịch hẹn thành công!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.success('Hủy lịch hẹn thành công!');
         await this.handleLoadBillDetails(appointmentid, this.state.billtype);
       } else {
-        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
       }
     } catch (e) {
       console.error('Error canceling appointment:', e);
-      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!');
     } finally {
       this.setState({ isLoading: false });
     }
@@ -576,10 +522,18 @@ class Track extends Component {
   render() {
     const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails,
       codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender,
-      isShowCancelInvoiceModal, selectedCancelInvoice, billid, email } = this.state;
+      isShowCancelInvoiceModal, selectedCancelInvoice, billid, email, disabledButtons } = this.state;
     return (
       <div className="view-invoice">
-        <ToastContainer />
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} />
         {isLoading ? (
           <Spinner />
@@ -590,7 +544,6 @@ class Track extends Component {
                 case 0: // Tìm kiếm
                   return (
                     <div className="view-invoice-background">
-                      <ToastContainer />
                       <div className="search-bill-container">
                         <div className="search-tabs">
                           <button className={selectedTab === 1 ? 'active' : ''} onClick={() => this.handleTabChange(1)}>
@@ -621,7 +574,6 @@ class Track extends Component {
                   return (
                     <div className="view-invoice-background">
                       <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
-                      <ToastContainer />
                       <div className="view-invoice-modal">
                         <div className="view-invoice-modal-content">
                           {loadedInvoiceDetails ? (
@@ -755,17 +707,17 @@ class Track extends Component {
                               </div>
                               <div className="bill-actions">
                                 {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                  <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng">
+                                  <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng" >
                                     <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
                                   </button>
                                 )}
                                 {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                  <button className="received-order-btn" onClick={() => this.handleConfirmReceived(billid)} title="Xác nhận giao hàng">
+                                  <button className="received-order-btn" onClick={() => this.handleConfirmReceived(billid)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmReceived}>
                                     <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
                                   </button>
                                 )}
                                 {(loadedInvoiceDetails.PaymentStatus === 'PEND' || loadedInvoiceDetails.PaymentStatus === 'PAID') && loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
-                                  <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(billid)} title="Tiếp tục đơn hàng">
+                                  <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(billid)} title="Tiếp tục đơn hàng" disabled={disabledButtons.continueInvoice}>
                                     <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
                                   </button>
                                 )}
@@ -778,7 +730,7 @@ class Track extends Component {
                                     Gửi qua email
                                   </button>
                                   <button onClick={this.handleBackToSearch} className="back-btn">
-                                    <IonIcon icon={chevronBack}></IonIcon> Quay về
+                                    <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
                                   </button>
                                 </div>
                               </div>
@@ -793,7 +745,6 @@ class Track extends Component {
                 case 2: // Chi tiết lịch khám
                   return (
                     <div className="view-invoice-background">
-                      <ToastContainer />
                       <div className="view-invoice-modal-app">
                         <div className="view-invoice-modal-content-app">
                           {loadedAppointmentDetails ? (
@@ -916,13 +867,13 @@ class Track extends Component {
                               </div>
                               <div className="bill-actions-app">
                                 {loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
-                                  <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn">
+                                  <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn" disabled={disabledButtons.cancelAppointment}>
                                     <IonIcon icon={closeCircleOutline}></IonIcon> Hủy lịch hẹn
                                   </button>
                                 )}
                                 <div className="f">
                                   <button onClick={this.handleBackToSearch} className="back-btn-app">
-                                    <IonIcon icon={chevronBack}></IonIcon> Quay về
+                                    <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
                                   </button>
                                 </div>
                               </div>
@@ -937,7 +888,6 @@ class Track extends Component {
                 case 3: // Hóa đơn Appointment
                   return (
                     <div className="view-invoice-background-appointment">
-                      <ToastContainer />
                       <div className="view-invoice-modal-appointment">
                         <div className="view-invoice-modal-content-appointment">
                           {loadedAppointmentBillDetails && loadedAppointmentBillDetails.AppointmentBill ? (
@@ -1042,7 +992,7 @@ class Track extends Component {
                               </div>
                               <div className="bill-actions-appointment">
                                 <button onClick={this.handleBackToSearch} className="back-btn-appointment">
-                                  <IonIcon icon={chevronBack}></IonIcon> Quay về
+                                  <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
                                 </button>
                                 <div>
                                   <button onClick={() => this.handleSendEmail(loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID)} className="email-btn-appointment">

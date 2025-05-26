@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 import Select from 'react-select';
 
-import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, peopleCircleOutline, informationCircleOutline, idCardOutline, invertModeOutline } from 'ionicons/icons';
+import { mailOutline, person, call, keyOutline, location, maleFemaleOutline, lockClosedOutline, informationCircleOutline, briefcaseOutline, pulseOutline, cubeOutline } from 'ionicons/icons';
 
 import './EditAccountModal.scss';
 import Button from 'react-bootstrap/Button';
@@ -35,7 +35,14 @@ class EditAccountModal extends Component {
       codeWorkingStatus: [],
       loadedServiceInfo: [],
       selectedServices: [],
+      disabledButtons: {
+        confirmEdit: false,
+      },
     };
+  }
+  async componentDidMount() {
+    await this.handleLoadCode(['Gender', 'AccountType', 'WorkingStatus']);
+    await this.handleGetServiceInfo();
   }
   async componentDidUpdate(prevProps, prevState) {
     const { selectedAccountID, isOpen } = this.props;
@@ -82,21 +89,20 @@ class EditAccountModal extends Component {
     }
   };
   resetState = async () => {
+    const { codeGender, codeAccountType, codeWorkingStatus } = this.state
     this.setState({
       accountname: '',
       email: '',
       username: '',
       phone: '',
       address: '',
-      gender: '',
-      accounttype: '',
+      gender: codeGender.length > 0 ? codeGender[0].Code : '',
+      accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
       bio: '',
       specialization: '',
-      workingstatus: '',
+      workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
       selectedServices: [],
     });
-    await this.handleLoadCode(['Gender', 'AccountType', 'WorkingStatus']);
-    await this.handleGetServiceInfo();
   };
   toggle = async () => {
     await this.resetState();
@@ -147,6 +153,7 @@ class EditAccountModal extends Component {
     this.setState({ selectedServices: selectedServiceIds });
   };
   handleEditAccount = async () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmEdit: true } })
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -170,7 +177,12 @@ class EditAccountModal extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmEdit: false } }) },
+          }
         );
       });
     const isConfirmed = await confirmAction();
@@ -218,7 +230,7 @@ class EditAccountModal extends Component {
   render() {
     const { isOpen } = this.props;
     const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, bio, specialization, workingstatus,
-      codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices } = this.state;
+      codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices, disabledButtons } = this.state;
     if (!loadedAccountInfo) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="edit-user-modal" centered backdrop="static">
@@ -250,14 +262,14 @@ class EditAccountModal extends Component {
                   <option value="">Không có dữ liệu phân quyền</option>
                 )}
               </select>
-              <IonIcon icon={peopleCircleOutline}></IonIcon>
+              <IonIcon icon={lockClosedOutline}></IonIcon>
             </div>
           </div>
           {accounttype === 'V' && (
             <div className="R2 veterinarian-info">
               <div className="f">
                 <div className="inputbox-2">
-                  <IonIcon icon={idCardOutline}></IonIcon>
+                  <IonIcon icon={briefcaseOutline}></IonIcon>
                   <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
                   <label>Chuyên khoa</label>
                 </div>
@@ -274,7 +286,7 @@ class EditAccountModal extends Component {
                       <option value="">Không có dữ liệu trạng thái</option>
                     )}
                   </select>
-                  <IonIcon icon={invertModeOutline}></IonIcon>
+                  <IonIcon icon={pulseOutline}></IonIcon>
                 </div>
               </div>
               <div className="inputbox-1">
@@ -301,7 +313,7 @@ class EditAccountModal extends Component {
                   className="service-select"
                   classNamePrefix="select"
                 />
-                <IonIcon icon={invertModeOutline}></IonIcon>
+                <IonIcon icon={cubeOutline}></IonIcon>
               </div>
             </div>
           )}
@@ -351,7 +363,7 @@ class EditAccountModal extends Component {
           <Button variant="secondary" onClick={this.toggle}>
             Đóng
           </Button>
-          <Button variant="primary" onClick={this.handleEditAccount}>
+          <Button variant="primary" onClick={this.handleEditAccount} disabled={disabledButtons.confirmEdit}>
             Lưu
           </Button>
         </Modal.Footer>

@@ -1,14 +1,18 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
+
 import { searchOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
+
 import './ShowDoctor.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
+
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+
+import { getAllCodes } from '../../utils/pakage';
 import { savePreselectInfo, clearPreselectInfo } from '../../store/actions';
 
 class ShowDoctor extends Component {
@@ -26,25 +30,53 @@ class ShowDoctor extends Component {
       totalPages: 1,
       loadedServiceFilterValue: [],
       codeWorkingStatus: [],
+      disabledButtons: {
+        preSelectVeterinarian: false,
+      },
     };
     this.debounceTimeout = null;
   }
   async componentDidMount() {
     await this.handleLoadVeterinarianInfo();
-    await this.handleLoadServiceFilterValue();
-    await this.handleLoadWorkingStatus();
+    await this.handleLoadCode(['WorkingStatus']);
+    await this.handleGetServiceInfo();
   }
-  async componentDidUpdate(prevProps) {
-    const { isOpen } = this.props;
-    if (isOpen && !prevProps.isOpen) {
-      await this.handleLoadVeterinarianInfo();
-      await this.handleLoadServiceFilterValue();
-      await this.handleLoadWorkingStatus();
+  handleLoadCode = async (codeTypeFilter) => {
+    try {
+      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
     }
-  }
+  };
+  handleGetServiceInfo = async () => {
+    try {
+      const responseApi = await handleGetServiceInfoApi('ALL');
+      const response = responseApi.data
+      if (response.errCode === 0 && response.data && response.data.length > 0) {
+        this.setState({
+          loadedServiceInfo: response.data,
+        });
+      } else {
+        toast.error('Không thể tải danh sách dịch vụ!');
+      }
+    } catch (e) {
+      console.log('Error loading service info:', e);
+      toast.error('Lỗi khi tải danh sách dịch vụ!');
+    }
+  };
   handleLoadVeterinarianInfo = async () => {
     const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
-
     try {
       const response = await handleLoadVeterinarianInfoApi(currentPage, limitItemPerQuery, searchValue, filterValue, sortValue);
       if (response && response.errCode === 0) {
@@ -55,56 +87,7 @@ class ShowDoctor extends Component {
       }
     } catch (e) {
       console.log('Error loading veterinarianinfo:', e);
-      toast.error('Lỗi khi load danh sách bác sĩ thú y!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadServiceFilterValue = async () => {
-    try {
-      const response = await handleGetServiceInfoApi('ALL');
-      const loadedFilterValue = response.data;
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedServiceFilterValue: loadedFilterValue.data,
-      });
-    } catch (e) {
-      console.log('Error loading service list:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadWorkingStatus = async () => {
-    try {
-      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
-      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
-        toast.error('Không thể tải trạng thái làm việc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeWorkingStatus,
-      });
-    } catch (e) {
-      console.log('Error loading workingstatus code:', e);
-      toast.error('Lỗi khi tải trạng thái làm việc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách bác sĩ thú y!');
     }
   };
   handleFilter = (value) => {
@@ -205,7 +188,6 @@ class ShowDoctor extends Component {
     const page = parseInt(tempCurrentPage, 10);
     this.handlePageChange(page);
   };
-
   handlePageKeyDown = (event) => {
     if (event.key === 'Enter') {
       const { tempCurrentPage } = this.state;
@@ -214,23 +196,64 @@ class ShowDoctor extends Component {
     }
   };
   handlePreSelectVeterinarian = (accountID) => {
-    const { loadedVeterinarianInfo } = this.state;
-    const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === accountID);
-    if (selectedVet) {
-      this.props.savePreselectInfo('Veterinarian', accountID);
-      this.props.navigate('/makeappointment');
-    } else {
-      toast.error('Không tìm thấy thông tin bác sĩ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true } });
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận chọn bác sĩ này để đặt lịch?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: false } }); },
+          }
+        );
       });
-    }
+    confirmAction().then((isConfirmed) => {
+      if (isConfirmed) {
+        const { loadedVeterinarianInfo } = this.state;
+        const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === accountID);
+        if (selectedVet) {
+          this.props.savePreselectInfo('Veterinarian', accountID);
+          this.props.navigate('/makeappointment');
+        } else {
+          toast.error('Không tìm thấy thông tin bác sĩ!');
+        }
+      }
+    });
   };
   render() {
-    const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus } = this.state;
+    const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus, disabledButtons } = this.state;
     return (
       <div className="showdoctor-body">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <div className="showdoctor-content">
           <h1>Danh sách bác sĩ</h1>
@@ -287,7 +310,7 @@ class ShowDoctor extends Component {
                           </p>
                         </div>
                         <div>
-                          <button className="btn btn-primary btn-sm" onClick={() => this.handlePreSelectVeterinarian(item.AccountID)}>
+                          <button className="btn btn-primary btn-sm" onClick={() => this.handlePreSelectVeterinarian(item.AccountID)} disabled={disabledButtons.preSelectVeterinarian}>
                             Đặt lịch
                           </button>
                         </div>

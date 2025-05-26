@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 
@@ -117,6 +117,15 @@ class Login extends Component {
     const { accountname, password, rememberMe, isLoading } = this.state;
     return (
       <div className="login-background">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         {isLoading ? (
           <Spinner />
         ) : (

@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { connect } from 'react-redux';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { eyeOutline, eyeOffOutline, chevronBack } from 'ionicons/icons';
+import { eyeOutline, eyeOffOutline, home } from 'ionicons/icons';
 
 import './ForgotPassword.scss';
 import Spinner from '../../components/Spinner';
@@ -198,6 +197,15 @@ class ForgotPassword extends Component {
     const { currentStep, isLoading } = this.state;
     return (
       <div className="forgot-background">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -209,7 +217,7 @@ class ForgotPassword extends Component {
                   onClick={() => {
                     this.props.navigate('/login');
                   }}>
-                  <IonIcon icon={chevronBack}></IonIcon>
+                  <IonIcon icon={home}></IonIcon>
                 </div>
                 <div className='forgot-head-info'><h2>Quên Mật Khẩu</h2>
                 </div>
@@ -241,6 +249,4 @@ class ForgotPassword extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
-const mapDispatchToProps = {};
-export default connect(mapStateToProps, mapDispatchToProps)(ForgotPassword);
+export default ForgotPassword;

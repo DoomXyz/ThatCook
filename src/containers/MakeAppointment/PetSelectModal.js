@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import './PetSelectModal.scss';
 import Modal from 'react-bootstrap/Modal';
@@ -20,6 +20,12 @@ class PetSelectModal extends Component {
       isEditingPet: null,
       isAddingPet: false,
       limitPetCount: 3,
+      disabledButtons: {
+        addPet: false,
+        savePet: false,
+        cancelPet: false,
+        deletePet: false,
+      },
     };
   }
   async componentDidUpdate(prevProps) {
@@ -86,10 +92,13 @@ class PetSelectModal extends Component {
               >
                 Không
               </button>
-            </div>
+            </div>,
+            {
+              autoClose: 2000,
+              closeOnClick: false,
+            }
           );
         });
-
       confirmAddNew().then((isConfirmed) => {
         if (isConfirmed) {
           this.setState(
@@ -137,6 +146,7 @@ class PetSelectModal extends Component {
     }
   };
   handleCancelPet = () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: true } });
     const confirmCancel = () =>
       new Promise((resolve) => {
         toast(
@@ -160,7 +170,12 @@ class PetSelectModal extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: false } }); },
+          }
         );
       });
 
@@ -208,6 +223,7 @@ class PetSelectModal extends Component {
       toast.error(`${isValidatePetInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, savePet: true } });
     const confirmSave = () =>
       new Promise((resolve) => {
         toast(
@@ -231,7 +247,12 @@ class PetSelectModal extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, savePet: false } }); },
+          }
         );
       });
 
@@ -271,6 +292,7 @@ class PetSelectModal extends Component {
     }
   };
   handleDeletePet = async (petid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: true } });
     const confirmDelete = () =>
       new Promise((resolve) => {
         toast(
@@ -294,7 +316,12 @@ class PetSelectModal extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }); },
+          }
         );
       });
 
@@ -336,7 +363,7 @@ class PetSelectModal extends Component {
   };
   render() {
     const { isOpen, toggleFromModal } = this.props;
-    const { loadedPetInfo, codePetType, codePetGender, isEditingPet, isAddingPet, limitPetCount } = this.state;
+    const { loadedPetInfo, codePetType, codePetGender, isEditingPet, isAddingPet, limitPetCount, disabledButtons } = this.state;
     return (
       <Modal
         show={isOpen}
@@ -409,10 +436,10 @@ class PetSelectModal extends Component {
                       <td>
                         {isEditingPet === index ? (
                           <>
-                            <button className="btn btn-primary btn-sm pet-save-btn" onClick={() => this.handleSavePet(index)}>
+                            <button className="btn btn-primary btn-sm pet-save-btn" onClick={() => this.handleSavePet(index)} disabled={disabledButtons.savePet}>
                               Lưu
                             </button>
-                            <button className="btn btn-danger btn-sm" onClick={() => this.handleCancelPet()}>
+                            <button className="btn btn-danger btn-sm" onClick={() => this.handleCancelPet()} disabled={disabledButtons.cancelPet}>
                               Hủy
                             </button>
                           </>
@@ -424,7 +451,7 @@ class PetSelectModal extends Component {
                             <button className="btn btn-warning btn-sm" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
                               Sửa
                             </button>
-                            <button className="btn btn-danger btn-sm" onClick={() => this.handleDeletePet(pet.PetID)} disabled={isEditingPet !== null || isAddingPet}>
+                            <button className="btn btn-danger btn-sm" onClick={() => this.handleDeletePet(pet.PetID)} disabled={isEditingPet !== null || isAddingPet || disabledButtons.deletePet}>
                               Xóa
                             </button>
                           </>

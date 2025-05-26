@@ -21,7 +21,7 @@ const handleChangeInvoiceStatusApi = (invoiceid, type, status, cancelReason) => 
 };
 
 const handleSendInvoiceEmailApi = (sendInfo) => {
-  return axios.post('/api/send-invoice-email', sendInfo);
+  return axios.post('/api/get-invoice-email', sendInfo);
 };
 
 export { handleCreateInvoiceApi, handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi };

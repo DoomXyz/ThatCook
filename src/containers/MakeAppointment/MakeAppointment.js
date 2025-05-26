@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 import DatePicker from 'react-datepicker';
 
@@ -658,6 +658,15 @@ class MakeAppointment extends Component {
     const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, loadedServiceInfo, starttime, availableTimes, notes, allImages, selectedPetID, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList, type } = this.state;
     return (
       <div className="makeappointment-body">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} accountID={isLoggedIn ? accountInfo.AccountID : null} handleSelectPetFromModal={this.handleSelectPetFromModal} onPetListChange={this.handlePetListChange} />
         <VeterinarianSelectModal isOpen={isShowVeterinarianSelectModal} toggleFromModal={this.toggleVeterinarianSelectModal} handleSelectVeterinarianFromModal={this.handleSelectVeterinarianFromModal} />
         {isLoading ? (

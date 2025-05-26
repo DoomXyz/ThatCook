@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
-import { IonIcon } from '@ionic/react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { handleLoadVeterinarianInfoApi } from '../../services/accountServices'; // Import all required
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
-import HomeProductModal from '../Home/HomeProductModal';
-import bannerimg1 from '../../assets/bannerimgs/1.webp';
+import './HomeAppointment.scss';
+import Header from '../../components/HomeHeader';
+import Footer from '../../components/HomeFooter';
+
+import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
+
+import { getAllCodes } from '../../utils/pakage';
+import { savePreselectInfo } from '../../store/actions';
+
 import tongquat from '../../assets/doctor-imgs/img1.png';
-import dieutri from '../../assets/doctor-imgs/dieutribenh.png';
 import phauthuat from '../../assets/doctor-imgs/phauthuat.png';
 import tiemphong from '../../assets/doctor-imgs/tiemphong.png';
 import xetnghiem from '../../assets/doctor-imgs/xetnghiem.png';
@@ -18,47 +20,50 @@ import im1 from '../../assets/doctor-imgs/dv2.jpg';
 import im2 from '../../assets/doctor-imgs/dv4.jpg';
 import im3 from '../../assets/doctor-imgs/im-2.png';
 import im4 from '../../assets/doctor-imgs/im-3.png';
-import Header from '../../components/HomeHeader';
-import Footer from '../../components/HomeFooter';
-import './HomeAppointment.scss';
-
-const bannerImagesFallback = [{ HinhAnh: bannerimg1, MASANPHAM: null }];
 
 class HomeAppointment extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentIndex: 0, // Tracks active banner slide
-      bannerImages: [], // Stores banner data from API
-      isShowHomeProductModal: false, // Controls product modal visibility
-      productDetail: {}, // Stores selected product details
-      doctorIndex: 0, // Tracks active doctor slide
-      loadedVeterinarianInfo: [], // Stores fetched veterinarian data
-      searchValue: '', // Search query
-      filterValue: 'ALL', // Filter by service
-      sortValue: '0', // Sort option
-      currentPage: 1, // Current page for API
-      limitItemPerQuery: 5, // Limit to 10 veterinarians for slideshow
-      totalPages: 1, // Total pages from API
-      loadedServiceFilterValue: [], // Service filter options
-      codeWorkingStatus: [], // Working status codes
+      doctorIndex: 0,
+      loadedVeterinarianInfo: [],
+      searchValue: '',
+      filterValue: 'ALL',
+      sortValue: '1',
+      currentPage: 1,
+      limitItemPerQuery: 5,
+      codeWorkingStatus: [],
+      disabledButtons: {
+        preSelectVeterinarian: false,
+      },
     };
-    this.bannerIntervalId = null; // For banner slideshow interval
-    this.debounceTimeout = null; // For search debouncing
+    this.debounceTimeout = null;
   }
-
   async componentDidMount() {
     await this.handleLoadVeterinarianInfo();
-    await this.handleLoadWorkingStatus();
-    this.bannerIntervalId = setInterval(this.changeSlide, 4000);
+    await this.handleLoadCode(['WorkingStatus']);
   }
-
   componentWillUnmount() {
-    if (this.bannerIntervalId) clearInterval(this.bannerIntervalId);
     if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
   }
-
-  // Load veterinarian data from API
+  handleLoadCode = async (codeTypes) => {
+    try {
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
   handleLoadVeterinarianInfo = async () => {
     const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
@@ -66,122 +71,107 @@ class HomeAppointment extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedVeterinarianInfo: response.data,
-          totalPages: Math.ceil(response.totalItems / limitItemPerQuery),
         });
       } else {
-        toast.error('Lỗi khi tải danh sách bác sĩ thú y!', {
+        toast.error('Lỗi khi tải danh sách bác sĩ!', {
           autoClose: 2000,
           closeOnClick: true,
         });
       }
     } catch (e) {
-      console.log('Error loading veterinarian info:', e);
-      toast.error('Lỗi khi tải danh sách bác sĩ thú y!', {
+      console.log('Lỗi khi tải thông tin bác sĩ:', e);
+      toast.error('Lỗi khi tải danh sách bác sĩ!', {
         autoClose: 2000,
         closeOnClick: true,
       });
     }
   };
-
-  // Load service filter values
-
-  // Load working status codes
-
-  showProductDetailFromBanner = async (MASANPHAM) => {
-    if (!MASANPHAM) {
-      toast.error('No product associated with this banner!', {
-        autoClose: 2000,
-        closeOnClick: true,
-      });
-      return;
-    }
-  };
-
-  changeSlide = () => {
-    this.setState((prevState) => ({
-      currentIndex: (prevState.currentIndex + 1) % (this.state.bannerImages.length || 1),
-    }));
-  };
-
-  handleRightClick = () => {
-    clearInterval(this.bannerIntervalId);
-    this.changeSlide();
-    this.bannerIntervalId = setInterval(this.changeSlide, 4000);
-  };
-
-  handleLeftClick = () => {
-    clearInterval(this.bannerIntervalId);
-    this.setState((prevState) => ({
-      currentIndex: prevState.currentIndex === 0 ? (this.state.bannerImages.length || 1) - 1 : prevState.currentIndex - 1,
-    }));
-    this.bannerIntervalId = setInterval(this.changeSlide, 4000);
-  };
-
-  toggleHomeProductModal = () => {
-    this.setState({
-      isShowHomeProductModal: !this.state.isShowHomeProductModal,
-    });
-  };
-
-  // Handle navigation for doctors slideshow
   handleDoctorLeftClick = () => {
     this.setState((prevState) => ({
       doctorIndex: Math.max(0, prevState.doctorIndex - 1),
     }));
   };
-
   handleDoctorRightClick = () => {
     this.setState((prevState) => ({
       doctorIndex: Math.min(this.state.loadedVeterinarianInfo.length - 1, prevState.doctorIndex + 1),
     }));
   };
-
-  handleLoadWorkingStatus = async () => {
-    try {
-      const codeWorkingStatus = await handleGetAllCodesApi('WorkingStatus');
-      if (!codeWorkingStatus || codeWorkingStatus.length === 0) {
-        toast.error('Không thể tải trạng thái làm việc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeWorkingStatus,
-      });
-    } catch (e) {
-      console.log('Error loading workingstatus code:', e);
-      toast.error('Lỗi khi tải trạng thái làm việc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
-  // Navigate to appointment page for selected veterinarian
   handlePreSelectVeterinarian = (accountID) => {
-    const { loadedVeterinarianInfo } = this.state;
-    const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === accountID);
-    if (selectedVet) {
-      this.props.navigate('/makeappointment', { state: { veterinarianId: accountID } });
-    } else {
-      toast.error('Không tìm thấy thông tin bác sĩ!', {
-        autoClose: 2000,
-        closeOnClick: true,
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true }, });
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận chọn bác sĩ này để đặt lịch?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: false }, });
+            },
+          }
+        );
       });
-    }
+    confirmAction().then((isConfirmed) => {
+      if (isConfirmed) {
+        const { loadedVeterinarianInfo } = this.state;
+        const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === accountID);
+        if (selectedVet) {
+          this.props.savePreselectInfo('Veterinarian', accountID);
+          this.props.navigate('/makeappointment');
+        } else {
+          toast.error('Không tìm thấy thông tin bác sĩ!', {
+            autoClose: 2000,
+            closeOnClick: true,
+          });
+        }
+      }
+    });
   };
 
   render() {
-    const { currentIndex, bannerImages, isShowHomeProductModal, productDetail, doctorIndex, loadedVeterinarianInfo, codeWorkingStatus } = this.state;
-
+    const {
+      doctorIndex,
+      loadedVeterinarianInfo,
+      codeWorkingStatus,
+      disabledButtons,
+    } = this.state;
     return (
       <div className="HomeAppointment-body">
-        <ToastContainer />
-        <HomeProductModal isOpen={isShowHomeProductModal} toggleFromModal={this.toggleHomeProductModal} currentProduct={productDetail.MASANPHAM} handleBuyNowFromModal={(masanpham, soluong, mactsp) => console.log('Buy now:', masanpham, soluong, mactsp)} handleAddToCartFromModal={(masanpham, soluong, mactsp) => console.log('Add to cart:', masanpham, soluong, mactsp)} />
-        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
-
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable
+          transition={Slide}
+          limit={1}
+        />
+        <Header
+          navigate={this.props.navigate}
+          cartItems={this.props.cartItems}
+          userInfo={this.props.userInfo}
+          triggerCountCartItem={this.state.triggerCountCartItem}
+        />
         <div className="home-bg"></div>
         <div className="top-doctor">
           <div className="f">
@@ -190,24 +180,41 @@ class HomeAppointment extends Component {
           </div>
           <div className="stra"></div>
           <div className="doctor-slide-show">
-            <button className="doctor-btn-left" onClick={this.handleDoctorLeftClick} disabled={doctorIndex === 0}>
+            <button
+              className="doctor-btn-left"
+              onClick={this.handleDoctorLeftClick}
+              disabled={doctorIndex === 0}
+            >
               {'<'}
             </button>
             <div className="doctor-list-wrapper">
               <div
                 className="doctor-list"
                 style={{
-                  transform: `translateX(calc(50% - 7rem - ${doctorIndex * 15.75}rem))`,
+                  transform: `translateX(-${doctorIndex * 100}%)`,
+                  transition: 'transform 0.3s ease-in-out',
                 }}
               >
                 {loadedVeterinarianInfo.length > 0 ? (
-                  loadedVeterinarianInfo.map((doctor, index, item) => (
-                    <div className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`} key={doctor.AccountID}>
+                  loadedVeterinarianInfo.map((doctor, index) => (
+                    <div
+                      className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`}
+                      key={doctor.AccountID}
+                    >
                       <img src={doctor.UserImage} alt={doctor.UserName} />
                       <p>{doctor.UserName}</p>
                       <p>Số lượt đặt lịch: {doctor.BookingCount || 0}</p>
-                      <p>Trạng thái: {codeWorkingStatus.find((filterItem) => filterItem.Code === doctor.WorkingStatus)?.CodeValueVI || doctor.WorkingStatus}</p>
-                      <button onClick={() => this.handlePreSelectVeterinarian(doctor.AccountID)}>Đặt lịch ngay</button>
+                      <p>
+                        Trạng thái:{' '}
+                        {codeWorkingStatus.find((filterItem) => filterItem.Code === doctor.WorkingStatus)?.CodeValueVI ||
+                          doctor.WorkingStatus}
+                      </p>
+                      <button
+                        onClick={() => this.handlePreSelectVeterinarian(doctor.AccountID)}
+                        disabled={disabledButtons.preSelectVeterinarian}
+                      >
+                        Đặt lịch ngay
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -215,7 +222,11 @@ class HomeAppointment extends Component {
                 )}
               </div>
             </div>
-            <button className="doctor-btn-right" onClick={this.handleDoctorRightClick} disabled={doctorIndex === loadedVeterinarianInfo.length - 1}>
+            <button
+              className="doctor-btn-right"
+              onClick={this.handleDoctorRightClick}
+              disabled={doctorIndex === loadedVeterinarianInfo.length - 1}
+            >
               {'>'}
             </button>
           </div>
@@ -276,6 +287,8 @@ const mapStateToProps = (state) => ({
   cartItems: state.cart.cartItems,
 });
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = (dispatch) => ({
+  savePreselectInfo: (type, id) => dispatch(savePreselectInfo(type, id)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeAppointment);

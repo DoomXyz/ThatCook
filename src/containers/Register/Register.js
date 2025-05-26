@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
 import { keyOutline, home, mailOutline, eyeOffOutline, eyeOutline, call, person, maleFemaleOutline, location } from 'ionicons/icons';
@@ -119,6 +119,15 @@ class Register extends Component {
     const { accountname, email, password, username, phone, address, gender, confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, isLoading } = this.state;
     return (
       <div className="body-register">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         {isLoading ? (
           <Spinner />
         ) : (

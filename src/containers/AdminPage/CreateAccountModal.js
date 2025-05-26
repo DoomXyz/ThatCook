@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 import Select from 'react-select';
 
-import { mailOutline, eyeOffOutline, peopleCircleOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline, informationCircleOutline, idCardOutline, invertModeOutline } from 'ionicons/icons';
+import { mailOutline, eyeOffOutline, lockClosedOutline, eyeOutline, person, call, location, maleFemaleOutline, keyOutline, informationCircleOutline, briefcaseOutline, pulseOutline, cubeOutline } from 'ionicons/icons';
 
 import './CreateAccountModal.scss';
 import Button from 'react-bootstrap/Button';
@@ -37,6 +37,10 @@ class CreateAccountModal extends Component {
       loadedServiceInfo: [],
       selectedServices: [],
     };
+  }
+  async componentDidMount() {
+    await this.handleLoadCode(['Gender', 'AccountType', 'WorkingStatus']);
+    await this.handleGetServiceInfo();
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.isOpen !== this.props.isOpen) {
@@ -79,6 +83,7 @@ class CreateAccountModal extends Component {
     }
   };
   resetState = async () => {
+    const { codeGender, codeAccountType, codeWorkingStatus } = this.state
     this.setState({
       accountname: '',
       email: '',
@@ -86,18 +91,16 @@ class CreateAccountModal extends Component {
       username: '',
       phone: '',
       address: '',
-      gender: '',
-      accounttype: '',
+      gender: codeGender.length > 0 ? codeGender[0].Code : '',
+      accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
       confirmPassword: '',
       bio: '',
       specialization: '',
-      workingstatus: '',
+      workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       selectedServices: [],
     });
-    await this.handleLoadCode(['Gender', 'AccountType', 'WorkingStatus']);
-    await this.handleGetServiceInfo();
   };
   toggle = async () => {
     await this.resetState();
@@ -198,14 +201,14 @@ class CreateAccountModal extends Component {
                   <option value="">Không có dữ liệu phân quyền</option>
                 )}
               </select>
-              <IonIcon icon={peopleCircleOutline}></IonIcon>
+              <IonIcon icon={lockClosedOutline}></IonIcon>
             </div>
           </div>
           {accounttype === 'V' && (
             <div className="R2 veterinarian-info">
               <div className="f">
                 <div className="inputbox-2">
-                  <IonIcon icon={idCardOutline}></IonIcon>
+                  <IonIcon icon={briefcaseOutline}></IonIcon>
                   <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
                   <label>Chuyên khoa</label>
                 </div>
@@ -222,7 +225,7 @@ class CreateAccountModal extends Component {
                       <option value="">Không có dữ liệu trạng thái</option>
                     )}
                   </select>
-                  <IonIcon icon={invertModeOutline}></IonIcon>
+                  <IonIcon icon={pulseOutline}></IonIcon>
                 </div>
               </div>
               <div className="inputbox-1">
@@ -233,7 +236,7 @@ class CreateAccountModal extends Component {
               <div className="selectbox-service">
                 <label>Dịch vụ thực hiện</label>
                 <Select isMulti options={serviceOptions} value={serviceOptions.filter((option) => selectedServices.includes(option.value))} onChange={this.handleServiceChange} placeholder="Chọn dịch vụ..." className="service-select" classNamePrefix="select" />
-                <IonIcon icon={invertModeOutline}></IonIcon>
+                <IonIcon icon={cubeOutline}></IonIcon>
               </div>
             </div>
           )}

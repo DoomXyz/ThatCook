@@ -1,14 +1,18 @@
 import React, { Component } from 'react';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
+
 import { closeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
-import { uploadImages } from '../../utils/pakage';
-import Spinner from '../../components/Spinner';
+
 import './AppointmentCheckOut.scss'; //import scss
+import Spinner from '../../components/Spinner';
 import Header from '../../components/HomeHeader';
+
 import { handleLoadAppointmentDetailsApi, handleCreateAppointmentBillApi } from '../../services/appointmentServices';
+
 import { saveFuAppointmentInfo, clearAppointmentCheckout } from '../../store/actions';
+import { uploadImages } from '../../utils/pakage';
 
 class AppointmentCheckOut extends Component {
     constructor(props) {
@@ -220,7 +224,10 @@ class AppointmentCheckOut extends Component {
                                 Tạo lịch tái khám
                             </button>
                             <button
-                                onClick={() => this.props.navigate('/home')}
+                                onClick={() => {
+                                    this.props.saveTrackInfo({ billid: response.data.InvoiceID, billtype: 3 });
+                                    this.props.navigate('/track');
+                                }}
                                 style={{
                                     color: 'blue',
                                     textDecoration: 'underline',
@@ -228,16 +235,16 @@ class AppointmentCheckOut extends Component {
                                     border: 'none',
                                 }}
                             >
-                                Về trang chủ
+                                Xem hóa đơn
                             </button>
                         </div>
                     </div>,
                     {
-                        autoClose: 5000,
+                        autoClose: 2000,
                         closeOnClick: false,
                         onClose: () => {
                             this.props.clearAppointmentCheckout();
-                            this.props.navigate('/home');
+                            this.props.navigate('/user/veterinarian');
                         },
                     }
                 );
@@ -267,7 +274,15 @@ class AppointmentCheckOut extends Component {
         return (
             <div className="appointment-check-out-body">
                 <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} />
-                <ToastContainer />
+                <ToastContainer
+                    autoClose={500}
+                    newestOnTop={true}
+                    closeOnClick={false}
+                    pauseOnFocusLoss={false}
+                    draggable={true}
+                    transition={Slide}
+                    limit={1}
+                />
                 {isLoading ? (
                     <Spinner />
                 ) : (

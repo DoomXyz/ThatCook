@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Flip, Slide, ToastContainer, Zoom, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import Select from 'react-select';
 
-import { pencil, addOutline, logOutOutline, lockClosed, searchOutline, homeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
+import { pencil, addOutline, logOutOutline, lockClosed, lockOpenOutline, searchOutline, homeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
 
 import './Admin.scss';
 import Spinner from '../../components/Spinner';
@@ -54,12 +54,9 @@ class Admin extends Component {
       disabledButtons: {
         logout: false,
         changeStatus: false,
-        changeService: false,
-        addService: false,
+        addItem: false,
+        saveItem: false,
       },
-      disableAddServiceButton: false,
-      disableChangeServiceButton: false,
-      disableChangeStatusButton: false
     };
     this.debounceTimeout = null;
   }
@@ -67,24 +64,11 @@ class Admin extends Component {
     await this.handleIsLogin();
     await this.handleLoadAccountInfo();
     await this.handleLoadCode(['Gender', 'AccountType', 'AccountStatus', 'ServiceStatus']);
+    await this.handleLoadCodeTypeFilter();
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { codeTypeFilter } = this.state;
-      switch (this.state.actionPage) {
-        case 1:
-          await this.handleLoadAccountInfo();
-          break;
-        case 2:
-          await this.handleLoadAllCodesInfo();
-          if (codeTypeFilter.length === 0) await this.handleLoadCodeTypeFilter();
-          break;
-        case 3:
-          await this.handleLoadServiceInfo();
-          break;
-        default:
-          break;
-      }
+      this.handleReloadData(this.state.actionPage)
     }
   }
   //login logout
@@ -142,7 +126,7 @@ class Admin extends Component {
             </button>
           </div>,
           {
-            autoClose: 3000,
+            autoClose: 2000,
             closeOnClick: false,
             onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } }) },
           }
@@ -157,8 +141,8 @@ class Admin extends Component {
           isLoggedIn: false,
           accountInfo: null,
         });
-        this.props.navigate('/home');
         toast.success('Đăng xuất thành công!');
+        this.props.navigate('/login')
       } catch (e) {
         console.log(e);
         toast.error('Đăng xuất thất bại. Vui lòng thử lại!');
@@ -315,7 +299,7 @@ class Admin extends Component {
   };
   //modal action
   handleChangeAccountStatus = async (userInfo) => {
-    this.setState({ disableChangeStatusButton: true })
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, changeStatus: true } })
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -341,9 +325,9 @@ class Admin extends Component {
             </button>
           </div>,
           {
-            position: 'top-center',
+            autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disableChangeStatusButton: false }); },
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, changeStatus: false } }) },
           }
         );
       });
@@ -370,7 +354,7 @@ class Admin extends Component {
     this.setState({ isLoading: false });
   };
   handleChangeServiceStatus = async (serviceInfo) => {
-    this.setState({ disableChangeServiceButton: true })
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, changeStatus: true } })
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -396,9 +380,9 @@ class Admin extends Component {
             </button>
           </div>,
           {
-            position: 'top-center',
+            autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disableChangeServiceButton: false }); },
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, changeStatus: false } }) },
           }
         );
       });
@@ -557,6 +541,7 @@ class Admin extends Component {
   };
   handleAddService = () => {
     if (this.state.isAddingService || this.state.isEditingService !== null) {
+      this.setState({ disabledButtons: { ...this.state.disabledButtons, addItem: true } });
       const confirmAction = () =>
         new Promise((resolve) => {
           toast(
@@ -582,8 +567,9 @@ class Admin extends Component {
               </button>
             </div>,
             {
-              position: 'top-center',
+              autoClose: 2000,
               closeOnClick: false,
+              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, addItem: false } }); },
             }
           );
         });
@@ -657,6 +643,7 @@ class Admin extends Component {
       toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, saveItem: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -680,7 +667,12 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, saveItem: false } }); },
+          }
         );
       });
     const isConfirmed = await confirmAction();
@@ -724,6 +716,7 @@ class Admin extends Component {
   };
   handleAddCode = () => {
     if (this.state.isAddingCode || this.state.isEditingCode !== null) {
+      this.setState({ disabledButtons: { ...this.state.disabledButtons, addItem: true } });
       const confirmAction = () =>
         new Promise((resolve) => {
           toast(
@@ -747,7 +740,12 @@ class Admin extends Component {
               >
                 Không
               </button>
-            </div>
+            </div>,
+            {
+              autoClose: 2000,
+              closeOnClick: false,
+              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, addItem: false } }); },
+            }
           );
         });
 
@@ -819,6 +817,7 @@ class Admin extends Component {
       toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, saveItem: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -842,7 +841,12 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, saveItem: false } }); },
+          }
         );
       });
 
@@ -945,7 +949,7 @@ class Admin extends Component {
     const { actionPage, searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages,
       codeGender, codeAccountType, codeAccountStatus, codeServiceStatus, codeTypeFilter,
       loadedAccountInfo, loadedCodeInfo, loadedServiceInfo,
-      isEditingCode, isAddingCode, isEditingService, isAddingService,
+      isEditingCode, isAddingCode, isEditingService, isAddingService, disabledButtons,
       limitCodePerQuery, limitServicePerQuery } = this.state;
     switch (actionPage) {
       case 1:
@@ -1042,8 +1046,8 @@ class Admin extends Component {
                             <button className="btn-edit" onClick={() => this.handleSelectedAccount(item.AccountID)}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
-                            <button className="btn-lock" onClick={() => this.handleChangeAccountStatus(item)}>
-                              <IonIcon icon={lockClosed}></IonIcon>
+                            <button className="btn-lock" onClick={() => this.handleChangeAccountStatus(item)} disabled={disabledButtons.changeStatus}>
+                              <IonIcon icon={item.AccountStatus === 'ACT' ? lockClosed : lockOpenOutline}></IonIcon>
                             </button>
                           </td>
                         </tr>
@@ -1117,7 +1121,7 @@ class Admin extends Component {
                 </div>
               </div>
               <div className="btn-addAC">
-                <button style={{ display: actionPage === 2 ? 'block' : 'none' }} onClick={() => this.handleAddCode()} className="btn-addAC">
+                <button style={{ display: actionPage === 2 ? 'block' : 'none' }} onClick={() => this.handleAddCode()} className="btn-addAC" disabled={disabledButtons.addItem}>
                   THÊM MÃ MỚI <IonIcon icon={addOutline}></IonIcon>
                 </button>
               </div>
@@ -1145,7 +1149,7 @@ class Admin extends Component {
                           <td>
                             {isEditingCode === index ? (
                               <>
-                                <button className="save-code" onClick={() => this.handleSaveCode(index)}>
+                                <button className="save-code" onClick={() => this.handleSaveCode(index)} disabled={disabledButtons.saveItem}>
                                   Lưu
                                 </button>
                                 <button className="cancel-code" onClick={() => this.handleCancelCode()}>
@@ -1262,6 +1266,7 @@ class Admin extends Component {
                   style={{ display: actionPage === 3 ? 'block' : 'none' }}
                   onClick={() => this.handleAddService()}
                   className="btn-addAC"
+                  disabled={disabledButtons.addItem}
                 >
                   THÊM DỊCH VỤ MỚI <IonIcon icon={addOutline}></IonIcon>
                 </button>
@@ -1335,7 +1340,7 @@ class Admin extends Component {
                           <td>
                             {isEditingService === index ? (
                               <>
-                                <button className="save-code" onClick={() => this.handleSaveService(index)}>
+                                <button className="save-code" onClick={() => this.handleSaveService(index)} disabled={disabledButtons.saveItem}>
                                   Lưu
                                 </button>
                                 <button className="cancel-code" onClick={() => this.handleCancelService()}>
@@ -1354,9 +1359,9 @@ class Admin extends Component {
                                 <button
                                   className="btn-lock"
                                   onClick={() => this.handleChangeServiceStatus(item)}
-                                  disabled={isEditingService !== null || isAddingService}
+                                  disabled={isEditingService !== null || isAddingService || disabledButtons.changeStatus}
                                 >
-                                  <IonIcon icon={lockClosed}></IonIcon>
+                                  <IonIcon icon={item.ServiceStatus === 'VALID' ? lockClosed : lockOpenOutline}></IonIcon>
                                 </button>
                               </>
                             )}

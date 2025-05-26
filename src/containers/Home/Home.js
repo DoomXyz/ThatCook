@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 
-import { searchOutline, cart } from 'ionicons/icons';
+import { searchOutline, cartOutline } from 'ionicons/icons';
 
 import './Home.scss';
 import Spinner from '../../components/Spinner';
@@ -46,6 +46,9 @@ class Home extends Component {
       bannerSlideTime: 5000,
       isShowHomeProductModal: false,
       triggerCountCartItem: false,
+      disabledButtons: {
+        addToCart: false,
+      },
     };
     this.debounceTimeout = null;
   }
@@ -259,6 +262,7 @@ class Home extends Component {
     this.props.navigate('/checkout');
   };
   handleAddToCart = async (product) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, addToCart: true } });
     try {
       const quantity = product.ItemQuantity ? product.ItemQuantity : 1;
       await this.handleIsLogin();
@@ -305,12 +309,16 @@ class Home extends Component {
           this.props.addToCart(addToCartProduct, quantity);
         }
       } else {
-        toast.info('Vượt quá số lượng tồn kho!');
+        toast.info('Vượt quá số lượng tồn kho!', {
+          onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, addToCart: false } })
+        });
       }
       this.triggerCountCartItem();
     } catch (e) {
       console.log(e);
       toast.error('Thêm vào giỏ hàng thất bại!');
+    } finally {
+      this.setState({ disabledButtons: { ...this.state.disabledButtons, addToCart: false } });
     }
   };
   handleSearchChange = (event) => {
@@ -353,10 +361,19 @@ class Home extends Component {
     );
   };
   render() {
-    const { isLoading, loadedBannerInfo, loadedProductInfo, codeProductType, codePetType,
+    const { isLoading, loadedBannerInfo, loadedProductInfo, codeProductType, codePetType, disabledButtons,
       searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages, isShowHomeProductModal, selectedProduct, currentBannerIndex } = this.state;
     return (
       <div className="home-body">
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         <HomeProductModal
           isOpen={isShowHomeProductModal}
           toggleFromModal={this.toggleHomeProductModal}
@@ -463,9 +480,9 @@ class Home extends Component {
                             <p className="sale">{item.Promotion > 0 ? ` (${item.Promotion}%)` : ''}</p>
                           </div>
                           <div className="f">
-                            <button onClick={() => this.handleAddToCart(item)}>
+                            <button onClick={() => this.handleAddToCart(item)} disabled={disabledButtons.addToCart}>
                               Thêm vào giỏ
-                              <IonIcon icon={cart}></IonIcon>
+                              <IonIcon icon={cartOutline}></IonIcon>
                             </button>
                           </div>
                         </div>
