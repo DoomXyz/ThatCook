@@ -113,7 +113,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
       data: null,
     };
   } else {
-    const validAccount = await db.Account.findOne({
+    const validAccount = await db.Pet.findOne({
       where: { AccountID: accountid }
     });
     if (!validAccount) {
@@ -287,7 +287,7 @@ let cancelExpiredAppointments = () => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      const currentDateTime = new Date();
+      const currentDateFime = new Date();
       const pendingAppointments = await db.Appointment.findAll({
         where: {
           AppointmentStatus: 'PEND'
