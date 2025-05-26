@@ -31,7 +31,7 @@ module.exports = {
             throw new Error('Cần ít nhất 5 sản phẩm có sẵn trong bảng Product và ProductDetail!');
         }
 
-        // Tạo 10 hóa đơn
+        // Tạo 10 hóa đơn 
         const invoices = [];
         const invoiceDetails = [];
 
@@ -72,7 +72,7 @@ module.exports = {
                 CanceledAt: null,
                 CancelReason: null,
                 PaymentStatus: 'PAID',
-                ShippingStatus: 'DELIVERED',
+                ShippingStatus: 'DELI',
                 PaymentType: 'CASH',
                 ShippingMethod: 'ECO',
                 CouponID: null,

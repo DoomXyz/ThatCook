@@ -88,9 +88,7 @@ let sendInvoiceEmail = async (invoiceid, email) => {
         Địa chỉ giao hàng: ${invoice.ReceiverAddress}
         Danh sách sản phẩm:
         ${productList.join('')}
-        Tổng số lượng: ${invoice.TotalQuantity}
-        Tổng giá trị: ${invoice.TotalPrice.toLocaleString()} VND
-        Giảm giá: ${invoice.DiscountAmount.toLocaleString()} VND
+        Tổng sản phẩm: ${invoice.TotalQuantity}
         Tổng thanh toán: ${invoice.TotalPayment.toLocaleString()} VND
         Phương thức thanh toán: ${paymentType?.CodeValueVI || invoice.PaymentType}
         Phương thức giao hàng: ${shippingMethod?.CodeValueVI || invoice.ShippingMethod}
@@ -103,7 +101,6 @@ let sendInvoiceEmail = async (invoiceid, email) => {
         Đội ngũ cửa hàng
       `,
     };
-
     await transporter.sendMail(mailOptions);
     return true;
   } catch (e) {
@@ -733,7 +730,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
 };
 
 let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
-  discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email) => {
+  discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
@@ -830,7 +827,7 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
           }
         );
       }
-      if (invoiceData.accountid) {
+      if (invoiceData.accountid && !isBuyNow) {
         await db.CartItem.destroy({
           where: { AccountID: invoiceData.accountid },
           transaction,
@@ -989,7 +986,7 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
   });
 };
 
-const callSendInvoiceEmail = async (invoiceid, email) => {
+const getInvoiceEmail = async (invoiceid, email) => {
   try {
     const emailSent = await sendInvoiceEmail(invoiceid, email);
     if (emailSent) {
@@ -1018,5 +1015,5 @@ module.exports = {
   getInvoiceDetailInfo,
   loadInvoiceInfo,
   changeInvoiceStatus,
-  callSendInvoiceEmail,
+  getInvoiceEmail,
 };

@@ -18,7 +18,7 @@ let validateServiceInput = (serviceInfo) => {
             data: null,
         };
     }
-    const nameRegex = /^[A-Za-z0-9\s]{2,50}$/;
+    const nameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
     if (!nameRegex.test(ServiceName.trim())) {
         return {
             errCode: 1,
@@ -401,7 +401,7 @@ let changeServiceInfo = (serviceInfo) => {
             if (!isUpdated) {
                 await transaction.rollback();
                 resolve({
-                    errCode: 1,
+                    errCode: 0,
                     errMessage: 'Không có thông tin nào để cập nhật!',
                     data: null,
                 });
