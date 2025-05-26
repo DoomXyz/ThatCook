@@ -6,7 +6,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import RobotoRegularFont from '../../assets/fonts/Roboto-Regular-normal.js';
 
-import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, closeCircleOutline, refreshOutline } from 'ionicons/icons';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
 import './Track.scss';

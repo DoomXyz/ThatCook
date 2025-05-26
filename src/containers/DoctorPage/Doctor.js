@@ -491,52 +491,50 @@ class Doctor extends Component {
     });
   };
   handleAppointmentCheckOut = (appointmentid) => {
-    handleAppointmentCheckOut = (appointmentid) => {
-      this.setState({ disabledButtons: { ...this.state.disabledButtons, appointmentCheckout: true } });
-      const confirmAction = () =>
-        new Promise((resolve) => {
-          toast(
-            <div>
-              <p>Xác nhận hoàn thành lịch hẹn?</p>
-              <button
-                className="toast-confirm-btn"
-                onClick={() => {
-                  resolve(true);
-                  toast.dismiss();
-                }}
-              >
-                Có
-              </button>
-              <button
-                className="toast-cancel-btn"
-                onClick={() => {
-                  resolve(false);
-                  toast.dismiss();
-                }}
-              >
-                Không
-              </button>
-            </div>,
-            {
-              autoClose: 2000,
-              closeOnClick: false,
-              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, appointmentCheckout: false } }); },
-            }
-          );
-        });
-      confirmAction().then((isConfirmed) => {
-        if (isConfirmed) {
-          const { veterinarianid } = this.state;
-          const appointmentData = {
-            veterinarianid,
-            appointmentid,
-          };
-          this.props.saveAppointmentForCheckout(appointmentData);
-          this.props.navigate('/appointmentcheckout');
-        }
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, appointmentCheckout: true } });
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hoàn thành lịch hẹn?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, appointmentCheckout: false } }); },
+          }
+        );
       });
-    };
-  }
+    confirmAction().then((isConfirmed) => {
+      if (isConfirmed) {
+        const { veterinarianid } = this.state;
+        const appointmentData = {
+          veterinarianid,
+          appointmentid,
+        };
+        this.props.saveAppointmentForCheckout(appointmentData);
+        this.props.navigate('/appointmentcheckout');
+      }
+    });
+  };
   resetDateFilter = (dateField) => {
     this.setState({ [dateField]: null }, () => {
       this.handleLoadPendingAppointments();
