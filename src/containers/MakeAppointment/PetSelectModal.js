@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 
 import './PetSelectModal.scss';
 import Modal from 'react-bootstrap/Modal';

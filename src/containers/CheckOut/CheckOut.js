@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
 import { chevronBackOutline } from 'ionicons/icons';

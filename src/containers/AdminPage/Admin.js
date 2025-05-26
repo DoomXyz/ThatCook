@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { toast } from 'react-toastify';
+import { Flip, Slide, ToastContainer, Zoom, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import Select from 'react-select';
@@ -51,6 +51,15 @@ class Admin extends Component {
       isAddingCode: false,
       isEditingService: null,
       isAddingService: false,
+      disabledButtons: {
+        logout: false,
+        changeStatus: false,
+        changeService: false,
+        addService: false,
+      },
+      disableAddServiceButton: false,
+      disableChangeServiceButton: false,
+      disableChangeStatusButton: false
     };
     this.debounceTimeout = null;
   }
@@ -107,6 +116,7 @@ class Admin extends Component {
     });
   };
   handleLogout = async () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: true } })
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -130,7 +140,12 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 3000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } }) },
+          }
         );
       });
     const isConfirmed = await confirmAction();
@@ -300,6 +315,7 @@ class Admin extends Component {
   };
   //modal action
   handleChangeAccountStatus = async (userInfo) => {
+    this.setState({ disableChangeStatusButton: true })
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -323,7 +339,12 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            position: 'top-center',
+            closeOnClick: false,
+            onClose: () => { this.setState({ disableChangeStatusButton: false }); },
+          }
         );
       });
     let isConfirmed = await confirmAction();
@@ -349,6 +370,7 @@ class Admin extends Component {
     this.setState({ isLoading: false });
   };
   handleChangeServiceStatus = async (serviceInfo) => {
+    this.setState({ disableChangeServiceButton: true })
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -373,6 +395,11 @@ class Admin extends Component {
               Không
             </button>
           </div>,
+          {
+            position: 'top-center',
+            closeOnClick: false,
+            onClose: () => { this.setState({ disableChangeServiceButton: false }); },
+          }
         );
       });
     let isConfirmed = await confirmAction();
@@ -553,7 +580,11 @@ class Admin extends Component {
               >
                 Không
               </button>
-            </div>
+            </div>,
+            {
+              position: 'top-center',
+              closeOnClick: false,
+            }
           );
         });
       confirmAction().then((isConfirmed) => {
@@ -1393,7 +1424,7 @@ class Admin extends Component {
   };
 
   render() {
-    const { actionPage, isLoading, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount } = this.state;
+    const { actionPage, isLoading, isShowCreateAccountModal, isShowEditAccountModal, selectedAccount, disabledButtons } = this.state;
     return (
       <div className="admin-container">
         <CreateAccountModal
@@ -1406,6 +1437,15 @@ class Admin extends Component {
           toggleFromModal={this.toggleEditAccountModal}
           selectedAccountID={selectedAccount}
           handleEditAccountFromModal={this.handleEditAccountFromModal}
+        />
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
         />
         {isLoading ? (
           <Spinner />
@@ -1422,7 +1462,7 @@ class Admin extends Component {
               </div>
               <div className="admin-action-right">
                 <div className="btn-logoutTK" onClick={this.handleLogout}>
-                  <button>
+                  <button disabled={disabledButtons.logout}>
                     ĐĂNG XUẤT <IonIcon icon={logOutOutline}></IonIcon>
                   </button>
                 </div>
