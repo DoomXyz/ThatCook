@@ -12,7 +12,7 @@ import Header from '../../components/HomeHeader.js';
 import { IonIcon } from '@ionic/react';
 import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBack } from 'ionicons/icons';
 
-import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices.js';
+import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
 import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices.js';
 import { clearTrackInfo } from '../../store/actions/index.js';
@@ -44,6 +44,7 @@ class Track extends Component {
       codePetGender: [],
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
+      email: '',
     };
   }
 
@@ -361,9 +362,31 @@ class Track extends Component {
 
     doc.save(`HoaDon_${this.state.billid}.pdf`);
   };
-  handleSendEmail = (billid) => {
-    console.log(`Gửi email cho mã hóa đơn: ${billid}`);
-    toast.info('Tính năng gửi email chưa được hỗ trợ!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+  handleSendEmail = async (billid) => {
+    const { email } = this.state;
+
+    try {
+      if (!email) {
+        toast.info('Email không được bỏ trống!')
+        return
+      }
+      this.setState({ isLoading: true })
+      const sendInfo = {
+        invoiceid: billid,
+        email,
+      }
+      const response = await handleSendInvoiceEmailApi(sendInfo);
+      if (response && response.errCode === 0) {
+        toast.success('Gửi email thành công!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+        this.setState({ actionPage: 0 })
+      } else {
+        toast.error(response?.errMessage || 'Gửi email thất bại!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+      }
+    } catch (e) {
+      console.log('Lỗi khi gửi email:', e);
+      toast.error('Lỗi khi gửi email!', { position: 'top-right', autoClose: 500, closeOnClick: true });
+    }
+    this.setState({ isLoading: false })
   };
   //Hàm thao tác của Product
   handleConfirmReceived = async (invoiceid) => {
@@ -551,7 +574,9 @@ class Track extends Component {
   };
 
   render() {
-    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid } = this.state;
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails,
+      codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender,
+      isShowCancelInvoiceModal, selectedCancelInvoice, billid, email } = this.state;
     return (
       <div className="view-invoice">
         <ToastContainer />
@@ -744,6 +769,7 @@ class Track extends Component {
                                     <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
                                   </button>
                                 )}
+                                <input type="text" value={email} placeholder='Hãy nhập email để gửi hóa đơn' onChange={(e) => this.setState({ email: e.target.value })} />
                                 <div className="f">
                                   <button onClick={this.handleGeneratePDF} className="pdf-btn">
                                     Tải PDF

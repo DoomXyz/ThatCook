@@ -193,6 +193,7 @@ const validatePetInput = async (petInfo) => {
   const { petname, pettype, petgender, petweight, age } = petInfo;
   const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
 
+  console.log(petname)
   if (!petname?.trim() || petname.trim().length > 50) return { valid: false, errMessage: 'Tên thú cưng trống hoặc vượt quá 50 ký tự!' };
   if (!petNameRegex.test(petname.trim())) return { valid: false, errMessage: 'Tên thú cưng không hợp lệ!' };
 

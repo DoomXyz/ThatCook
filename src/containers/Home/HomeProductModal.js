@@ -23,12 +23,6 @@ class HomeProductModal extends Component {
       selectedProductDetail: null,
     };
   }
-  async componentDidMount() {
-    const { selectedProductID } = this.props;
-    if (selectedProductID) {
-      await this.loadProductDetails(selectedProductID);
-    }
-  }
   async componentDidUpdate(prevProps, prevState) {
     const { selectedProductID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {

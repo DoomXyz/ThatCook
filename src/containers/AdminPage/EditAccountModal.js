@@ -37,13 +37,6 @@ class EditAccountModal extends Component {
       selectedServices: [],
     };
   }
-  async componentDidMount() {
-    const { selectedAccountID } = this.props;
-    if (selectedAccountID) {
-      this.loadAccountInfo(selectedAccountID);
-    }
-    await this.resetState();
-  }
   async componentDidUpdate(prevProps, prevState) {
     const { selectedAccountID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {

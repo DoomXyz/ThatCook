@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
+
+import './PetSelectModal.scss';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import './PetSelectModal.scss';
+
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+
+import { getAllCodes, validatePetInput } from '../../utils/pakage'
 
 class PetSelectModal extends Component {
   constructor(props) {
@@ -19,58 +22,45 @@ class PetSelectModal extends Component {
       limitPetCount: 3,
     };
   }
-
-  async componentDidMount() {
-    await Promise.all([this.handleLoadCodePetType(), this.handleLoadCodePetGender()]);
-  }
   async componentDidUpdate(prevProps) {
     if (this.props.isOpen && !prevProps.isOpen) {
       await this.handleLoadPetInfo();
       this.setState({ accountid: this.props.accountID || '' }, this.handleLoadPetInfo);
     }
   }
-
-  handleLoadCodePetType = async () => {
+  handleLoadCode = async (codeTypes) => {
     try {
-      const codePetType = await handleGetAllCodesApi('PetType');
-      if (!codePetType || codePetType.length === 0) {
-        toast.error('Không thể tải danh sách loại thú cưng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codePetType });
-    } catch (e) {
-      console.error('Error loading pet type code:', e);
-      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
       });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
     }
   };
-  handleLoadCodePetGender = async () => {
-    try {
-      const codePetGender = await handleGetAllCodesApi('PetGender');
-      if (!codePetGender || codePetGender.length === 0) {
-        toast.error('Không thể tải danh sách giới tính thú cưng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codePetGender });
-    } catch (e) {
-      console.error('Error loading pet gender code:', e);
-      toast.error('Lỗi khi tải danh sách giới tính thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  resetState = async () => {
+    this.setState({
+      isEditingPet: null,
+      isAddingPet: false,
+    });
+    await this.handleLoadCode(['PetType', 'PetGender']);
   };
-
+  handleEditPet = (index) => {
+    if (this.state.isAddingPet || this.state.isEditingPet !== null) {
+      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
+      return;
+    }
+    this.setState({ isEditingPet: index, isAddingPet: false });
+  };
   handleAddPet = () => {
     if (this.state.isAddingPet || this.state.isEditingPet !== null) {
       const confirmAddNew = () =>
@@ -96,8 +86,7 @@ class PetSelectModal extends Component {
               >
                 Không
               </button>
-            </div>,
-            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+            </div>
           );
         });
 
@@ -147,182 +136,6 @@ class PetSelectModal extends Component {
       }));
     }
   };
-  handleEditPet = (index) => {
-    if (this.state.isAddingPet || this.state.isEditingPet !== null) {
-      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!', {
-        position: 'top-right',
-        autoClose: 1000,
-        closeOnClick: true,
-      });
-      return;
-    }
-    this.setState({ isEditingPet: index, isAddingPet: false });
-  };
-  handleDeletePet = async (petid) => {
-    const confirmDelete = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Bạn có chắc muốn xóa thú cưng này?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmDelete();
-    if (isConfirmed) {
-      try {
-        const response = await handleRemovePetApi(petid);
-        if (response && response.errCode === 0) {
-          toast.success('Xóa thú cưng thành công!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
-          await this.handleLoadPetInfo();
-          this.props.onPetListChange();
-        } else {
-          toast.error(response?.errMessage || 'Xóa thú cưng thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
-        }
-      } catch (e) {
-        console.error('Error deleting pet:', e);
-        toast.error('Lỗi khi xóa thú cưng, vui lòng thử lại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    }
-  };
-  handleSavePet = async (index) => {
-    const validation = this.checkValidatePet(index);
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-
-    const confirmSave = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận lưu thông tin thú cưng?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmSave();
-    if (!isConfirmed) return;
-
-    try {
-      const pet = this.state.loadedPetInfo[index];
-      const petInfo = {
-        petname: pet.PetName.trim(),
-        pettype: pet.PetType,
-        petgender: pet.PetGender,
-        age: parseInt(pet.Age),
-        petweight: parseFloat(pet.PetWeight),
-      };
-      let response;
-      if (this.state.isAddingPet) {
-        response = await handleSavePetInfoApi(this.state.accountid, petInfo);
-      } else {
-        response = await handleChangePetInfoApi(pet.PetID, petInfo);
-      }
-
-      if (response && response.errCode === 0) {
-        toast.success(this.state.isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.handleLoadPetInfo();
-        this.setState({
-          isEditingPet: null,
-          isAddingPet: false,
-        });
-        this.props.onPetListChange();
-      } else {
-        toast.error(response?.errMessage || (this.state.isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'), {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error(this.state.isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
-      toast.error(`Lỗi khi ${this.state.isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
-  handlePetChange = (index, field, value) => {
-    this.setState((prevState) => {
-      const newPets = [...prevState.loadedPetInfo];
-      newPets[index] = { ...newPets[index], [field]: value };
-      return { loadedPetInfo: newPets };
-    });
-  };
-
-  checkValidatePet = (index) => {
-    const item = this.state.loadedPetInfo[index];
-    if (!item.PetName) return { errCode: -1, errMessage: `Tên thú cưng tại dòng ${index + 1} không được để trống!` };
-    const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    if (!petNameRegex.test(item.PetName.trim())) return { errCode: -1, errMessage: `Tên thú cưng tại dòng ${index + 1} không hợp lệ (2-50 ký tự)!` };
-    if (!item.PetType) return { errCode: -1, errMessage: `Loại thú cưng tại dòng ${index + 1} không được để trống!` };
-    if (!item.PetGender) return { errCode: -1, errMessage: `Giới tính thú cưng tại dòng ${index + 1} không được để trống!` };
-    if (!item.Age || isNaN(item.Age) || parseInt(item.Age) < 0 || parseInt(item.Age) > 999) return { errCode: -1, errMessage: `Tuổi thú cưng tại dòng ${index + 1} không hợp lệ (0-999)!` };
-    if (!item.PetWeight || isNaN(item.PetWeight) || parseFloat(item.PetWeight) <= 0 || parseFloat(item.PetWeight) > 999.99) return { errCode: -1, errMessage: `Cân nặng thú cưng tại dòng ${index + 1} không hợp lệ (0.01-999.99)!` };
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
-  };
-
   handleCancelPet = () => {
     const confirmCancel = () =>
       new Promise((resolve) => {
@@ -347,8 +160,7 @@ class PetSelectModal extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          </div>
         );
       });
 
@@ -375,6 +187,134 @@ class PetSelectModal extends Component {
       }
     });
   };
+  handlePetChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newPets = [...prevState.loadedPetInfo];
+      newPets[index] = { ...newPets[index], [field]: value };
+      return { loadedPetInfo: newPets };
+    });
+  };
+  handleSavePet = async (index) => {
+    const petInfo = this.state.loadedPetInfo[index]
+    const newPetInfo = {
+      petname: petInfo.PetName,
+      pettype: petInfo.PetType,
+      petgender: petInfo.PetGender,
+      petweight: petInfo.PetWeight,
+      age: petInfo.Age
+    }
+    const isValidatePetInput = await validatePetInput(newPetInfo);
+    if (!isValidatePetInput.valid) {
+      toast.error(`${isValidatePetInput.errMessage} tại dòng ${index + 1}`);
+      return;
+    }
+    const confirmSave = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận lưu thông tin thú cưng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+
+    const isConfirmed = await confirmSave();
+    if (!isConfirmed) return;
+
+    try {
+      const pet = this.state.loadedPetInfo[index];
+      const petInfo = {
+        petname: pet.PetName.trim(),
+        pettype: pet.PetType,
+        petgender: pet.PetGender,
+        age: parseInt(pet.Age),
+        petweight: parseFloat(pet.PetWeight),
+      };
+      let response;
+      if (this.state.isAddingPet) {
+        response = await handleSavePetInfoApi(this.state.accountid, petInfo);
+      } else {
+        response = await handleChangePetInfoApi(pet.PetID, petInfo);
+      }
+
+      if (response && response.errCode === 0) {
+        toast.success(this.state.isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
+        await this.handleLoadPetInfo();
+        this.setState({
+          isEditingPet: null,
+          isAddingPet: false,
+        });
+        this.props.onPetListChange();
+      } else {
+        toast.error(response?.errMessage || (this.state.isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
+      }
+    } catch (e) {
+      console.error(this.state.isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
+      toast.error(`Lỗi khi ${this.state.isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
+    }
+  };
+  handleDeletePet = async (petid) => {
+    const confirmDelete = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Bạn có chắc muốn xóa thú cưng này?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+
+    const isConfirmed = await confirmDelete();
+    if (isConfirmed) {
+      try {
+        const response = await handleRemovePetApi(petid);
+        if (response && response.errCode === 0) {
+          toast.success('Xóa thú cưng thành công!');
+          await this.handleLoadPetInfo();
+          this.props.onPetListChange();
+        } else {
+          toast.error(response?.errMessage || 'Xóa thú cưng thất bại!');
+        }
+      } catch (e) {
+        console.error('Error deleting pet:', e);
+        toast.error('Lỗi khi xóa thú cưng, vui lòng thử lại!');
+      }
+    }
+  };
   handleLoadPetInfo = async () => {
     const { accountid } = this.state;
     try {
@@ -385,32 +325,18 @@ class PetSelectModal extends Component {
         });
       }
     } catch (e) {
-      toast.error('Lỗi khi tải danh sách thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách thú cưng!');
       this.setState({ loadedPetInfo: [] });
     }
   };
-
-  resetState = () => {
-    this.setState({
-      isEditingPet: null,
-      isAddingPet: false,
-    });
-  };
-
   handleSelectPet = (petID) => {
     this.props.handleSelectPetFromModal(petID);
     this.resetState();
     this.props.toggleFromModal();
   };
-
   render() {
     const { isOpen, toggleFromModal } = this.props;
     const { loadedPetInfo, codePetType, codePetGender, isEditingPet, isAddingPet, limitPetCount } = this.state;
-
     return (
       <Modal
         show={isOpen}
@@ -444,7 +370,7 @@ class PetSelectModal extends Component {
                   <th>Giới Tính</th>
                   <th>Tuổi (tháng)</th>
                   <th>Cân Nặng</th>
-                  <th>Action</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>

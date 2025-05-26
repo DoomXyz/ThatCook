@@ -20,4 +20,8 @@ const handleChangeInvoiceStatusApi = (invoiceid, type, status, cancelReason) => 
   return axios.put('/api/change-invoicestatus', { invoiceid, type, status, cancelReason });
 };
 
-export { handleCreateInvoiceApi, handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi };
+const handleSendInvoiceEmailApi = (sendInfo) => {
+  return axios.post('/api/send-invoice-email', sendInfo);
+};
+
+export { handleCreateInvoiceApi, handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi };

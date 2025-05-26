@@ -31,6 +31,7 @@ class CheckOut extends Component {
     receiverName: '',
     receiverPhone: '',
     receiverAddress: '',
+    receiverEmail: '',
     paymenttype: '',
     shippingmethod: '',
     couponCode: '',
@@ -227,9 +228,10 @@ class CheckOut extends Component {
     let finalPrice = totalPriceAfterPromo + shipValue;
     if (tempCouponCode !== couponCode) {
       try {
-        const response = await handleGetCouponApi(tempCouponCode);
-        if (response && response.data.errCode === 0 &&
-          parseFloat(finalPrice) > parseFloat(response.data.data.MinOrderValue) && response.data.data.CouponStatus === "ACTIVE") {
+        const responseApi = await handleGetCouponApi(tempCouponCode);
+        const response = responseApi.data
+        if (response && response.errCode === 0 &&
+          parseFloat(finalPrice) > parseFloat(response.data.MinOrderValue) && response.data.CouponStatus === "ACTIVE") {
           this.setState({ isLoading: true });
           toast.success('Áp dụng mã giảm giá thành công!');
           this.setState({ couponCode: tempCouponCode, isLoading: false });
@@ -253,9 +255,10 @@ class CheckOut extends Component {
     let discount = 0;
     if (couponCode) {
       try {
-        const response = await handleCheckCouponApi(couponCode, finalPrice);
-        if (response && response.data.errCode === 0) {
-          discount = response.data.data;
+        const responseApi = await handleCheckCouponApi(couponCode, finalPrice);
+        const response = responseApi.data
+        if (response && response.errCode === 0) {
+          discount = response.data;
           this.setState({ discountAmout: discount });
         } else {
           this.setState({ discountAmout: 0 });
@@ -328,7 +331,7 @@ class CheckOut extends Component {
     }
   };
   handleCompleteOrder = async () => {
-    const { receiverName, receiverPhone, receiverAddress, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment } = this.state;
+    const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment } = this.state;
     await this.loadCheckOutCart();
     let couponID = null;
     try {
@@ -371,6 +374,7 @@ class CheckOut extends Component {
       receivername: receiverName,
       receiverphone: receiverPhone,
       receiveraddress: receiverAddress,
+      email: receiverEmail ? receiverEmail : null,
       cartItems: checkOutCart.map((item) => ({
         productid: item.ProductID,
         productdetailid: item.ProductDetailID,
@@ -414,7 +418,7 @@ class CheckOut extends Component {
   };
 
   render() {
-    const { isLoading, receiverName, receiverPhone, receiverAddress, tempCouponCode, codePaymentType, codeShippingMethod, paymenttype, shippingmethod,
+    const { isLoading, receiverName, receiverPhone, receiverAddress, receiverEmail, tempCouponCode, codePaymentType, codeShippingMethod, paymenttype, shippingmethod,
       discountAmout, loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced } = this.state;
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
@@ -469,6 +473,10 @@ class CheckOut extends Component {
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Địa chỉ</label>
                         <input type="text" value={receiverAddress} onChange={(event) => this.handleOnChangeInput(event, 'receiverAddress')} />
+                      </div>
+                      <div className="delivery-content-left-input-top-item-none-logged">
+                        <label>Email</label>
+                        <input type="text" value={receiverEmail} placeholder='Nhập Email nếu cần gửi hóa đơn' onChange={(event) => this.handleOnChangeInput(event, 'receiverEmail')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Mã giảm giá</label>

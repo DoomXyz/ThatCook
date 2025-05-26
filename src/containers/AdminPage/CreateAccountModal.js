@@ -38,9 +38,6 @@ class CreateAccountModal extends Component {
       selectedServices: [],
     };
   }
-  async componentDidMount() {
-    await this.resetState();
-  }
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.isOpen !== this.props.isOpen) {
       await this.resetState();
