@@ -101,7 +101,7 @@ const validateAccountInput = async (userInfo, type) => {
   if (!email) return { valid: false, errMessage: 'Email trống!' };
   if (!emailRegex.test(email)) return { valid: false, errMessage: 'Email sai định dạng!' };
 
-  if (type === "REG") {
+  if (type === 'REG') {
     if (!password) return { valid: false, errMessage: 'Mật khẩu trống!' };
     if (!passwordRegex.test(password)) return { valid: false, errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)' };
   }
@@ -193,7 +193,7 @@ const validatePetInput = async (petInfo) => {
   const { petname, pettype, petgender, petweight, age } = petInfo;
   const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
 
-  console.log(petname)
+  console.log(petname);
   if (!petname?.trim() || petname.trim().length > 50) return { valid: false, errMessage: 'Tên thú cưng trống hoặc vượt quá 50 ký tự!' };
   if (!petNameRegex.test(petname.trim())) return { valid: false, errMessage: 'Tên thú cưng không hợp lệ!' };
 
@@ -242,19 +242,9 @@ const validateAppointmentInput = async (appointmentInfo) => {
 
   if (notes?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
-  if (!serviceid || petid) return { valid: false, errMessage: 'Thông tin thú cưng và dịch vụ không được bỏ trống!' };
+  if (!serviceid || !petid) return { valid: false, errMessage: 'Thông tin thú cưng và dịch vụ không được bỏ trống!' };
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
 
-export {
-  checkLoginStatus,
-  getAllCodes,
-  uploadImages,
-  validateAccountInput,
-  validateCodeInput,
-  validateVeterinarianInput,
-  validateServiceInput,
-  validatePetInput,
-  validateAppointmentInput
-};
+export { checkLoginStatus, getAllCodes, uploadImages, validateAccountInput, validateCodeInput, validateVeterinarianInput, validateServiceInput, validatePetInput, validateAppointmentInput };

@@ -178,11 +178,8 @@ class HomeProductModal extends Component {
                   {selectedProductDetail.Promotion && parseFloat(selectedProductDetail.Promotion) > 0 ? ` (${selectedProductDetail.Promotion}%)` : ''}
                 </p>
               </div>
-              <div className="product-content-right-instock">
-                <p>Kho: {selectedProductDetail ? selectedProductDetail.Stock : 'N/A'}</p>
-              </div>
+
               <div className="product-content-right-choice">
-                <p>Loại: </p>
                 <div className="choice">
                   {loadedProductDetail &&
                     loadedProductDetail.map((detail) => (
@@ -204,6 +201,9 @@ class HomeProductModal extends Component {
                   </button>
                 </div>
               </div>
+              <div className="product-content-right-instock">
+                <p>Kho: {selectedProductDetail ? selectedProductDetail.Stock : 'N/A'}</p>
+              </div>
               <div className="product-content-right-total-price">
                 <p>
                   Tổng tiền: {formattedFinalPrice} <sup>đ</sup>
@@ -216,7 +216,9 @@ class HomeProductModal extends Component {
                 </button>
               </div>
               <div className="product-content-right-bottom">
-                <h1>*Thông tin sản phẩm:</h1>
+                <h1>
+                  <u>*Mô tả sản phẩm:</u>
+                </h1>
                 <div className="product-content-right-bottom-content">
                   <p>{loadedProductInfo.ProductDescription || ''}</p>
                 </div>

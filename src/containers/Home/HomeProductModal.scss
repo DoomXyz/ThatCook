@@ -112,12 +112,20 @@
               }
             }
 
+            .product-content-right-instock {
+              p {
+                font-size: 1.2rem;
+                margin-bottom: 0.5rem;
+              }
+            }
+
             .product-content-right-choice {
               p {
                 font-size: 18px;
                 margin: 10px 0 5px;
               }
               .choice {
+                margin-top: 1.2rem;
                 span {
                   cursor: pointer;
                   display: inline-block;
@@ -191,6 +199,10 @@
                   line-height: 40px;
                   background-color: #fff;
                 }
+                input {
+                  font-size: 20px;
+                  border: none;
+                }
               }
             }
 
@@ -201,7 +213,7 @@
                 font-size: 16px;
                 padding: 5px 10px;
                 border-radius: 5px;
-                margin-bottom: 15px;
+
                 ion-icon {
                   margin-right: 5px;
                   vertical-align: middle;
@@ -216,6 +228,7 @@
                 }
               }
               button:first-child {
+                margin-top: 0.5rem;
                 width: 120px;
                 height: 40px;
               }
@@ -238,7 +251,7 @@
               .product-content-right-bottom-content {
                 p {
                   color: #666;
-                  font-size: 0.9rem;
+                  font-size: 1.2rem;
                   line-height: 1.5;
                 }
               }

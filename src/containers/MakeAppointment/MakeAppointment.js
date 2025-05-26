@@ -104,7 +104,7 @@ class MakeAppointment extends Component {
         });
       }
     } catch (e) {
-      this.props.navigate('/home')
+      this.props.navigate('/home');
     }
     this.setState({
       isLoading: false,
@@ -192,7 +192,7 @@ class MakeAppointment extends Component {
       });
     }
     this.setState({ isLoading: false });
-  }
+  };
   handleLoadAccountInfo = async (accountid) => {
     try {
       const response = await handleGetAccountInfoApi(accountid);
@@ -209,7 +209,7 @@ class MakeAppointment extends Component {
   };
   handleLoadCode = async (codeTypeFilter) => {
     try {
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
@@ -283,11 +283,11 @@ class MakeAppointment extends Component {
           petweight: data.Pet.PetWeight.toString(),
           selectedVeterinarianInfo: data.Veterinarian
             ? {
-              AccountID: data.VeterinarianID,
-              UserName: data.Veterinarian.UserName,
-              Specialization: data.Veterinarian.Specialization,
-              UserImage: data.Veterinarian.UserImage,
-            }
+                AccountID: data.VeterinarianID,
+                UserName: data.Veterinarian.UserName,
+                Specialization: data.Veterinarian.Specialization,
+                UserImage: data.Veterinarian.UserImage,
+              }
             : {},
           FuAccountID: data.AccountID,
           customername: data.CustomerName,
@@ -446,7 +446,7 @@ class MakeAppointment extends Component {
         this.setState({ availableTimes: [], starttime: '' });
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
       toast.error('Lỗi khi tải khung giờ!');
       this.setState({ availableTimes: [], starttime: '' });
     }
@@ -454,8 +454,7 @@ class MakeAppointment extends Component {
   handleSubmitAppointment = async () => {
     try {
       this.setState({ isLoading: true });
-      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, fuaAccountID, selectedServiceID, starttime, notes,
-        type, prevAppointmentID, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
+      const { customername, customerphone, customeremail, appointmentDateTime, selectedVeterinarianInfo, fuaAccountID, selectedServiceID, starttime, notes, type, prevAppointmentID, selectedPetID, allImages, isUploading, guestID, accountInfo, isLoggedIn } = this.state;
       const appointmentInfo = {
         customername,
         customerphone,
@@ -464,8 +463,8 @@ class MakeAppointment extends Component {
         starttime,
         notes,
         serviceid: selectedServiceID,
-        petid: selectedPetID
-      }
+        petid: selectedPetID,
+      };
       const isValidateInput = await validateAppointmentInput(appointmentInfo);
       if (!isValidateInput.valid) {
         toast.error(isValidateInput.errMessage);
@@ -554,10 +553,10 @@ class MakeAppointment extends Component {
   };
   handleUnSelectVeterinarian = async () => {
     this.setState({
-      selectedVeterinarianInfo: null
-    })
+      selectedVeterinarianInfo: null,
+    });
     await this.handleLoadAvailableTimes();
-  }
+  };
   togglePetSelectModal = () => {
     this.setState({ isShowPetSelectModal: !this.state.isShowPetSelectModal });
   };
@@ -575,19 +574,19 @@ class MakeAppointment extends Component {
           loadedPetList: newPetList,
           ...(selectedPet
             ? {
-              petname: selectedPet.PetName,
-              pettype: selectedPet.PetType,
-              petgender: selectedPet.PetGender,
-              age: selectedPet.Age.toString(),
-              petweight: selectedPet.PetWeight.toString(),
-            }
+                petname: selectedPet.PetName,
+                pettype: selectedPet.PetType,
+                petgender: selectedPet.PetGender,
+                age: selectedPet.Age.toString(),
+                petweight: selectedPet.PetWeight.toString(),
+              }
             : {
-              petname: '',
-              pettype: this.state.codePetType[0].Code || '',
-              petgender: this.state.codePetGender[0].Code || '',
-              age: '',
-              petweight: '',
-            }),
+                petname: '',
+                pettype: this.state.codePetType[0].Code || '',
+                petgender: this.state.codePetGender[0].Code || '',
+                age: '',
+                petweight: '',
+              }),
         });
       } else {
         toast.error('Không thể tải danh sách thú cưng!');
@@ -670,7 +669,7 @@ class MakeAppointment extends Component {
               <h1>{type === 'FOLLOW_UP' ? 'Đặt lịch tái khám' : 'Thông tin đặt lịch'}</h1>
               <div className="makeappointment-content-user-info">
                 <b>*Thông tin Khách hàng</b>
-                <input type="text" placeholder="Hãy nhhập tên khách hàng" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
+                <input type="text" placeholder="Hãy nhập tên khách hàng" value={customername} onChange={(event) => this.handleOnChangeInput(event, 'customername')} />
                 <input type="text" placeholder="Hãy nhập số điện thoại" value={customerphone} onChange={(event) => this.handleOnChangeInput(event, 'customerphone')} />
                 <input type="text" placeholder="Hãy nhập email" value={customeremail} onChange={(event) => this.handleOnChangeInput(event, 'customeremail')} />
               </div>
@@ -743,7 +742,9 @@ class MakeAppointment extends Component {
                             <b>Chuyên khoa:</b> {selectedVeterinarianInfo.Specialization}
                           </p>
                         </div>
-                        <button className="cancel-doctor-btn" onClick={this.handleUnSelectVeterinarian}>X</button>
+                        <button className="cancel-doctor-btn" onClick={this.handleUnSelectVeterinarian}>
+                          X
+                        </button>
                       </div>
                     ) : (
                       <p>Chưa chọn bác sĩ</p>
@@ -824,6 +825,7 @@ class MakeAppointment extends Component {
                     Hủy tái khám
                   </button>
                 )}
+                <div></div>
                 <button className="makeapp" onClick={this.handleSubmitAppointment} disabled={isLoading}>
                   Gửi yêu cầu
                 </button>

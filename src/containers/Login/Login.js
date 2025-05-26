@@ -123,7 +123,7 @@ class Login extends Component {
           <div className="login-container">
             <div className="login-content">
               <div className="home-button">
-                <a href='/home'>
+                <a href="/home">
                   <IonIcon icon={home}></IonIcon>
                 </a>
               </div>
@@ -169,7 +169,7 @@ class Login extends Component {
                     <input type="checkbox" checked={rememberMe} onChange={(event) => this.setState({ rememberMe: event.target.checked })} />
                     <label htmlFor="rememberMe">Ghi nhớ đăng nhập</label>
                   </div>
-                  <a href='/forgotpassword'>
+                  <a href="/forgotpassword" className="forgot-password">
                     Quên mật khẩu?
                   </a>
                 </div>
@@ -180,10 +180,7 @@ class Login extends Component {
               <div className="signin">
                 <p>
                   Không có tài khoản?
-                  <a href='/login'>
-                    {' '}
-                    Đăng ký ngay!
-                  </a>
+                  <a href="/register"> Đăng ký ngay!</a>
                 </p>
               </div>
             </div>
