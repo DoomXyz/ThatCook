@@ -2,6 +2,116 @@ import { Op, literal } from 'sequelize';
 import db from '../models/index';
 import { checkValidAllCode, generateID } from './utilitiesService';
 
+const nodemailer = require('nodemailer');
+
+let sendInvoiceEmail = async (invoiceid, email) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    const invoice = await db.Invoice.findOne({
+      where: { InvoiceID: invoiceid },
+      attributes: [
+        'InvoiceID',
+        'ReceiverName',
+        'ReceiverPhone',
+        'ReceiverAddress',
+        'TotalQuantity',
+        'TotalPrice',
+        'DiscountAmount',
+        'TotalPayment',
+        'CreatedAt',
+        'PaymentType',
+        'ShippingMethod',
+        'ShippingStatus',
+      ],
+      raw: true,
+    });
+    if (!invoice) {
+      console.log('Hóa đơn không tồn tại');
+      return false;
+    }
+    const invoiceDetails = await db.InvoiceDetail.findAll({
+      where: { InvoiceID: invoiceid },
+      attributes: ['ProductID', 'ProductDetailID', 'ItemQuantity', 'ItemPrice'],
+      raw: true,
+    });
+    let productList = [];
+    for (const detail of invoiceDetails) {
+      const product = await db.Product.findOne({
+        where: { ProductID: detail.ProductID },
+        attributes: ['ProductName'],
+        raw: true,
+      });
+      const productDetail = await db.ProductDetail.findOne({
+        where: { ProductDetailID: detail.ProductDetailID },
+        attributes: ['DetailName'],
+        raw: true,
+      });
+      if (product && productDetail) {
+        productList.push(`
+          - ${product.ProductName} (${productDetail.DetailName}): ${detail.ItemQuantity} x ${detail.ItemPrice.toLocaleString()} VND
+        `);
+      }
+    }
+    const paymentType = await db.AllCodes.findOne({
+      where: { Type: 'PaymentType', Code: invoice.PaymentType },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    const shippingMethod = await db.AllCodes.findOne({
+      where: { Type: 'ShippingMethod', Code: invoice.ShippingMethod },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    const shippingStatus = await db.AllCodes.findOne({
+      where: { Type: 'ShippingStatus', Code: invoice.ShippingStatus },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `Hóa đơn #${invoice.InvoiceID} - Xác nhận đơn hàng`,
+      text: `
+        Kính gửi Quý khách,
+
+        Cảm ơn bạn đã mua sắm tại cửa hàng của chúng tôi! Dưới đây là chi tiết hóa đơn của bạn:
+
+        Mã hóa đơn: ${invoice.InvoiceID}
+        Tên người nhận: ${invoice.ReceiverName}
+        Số điện thoại: ${invoice.ReceiverPhone}
+        Địa chỉ giao hàng: ${invoice.ReceiverAddress}
+        Danh sách sản phẩm:
+        ${productList.join('')}
+        Tổng số lượng: ${invoice.TotalQuantity}
+        Tổng giá trị: ${invoice.TotalPrice.toLocaleString()} VND
+        Giảm giá: ${invoice.DiscountAmount.toLocaleString()} VND
+        Tổng thanh toán: ${invoice.TotalPayment.toLocaleString()} VND
+        Phương thức thanh toán: ${paymentType?.CodeValueVI || invoice.PaymentType}
+        Phương thức giao hàng: ${shippingMethod?.CodeValueVI || invoice.ShippingMethod}
+        Trạng thái giao hàng: ${shippingStatus?.CodeValueVI || invoice.ShippingStatus}
+        Ngày tạo: ${new Date(invoice.CreatedAt).toLocaleString()}
+
+        Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+
+        Trân trọng,
+        Đội ngũ cửa hàng
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (e) {
+    console.log('Lỗi khi gửi Email: ', e);
+    return false;
+  }
+};
+
 let validateInvoiceInput = async (invoiceInfo) => {
   if (!invoiceInfo || Object.keys(invoiceInfo).length === 0) {
     return {
@@ -622,7 +732,8 @@ let getInvoiceDetailInfo = (invoiceid) => {
   });
 };
 
-let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid) => {
+let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
+  discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
@@ -657,6 +768,7 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         paymenttype,
         shippingmethod,
         couponid: couponid || null,
+        email,
       };
       let AccountID = invoiceData.accountid;
       if (!AccountID) {
@@ -724,7 +836,19 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
           transaction,
         });
       }
+      let emailSent = true;
+      if (invoiceData.email) {
+        emailSent = await sendInvoiceEmail(InvoiceID, invoiceData.email);
+      }
       await transaction.commit();
+      if (!emailSent && invoiceData.email) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Tạo đơn hàng thành công, nhưng gửi email thất bại!',
+          data: { InvoiceID },
+        });
+        return;
+      }
       resolve({
         errCode: 0,
         errMessage: 'Tạo đơn hàng thành công!',
@@ -865,10 +989,34 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
   });
 };
 
+const callSendInvoiceEmail = async (invoiceid, email) => {
+  try {
+    const emailSent = await sendInvoiceEmail(invoiceid, email);
+    if (emailSent) {
+      return {
+        errCode: 0,
+        errMessage: 'Gửi email hóa đơn thành công!',
+      };
+    } else {
+      return {
+        errCode: 1,
+        errMessage: 'Gửi email hóa đơn thất bại!',
+      };
+    }
+  } catch (e) {
+    console.log('Error in handleSendInvoiceEmail: ', e);
+    return {
+      errCode: 2,
+      errMessage: 'Lỗi khi gửi email hóa đơn: ' + e.message,
+    };
+  }
+};
+
 module.exports = {
   createInvoice,
   getAccountInvoiceInfo,
   getInvoiceDetailInfo,
   loadInvoiceInfo,
   changeInvoiceStatus,
+  callSendInvoiceEmail,
 };

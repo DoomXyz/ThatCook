@@ -44,8 +44,9 @@ let handleGetInvoiceDetailInfo = async (req, res) => {
 
 let handleCreateInvoice = async (req, res) => {
   try {
-    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid } = req.body;
-    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid);
+    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount,
+      totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email } = req.body;
+    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -63,10 +64,21 @@ let handleChangeInvoiceStatus = async (req, res) => {
   }
 };
 
+let handleSendInvoiceEmail = async (req, res) => {
+  try {
+    const { invoiceid, email } = req.body;
+    let response = await invoiceService.callSendInvoiceEmail(invoiceid, email);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 module.exports = {
   handleGetAccountInvoiceInfo,
   handleLoadInvoiceInfo,
   handleGetInvoiceDetailInfo,
   handleCreateInvoice,
   handleChangeInvoiceStatus,
+  handleSendInvoiceEmail,
 };

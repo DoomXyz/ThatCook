@@ -103,6 +103,7 @@ let initAPIRoutes = (app) => {
     router.get('/api/get-invoicedetailinfo', invoiceController.handleGetInvoiceDetailInfo);
     router.post('/api/create-invoice', invoiceController.handleCreateInvoice);
     router.put('/api/change-invoicestatus', invoiceController.handleChangeInvoiceStatus);
+    router.post('/api/send-invoice-email', invoiceController.handleSendInvoiceEmail);
 
     router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
     router.get('/api/get-petinfo', petController.handleGetPetInfo);
