@@ -23,31 +23,31 @@ class HomeProductModal extends Component {
       selectedProductDetail: null,
     };
   }
-
-  componentDidMount() {
+  async componentDidMount() {
     const { selectedProductID } = this.props;
     if (selectedProductID) {
-      this.loadProductDetails(selectedProductID);
+      await this.loadProductDetails(selectedProductID);
     }
   }
-
-  componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps, prevState) {
     const { selectedProductID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
-      this.setState({
-        quantity: 1,
-        loadedProductInfo: null,
-        loadedProductDetail: null,
-        loadedProductImage: null,
-        selectedProductDetail: null,
-        selectedImage: '',
-      });
+      this.resetState();
       if (selectedProductID) {
-        this.loadProductDetails(selectedProductID);
+        await this.loadProductDetails(selectedProductID);
       }
     }
   }
-
+  resetState = async () => {
+    this.setState({
+      selectedImage: '',
+      quantity: 1,
+      loadedProductInfo: null,
+      loadedProductDetail: null,
+      loadedProductImage: null,
+      selectedProductDetail: null,
+    });
+  };
   loadProductDetails = async (productid) => {
     try {
       const response = await handleGetSaleProductInfoApi(productid);
@@ -70,62 +70,34 @@ class HomeProductModal extends Component {
           selectedImage: loadedProductInfo.ProductImage || '',
         });
       } else {
-        this.setState({
-          selectedImage: '',
-          quantity: 1,
-          loadedProductInfo: null,
-          loadedProductDetail: null,
-          loadedProductImage: null,
-          selectedProductDetail: null,
-        });
-        toast.error('Tải sản phẩm thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        this.resetState();
+        toast.error('Tải sản phẩm thất bại!');
       }
     } catch (e) {
-      console.log('Lỗi khi tải sản phẩm:', e);
-      this.setState({
-        selectedImage: '',
-        quantity: 1,
-        loadedProductInfo: null,
-        loadedProductDetail: null,
-        loadedProductImage: null,
-        selectedProductDetail: null,
-      });
-      toast.error('Lỗi khi tải sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      this.resetState();
+      toast.error('Lỗi khi tải sản phẩm!');
     }
   };
-
   handleQuantityIncrease = () => {
     const { selectedProductDetail, quantity } = this.state;
     if (selectedProductDetail && quantity < selectedProductDetail.Stock) {
       this.setState((prevState) => ({ quantity: prevState.quantity + 1 }));
     }
   };
-
   handleQuantityDecrease = () => {
     this.setState((prevState) => ({
       quantity: Math.max(1, prevState.quantity - 1),
     }));
   };
-
   handleProductDetailChange = (selectedProductDetail) => {
     this.setState({
       selectedProductDetail,
       quantity: 1,
     });
   };
-
   handleProductImageClick = (src) => {
     this.setState({ selectedImage: src });
   };
-
   handleAddToCart = () => {
     const { loadedProductInfo, quantity, selectedProductDetail } = this.state;
     if (!loadedProductInfo || !selectedProductDetail) return;
@@ -145,7 +117,6 @@ class HomeProductModal extends Component {
       selectedProductDetail: firstDetail,
     });
   };
-
   handleBuyNow = () => {
     const { loadedProductInfo, quantity, selectedProductDetail } = this.state;
     if (!loadedProductInfo || !selectedProductDetail) return;
@@ -157,19 +128,10 @@ class HomeProductModal extends Component {
       ItemQuantity: quantity,
     });
   };
-
   toggle = () => {
-    this.setState({
-      selectedImage: '',
-      quantity: 1,
-      loadedProductInfo: null,
-      loadedProductDetail: null,
-      loadedProductImage: null,
-      selectedProductDetail: null,
-    });
+    this.resetState();
     this.props.toggleFromModal();
   };
-
   render() {
     const { isOpen } = this.props;
     const { selectedImage, quantity, selectedProductDetail, loadedProductInfo, loadedProductDetail, loadedProductImage } = this.state;
@@ -180,12 +142,10 @@ class HomeProductModal extends Component {
         </Modal>
       );
     }
-
     const basePrice = selectedProductDetail ? (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice || 0)) * (1 - parseFloat(selectedProductDetail.Promotion || 0) / 100) : parseFloat(loadedProductInfo.ProductPrice);
     const formattedOriginalPrice = basePrice.toLocaleString('vi-VN');
     const finalPrice = quantity * basePrice;
     const formattedFinalPrice = finalPrice.toLocaleString('vi-VN');
-
     const handleQuantityChange = (e) => {
       const value = parseInt(e.target.value, 10);
       if (isNaN(value) || value < 1) {

@@ -107,7 +107,7 @@ class Admin extends Component {
     });
   };
   handleLogout = async () => {
-    const confirmLogout = () =>
+    const confirmAction = () =>
       new Promise((resolve) => {
         toast(
           <div>
@@ -130,11 +130,10 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>,
-          { autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
-    const isConfirmed = await confirmLogout();
+    const isConfirmed = await confirmAction();
     if (isConfirmed) {
       try {
         await handleLogoutApi();
@@ -144,18 +143,10 @@ class Admin extends Component {
           accountInfo: null,
         });
         this.props.navigate('/home');
-        toast.success('Đăng xuất thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Đăng xuất thành công!');
       } catch (e) {
         console.log(e);
-        toast.error('Đăng xuất thất bại. Vui lòng thử lại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Đăng xuất thất bại. Vui lòng thử lại!');
       }
     }
   };
@@ -167,11 +158,7 @@ class Admin extends Component {
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
         if (!response.status || response.data.length === 0) {
-          toast.error(`Không thể tải danh sách ${type}!`, {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error(`Không thể tải danh sách ${type}!`);
         }
         newState[`code${type}`] = response.data;
         newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
@@ -179,11 +166,7 @@ class Admin extends Component {
       this.setState(newState);
     } catch (error) {
       console.error('Error loading codes:', error);
-      toast.error('Lỗi khi tải dữ liệu!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải dữ liệu!');
       this.setState({ isLoading: false });
     }
   };
@@ -193,19 +176,11 @@ class Admin extends Component {
       if (response && response.length !== 0) {
         this.setState({ codeTypeFilter: response });
       } else {
-        toast.error('Không thể tải danh sách Type!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Không thể tải danh sách Type!');
       }
     } catch (e) {
       console.log('Error loading code types:', e);
-      toast.error('Lỗi khi tải danh sách Type!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách Type!');
     }
   };
   //load data info
@@ -236,11 +211,7 @@ class Admin extends Component {
       }
     } catch (e) {
       console.log('Error loading accountinfo:', e);
-      toast.error('Lỗi khi load danh sách sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách sản phẩm!');
     }
   };
   handleLoadAllCodesInfo = async () => {
@@ -255,11 +226,7 @@ class Admin extends Component {
       }
     } catch (e) {
       console.log('Error loading code info:', e);
-      toast.error('Lỗi khi load danh sách AllCodes!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách AllCodes!');
     }
   };
   handleLoadServiceInfo = async () => {
@@ -275,11 +242,7 @@ class Admin extends Component {
       }
     } catch (e) {
       console.log('Error loading service info:', e);
-      toast.error('Lỗi khi load danh sách dịch vụ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách dịch vụ!');
     }
   };
   //search filter sort
@@ -337,7 +300,7 @@ class Admin extends Component {
   };
   //modal action
   handleChangeAccountStatus = async (userInfo) => {
-    const confirmChange = () =>
+    const confirmAction = () =>
       new Promise((resolve) => {
         toast(
           <div>
@@ -360,38 +323,25 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-right', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
-    let isConfirmed = await confirmChange();
+    let isConfirmed = await confirmAction();
     if (isConfirmed) {
       this.setState({ isLoading: true });
       if (userInfo.AccountType === 'A') {
-        toast.info('Không thể khóa tài khoản quản trị viên!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.info('Không thể khóa tài khoản quản trị viên!');
       } else {
         const newStatus = userInfo.AccountStatus === 'ACT' ? 'DIS' : 'ACT';
         try {
           const response = await handleChangeAccountStatusApi(userInfo.AccountID, newStatus);
           if (response) {
-            toast.success(response.errMessage, {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
+            toast.success(response.errMessage);
             await this.handleLoadAccountInfo();
           }
         } catch (e) {
           console.log('Error changing accountstatus:', e);
-          toast.error('Lỗi khi thay đổi trạng thái tài khoản!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error('Lỗi khi thay đổi trạng thái tài khoản!');
         }
       }
     }
@@ -399,7 +349,7 @@ class Admin extends Component {
     this.setState({ isLoading: false });
   };
   handleChangeServiceStatus = async (serviceInfo) => {
-    const confirmChange = () =>
+    const confirmAction = () =>
       new Promise((resolve) => {
         toast(
           <div>
@@ -423,10 +373,9 @@ class Admin extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-right', autoClose: 1000, closeOnClick: false }
         );
       });
-    let isConfirmed = await confirmChange();
+    let isConfirmed = await confirmAction();
     if (isConfirmed) {
       this.setState({ isLoading: true });
       const newStatus = serviceInfo.ServiceStatus === 'VALID' ? 'INVALID' : 'VALID';
@@ -434,20 +383,12 @@ class Admin extends Component {
         const responseApi = await handleChangeServiceStatusApi(serviceInfo.ServiceID, newStatus);
         const response = responseApi.data
         if (response && response.errCode === 0) {
-          toast.success(response.errMessage, {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.success(response.errMessage);
           await this.handleLoadServiceInfo();
         }
       } catch (e) {
         console.log('Error changing service status:', e);
-        toast.error('Lỗi khi thay đổi trạng thái dịch vụ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Lỗi khi thay đổi trạng thái dịch vụ!');
       }
       await this.handleLoadServiceInfo();
       this.setState({ isLoading: false });
@@ -479,30 +420,18 @@ class Admin extends Component {
     try {
       const response = await handleRegisterApi(userInfo);
       if (response && response.errCode === 0) {
-        toast.success('Tạo người dùng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Tạo người dùng thành công!');
         await this.handleLoadAccountInfo();
         this.setState({
           isShowCreateAccountModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Đăng ký tài khoản thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Register:', e);
-      toast.error('Xảy ra lỗi khi đăng ký, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi đăng ký, vui lòng thử lại!');
     }
     this.setState({
       isLoading: false,
@@ -516,30 +445,18 @@ class Admin extends Component {
     try {
       const response = await handleChangeAccountInfoApi(userInfo);
       if (response && response.errCode === 0) {
-        toast.success('Chỉnh sửa thông tin người dùng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Chỉnh sửa thông tin người dùng thành công!');
         await this.handleLoadAccountInfo();
         this.setState({
           isShowEditAccountModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Chỉnh sửa thông tin người dùng thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Edit:', e);
-      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!');
     }
     this.setState({
       isLoading: false,
@@ -613,7 +530,7 @@ class Admin extends Component {
   };
   handleAddService = () => {
     if (this.state.isAddingService || this.state.isEditingService !== null) {
-      const confirmAddNew = () =>
+      const confirmAction = () =>
         new Promise((resolve) => {
           toast(
             <div>
@@ -636,11 +553,10 @@ class Admin extends Component {
               >
                 Không
               </button>
-            </div>,
-            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+            </div>
           );
         });
-      confirmAddNew().then((isConfirmed) => {
+      confirmAction().then((isConfirmed) => {
         if (isConfirmed) {
           this.setState(
             {
@@ -707,14 +623,10 @@ class Admin extends Component {
   handleSaveService = async (index) => {
     const isValidateInput = validateServiceInput(this.state.loadedServiceInfo[index]);
     if (!isValidateInput.valid) {
-      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
-    const confirmSave = () =>
+    const confirmAction = () =>
       new Promise((resolve) => {
         toast(
           <div>
@@ -737,11 +649,10 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
-    const isConfirmed = await confirmSave();
+    const isConfirmed = await confirmAction();
     if (!isConfirmed) return;
     this.setState({ isLoading: true });
     try {
@@ -760,11 +671,7 @@ class Admin extends Component {
       }
       const response = apiResponse.data;
       if (response && response.errCode === 0) {
-        toast.success(this.state.isAddingService ? 'Tạo dịch vụ thành công!' : 'Chỉnh sửa dịch vụ thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success(this.state.isAddingService ? 'Tạo dịch vụ thành công!' : 'Chỉnh sửa dịch vụ thành công!');
         await this.handleLoadServiceInfo();
         this.setState({
           isEditingService: null,
@@ -772,19 +679,11 @@ class Admin extends Component {
         });
       } else {
         const errMessage = response?.errMessage || (this.state.isAddingService ? 'Tạo dịch vụ thất bại!' : 'Chỉnh sửa dịch vụ thất bại!');
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error(this.state.isAddingService ? 'Create Service:' : 'Edit Service:', e);
-      toast.error(`Xảy ra lỗi khi ${this.state.isAddingService ? 'tạo' : 'chỉnh sửa'} dịch vụ, vui lòng thử lại!`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(`Xảy ra lỗi khi ${this.state.isAddingService ? 'tạo' : 'chỉnh sửa'} dịch vụ, vui lòng thử lại!`);
     }
     this.setState({ isLoading: false });
   };
@@ -794,7 +693,7 @@ class Admin extends Component {
   };
   handleAddCode = () => {
     if (this.state.isAddingCode || this.state.isEditingCode !== null) {
-      const confirmAddNew = () =>
+      const confirmAction = () =>
         new Promise((resolve) => {
           toast(
             <div>
@@ -817,12 +716,11 @@ class Admin extends Component {
               >
                 Không
               </button>
-            </div>,
-            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+            </div>
           );
         });
 
-      confirmAddNew().then((isConfirmed) => {
+      confirmAction().then((isConfirmed) => {
         if (isConfirmed) {
           this.setState(
             {
@@ -887,14 +785,10 @@ class Admin extends Component {
   handleSaveCode = async (index) => {
     const isValidateInput = validateCodeInput(this.state.loadedCodeInfo[index]);
     if (!isValidateInput.valid) {
-      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
-    const confirmSave = () =>
+    const confirmAction = () =>
       new Promise((resolve) => {
         toast(
           <div>
@@ -917,12 +811,11 @@ class Admin extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
 
-    const isConfirmed = await confirmSave();
+    const isConfirmed = await confirmAction();
     if (!isConfirmed) return;
 
     this.setState({ isLoading: true });
@@ -943,11 +836,7 @@ class Admin extends Component {
       }
       const response = apiResponse.data;
       if (response && response.errCode === 0) {
-        toast.success(this.state.isAddingCode ? 'Tạo AllCodes thành công!' : 'Chỉnh sửa AllCodes thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success(this.state.isAddingCode ? 'Tạo AllCodes thành công!' : 'Chỉnh sửa AllCodes thành công!');
         await this.handleLoadAllCodesInfo();
         this.setState({
           isEditingCode: null,
@@ -955,19 +844,11 @@ class Admin extends Component {
         });
       } else {
         const errMessage = response?.errMessage || (this.state.isAddingCode ? 'Tạo AllCodes thất bại!' : 'Chỉnh sửa AllCodes thất bại!');
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error(this.state.isAddingCode ? 'Create AllCodes:' : 'Edit AllCodes:', e);
-      toast.error(`Xảy ra lỗi khi ${this.state.isAddingCode ? 'tạo' : 'chỉnh sửa'} AllCodes, vui lòng thử lại!`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(`Xảy ra lỗi khi ${this.state.isAddingCode ? 'tạo' : 'chỉnh sửa'} AllCodes, vui lòng thử lại!`);
     }
     this.setState({ isLoading: false });
   };

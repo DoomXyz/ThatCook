@@ -112,6 +112,8 @@ class CreateAccountModal extends Component {
       case 1: value = 'isTogglePassword1';
         break;
       case 2: value = 'isTogglePassword2';
+        break;
+      default: break;
     }
     this.setState((prevState) => ({ [value]: !prevState[value] }));
   }

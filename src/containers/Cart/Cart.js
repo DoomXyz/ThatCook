@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { cogOutline, trophy } from 'ionicons/icons';
+import { cogOutline } from 'ionicons/icons';
 
 import './Cart.scss';
 import Spinner from '../../components/Spinner';
@@ -11,15 +11,14 @@ import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
 
 import { handleLogoutApi } from '../../services/accountServices';
-import { handleGetProductDetailInfoApi } from '../../services/productServices';
 import { handleGetCartApi, handleGetCartDetailApi, handleGetDetailListApi, handleUpdateQuantityApi, handleRemoveFromCartApi, handleUpdateCartDetailApi, handleMergeCartDetailApi } from '../../services/cartServices';
+import { handleGetProductDetailInfoApi } from '../../services/productServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { updateItemQuantity, removeFromCart, updateCartDetail, mergeCartDetail, saveCartForCheckOut, clearCheckOutCart, userLogout } from '../../store/actions';
 
 import cart from '../../assets/icons/shopping-cart.png';
 import card from '../../assets/icons/cheque.png';
-import { kebabCase } from 'lodash';
 
 class Cart extends Component {
   constructor(props) {
@@ -41,17 +40,15 @@ class Cart extends Component {
       triggerCountCartItem: false,
     };
   }
-
   async componentDidMount() {
     await this.handleIsLogin();
     setTimeout(() => {
       this.handleLoadCartInfo();
-    }, 0);
+    }, 10);
     setTimeout(() => {
       this.handleCheckCartQuantity();
     }, 100);
   }
-
   async componentDidUpdate(prevProps) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
@@ -63,14 +60,6 @@ class Cart extends Component {
       }
     }
   }
-
-  triggerCountCartItem = () => {
-    this.setState((prevState) => ({
-      triggerCountCartItem: !prevState.triggerCountCartItem,
-    }));
-    // this.triggerCountCartItem(); dòng này dùng để gọi hàm này
-  };
-
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -92,46 +81,16 @@ class Cart extends Component {
       }
     } catch (e) {
       this.props.navigate('/home');
-      console.log('Token not found!');
     }
     this.setState({
       isLoading: false,
     });
   };
-
-  handleCheckCartQuantity = async () => {
-    const { loadedCartInfo, loadedCartDetailInfo } = this.state;
-    try {
-      let updatedCartInfo = [...loadedCartInfo];
-      let hasChanges = false;
-      for (let i = 0; i < updatedCartInfo.length; i++) {
-        const cartItem = updatedCartInfo[i];
-        const productInfo = loadedCartDetailInfo.find((product) => product.ProductID === cartItem.ProductID && product.ProductDetailID === cartItem.ProductDetailID);
-        if (productInfo && cartItem.ItemQuantity > productInfo.Stock) {
-          updatedCartInfo[i] = {
-            ...cartItem,
-            ItemQuantity: productInfo.Stock,
-          };
-          hasChanges = true;
-          await this.handleQuantityChange(cartItem.ProductID, cartItem.ProductDetailID, productInfo.Stock);
-        }
-      }
-      if (hasChanges) {
-        this.setState({ loadedCartInfo: updatedCartInfo }, async () => {
-          await this.loadCartInfo();
-          this.triggerCountCartItem();
-        });
-      }
-    } catch (error) {
-      console.error('Lỗi khi kiểm tra số lượng giỏ hàng:', error);
-      toast.error('Có lỗi xảy ra khi kiểm tra số lượng giỏ hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  triggerCountCartItem = () => {
+    this.setState((prevState) => ({
+      triggerCountCartItem: !prevState.triggerCountCartItem,
+    }));
   };
-
   handleLoadCartInfo = async () => {
     const { isLoggedIn, accountInfo } = this.state;
     if (isLoggedIn) {
@@ -144,7 +103,6 @@ class Cart extends Component {
       tempCurrentPage: Math.min(prevState.currentPage, prevState.totalPages),
     }));
   };
-
   loadCartInfo = async (accountid) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -154,11 +112,7 @@ class Cart extends Component {
           if (response && response.errCode === 0) {
             cartItems = response.data || [];
           } else {
-            toast.error('Tải giỏ hàng thất bại!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
+            toast.error('Tải giỏ hàng thất bại!');
             reject(new Error('Tải giỏ hàng thất bại'));
             return;
           }
@@ -199,7 +153,6 @@ class Cart extends Component {
       }
     });
   };
-
   handleLoadDetailList = async (loadCartInfo) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -208,15 +161,10 @@ class Cart extends Component {
           this.setState(
             {
               loadedCartDetailList: responseList.data,
-            },
-            () => resolve()
+            }, () => resolve()
           );
         } else {
-          toast.error('Tải danh sách chi tiết thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error('Tải danh sách chi tiết thất bại!');
           reject(new Error('Tải danh sách chi tiết thất bại'));
         }
       } catch (e) {
@@ -225,7 +173,34 @@ class Cart extends Component {
       }
     });
   };
-
+  handleCheckCartQuantity = async () => {
+    const { loadedCartInfo, loadedCartDetailInfo } = this.state;
+    try {
+      let updatedCartInfo = [...loadedCartInfo];
+      let hasChanges = false;
+      for (let i = 0; i < updatedCartInfo.length; i++) {
+        const cartItem = updatedCartInfo[i];
+        const productInfo = loadedCartDetailInfo.find((product) => product.ProductID === cartItem.ProductID && product.ProductDetailID === cartItem.ProductDetailID);
+        if (productInfo && cartItem.ItemQuantity > productInfo.Stock) {
+          updatedCartInfo[i] = {
+            ...cartItem,
+            ItemQuantity: productInfo.Stock,
+          };
+          hasChanges = true;
+          await this.handleQuantityChange(cartItem.ProductID, cartItem.ProductDetailID, productInfo.Stock);
+        }
+      }
+      if (hasChanges) {
+        this.setState({ loadedCartInfo: updatedCartInfo }, async () => {
+          await this.loadCartInfo();
+          this.triggerCountCartItem();
+        });
+      }
+    } catch (error) {
+      console.error('Lỗi khi kiểm tra số lượng giỏ hàng:', error);
+      toast.error('Có lỗi xảy ra khi kiểm tra số lượng giỏ hàng!');
+    }
+  };
   handleTotalProductPrice = () => {
     const { loadedCartDetailInfo } = this.state;
     let totalProductPrice = 0;
@@ -236,7 +211,6 @@ class Cart extends Component {
     }
     return totalProductPrice;
   };
-
   handleTotalPriceAfterPromotion = () => {
     const { loadedCartDetailInfo } = this.state;
     let totalPrice = 0;
@@ -252,25 +226,6 @@ class Cart extends Component {
     }
     return totalPrice;
   };
-
-  handleOnChange = (event, type) => {
-    this.setState({
-      [type]: event.target.checked
-    });
-  };
-
-  handleAddQuantity = async (productid, productdetailid, quantity) => {
-    this.handleQuantityChange(productid, productdetailid, quantity);
-  };
-
-  handleDecreaseQuantity = async (productid, productdetailid, quantity) => {
-    if (quantity === 0) {
-      this.handleRemoveFromCart(productid, productdetailid);
-      return;
-    }
-    this.handleQuantityChange(productid, productdetailid, quantity);
-  };
-
   handleQuantityChange = async (productid, productdetailid, quantity) => {
     const { loadedCartDetailInfo, isLoggedIn, accountInfo } = this.state;
     let newQuantity = parseInt(quantity, 10) || 1;
@@ -283,11 +238,7 @@ class Cart extends Component {
     if (isLoggedIn) {
       const response = await handleUpdateQuantityApi(accountInfo.AccountID, detailInfo.ProductID, detailInfo.ProductDetailID, newQuantity);
       if (response && response.errCode !== 0) {
-        toast.error('Cập nhật số lượng thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Cập nhật số lượng thất bại!');
       }
     } else {
       this.props.updateItemQuantity(detailInfo.ProductID, detailInfo.ProductDetailID, newQuantity);
@@ -295,18 +246,26 @@ class Cart extends Component {
     await this.handleLoadCartInfo();
     this.triggerCountCartItem();
   };
-
+  handleAddQuantity = async (productid, productdetailid, quantity) => {
+    this.handleQuantityChange(productid, productdetailid, quantity);
+  };
+  handleDecreaseQuantity = async (productid, productdetailid, quantity) => {
+    if (quantity === 0) {
+      this.handleRemoveFromCart(productid, productdetailid);
+      return;
+    }
+    this.handleQuantityChange(productid, productdetailid, quantity);
+  };
   handleQuantityInputChange = (productid, productdetailid, e) => {
     const newQuantity = parseInt(e.target.value, 10) || 1;
     this.handleQuantityChange(productid, productdetailid, newQuantity);
   };
-
   handleRemoveFromCart = async (productid, productdetailid) => {
     this.setState({ disabledRemoveButton: true });
     const { isSaveDelete } = this.state;
     let isConfirmed = false;
     if (isSaveDelete) {
-      const confirmRemove = () =>
+      const confirmAction = () =>
         new Promise((resolve) => {
           toast(
             <div>
@@ -330,10 +289,12 @@ class Cart extends Component {
                 Không
               </button>
             </div>,
-            { position: 'top-center', autoClose: 1000, closeOnClick: false, onClose: () => resolve(false) }
+            {
+              onClose: () => { this.setState({ disabledRemoveButton: false }); },
+            }
           );
         });
-      isConfirmed = await confirmRemove();
+      isConfirmed = await confirmAction();
     } else {
       isConfirmed = true;
     }
@@ -344,39 +305,24 @@ class Cart extends Component {
         if (isLoggedIn) {
           const response = await handleRemoveFromCartApi(accountInfo.AccountID, productid, productdetailid);
           if (response && response.errCode === 0) {
-            toast.success('Xóa sản phẩm thành công', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            })
+            toast.success('Xóa sản phẩm thành công');
           } else {
-            toast.error('Xóa sản phẩm thất bại!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
+            toast.error('Xóa sản phẩm thất bại!');
           }
         } else {
           this.props.removeFromCart(productid, productdetailid);
-          toast.success('Xóa sản phẩm thành công', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.success('Xóa sản phẩm thành công');
         }
         await this.handleLoadCartInfo();
         this.triggerCountCartItem();
       } catch (e) {
-        toast.error('Lỗi khi xóa sản phẩm!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Lỗi khi xóa sản phẩm!');
       }
-    }
-    this.setState({ disabledRemoveButton: false, isLoading: false });
-  };
+    } else {
 
+    }
+    this.setState({ isLoading: false });
+  };
   handleChangeProductDetail = async (productid, productdetailid1, productdetailid2) => {
     const { isLoggedIn, accountInfo, loadedCartDetailInfo } = this.state;
     let isExistDetail = false;
@@ -387,11 +333,7 @@ class Cart extends Component {
       if (isLoggedIn) {
         const response = await handleUpdateCartDetailApi(accountInfo.AccountID, productid, productdetailid1, productdetailid2);
         if (response && response.errCode !== 0) {
-          toast.error('Đổi chi tiết sản phẩm thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error('Đổi chi tiết sản phẩm thất bại!');
         }
       } else {
         const productDetailInfo = await handleGetProductDetailInfoApi(productid, productdetailid2);
@@ -408,7 +350,7 @@ class Cart extends Component {
       const { isSaveMerge } = this.state;
       let isConfirmed = false;
       if (isSaveMerge) {
-        const confirmMerge = () =>
+        const confirmAction = () =>
           new Promise((resolve) => {
             toast(
               <div>
@@ -431,11 +373,10 @@ class Cart extends Component {
                 >
                   Không
                 </button>
-              </div>,
-              { position: 'top-center', autoClose: 1000, closeOnClick: false }
+              </div>
             );
           });
-        isConfirmed = await confirmMerge();
+        isConfirmed = await confirmAction();
       } else {
         isConfirmed = true;
       }
@@ -453,11 +394,7 @@ class Cart extends Component {
         if (isLoggedIn) {
           const response = await handleMergeCartDetailApi(accountInfo.AccountID, productid, productdetailid1, productdetailid2, newItemQuantity);
           if (response && response.errCode !== 0) {
-            toast.error('Gộp chi tiết sản phẩm thất bại!', {
-              position: 'top-right',
-              autoClose: 500,
-              closeOnClick: true,
-            });
+            toast.error('Gộp chi tiết sản phẩm thất bại!');
           }
         } else {
           this.props.mergeCartDetail(productid, productdetailid1, productdetailid2, newItemQuantity);
@@ -470,7 +407,6 @@ class Cart extends Component {
       isLoading: false,
     });
   };
-
   handleCheckOut = () => {
     const { isLoggedIn, accountInfo, loadedCartInfo } = this.state;
     let checkOutCart = null;
@@ -482,48 +418,38 @@ class Cart extends Component {
       checkOutCart = this.props.cartItems;
     }
     if (!checkOutCart || checkOutCart.length === 0) {
-      toast.info('Không có sản phẩm để thanh toán!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.info('Không có sản phẩm để thanh toán!');
       return;
     }
     const expiresAt = new Date().getTime() + 60 * 60 * 1000;
     this.props.saveCartForCheckOut(checkOutCart, accountID, expiresAt, false);
     this.props.navigate('/checkout');
   };
-
   handleFirstPage = () => {
     this.setState({ currentPage: 1, tempCurrentPage: 1 });
   };
-
   handlePrevPage = () => {
     this.setState((prevState) => ({
       currentPage: Math.max(1, prevState.currentPage - 1),
       tempCurrentPage: Math.max(1, prevState.currentPage - 1),
     }));
   };
-
   handleNextPage = () => {
     this.setState((prevState) => ({
       currentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
       tempCurrentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
     }));
   };
-
   handleLastPage = () => {
     this.setState((prevState) => ({
       currentPage: prevState.totalPages,
       tempCurrentPage: prevState.totalPages,
     }));
   };
-
   handlePageInputChange = (e) => {
     const value = e.target.value;
     this.setState({ tempCurrentPage: value });
   };
-
   handlePageKeyDown = (e) => {
     if (e.key === 'Enter') {
       const pageNumber = parseInt(this.state.tempCurrentPage, 10);
@@ -534,7 +460,6 @@ class Cart extends Component {
       }
     }
   };
-
   handlePageInputBlur = () => {
     const { tempCurrentPage, totalPages } = this.state;
     const pageNumber = parseInt(tempCurrentPage, 10);
@@ -546,7 +471,7 @@ class Cart extends Component {
   };
 
   render() {
-    const { isLoading, loadedCartDetailInfo, loadedCartDetailList, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, disabledRemoveButton } = this.state;
+    const { isLoading, loadedCartDetailInfo, loadedCartDetailList, currentPage, tempCurrentPage, limitProductPerQuery, totalPages, disabledRemoveButton } = this.state;
     const price = this.handleTotalProductPrice() || 0;
     const priceAfterPromo = this.handleTotalPriceAfterPromotion() || 0;
 
@@ -555,7 +480,6 @@ class Cart extends Component {
     const paginatedCartDetailInfo = loadedCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div>
-        <ToastContainer />
         {isLoading ? (
           <Spinner />
         ) : (

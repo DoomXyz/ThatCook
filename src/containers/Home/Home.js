@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 
@@ -9,34 +9,32 @@ import './Home.scss';
 import Spinner from '../../components/Spinner';
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
+import HomeProductModal from './HomeProductModal';
 
 import { handleLogoutApi } from '../../services/accountServices';
-import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi } from '../../services/productServices';
 import { handleGetSaleBannerInfoApi } from '../../services/bannerServices';
 import { handleAddToCartApi, handleGetCartApi } from '../../services/cartServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi } from '../../services/productServices';
 
-import { checkLoginStatus } from '../../utils/pakage';
+import { checkLoginStatus, getAllCodes } from '../../utils/pakage';
 import { userLogin, userLogout, addToCart, clearCart, saveCartForCheckOut } from '../../store/actions';
-
-import HomeProductModal from './HomeProductModal';
 
 import cat from '../../assets/icons/cat.png';
 import dog from '../../assets/icons/golden-retriever.png';
-
 const defBannerImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1746186450/defaultbanner_p9kvda.webp';
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoggedIn: false,
       isLoading: true,
+      isLoggedIn: false,
       accountInfo: null,
-      loadedProductInfo: [],
+      codeProductType: [],
+      codePetType: [],
       loadedBannerInfo: [],
-      loadedProductTypeFilterValue: [],
-      loadedPetTypeFilterValue: [],
+      loadedProductInfo: [],
+      selectedProduct: null,
       currentPage: 1,
       tempCurrentPage: '1',
       limitProductPerQuery: 20,
@@ -47,18 +45,15 @@ class Home extends Component {
       currentBannerIndex: 0,
       bannerSlideTime: 5000,
       isShowHomeProductModal: false,
-      selectedProduct: null,
       triggerCountCartItem: false,
     };
     this.debounceTimeout = null;
   }
-
   async componentDidMount() {
     await this.handleIsLogin();
     await this.handleLoadProductInfo();
     await this.handleGetBannerInfo();
-    await this.handleLoadProductTypeFilterValue();
-    await this.handleLoadPetTypeFilterValue();
+    await this.handleLoadCode(['ProductType', 'PetType']);
     this.bannerInterval = setInterval(() => {
       this.setState((prevState) => {
         if (prevState.loadedBannerInfo.length === 0) return { currentBannerIndex: 0 };
@@ -69,17 +64,14 @@ class Home extends Component {
       });
     }, this.state.bannerSlideTime);
   }
-
-  componentWillUnmount() {
-    clearInterval(this.bannerInterval);
-  }
-
-  async componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
     }
   }
-
+  componentWillUnmount() {
+    clearInterval(this.bannerInterval);
+  }
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -96,19 +88,42 @@ class Home extends Component {
         this.props.userLogout();
         this.setState({
           accountInfo: null,
+          isLoggedIn: false
         });
       }
     } catch (e) {
-      console.log('Token not found!');
+      this.props.navigate('/home')
     }
     this.setState({
       isLoading: false,
     });
   };
-
+  triggerCountCartItem = () => {
+    this.setState((prevState) => ({
+      triggerCountCartItem: !prevState.triggerCountCartItem,
+    }));
+  };
+  handleLoadCode = async (codeTypeFilter) => {
+    try {
+      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
   handleLoadProductInfo = async () => {
     const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state;
-    console.log(filterValue)
     try {
       const response = await handleLoadSaleProductInfoApi(currentPage, limitProductPerQuery, searchValue, filterValue, sortValue);
       if (response && response.errCode === 0) {
@@ -119,14 +134,9 @@ class Home extends Component {
       }
     } catch (e) {
       console.log('Error loading productinfo:', e);
-      toast.error('Lỗi khi load danh sách sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách sản phẩm!');
     }
   };
-
   handleGetBannerInfo = async () => {
     try {
       const response = await handleGetSaleBannerInfoApi('ALL');
@@ -137,59 +147,9 @@ class Home extends Component {
       }
     } catch (e) {
       console.log('Error loading bannerinfo:', e);
-      toast.error('Lỗi khi load danh sách banner!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách banner!');
     }
   };
-
-  handleLoadProductTypeFilterValue = async () => {
-    try {
-      const loadedProductTypeFilterValue = await handleGetAllCodesApi('ProductType');
-      if (!loadedProductTypeFilterValue || loadedProductTypeFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedProductTypeFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading pettype code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadPetTypeFilterValue = async () => {
-    try {
-      const loadedPetTypeFilterValue = await handleGetAllCodesApi('PetType');
-      if (!loadedPetTypeFilterValue || loadedPetTypeFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách loại thú cưng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedPetTypeFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading pettype code:', e);
-      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
   handleBannerRightClick = () => {
     this.setState((prevState) => {
       if (prevState.loadedBannerInfo.length === 0) return { currentBannerIndex: 0 };
@@ -199,7 +159,6 @@ class Home extends Component {
       };
     });
   };
-
   handleBannerLeftClick = () => {
     this.setState((prevState) => {
       if (prevState.loadedBannerInfo.length === 0) return { currentBannerIndex: 0 };
@@ -209,7 +168,6 @@ class Home extends Component {
       };
     });
   };
-
   handlePageChange = (page) => {
     this.setState({
       isLoading: true,
@@ -227,13 +185,11 @@ class Home extends Component {
         isLoading: false,
         currentPage: newPage,
         tempCurrentPage: newPage.toString(),
-      },
-      () => {
+      }, () => {
         this.handleLoadProductInfo();
       }
     );
   };
-
   handlePrevPage = () => {
     this.setState(
       (prevState) => {
@@ -242,13 +198,11 @@ class Home extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      },
-      () => {
+      }, () => {
         this.handleLoadProductInfo();
       }
     );
   };
-
   handleNextPage = () => {
     this.setState(
       (prevState) => {
@@ -257,24 +211,20 @@ class Home extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      },
-      () => {
+      }, () => {
         this.handleLoadProductInfo();
       }
     );
   };
-
   handlePageInputChange = (event) => {
     const value = event.target.value;
     this.setState({ tempCurrentPage: value });
   };
-
   handlePageInputBlur = () => {
     const { tempCurrentPage } = this.state;
     const page = parseInt(tempCurrentPage, 10);
     this.handlePageChange(page);
   };
-
   handlePageKeyDown = (event) => {
     if (event.key === 'Enter') {
       const { tempCurrentPage } = this.state;
@@ -282,20 +232,17 @@ class Home extends Component {
       this.handlePageChange(page);
     }
   };
-
+  toggleHomeProductModal = () => {
+    this.setState({
+      isShowHomeProductModal: !this.state.isShowHomeProductModal,
+    });
+  };
   handleSelectedProduct = (productid) => {
     this.setState({
       selectedProduct: productid,
       isShowHomeProductModal: true,
     });
   };
-
-  toggleHomeProductModal = () => {
-    this.setState({
-      isShowHomeProductModal: !this.state.isShowHomeProductModal,
-    });
-  };
-
   handleBuyNowFromModal = (productInfo) => {
     this.toggleHomeProductModal();
     const { isLoggedIn, accountInfo } = this.state;
@@ -304,21 +251,15 @@ class Home extends Component {
       accountID = accountInfo.AccountID;
     }
     if (!productInfo) {
-      toast.info('Không có sản phẩm để thanh toán!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.info('Không có sản phẩm để thanh toán!');
       return;
     }
     const expiresAt = new Date().getTime() + 60 * 60 * 1000;
     this.props.saveCartForCheckOut([productInfo], accountID, expiresAt, true);
     this.props.navigate('/checkout');
   };
-
   handleAddToCart = async (product) => {
     try {
-      console.log(product)
       const quantity = product.ItemQuantity ? product.ItemQuantity : 1;
       await this.handleIsLogin();
       const addToCartProduct = [
@@ -337,11 +278,7 @@ class Home extends Component {
         if (response && response.errCode === 0) {
           productData = response.data;
         } else {
-          toast.error('Kiểm tra giỏ hàng thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error('Kiểm tra giỏ hàng thất bại!');
           return;
         }
       } else {
@@ -367,43 +304,39 @@ class Home extends Component {
         } else {
           this.props.addToCart(addToCartProduct, quantity);
         }
-        toast.success('Thêm vào giỏ hàng thành công!', {
-          position: 'top-right',
-          autoClose: 300,
-          closeOnClick: true,
-        });
       } else {
-        toast.info('Vượt quá số lượng tồn kho!', {
-          position: 'top-right',
-          autoClose: 200,
-          closeOnClick: true,
-        });
+        toast.info('Vượt quá số lượng tồn kho!');
       }
       this.triggerCountCartItem();
     } catch (e) {
       console.log(e);
-      toast.error('Thêm vào giỏ hàng thất bại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Thêm vào giỏ hàng thất bại!');
     }
   };
-
-  triggerCountCartItem = () => {
-    this.setState((prevState) => ({
-      triggerCountCartItem: !prevState.triggerCountCartItem,
-    }));
+  handleSearchChange = (event) => {
+    const value = event.target.value;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      }, () => {
+        if (this.debounceTimeout) {
+          clearTimeout(this.debounceTimeout);
+        }
+        this.debounceTimeout = setTimeout(() => {
+          this.handleLoadProductInfo();
+        }, 500);
+      }
+    );
   };
-
   handleFilterProduct = (value) => {
     this.setState(
       {
         filterValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      },
-      () => {
+      }, () => {
         this.handleLoadProductInfo();
       }
     );
@@ -414,41 +347,29 @@ class Home extends Component {
         sortValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      },
-      () => {
+      }, () => {
         this.handleLoadProductInfo();
       }
     );
   };
-
-  handleSearchChange = (event) => {
-    const value = event.target.value;
-    this.setState(
-      {
-        searchValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        if (this.debounceTimeout) {
-          clearTimeout(this.debounceTimeout);
-        }
-        this.debounceTimeout = setTimeout(() => {
-          this.handleLoadProductInfo();
-        }, 500);
-      }
-    );
-  };
-
   render() {
-    const { isLoading, loadedBannerInfo, loadedProductInfo, loadedProductTypeFilterValue, loadedPetTypeFilterValue, searchValue, filterValue, sortValue,
-      currentPage, totalPages, isShowHomeProductModal, currentBannerIndex, selectedProduct, tempCurrentPage } = this.state;
+    const { isLoading, loadedBannerInfo, loadedProductInfo, codeProductType, codePetType,
+      searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages, isShowHomeProductModal, selectedProduct, currentBannerIndex } = this.state;
     return (
       <div className="home-body">
-        <HomeProductModal isOpen={isShowHomeProductModal} toggleFromModal={this.toggleHomeProductModal} selectedProductID={selectedProduct} handleBuyNowFromModal={this.handleBuyNowFromModal} handleAddToCart={this.handleAddToCart} />
-        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
-        <ToastContainer />
-
+        <HomeProductModal
+          isOpen={isShowHomeProductModal}
+          toggleFromModal={this.toggleHomeProductModal}
+          selectedProductID={selectedProduct}
+          handleBuyNowFromModal={this.handleBuyNowFromModal}
+          handleAddToCart={this.handleAddToCart}
+        />
+        <Header
+          navigate={this.props.navigate}
+          cartItems={this.props.cartItems}
+          userInfo={this.props.userInfo}
+          triggerCountCartItem={this.state.triggerCountCartItem}
+        />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -476,7 +397,6 @@ class Home extends Component {
                     <img src={cat} alt="" />
                     <img src={dog} alt="" />
                   </div>
-
                   <div className="abc f">
                     <div className="cartegory-content-top-item">
                       <p>TẤT CẢ SẢN PHẨM</p>
@@ -493,18 +413,18 @@ class Home extends Component {
                         <select value={filterValue} onChange={(event) => this.handleFilterProduct(event.target.value)}>
                           <option value="ALL">Tất cả sản phẩm</option>
                           <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
-                          {loadedProductTypeFilterValue && loadedProductTypeFilterValue.length > 0 && (
+                          {codeProductType && codeProductType.length > 0 && (
                             <optgroup label="Loại sản phẩm">
-                              {loadedProductTypeFilterValue.map((item) => (
+                              {codeProductType.map((item) => (
                                 <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
                                   {item.CodeValueVI}
                                 </option>
                               ))}
                             </optgroup>
                           )}
-                          {loadedPetTypeFilterValue && loadedPetTypeFilterValue.length > 0 && (
+                          {codePetType && codePetType.length > 0 && (
                             <optgroup label="Loại thú cưng">
-                              {loadedPetTypeFilterValue.map((item) => (
+                              {codePetType.map((item) => (
                                 <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
                                   Sản phẩm dành cho {item.CodeValueVI}
                                 </option>
@@ -554,24 +474,26 @@ class Home extends Component {
                       <p>Không tìm thấy sản phẩm nào phù hợp.</p>
                     )}
                   </div>
-                  <div className="cartegory-content-bottom row">
-                    <div className="cartegory-content-bottom-item">
-                      <button className="first" onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
-                        {'<<'}
-                      </button>
-                      <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
-                        {'<'}
-                      </button>
-                      <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
-                      <span className="total-pages">/ {totalPages}</span>
-                      <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
-                        {'>'}
-                      </button>
-                      <button className="last" onClick={() => this.handlePageChange(totalPages)} disabled={currentPage === totalPages}>
-                        {'>>'}
-                      </button>
+                  {totalPages > 1 && (
+                    <div className="cartegory-content-bottom row">
+                      <div className="cartegory-content-bottom-item">
+                        <button className="first" onClick={() => this.handlePageChange(1)} disabled={currentPage === 1}>
+                          {'<<'}
+                        </button>
+                        <button className="prev" onClick={this.handlePrevPage} disabled={currentPage === 1}>
+                          {'<'}
+                        </button>
+                        <input type="text" value={tempCurrentPage} onChange={this.handlePageInputChange} onKeyDown={this.handlePageKeyDown} onBlur={this.handlePageInputBlur} />
+                        <span className="total-pages">/ {totalPages}</span>
+                        <button className="next" onClick={this.handleNextPage} disabled={currentPage === totalPages}>
+                          {'>'}
+                        </button>
+                        <button className="last" onClick={() => this.handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+                          {'>>'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </section>

@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { IonIcon } from '@ionic/react';
-import { eyeOutline, eyeOffOutline, chevronBack, pencil } from 'ionicons/icons';
+import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
-import Spinner from '../../components/Spinner';
-import { handleSendForgotTokenApi, handleVerifyForgotTokenApi, handleChangePasswordApi } from '../../services/accountServices';
+import { IonIcon } from '@ionic/react';
+
+import { eyeOutline, eyeOffOutline, chevronBack } from 'ionicons/icons';
+
 import './ForgotPassword.scss';
+import Spinner from '../../components/Spinner';
+
+import { handleSendForgotTokenApi, handleVerifyForgotTokenApi, handleChangePasswordApi } from '../../services/accountServices';
 
 class ForgotPassword extends Component {
   constructor(props) {
@@ -42,25 +45,13 @@ class ForgotPassword extends Component {
           accountID: response.data,
           currentStep: 2,
         });
-        toast.success('Mã xác nhận đã được gửi đến email!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Mã xác nhận đã được gửi đến email!');
       } else {
-        toast.error(response.errMessage || 'Lỗi khi kiểm tra email!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage || 'Lỗi khi kiểm tra email!');
       }
     } catch (e) {
       console.log('Error sending forgot token:', e);
-      toast.error('Lỗi khi gửi yêu cầu kiểm tra email!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi gửi yêu cầu kiểm tra email!');
     }
     this.setState({ isLoading: false });
   };
@@ -71,73 +62,41 @@ class ForgotPassword extends Component {
       const response = await handleVerifyForgotTokenApi(accountID, verificationCode);
       if (response && response.errCode === 0) {
         this.setState({ currentStep: 3 });
-        toast.success('Xác nhận mã thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Xác nhận mã thành công!');
       } else {
-        toast.error(response.errMessage || 'Mã xác nhận không hợp lệ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage || 'Mã xác nhận không hợp lệ!');
       }
     } catch (e) {
       console.log('Error verifying forgot token:', e);
-      toast.error('Lỗi khi xác nhận mã!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi xác nhận mã!');
     }
     this.setState({ isLoading: false });
   };
   handleChangePassword = async () => {
     const { accountID, newPassword, confirmPassword } = this.state;
     if (newPassword !== confirmPassword) {
-      toast.error('Mật khẩu xác nhận không khớp!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Mật khẩu xác nhận không khớp!');
       return;
     }
     const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-      toast.error('Mật khẩu mới phải có ít nhất 8 ký tự!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Mật khẩu mới phải có ít nhất 8 ký tự!');
       return;
     }
     this.setState({ isLoading: true });
     try {
       const response = await handleChangePasswordApi(accountID, 'forgot_password', newPassword);
       if (response && response.errCode === 0) {
-        toast.success('Đổi mật khẩu thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Đổi mật khẩu thành công!');
         setTimeout(() => {
           this.props.navigate('/login');
         }, 501);
       } else {
-        toast.error(response.errMessage || 'Lỗi khi đổi mật khẩu!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage || 'Lỗi khi đổi mật khẩu!');
       }
     } catch (e) {
       console.log('Error changing password:', e);
-      toast.error('Lỗi khi gửi yêu cầu đổi mật khẩu!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi gửi yêu cầu đổi mật khẩu!');
     }
     this.setState({ isLoading: false });
   };
@@ -145,7 +104,6 @@ class ForgotPassword extends Component {
     e.preventDefault();
     this.handleSendForgotToken();
   };
-
   handleStep2Submit = (e) => {
     e.preventDefault();
     this.handleVerifyForgotToken();
@@ -240,7 +198,6 @@ class ForgotPassword extends Component {
     const { currentStep, isLoading } = this.state;
     return (
       <div className="forgot-background">
-        <ToastContainer />
         {isLoading ? (
           <Spinner />
         ) : (

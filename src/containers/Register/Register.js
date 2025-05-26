@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
 import { keyOutline, home, mailOutline, eyeOffOutline, eyeOutline, call, person, maleFemaleOutline, location } from 'ionicons/icons';
@@ -41,11 +41,7 @@ class Register extends Component {
       codeTypes.forEach((type, index) => {
         const response = responses[index];
         if (!response.status || response.data.length === 0) {
-          toast.error(`Không thể tải danh sách ${type}!`, {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error(`Không thể tải danh sách ${type}!`);
         }
         newState[`code${type}`] = response.data;
         newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
@@ -53,11 +49,7 @@ class Register extends Component {
       this.setState(newState);
     } catch (error) {
       console.error('Error loading codes:', error);
-      toast.error('Lỗi khi tải dữ liệu!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải dữ liệu!');
       this.setState({ isLoading: false });
     }
   };
@@ -68,6 +60,8 @@ class Register extends Component {
       case 1: value = 'isTogglePassword1';
         break;
       case 2: value = 'isTogglePassword2';
+        break;
+      default: break;
     }
     this.setState((prevState) => ({ [value]: !prevState[value] }));
   }
@@ -84,11 +78,7 @@ class Register extends Component {
     this.setState({ isLoading: true });
     const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword } = this.state;
     if (password !== confirmPassword) {
-      toast.error('Mật khẩu không trùng khớp!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Mật khẩu không trùng khớp!');
       this.setState({ isLoading: false });
       return;
     }
@@ -104,38 +94,22 @@ class Register extends Component {
     };
     const isValidateInput = await validateAccountInput(userInfo, "REG");
     if (!isValidateInput.valid) {
-      toast.error(isValidateInput.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(isValidateInput.errMessage);
       this.setState({ isLoading: false });
       return;
     }
     try {
       const response = await handleRegisterApi(userInfo);
       if (response && response.errCode === 0) {
-        toast.success('Đăng ký tài khoản thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Đăng ký tài khoản thành công!');
         setTimeout(() => this.props.navigate('/login'), 501);
       } else {
         const errMessage = response?.errMessage || 'Đăng ký tài khoản thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Register:', e);
-      toast.error('Xảy ra lỗi khi đăng ký, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi đăng ký, vui lòng thử lại!');
     }
     this.setState({
       isLoading: false,
@@ -145,18 +119,13 @@ class Register extends Component {
     const { accountname, email, password, username, phone, address, gender, confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, isLoading } = this.state;
     return (
       <div className="body-register">
-        <ToastContainer />
         {isLoading ? (
           <Spinner />
         ) : (
           <div className="register-container">
             <div className="form-container">
               <div className="home-button">
-                <a
-                  onClick={() => {
-                    this.props.navigate('/home');
-                  }}
-                >
+                <a href='/home'>
                   <IonIcon icon={home}></IonIcon>
                 </a>
               </div>
@@ -232,7 +201,7 @@ class Register extends Component {
                 </button>
                 <div className="login">
                   <p>Đã có tài khoản? </p>
-                  <a onClick={() => this.props.navigate('/login')}>Đăng nhập</a>
+                  <a href='/login'>Đăng nhập</a>
                 </div>
               </div>
             </div>

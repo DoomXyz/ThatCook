@@ -15,7 +15,7 @@ import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBack
 import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices.js';
 import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
 import { handleGetAllCodesApi } from '../../services/utilitiesServices.js';
-import { clearBillSearchInfo } from '../../store/actions/index.js';
+import { clearTrackInfo } from '../../store/actions/index.js';
 
 import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
@@ -50,12 +50,12 @@ class Track extends Component {
   async componentDidMount() {
     try {
       await Promise.all([this.handleLoadCodePaymentType(), this.handleLoadCodeShippingMethod(), this.handleLoadCodeShippingStatus(), this.handleLoadCodeAppointmentStatus(), this.handleLoadCodePetType(), this.handleLoadCodePetGender()]);
-      if (this.props.billInfo) {
-        const { billid, billtype } = this.props.billInfo;
+      if (this.props.trackInfo) {
+        const { billid, billtype } = this.props.trackInfo;
         this.setState({ billid, billtype, actionPage: billtype });
         const success = await this.handleLoadBillDetails(billid, billtype);
         if (success) {
-          this.props.clearBillSearchInfo();
+          this.props.clearTrackInfo();
         }
       }
     } catch (e) {
@@ -156,7 +156,7 @@ class Track extends Component {
       toast.error('Lỗi khi tải danh sách loại lịch hẹn!', { position: 'top-right', autoClose: 500, closeOnClick: true });
     }
   };
-  loadBillData = async (id, type) => {
+  loadtrackData = async (id, type) => {
     try {
       switch (type) {
         case 1: // Product
@@ -203,7 +203,7 @@ class Track extends Component {
       return false;
     }
     this.setState({ isLoading: true });
-    const result = await this.loadBillData(billid, billtype);
+    const result = await this.loadtrackData(billid, billtype);
     this.setState({ isLoading: false });
     if (result.success) {
       this.setState({ [result.stateKey]: result.data });
@@ -218,7 +218,7 @@ class Track extends Component {
       return;
     }
     this.setState({ isLoading: true });
-    const result = await this.loadBillData(searchValue, selectedTab);
+    const result = await this.loadtrackData(searchValue, selectedTab);
     this.setState({ isLoading: false });
     if (result.success) {
       this.setState({
@@ -1048,11 +1048,11 @@ class Track extends Component {
 
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
-  billInfo: state.bill.billInfo,
+  trackInfo: state.track.trackInfo,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  clearBillSearchInfo: () => dispatch(clearBillSearchInfo()),
+  clearTrackInfo: () => dispatch(clearTrackInfo()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Track);

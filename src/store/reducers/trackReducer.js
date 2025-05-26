@@ -1,24 +1,24 @@
 import actionTypes from '../actions/actionTypes';
 
 const initialState = {
-    billInfo: null,
+    trackInfo: null,
 };
 
-const billReducer = (state = initialState, action) => {
+const trackReducer = (state = initialState, action) => {
     switch (action.type) {
-        case actionTypes.SAVE_BILL_SEARCH:
+        case actionTypes.SAVE_TRACK_INFO:
             return {
                 ...state,
-                billInfo: action.data.billData,
+                trackInfo: action.data.trackData,
             };
-        case actionTypes.CLEAR_BILL_SEARCH:
+        case actionTypes.CLEAR_TRACK_INFO:
             return {
                 ...state,
-                billInfo: null,
+                trackInfo: null,
             };
         default:
             return state;
     }
 };
 
-export default billReducer;
+export default trackReducer;

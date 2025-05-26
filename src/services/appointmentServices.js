@@ -24,8 +24,8 @@ const handleChangeAppointmentStatusApi = (appointmentid, appointmentstatus, acco
   return axios.put('/api/change-appointmentstatus', { appointmentid, appointmentstatus, accountid });
 };
 
-const handleCreateAppointmentBillApi = (appointmentBillData) => {
-  return axios.post('/api/create-appointmentbill', appointmentBillData);
+const handleCreateAppointmentBillApi = (appointmenttrackData) => {
+  return axios.post('/api/create-appointmentbill', appointmenttrackData);
 };
 
 const handleGetAppointmentBillDetailApi = (appointmentbillid) => {

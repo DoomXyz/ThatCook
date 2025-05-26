@@ -1,5 +1,3 @@
-import { toast } from 'react-toastify';
-
 import { handleVerifyTokenApi } from '../services/accountServices';
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../services/utilitiesServices';
 
@@ -54,35 +52,6 @@ const getAllCodes = async (type) => {
   }
 };
 
-const confirmAction = (message, confirmText = 'Có', cancelText = 'Không') => {
-  return new Promise((resolve) => {
-    toast(
-      <div>
-        <p>{message}</p>
-        <button
-          className="toast-confirm-btn"
-          onClick={() => {
-            resolve(true);
-            toast.dismiss();
-          }}
-        >
-          {confirmText}
-        </button>
-        <button
-          className="toast-cancel-btn"
-          onClick={() => {
-            resolve(false);
-            toast.dismiss();
-          }}
-        >
-          {cancelText}
-        </button>
-      </div>,
-      { position: 'top-center', autoClose: 1000, closeOnClick: false }
-    );
-  });
-};
-
 const uploadImages = async (images) => {
   try {
     const uploadedImages = [];
@@ -116,28 +85,6 @@ const uploadImages = async (images) => {
       error: error.message,
     };
   }
-};
-
-const validateCodeInput = (codeInfo) => {
-  if (!codeInfo || !Object.keys(codeInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã!' };
-
-  const { Type, Code, CodeValueVI, ExtraValue } = codeInfo;
-  const typeRegex = /^[A-Za-z0-9]{2,30}$/;
-  const codeRegex = /^[A-Za-z0-9]{1,20}$/;
-  const valueRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
-
-  if (!Type?.trim()) return { valid: false, errMessage: 'Type không được để trống!' };
-  if (!typeRegex.test(Type.trim())) return { valid: false, errMessage: 'Type không hợp lệ (2-30 ký tự, chỉ chữ và số)!' };
-
-  if (!Code?.trim()) return { valid: false, errMessage: 'Code không được để trống!' };
-  if (!codeRegex.test(Code.trim())) return { valid: false, errMessage: 'Code không hợp lệ (1-20 ký tự, chỉ chữ và số)!' };
-
-  if (!CodeValueVI?.trim()) return { valid: false, errMessage: 'CodeValueVI không được để trống!' };
-  if (!valueRegex.test(CodeValueVI.trim())) return { valid: false, errMessage: 'CodeValueVI không hợp lệ (2-50 ký tự, có ít nhất một chữ cái)!' };
-
-  if (ExtraValue && (isNaN(ExtraValue) || parseFloat(ExtraValue) < 0)) return { valid: false, errMessage: 'ExtraValue phải là số không âm!' };
-
-  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
 
 const validateAccountInput = async (userInfo, type) => {
@@ -180,6 +127,28 @@ const validateAccountInput = async (userInfo, type) => {
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
 
+const validateCodeInput = (codeInfo) => {
+  if (!codeInfo || !Object.keys(codeInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã!' };
+
+  const { Type, Code, CodeValueVI, ExtraValue } = codeInfo;
+  const typeRegex = /^[A-Za-z0-9]{2,30}$/;
+  const codeRegex = /^[A-Za-z0-9]{1,20}$/;
+  const valueRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
+
+  if (!Type?.trim()) return { valid: false, errMessage: 'Type không được để trống!' };
+  if (!typeRegex.test(Type.trim())) return { valid: false, errMessage: 'Type không hợp lệ (2-30 ký tự, chỉ chữ và số)!' };
+
+  if (!Code?.trim()) return { valid: false, errMessage: 'Code không được để trống!' };
+  if (!codeRegex.test(Code.trim())) return { valid: false, errMessage: 'Code không hợp lệ (1-20 ký tự, chỉ chữ và số)!' };
+
+  if (!CodeValueVI?.trim()) return { valid: false, errMessage: 'CodeValueVI không được để trống!' };
+  if (!valueRegex.test(CodeValueVI.trim())) return { valid: false, errMessage: 'CodeValueVI không hợp lệ (2-50 ký tự, có ít nhất một chữ cái)!' };
+
+  if (ExtraValue && (isNaN(ExtraValue) || parseFloat(ExtraValue) < 0)) return { valid: false, errMessage: 'ExtraValue phải là số không âm!' };
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+};
+
 const validateVeterinarianInput = async (veterinarianInfo) => {
   if (!veterinarianInfo || !Object.keys(veterinarianInfo).length) return { valid: false, errMessage: 'Thiếu thông tin bác sĩ thú y!' };
 
@@ -218,13 +187,73 @@ const validateServiceInput = (serviceInfo) => {
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
 
+const validatePetInput = async (petInfo) => {
+  if (!petInfo || !Object.keys(petInfo).length) return { valid: false, errMessage: 'Thiếu thông tin thú cưng!' };
+
+  const { petname, pettype, petgender, petweight, age } = petInfo;
+  const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+
+  if (!petname?.trim() || petname.trim().length > 50) return { valid: false, errMessage: 'Tên thú cưng trống hoặc vượt quá 50 ký tự!' };
+  if (!petNameRegex.test(petname.trim())) return { valid: false, errMessage: 'Tên thú cưng không hợp lệ!' };
+
+  if (!pettype) return { valid: false, errMessage: 'Loại thú cưng không được để trống!' };
+  const petTypeResponse = await getAllCodes('PetType');
+  const validPetType = petTypeResponse.data?.map((item) => item.Code) || [];
+  if (!validPetType.includes(pettype)) return { valid: false, errMessage: 'Loại thú cưng không hợp lệ!' };
+
+  if (!petgender) return { valid: false, errMessage: 'Giới tính thú cưng không được để trống!' };
+  const petGenderResponse = await getAllCodes('PetGender');
+  const validPetGender = petGenderResponse.data?.map((item) => item.Code) || [];
+  if (!validPetGender.includes(petgender)) return { valid: false, errMessage: 'Giới tính thú cưng không hợp lệ!' };
+
+  if (!petweight || isNaN(petweight) || petweight <= 0 || petweight > 999.99) return { valid: false, errMessage: 'Cân nặng thú cưng không hợp lệ (phải từ 0.01 đến 999.99)!' };
+
+  if (age === undefined || isNaN(age) || age < 0 || age > 999) return { valid: false, errMessage: 'Tuổi thú cưng không hợp lệ (phải từ 0 đến 999)!' };
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+};
+
+const validateAppointmentInput = async (appointmentInfo) => {
+  if (!appointmentInfo || !Object.keys(appointmentInfo).length) return { valid: false, errMessage: 'Thiếu thông tin đặt lịch!' };
+
+  const { customername, customeremail, customerphone, appointmentdate, starttime, notes, serviceid, petid } = appointmentInfo;
+  const customerNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+  const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{10,11}$/;
+  const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+
+  if (!customername) return { valid: false, errMessage: 'Tên khách hàng không được để trống!' };
+  if (!customerNameRegex.test(customername.trim())) return { valid: false, errMessage: 'Tên khách hàng sai định dạng!' };
+
+  if (!customeremail) return { valid: false, errMessage: 'Email không được để trống!' };
+  if (!emailRegex.test(customeremail.trim())) return { valid: false, errMessage: 'Email sai định dạng!' };
+
+  if (!customerphone) return { valid: false, errMessage: 'Số điện thoại không được để trống!' };
+  if (!phoneRegex.test(customerphone.trim())) return { valid: false, errMessage: 'Số điện thoại không hợp lệ!' };
+
+  if (!appointmentdate || !starttime) return { valid: false, errMessage: 'Ngày hoặc giờ hẹn không được để trống!' };
+  if (!timeRegex.test(starttime)) return { valid: false, errMessage: 'Giờ hẹn không hợp lệ (HH:mm)!' };
+  const dateCheck = new Date(appointmentdate);
+  if (isNaN(dateCheck.getTime())) return { valid: false, errMessage: 'Ngày hẹn không hợp lệ!' };
+  const [hours, minutes] = starttime.split(':').map(Number);
+  dateCheck.setHours(hours, minutes, 0, 0);
+  if (dateCheck <= new Date()) return { valid: false, errMessage: 'Thời gian hẹn phải trong tương lai!' };
+
+  if (notes?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+
+  if (!serviceid || petid) return { valid: false, errMessage: 'Thông tin thú cưng và dịch vụ không được bỏ trống!' };
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+};
+
 export {
   checkLoginStatus,
   getAllCodes,
-  confirmAction,
   uploadImages,
-  validateCodeInput,
   validateAccountInput,
+  validateCodeInput,
   validateVeterinarianInput,
   validateServiceInput,
+  validatePetInput,
+  validateAppointmentInput
 };

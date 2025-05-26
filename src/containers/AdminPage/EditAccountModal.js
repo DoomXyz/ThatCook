@@ -12,7 +12,7 @@ import Modal from 'react-bootstrap/Modal';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountInfoApi, handleGetVeterinarianInfoApi } from '../../services/accountServices';
 
-import { getAllCodes, confirmAction, validateVeterinarianInput, validateAccountInput } from '../../utils/pakage'
+import { getAllCodes, validateVeterinarianInput, validateAccountInput } from '../../utils/pakage'
 
 class EditAccountModal extends Component {
   constructor(props) {
@@ -153,38 +153,34 @@ class EditAccountModal extends Component {
     const selectedServiceIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
     this.setState({ selectedServices: selectedServiceIds });
   };
-  checkValidateInput = () => {
-    const { accountname, username, phone, address, gender, codeGender, specialization, selectedServices, accounttype } = this.state;
-    const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    const phoneRegex = /^[0-9]{10,11}$/;
-    const specializationRegex = /^$|^[A-Za-zÀ-ỹ\s]{0,50}$/;
-
-    if (!accountname) return { errCode: -1, errMessage: 'Tên tài khoản trống!' };
-    if (!accountNameRegex.test(accountname)) return { errCode: 1, errMessage: 'Tên tài khoản sai định dạng!' };
-
-    if (!username) return { errCode: -1, errMessage: 'Tên người dùng trống!' };
-    if (!userNameRegex.test(username)) return { errCode: 1, errMessage: 'Tên người dùng không hợp lệ!' };
-
-    if (!phone) return { errCode: -1, errMessage: 'Số điện thoại trống!' };
-    if (!phoneRegex.test(phone)) return { errCode: 1, errMessage: 'Số điện thoại không hợp lệ!' };
-
-    if (!address) return { errCode: -1, errMessage: 'Địa chỉ trống!' };
-
-    const validGenderCode = codeGender.map((item) => item.Code);
-    if (!gender) return { errCode: -1, errMessage: 'Giới tính không tồn tại!' };
-    if (!validGenderCode.includes(gender)) return { errCode: 1, errMessage: 'Giới tính không hợp lệ!' };
-
-    if (specialization && !specializationRegex.test(specialization)) return { errCode: 1, errMessage: 'Chuyên khoa không hợp lệ!' };
-
-    if (accounttype === 'V' && selectedServices.length === 0) {
-      return { errCode: -1, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
-    }
-
-    return { errCode: 0, errMessage: 'Kiểm tra thông tin hoàn tất!' };
-  };
   handleEditAccount = async () => {
-    let isConfirmed = await confirmAction('Xác nhận sửa thông tin người dùng?', 'Có', 'Không');
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận sửa chỉnh sửa thông tin người dùng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+    const isConfirmed = await confirmAction();
     if (isConfirmed) {
       const { selectedAccountID, accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus, selectedServices } = this.state;
       if (password !== confirmPassword) {

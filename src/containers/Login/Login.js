@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 
@@ -84,11 +84,7 @@ class Login extends Component {
       let response = await handleLoginApi(accountname, password, rememberMe);
       // nếu nhận được thông tin từ backend với mã lỗi khác 0 -> các trường hợp sai mail, sai pass,...
       if (response && response.errCode !== 0) {
-        toast.error(response.errMessage, {
-          position: 'bottom-center',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage);
       } else {
         const accountInfo = response.data;
         if (this.props.cartItems.length !== 0) {
@@ -105,21 +101,13 @@ class Login extends Component {
           UserImage: accountInfo.UserImage,
           UserName: accountInfo.UserName,
         });
-        toast.success('Đăng nhập thành công!', {
-          position: 'bottom-center',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Đăng nhập thành công!');
         setTimeout(() => {
           this.props.navigate(accountInfo.navigate);
         }, 501);
       }
     } catch (e) {
-      toast.error('Đã xảy ra lỗi không xác định!', {
-        position: 'bottom-center',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Đã xảy ra lỗi không xác định!');
     }
     this.setState({
       isLoading: false,
@@ -129,18 +117,13 @@ class Login extends Component {
     const { accountname, password, rememberMe, isLoading } = this.state;
     return (
       <div className="login-background">
-        <ToastContainer />
         {isLoading ? (
           <Spinner />
         ) : (
           <div className="login-container">
             <div className="login-content">
               <div className="home-button">
-                <a
-                  onClick={() => {
-                    this.props.navigate('/home');
-                  }}
-                >
+                <a href='/home'>
                   <IonIcon icon={home}></IonIcon>
                 </a>
               </div>
@@ -186,12 +169,7 @@ class Login extends Component {
                     <input type="checkbox" checked={rememberMe} onChange={(event) => this.setState({ rememberMe: event.target.checked })} />
                     <label htmlFor="rememberMe">Ghi nhớ đăng nhập</label>
                   </div>
-                  <a
-                    className="forgot-password"
-                    onClick={() => {
-                      this.props.navigate('/forgotpassword');
-                    }}
-                  >
+                  <a href='/forgotpassword'>
                     Quên mật khẩu?
                   </a>
                 </div>
@@ -202,11 +180,7 @@ class Login extends Component {
               <div className="signin">
                 <p>
                   Không có tài khoản?
-                  <a
-                    onClick={() => {
-                      this.props.navigate('/register');
-                    }}
-                  >
+                  <a href='/login'>
                     {' '}
                     Đăng ký ngay!
                   </a>

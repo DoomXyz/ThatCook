@@ -4,14 +4,14 @@ import storage from 'redux-persist/lib/storage'; // Sử dụng localStorage
 import userReducer from '../reducers/userReducer'; // Import reducer
 import cartReducer from '../reducers/cartReducer';
 import appointmentReducer from '../reducers/appointmentReducer';
-import billReducer from '../reducers/billReducer';
+import trackReducer from '../reducers/trackReducer';
 import preselectReducer from '../reducers/preselectReducer'
 
 // Cấu hình persist
 const persistConfig = {
   key: 'root',
   storage,
-  blacklist: ['bill', 'appointment', 'preselect'],
+  blacklist: ['track', 'appointment', 'preselect'],
 };
 
 // Combine reducers
@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
   user: userReducer, // Gắn reducer "user" vào store
   cart: cartReducer,
   appointment: appointmentReducer,
-  bill: billReducer,
+  track: trackReducer,
   preselect: preselectReducer
 });
 // Tạo persisted reducer
@@ -37,5 +37,5 @@ export { store, persistor };
 export * from './userActions';
 export * from './cartActions';
 export * from './appointmentActions'
-export * from './billActions'
+export * from './trackActions'
 export * from './preselectActions'
