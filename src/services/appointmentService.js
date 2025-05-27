@@ -108,6 +108,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
   }
   if (!accountid) {
     return {
+
       errCode: -1,
       errMessage: 'Tài khoản không được để trống!',
       data: null,
