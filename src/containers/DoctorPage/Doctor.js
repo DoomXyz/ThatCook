@@ -819,6 +819,7 @@ class Doctor extends Component {
       () => this.handleLoadSchedule()
     );
   };
+
   renderForm() {
     const { actionPage, veterinarianid, veterinarianname, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
       editField, bio, servicesList, specialization, workingstatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType, codePetType, codePetGender,
@@ -849,11 +850,11 @@ class Doctor extends Component {
             <div className='doctor-head'>
               <div className='doctor-head-left'>
                 <h3>
-                  <b>Thông tin bác sĩ:</b>
+                  <b>Thông tin bác sĩ: Bs.{veterinarianname}</b>
                 </h3>
               </div>
-              <div className='doctor-head-right'>
-                <div className="value-doctor">
+              <div className='doctor-head-right' >
+                <div className="value-doctor-status" data-status={workingstatus}>
                   {codeWorkingStatus.find(status => status.Code === workingstatus)?.CodeValueVI || workingstatus}
                 </div>
                 <div className="descreption-doctor"> <label className="switch">
@@ -870,12 +871,24 @@ class Doctor extends Component {
 
             <div className="doctor-info-form-content">
               <div className="doctor-info-tab">
-                <div className="descreption-doctor">Họ tên:</div>
-                <div className="doctor-value">{veterinarianname}</div>
+                <div className="descreption-doctor">Dịch vụ thực hiện:
+                </div>
+                <div className="doctor-value-1">
+                  {servicesList && servicesList.length > 0 ? (
+                    <div className="service-list">
+                      {servicesList.map((item, index) => (
+                        <div className="doctor-value-sv" key={item.ServiceID}  >
+                          {item.ServiceName}
+                          {index < servicesList.length - 1 && ", "} {/* Thêm dấu phẩy và khoảng cách giữa các mục */}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                </div>
               </div>
-              <div className="doctor-info-tab">
-                <div className="descreption-doctor">Dịch vụ thực hiện: </div>
-                {servicesList && servicesList.length > 0 ? servicesList.map((item) => (<div className="doctor-value-sv" key={item.ServiceID}> {item.ServiceName} </div>)) : ""}</div>
+
               <div className="doctor-info-tab">
                 <div className="descreption-doctor">Chuyên Khoa: </div>
                 {editField === 'specialization' ? <input type="text" name='specialization' value={specialization}

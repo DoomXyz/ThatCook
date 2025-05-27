@@ -96,10 +96,9 @@ $transition: all 0.3s ease;
     }
 
     .descreption-doctor {
-      display: flex;
+      width: 250px;
       font-weight: bold;
       /* Tương tự <th> */
-      flex: 1;
       /* Chiếm không gian tối đa bên trái */
       justify-content: flex-start;
       padding-right: 10px;
@@ -146,10 +145,75 @@ $transition: all 0.3s ease;
       /* Nếu chuỗi không có khoảng trắng, vẫn cắt và xuống dòng */
     }
 
-    .doctor-value-sv {
-      padding-left: 10px;
+    .doctor-value-1 {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      /* Xếp các dòng theo chiều dọc */
+      gap: 5px;
+      /* Khoảng cách giữa các dòng */
+
+      .service-list {
+        display: flex;
+        flex-wrap: wrap;
+        /* Cho phép xuống dòng khi vượt quá chiều rộng */
+        gap: 10px;
+        /* Khoảng cách giữa các mục */
+        justify-content: right;
+
+        .doctor-value-sv {
+          display: inline-flex;
+          /* Hiển thị các mục trên cùng một dòng */
+          padding-left: 10px;
+          /* Giữ padding bên trái */
+          white-space: nowrap;
+          /* Ngăn văn bản xuống dòng trong một mục */
+          padding: 5px 10px; // Thêm padding để màu nền không quá sát chữ
+          border-radius: 4px; // Thêm bo góc nếu muốn
+          transition: background-color 0.3s ease; // Hiệu ứng chuyển màu
+
+          &:nth-child(1) {
+            background-color: rgb(248, 116, 116);
+          }
+
+          &:nth-child(2) {
+            background-color: rgb(254, 254, 143);
+          }
+
+          &:nth-child(3) {
+            background-color: rgb(255, 209, 125);
+          }
+
+          &:nth-child(4) {
+            background-color: rgb(128, 246, 128);
+          }
+
+          &:nth-child(5) {
+            background-color: rgb(150, 150, 247);
+          }
+
+          &:nth-child(6) {
+            background-color: rgb(174, 138, 251);
+          }
+
+          &:nth-child(7) {
+            background-color: rgb(241, 149, 250);
+          }
+
+          &:nth-child(8) {
+            background-color: rgb(245, 139, 174);
+          }
+
+          &:nth-child(4n + 1) {
+            margin-left: 0;
+            /* Đặt lại margin cho mục đầu tiên của mỗi dòng */
+          }
+
+          &:not(:last-child)::after {
+            content: ", ";
+            /* Thêm dấu phẩy và khoảng cách sau mỗi mục trừ mục cuối */
+          }
+        }
+      }
     }
 
     .doctor-value {
@@ -330,6 +394,22 @@ $transition: all 0.3s ease;
 .wait-appointment-filter {
   display: flex;
   flex-direction: row;
+
+  .value-doctor-status {
+    padding-right: 10px;
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+
+    &[data-status="WORK"] {
+      color: #23f635;
+    }
+
+    &[data-status="LEAVE"] {
+      color: #fc6464;
+    }
+  }
 
   .doctor-head-left,
   .filter-left {

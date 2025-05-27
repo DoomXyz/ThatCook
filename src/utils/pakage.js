@@ -338,7 +338,7 @@ const validateBannerInput = async (bannerInfo) => {
 const validateCouponInput = async (couponInfo) => {
   if (!couponInfo || !Object.keys(couponInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã giảm giá!' };
 
-  const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, discounttype, startdate, enddate } = couponInfo;
+  const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, discounttype, startdate, enddate, couponstatus } = couponInfo;
   const couponCodeRegex = /^[a-zA-Z0-9]{5,20}$/;
 
   if (!couponcode) return { valid: false, errMessage: 'Vui lòng nhập mã giảm giá!' };
@@ -354,7 +354,7 @@ const validateCouponInput = async (couponInfo) => {
 
   if (maxdiscount !== undefined) {
     if (maxdiscount < 0) return { valid: false, errMessage: 'Giảm giá tối đa phải lớn hơn 0!' };
-    if (discounttype === 'FIXED' && maxdiscount > discountvalue) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
+    if (discounttype === 'FIXED' && parseFloat(maxdiscount) > parseFloat(discountvalue)) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
   }
 
   if (!discounttype) return { valid: false, errMessage: 'Loại giảm giá không được để trống!' };
@@ -373,6 +373,11 @@ const validateCouponInput = async (couponInfo) => {
     if (enddateObj <= now) return { valid: false, errMessage: 'Ngày hết hạn phải trong tương lai!' };
     if (enddateObj < startdateObj) return { valid: false, errMessage: 'Ngày hết hạn phải sau ngày bắt đầu!' };
   }
+
+  if (!couponstatus) return { valid: false, errMessage: 'Trạng thái giảm giá không được để trống!' };
+  const statusResponse = await getAllCodes('CouponStatus');
+  const validCouponStatus = statusResponse.data?.map((item) => item.Code) || [];
+  if (!validCouponStatus.includes(couponstatus)) return { valid: false, errMessage: 'Trạng thái giảm giá không hợp lệ!' };
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };

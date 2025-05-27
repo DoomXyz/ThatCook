@@ -16,4 +16,8 @@ const handleCreateCouponApi = (couponInfo) => {
     return axios.post('/api/create-coupon', couponInfo);
 };
 
-export { handleCheckCouponApi, handleGetCouponApi, handleCreateCouponApi, handleLoadCouponInfoApi };
+const handleChangeCouponInfoApi = (couponInfo) => {
+    return axios.put('/api/change-couponinfo', couponInfo);
+};
+
+export { handleCheckCouponApi, handleGetCouponApi, handleLoadCouponInfoApi, handleCreateCouponApi, handleChangeCouponInfoApi };

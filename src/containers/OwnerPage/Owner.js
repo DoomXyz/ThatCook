@@ -20,7 +20,7 @@ import { handleLogoutApi } from '../../services/accountServices';
 import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from '../../services/productServices';
 import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
 import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
-import { handleCreateCouponApi, handleLoadCouponInfoApi } from '../../services/couponServices';
+import { handleLoadCouponInfoApi, handleCreateCouponApi, handleChangeCouponInfoApi } from '../../services/couponServices';
 
 import { getAllCodes, checkLoginStatus, validateCouponInput } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
@@ -75,7 +75,6 @@ class Owner extends Component {
       selectedCoupon: null,
       // Coupon Management
       isEditingCoupon: null,
-      isAddingCoupon: false,
       // DisableButton
       disabledButtons: {
         logout: false,
@@ -83,6 +82,7 @@ class Owner extends Component {
         confirmDelivery: false,
         acceptCancelInvoice: false,
         denyCancelInvoice: false,
+        saveCoupon: false,
       },
     };
     this.debounceTimeout = null;
@@ -629,6 +629,7 @@ class Owner extends Component {
   toggleCreateCouponModal = () => {
     this.setState({
       isShowCreateCouponModal: !this.state.isShowCreateCouponModal,
+      isEditingCoupon: false
     });
   };
   //modal input
@@ -780,12 +781,107 @@ class Owner extends Component {
   };
   //on table change action (coupon)
   handleEditCoupon = (index) => {
-    console.log(this.state.loadedCouponInfo[index])
-    // this.setState({ isEditingCoupon: index, isAddingCoupon: false });
+    this.setState({ isEditingCoupon: index });
+  };
+  handleCancelCoupon = () => {
+    this.setState(
+      {
+        isEditingCoupon: null,
+      },
+      async () => {
+        await this.handleLoadCouponInfo();
+      }
+    );
+  };
+  handleCouponChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newCoupons = [...prevState.loadedCouponInfo];
+      newCoupons[index] = {
+        ...newCoupons[index],
+        [field]: field === 'StartDate' || field === 'EndDate' ? value : value,
+      };
+      return { loadedCouponInfo: newCoupons };
+    });
   };
   handleSaveCoupon = async (index) => {
+    const couponInfo = this.state.loadedCouponInfo[index];
+    const newCouponInfo = {
+      couponid: couponInfo.CouponID,
+      couponcode: couponInfo.CouponCode.trim(),
+      coupondescription: couponInfo.CouponDescription ? couponInfo.CouponDescription.trim() : null,
+      minordervalue: couponInfo.MinOrderValue ? parseFloat(couponInfo.MinOrderValue).toFixed(2) : null,
+      discountvalue: parseFloat(couponInfo.DiscountValue).toFixed(2),
+      maxdiscount: couponInfo.MaxDiscount ? parseFloat(couponInfo.MaxDiscount).toFixed(2) : null,
+      discounttype: couponInfo.DiscountType,
+      startdate: couponInfo.StartDate ? new Date(couponInfo.StartDate).toISOString().split('T')[0] : null,
+      enddate: couponInfo.EndDate ? new Date(couponInfo.EndDate).toISOString().split('T')[0] : null,
+      couponstatus: couponInfo.CouponStatus,
+    };
 
-  }
+    const isValidateInput = await validateCouponInput(newCouponInfo);
+    if (!isValidateInput.valid) {
+      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`);
+      return;
+    }
+
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, saveCoupon: true } });
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận lưu thông tin coupon?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, saveCoupon: false } });
+            },
+          }
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const apiResponse = await handleChangeCouponInfoApi(newCouponInfo);
+      const response = apiResponse.data;
+      console.log(response)
+      if (response && response.errCode === 0) {
+        toast.success(response?.errMessage || 'Chỉnh sửa coupon thành công!');
+        await this.handleLoadCouponInfo();
+        this.setState({
+          isEditingCoupon: null,
+        });
+      } else {
+        const errMessage = response?.errMessage || 'Chỉnh sửa coupon thất bại!';
+        toast.error(errMessage);
+      }
+    } catch (e) {
+      console.error('Edit Coupon:', e);
+      toast.error('Xảy ra lỗi khi chỉnh sửa coupon, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
+  };
   //form controller
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
@@ -839,6 +935,7 @@ class Owner extends Component {
       filterValue: 'ALL',
       sortValue: '0',
       dateFilterValue: '',
+      isEditingCoupon: null,
     }, async () => {
       await this.handleLoadCouponInfo();
     });
@@ -868,6 +965,7 @@ class Owner extends Component {
       selectedBanner,
       selectedInvoice,
       selectedCancelInvoice,
+      isEditingCoupon,
       disabledButtons
     } = this.state;
     const renderSection = () => {
@@ -1351,84 +1449,376 @@ class Owner extends Component {
               <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-coupon">
                 THÊM COUPON <IonIcon icon={add}></IonIcon>
               </button>
-              <div className="f">
-                <div className="owner-mid-content-search-coupon" style={{ display: actionPage === 4 ? 'flex' : 'none' }}>
-                  <p>Tìm kiếm:</p>
-                  <input type="text" placeholder="Nhập mã coupon" value={searchValue} onChange={(event) => this.handleSearchChange(event, 4)} />
-                  <IonIcon icon={searchOutline}></IonIcon>
-                </div>
-                <div style={{ display: actionPage === 4 ? 'flex' : 'none' }} className="owner-mid-content-coupon-filter-sort f">
-                  <div className="owner-mid-content-coupon-filter">
-                    <label>Lọc Coupon:</label>
-                    <br />
-                    <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 4)}>
-                      <option value="ALL">Tất cả</option>
-                      {codeCouponStatus && codeCouponStatus.length > 0 && (
-                        <optgroup label="Trạng thái">
-                          {codeCouponStatus.map((item) => (
-                            <option key={`couponstatus-${item.Code}`} value={`couponstatus-${item.Code}`}>
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      {codeDiscountType && codeDiscountType.length > 0 && (
-                        <optgroup label="Loại giảm giá">
-                          {codeDiscountType.map((item) => (
-                            <option key={`discounttype-${item.Code}`} value={`discounttype-${item.Code}`}>
-                              {item.CodeValueVI}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="Giảm giá tối đa">
-                        <option value="maxdiscountfixed-0">0 - 20.000 VNĐ</option>
-                        <option value="maxdiscountfixed-1">20.000 - 50.000 VNĐ</option>
-                        <option value="maxdiscountfixed-2">50.000 - 100.000 VNĐ</option>
-                        <option value="maxdiscountfixed-3">Trên 100.000 VNĐ</option>
-                      </optgroup>
-                    </select>
-                  </div>
-                  <div className="owner-mid-content-coupon-sort">
-                    <label>Sắp xếp:</label>
-                    <br />
-                    <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 4)}>
-                      <option value="0">Mặc định</option>
-                      <option value="1">Mới nhất</option>
-                      <option value="2">Cũ nhất</option>
-                      <option value="3">Hạn sử dụng xa nhất</option>
-                      <option value="4">Hết sử dụng gần nhất</option>
-                      <option value="5">Giảm giá ít nhất</option>
-                      <option value="6">Giảm giá nhiều nhất</option>
-                    </select>
-                  </div>
-                </div>
-                <div style={{ display: actionPage === 4 ? 'block' : 'none' }} className="owner-mid-content-coupon-date">
-                  <label>Coupon còn hiệu lực trong ngày:</label>
-                  <br />
-                  <div className="f">
-                    <DatePicker
-                      selected={dateFilterValue ? new Date(dateFilterValue + 'T00:00:00') : null}
-                      onChange={(date) => {
-                        const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
-                        this.setState({ dateFilterValue: formattedDate }, () => {
-                          if (this.state.actionPage === 4) {
-                            this.handleLoadCouponInfo();
-                          }
-                        });
-                      }}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="dd/mm/yyyy"
-                      className="date-picker"
-                      isClearable
+              <div>
+                <div className="f">
+                  <div className="owner-mid-content-search-coupon" style={{ display: actionPage === 4 ? 'flex' : 'none' }}>
+                    <p>Tìm kiếm:</p>
+                    <input
+                      type="text"
+                      placeholder="Nhập mã coupon"
+                      value={searchValue}
+                      onChange={(event) => this.handleSearchChange(event, 4)}
                     />
-                    <button style={{ marginLeft: '10px' }} onClick={() => this.handleResetFilter(4)}>
-                      Reset
-                    </button>
+                    <IonIcon icon={searchOutline}></IonIcon>
                   </div>
+                  <div
+                    style={{ display: actionPage === 4 ? 'flex' : 'none' }}
+                    className="owner-mid-content-coupon-filter-sort f"
+                  >
+                    <div className="owner-mid-content-coupon-filter">
+                      <label>Lọc Coupon:</label>
+                      <br />
+                      <select
+                        value={filterValue}
+                        onChange={(event) => this.handleFilter(event.target.value, 4)}
+                      >
+                        <option value="ALL">Tất cả</option>
+                        {codeCouponStatus &&
+                          codeCouponStatus.length > 0 && (
+                            <optgroup label="Trạng thái">
+                              {codeCouponStatus.map((item) => (
+                                <option
+                                  key={`couponstatus-${item.Code}`}
+                                  value={`couponstatus-${item.Code}`}
+                                >
+                                  {item.CodeValueVI}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        {codeDiscountType &&
+                          codeDiscountType.length > 0 && (
+                            <optgroup label="Loại giảm giá">
+                              {codeDiscountType.map((item) => (
+                                <option
+                                  key={`discounttype-${item.Code}`}
+                                  value={`discounttype-${item.Code}`}
+                                >
+                                  {item.CodeValueVI}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        <optgroup label="Giảm giá tối đa">
+                          <option value="maxdiscountfixed-0">0 - 20.000 VNĐ</option>
+                          <option value="maxdiscountfixed-1">20.000 - 50.000 VNĐ</option>
+                          <option value="maxdiscountfixed-2">50.000 - 100.000 VNĐ</option>
+                          <option value="maxdiscountfixed-3">Trên 100.000 VNĐ</option>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <div className="owner-mid-content-coupon-sort">
+                      <label>Sắp xếp:</label>
+                      <br />
+                      <select
+                        value={sortValue}
+                        onChange={(e) => this.handleSort(e.target.value, 4)}
+                      >
+                        <option value="0">Mặc định</option>
+                        <option value="1">Mới nhất</option>
+                        <option value="2">Cũ nhất</option>
+                        <option value="3">Hạn sử dụng xa nhất</option>
+                        <option value="4">Hết sử dụng gần nhất</option>
+                        <option value="5">Giảm giá ít nhất</option>
+                        <option value="6">Giảm giá nhiều nhất</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div
+                    style={{ display: actionPage === 4 ? 'block' : 'none' }}
+                    className="owner-mid-content-coupon-date"
+                  >
+                    <label>Coupon còn hiệu lực trong ngày:</label>
+                    <br />
+                    <div className="f">
+                      <DatePicker
+                        selected={dateFilterValue ? new Date(dateFilterValue + 'T00:00:00') : null}
+                        onChange={(date) => {
+                          const formattedDate = date
+                            ? new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                              .toISOString()
+                              .split('T')[0]
+                            : '';
+                          this.setState({ dateFilterValue: formattedDate }, () => {
+                            if (this.state.actionPage === 4) {
+                              this.handleLoadCouponInfo();
+                            }
+                          });
+                        }}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="dd/mm/yyyy"
+                        className="date-picker"
+                        isClearable
+                      />
+                      <button
+                        style={{ marginLeft: '10px' }}
+                        onClick={() => this.handleResetFilter(4)}
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="owner-mid-content-mid-list-coupon">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Mã giảm giá</th>
+                        <th>Giá trị giảm</th>
+                        <th>Giảm tối đa</th>
+                        <th>Mua tối thiểu</th>
+                        <th>Mô tả</th>
+                        <th>Loại giảm giá</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày hết hạn</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loadedCouponInfo.length > 0 ? (
+                        loadedCouponInfo.map((item, index) => (
+                          <tr
+                            key={item.CouponID}
+                            className="owner-mid-content-right-list-coupon-item"
+                          >
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <input
+                                  type="text"
+                                  value={item.CouponCode}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(index, 'CouponCode', e.target.value)
+                                  }
+                                />
+                              ) : (
+                                item.CouponCode
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <input
+                                  type="number"
+                                  value={item.DiscountValue}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(index, 'DiscountValue', e.target.value)
+                                  }
+                                />
+                              ) : (
+                                parseFloat(item.DiscountValue).toLocaleString('vi-VN') +
+                                (item.DiscountType === 'PERC' ? '%' : 'vnđ')
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <input
+                                  type="number"
+                                  value={item.MaxDiscount}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(index, 'MaxDiscount', e.target.value)
+                                  }
+                                />
+                              ) : (
+                                parseFloat(item.MaxDiscount).toLocaleString('vi-VN') + 'vnđ'
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <input
+                                  type="number"
+                                  value={item.MinOrderValue ?? ''}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(index, 'MinOrderValue', e.target.value)
+                                  }
+                                />
+                              ) : (
+                                parseFloat(item.MinOrderValue) > 0
+                                  ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ'
+                                  : 'Không yêu cầu'
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <input
+                                  type="text"
+                                  value={item.CouponDescription ?? ''}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(
+                                      index,
+                                      'CouponDescription',
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              ) : (
+                                item.CouponDescription || 'N/A'
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <select
+                                  value={item.DiscountType}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(index, 'DiscountType', e.target.value)
+                                  }
+                                >
+                                  {codeDiscountType.map((type) => (
+                                    <option key={type.Code} value={type.Code}>
+                                      {type.CodeValueVI}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                codeDiscountType.find(
+                                  (filterItem) => filterItem.Code === item.DiscountType
+                                )?.CodeValueVI || item.DiscountType
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <select
+                                  value={item.CouponStatus}
+                                  onChange={(e) =>
+                                    this.handleCouponChange(index, 'CouponStatus', e.target.value)
+                                  }
+                                >
+                                  {codeCouponStatus.map((status) => (
+                                    <option key={status.Code} value={status.Code}>
+                                      {status.CodeValueVI}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                codeCouponStatus.find(
+                                  (filterItem) => filterItem.Code === item.CouponStatus
+                                )?.CodeValueVI || item.CouponStatus
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <DatePicker
+                                  selected={item.StartDate ? new Date(item.StartDate) : null}
+                                  onChange={(date) =>
+                                    this.handleCouponChange(index, 'StartDate', date)
+                                  }
+                                  dateFormat="dd/MM/yyyy"
+                                  placeholderText="dd/mm/yyyy"
+                                  className="date-picker"
+                                  isClearable
+                                />
+                              ) : (
+                                item.StartDate
+                                  ? new Date(item.StartDate).toLocaleString('vi-VN', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                  })
+                                  : 'N/A'
+                              )}
+                            </td>
+                            <td>
+                              {isEditingCoupon === index ? (
+                                <DatePicker
+                                  selected={item.EndDate ? new Date(item.EndDate) : null}
+                                  onChange={(date) =>
+                                    this.handleCouponChange(index, 'EndDate', date)
+                                  }
+                                  dateFormat="dd/MM/yyyy"
+                                  placeholderText="dd/mm/yyyy"
+                                  className="date-picker"
+                                  isClearable
+                                />
+                              ) : (
+                                item.EndDate
+                                  ? new Date(item.EndDate).toLocaleString('vi-VN', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                  })
+                                  : 'Vô thời hạn'
+                              )}
+                            </td>
+                            <td className="f" onClick={(e) => e.stopPropagation()}>
+                              {isEditingCoupon === index ? (
+                                <>
+                                  <button
+                                    className="save-coupon"
+                                    onClick={() => this.handleSaveCoupon(index)}
+                                    disabled={disabledButtons.saveCoupon}
+                                  >
+                                    Lưu
+                                  </button>
+                                  <button
+                                    className="cancel-coupon"
+                                    onClick={() => this.handleCancelCoupon()}
+                                  >
+                                    Hủy
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  className="btn-edit"
+                                  onClick={() => this.handleEditCoupon(index)}
+                                  disabled={isEditingCoupon !== null}
+                                >
+                                  <IonIcon icon={pencil}></IonIcon>
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="10">Không tìm thấy coupon nào.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {totalPages > 1 && (
+                    <div className="page-content">
+                      <div className="page-content-item">
+                        <button
+                          className="first"
+                          onClick={() => this.handlePageChange(1, 4)}
+                          disabled={currentPage === 1}
+                        >
+                          {'<<'}
+                        </button>
+                        <button
+                          className="prev"
+                          onClick={() => this.handlePrevPage(4)}
+                          disabled={currentPage === 1}
+                        >
+                          {'<'}
+                        </button>
+                        <input
+                          type="text"
+                          value={tempCurrentPage}
+                          onChange={(event) => this.handlePageInputChange(event)}
+                          onKeyDown={(event) => this.handlePageKeyDown(event, 4)}
+                          onBlur={() => this.handlePageInputBlur(4)}
+                        />
+                        <span className="total-pages">/ {totalPages}</span>
+                        <button
+                          className="next"
+                          onClick={() => this.handleNextPage(4)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {'>'}
+                        </button>
+                        <button
+                          className="last"
+                          onClick={() => this.handlePageChange(totalPages, 4)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {'>>'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-
               <div className="owner-mid-content-mid-list-coupon">
                 <table>
                   <thead>

@@ -89,6 +89,7 @@ class CreateCouponModal extends Component {
             discounttype,
             startdate: startdate ? startdate.toISOString().split('T')[0] : null,
             enddate: enddate ? enddate.toISOString().split('T')[0] : null,
+            couponstatus: "ACTIVE"
         };
         const isValidateInput = await validateCouponInput(couponInfo);
         if (!isValidateInput.valid) {
