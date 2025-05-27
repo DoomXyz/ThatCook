@@ -10,7 +10,7 @@ let validateCouponInput = async (couponInfo) => {
             data: null,
         };
     }
-    const { couponcode, coupondescription, minordervalue, discountvalue, discounttype, maxdiscount, startdate, enddate } = couponInfo;
+    const { couponcode, coupondescription, minordervalue, discountvalue, discounttype, maxdiscount, startdate, enddate, couponstatus } = couponInfo;
     if (!couponcode) {
         return { errCode: -1, errMessage: 'Vui lòng nhập mã giảm giá!' };
     } else {
@@ -47,12 +47,10 @@ let validateCouponInput = async (couponInfo) => {
     if (!discountvalue) {
         return { errCode: -1, errMessage: 'Giá trị giảm không được để trống!', data: null };
     } else {
-
         if (discounttype === 'PERC' && discountvalue > 100 || discountvalue < 0) { return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!', data: null }; }
         else if (discounttype === 'FIXED' && discountvalue < 0) {
             return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!', data: null };
         }
-
     }
     if (maxdiscount) {
         if (maxdiscount < 0) { return { errCode: 1, errMessage: 'Gỉảm giá tối đa phải lớn hơn 0!', data: null }; }
@@ -76,6 +74,18 @@ let validateCouponInput = async (couponInfo) => {
         startCheck.setHours(hoursCheck, minutesCheck, 0, 0);
         if (dateCheck < now) return { errCode: 1, errMessage: 'Ngày hết hiệu lực phải trong tương lai', data: null };
         if (dateCheck < startCheck) return { errCode: 1, errMessage: 'Thời gian hết hiệu lực phải lớn hơn thời gian quá khứ', data: null };
+    }
+    if (!couponstatus) {
+        return { errCode: -1, errMessage: 'Trạng thái giảm giá không được để trống!', data: null };
+    } else {
+        const validCouponStatus = await checkValidAllCode('CouponStatus', couponstatus);
+        if (!validCouponStatus) {
+            return {
+                errCode: 1,
+                errMessage: 'Trạng thái giảm giá không hợp lệ!',
+                data: null,
+            };
+        }
     }
     return null
 };
@@ -372,8 +382,7 @@ let createCoupon = (couponInfo) => {
                 });
                 return;
             }
-
-            const coupon = await db.Coupon.create({
+            await db.Coupon.create({
                 CouponCode: couponInfo.couponcode,
                 CouponDescription: couponInfo.coupondescription,
                 MinOrderValue: couponInfo.minordervalue ? couponInfo.minordervalue : 0,
@@ -381,9 +390,9 @@ let createCoupon = (couponInfo) => {
                 MaxDiscount: couponInfo.maxdiscount,
                 DiscountType: couponInfo.discounttype,
                 StartDate: new Date(couponInfo.startdate).toISOString(),
-                EndDate: new Date(couponInfo.enddate).toISOString(),
+                EndDate: couponInfo.endate ? new Date(couponInfo.enddate).toISOString() : null,
                 CreatedAt: new Date(),
-                CouponStatus: 'ACTIVE',
+                CouponStatus: couponInfo.couponstatus,
             }, { transaction });
             await transaction.commit();
             resolve({
@@ -402,6 +411,135 @@ let createCoupon = (couponInfo) => {
         }
     });
 };
+
+let changeCouponInfo = (couponInfo) => {
+    return new Promise(async (resolve, reject) => {
+        const transaction = await db.sequelize.transaction();
+        try {
+            if (!couponInfo || !couponInfo.couponid) {
+                await transaction.rollback();
+                resolve({
+                    errCode: -1,
+                    errMessage: 'Thiếu tham số hoặc couponid!',
+                    data: null,
+                });
+                return;
+            }
+            const isValidateInput = validateCouponInput(couponInfo);
+            if (!isValidateInput) {
+                await transaction.rollback();
+                resolve(isValidateInput);
+                return;
+            }
+            const coupon = await db.Coupon.findOne({
+                where: { CouponID: couponInfo.couponid },
+                transaction,
+            });
+            if (!coupon) {
+                await transaction.rollback();
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Mã giảm giá không tồn tại!',
+                    data: null,
+                });
+                return;
+            }
+            let isUpdated = false;
+            if (couponInfo.couponcode && couponInfo.couponcode.trim() !== coupon.CouponCode) {
+                coupon.CouponCode = couponInfo.couponcode.trim();
+                isUpdated = true;
+            }
+            if (couponInfo.coupondescription !== undefined && couponInfo.coupondescription?.trim() !== (coupon.CouponDescription || '')) {
+                coupon.CouponDescription = couponInfo.coupondescription ? couponInfo.coupondescription.trim() : null;
+                isUpdated = true;
+            }
+            if (couponInfo.minordervalue !== undefined) {
+                const newMinOrderValue = couponInfo.minordervalue ? parseFloat(couponInfo.minordervalue).toFixed(2) : null;
+                if (newMinOrderValue !== (coupon.MinOrderValue || null)) {
+                    coupon.MinOrderValue = newMinOrderValue;
+                    isUpdated = true;
+                }
+            }
+            if (couponInfo.discountvalue !== undefined) {
+                const newDiscountValue = parseFloat(couponInfo.discountvalue);
+                if (newDiscountValue !== coupon.DiscountValue) {
+                    coupon.DiscountValue = newDiscountValue;
+                    isUpdated = true;
+                }
+            }
+            if (couponInfo.maxdiscount !== undefined) {
+                const newMaxDiscount = couponInfo.maxdiscount ? parseFloat(couponInfo.maxdiscount).toFixed(2) : null;
+                if (newMaxDiscount !== (coupon.MaxDiscount || null)) {
+                    coupon.MaxDiscount = newMaxDiscount;
+                    isUpdated = true;
+                }
+            }
+            if (couponInfo.discounttype && couponInfo.discounttype !== coupon.DiscountType) {
+                coupon.DiscountType = couponInfo.discounttype;
+                isUpdated = true;
+            }
+            if (couponInfo.startdate !== undefined) {
+                const newStartDate = couponInfo.startdate ? new Date(couponInfo.startdate).toISOString() : null;
+                if (newStartDate !== coupon.StartDate) {
+                    coupon.StartDate = newStartDate;
+                    isUpdated = true;
+                }
+            }
+            if (couponInfo.enddate !== undefined) {
+                const newEndDate = couponInfo.enddate ? new Date(couponInfo.enddate).toISOString() : null;
+                if (newEndDate !== coupon.EndDate) {
+                    coupon.EndDate = newEndDate;
+                    isUpdated = true;
+                }
+            }
+            if (couponInfo.couponstatus && couponInfo.couponstatus !== coupon.CouponStatus) {
+                coupon.CouponStatus = couponInfo.couponstatus;
+                isUpdated = true;
+            }
+            if (!isUpdated) {
+                await transaction.rollback();
+                resolve({
+                    errCode: 0,
+                    errMessage: 'Không có thông tin nào để cập nhật!',
+                    data: null,
+                });
+                return;
+            }
+            await db.Coupon.update(
+                {
+                    CouponCode: coupon.CouponCode,
+                    CouponDescription: coupon.CouponDescription,
+                    MinOrderValue: coupon.MinOrderValue,
+                    DiscountValue: coupon.DiscountValue,
+                    MaxDiscount: coupon.MaxDiscount,
+                    DiscountType: coupon.DiscountType,
+                    StartDate: coupon.StartDate,
+                    EndDate: coupon.EndDate,
+                    CouponStatus: coupon.CouponStatus
+                },
+                {
+                    where: { CouponID: couponInfo.couponid },
+                    transaction
+                }
+            );
+            await transaction.commit();
+            resolve({
+                errCode: 0,
+                errMessage: 'Cập nhật thông tin coupon thành công!',
+                data: null,
+            });
+        } catch (e) {
+            await transaction.rollback();
+            console.log('Error in changeCouponInfo: ', e);
+            resolve({
+                errCode: 3,
+                errMessage: `Lỗi khi cập nhật thông tin coupon: ${e.message}`,
+                data: null,
+            });
+        }
+    });
+};
+
 
 let checkCoupon = (couponcode, price) => {
     return new Promise(async (resolve, reject) => {
@@ -479,5 +617,6 @@ module.exports = {
     getCouponInfo,
     loadCouponInfo,
     createCoupon,
+    changeCouponInfo,
     checkCoupon,
 };

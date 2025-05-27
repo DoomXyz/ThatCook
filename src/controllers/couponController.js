@@ -52,9 +52,19 @@ let handleCheckCoupon = async (req, res) => {
     }
 };
 
+let handleChangeCouponInfo = async (req, res) => {
+    try {
+        let response = await couponService.changeCouponInfo(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 module.exports = {
     handleGetCouponInfo,
     handleLoadCouponInfo,
     handleCreateCoupon,
+    handleChangeCouponInfo,
     handleCheckCoupon,
 };

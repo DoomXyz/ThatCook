@@ -149,6 +149,7 @@ let initAPIRoutes = (app) => {
 
     router.get('/api/load-couponinfo', couponController.handleLoadCouponInfo);
     router.post('/api/create-coupon', couponController.handleCreateCoupon);
+    router.put('/api/change-couponinfo', couponController.handleChangeCouponInfo);
     //veterinarian
     router.put('/api/change-workingstatus', accountController.handleChangeWorkingStatus);
 
