@@ -77,7 +77,6 @@ class MakeAppointment extends Component {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
     }
-    console.log(this.state)
   }
   componentWillUnmount() {
     this.state.allImages.forEach((img) => {
@@ -114,10 +113,8 @@ class MakeAppointment extends Component {
   };
   handleMountAppointmentType = async () => {
     if (!this.props.fuAppointmentInfo && this.state.accountInfo?.AccountType === 'V') {
-      console.log('1')
       this.props.navigate('/user/veterinarian');
     } else if (this.props.fuAppointmentInfo) {
-      console.log('2')
       this.setState({
         type: 'FOLLOW_UP',
         prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
@@ -127,7 +124,6 @@ class MakeAppointment extends Component {
         }
       );
     } else {
-      console.log('3')
       this.setState({ type: 'FIRST' }, async () => {
         this.handleLoadAppointmentInfo();
         if (this.props.appointmentPreselect) {
@@ -274,7 +270,6 @@ class MakeAppointment extends Component {
   };
   handleLoadFollowUpAppointmentInfo = async () => {
     const { prevAppointmentID } = this.state;
-    console.log(prevAppointmentID)
     try {
       const response = await handleLoadAppointmentDetailsApi(prevAppointmentID);
       if (response && response.errCode === 0) {
@@ -299,7 +294,6 @@ class MakeAppointment extends Component {
           customerphone: data.CustomerPhone,
           customeremail: data.CustomerEmail,
         });
-        console.log(data)
       } else {
         toast.error(response?.errMessage || 'Không thể tải thông tin lịch hẹn trước!');
         this.setState({ type: 'FIRST', prevAppointmentID: null });
@@ -760,9 +754,13 @@ class MakeAppointment extends Component {
                             <b>Chuyên khoa:</b> {selectedVeterinarianInfo.Specialization}
                           </p>
                         </div>
-                        <button className="cancel-doctor-btn" onClick={this.handleUnSelectVeterinarian} disabled={type === 'FOLLOW_UP'}>
-                          X
-                        </button>
+                        {type !== 'FOLLOW_UP' && (
+                          <button
+                            className="cancel-doctor-btn"
+                            onClick={this.handleUnSelectVeterinarian}>
+                            X
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <p>Chưa chọn bác sĩ</p>

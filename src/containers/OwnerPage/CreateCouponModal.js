@@ -81,14 +81,14 @@ class CreateCouponModal extends Component {
     handleCreateCoupon = async () => {
         const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, startdate, enddate, discounttype } = this.state;
         const couponInfo = {
-            couponCode: couponcode,
-            name: coupondescription,
-            minOrderValue: minordervalue ? parseFloat(minordervalue) : 0,
-            couponType: discounttype,
-            discountValue: parseFloat(discountvalue),
-            maxDiscount: maxdiscount ? parseFloat(maxdiscount) : undefined,
-            startDate: startdate ? startdate.toISOString().split('T')[0] : null,
-            expireDate: enddate ? enddate.toISOString().split('T')[0] : null,
+            couponcode,
+            coupondescription,
+            minordervalue: minordervalue ? parseFloat(minordervalue) : 0,
+            discountvalue: parseFloat(discountvalue),
+            maxdiscount: maxdiscount ? parseFloat(maxdiscount) : undefined,
+            discounttype,
+            startdate: startdate ? startdate.toISOString().split('T')[0] : null,
+            enddate: enddate ? enddate.toISOString().split('T')[0] : null,
         };
         const isValidateInput = await validateCouponInput(couponInfo);
         if (!isValidateInput.valid) {

@@ -22,7 +22,7 @@ import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoA
 import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
 import { handleCreateCouponApi, handleLoadCouponInfoApi } from '../../services/couponServices';
 
-import { getAllCodes, checkLoginStatus } from '../../utils/pakage';
+import { getAllCodes, checkLoginStatus, validateCouponInput } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
 
 class Owner extends Component {
@@ -79,6 +79,10 @@ class Owner extends Component {
       // DisableButton
       disabledButtons: {
         logout: false,
+        confirmPayment: false,
+        confirmDelivery: false,
+        acceptCancelInvoice: false,
+        denyCancelInvoice: false,
       },
     };
     this.debounceTimeout = null;
@@ -387,6 +391,7 @@ class Owner extends Component {
   };
   //form action
   handleConfirmPayment = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmPayment: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -410,10 +415,14 @@ class Owner extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmPayment: false } }); },
+          }
         );
       });
-
     const isConfirmed = await confirmAction();
     if (!isConfirmed) return;
 
@@ -433,6 +442,7 @@ class Owner extends Component {
     this.setState({ isLoading: false });
   };
   handleConfirmDelivery = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmDelivery: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -456,10 +466,14 @@ class Owner extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmDelivery: false } }); },
+          }
         );
       });
-
     const isConfirmed = await confirmAction();
     if (!isConfirmed) return;
 
@@ -479,6 +493,7 @@ class Owner extends Component {
     this.setState({ isLoading: false });
   };
   handleAcceptCancelInvoice = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, acceptCancelInvoice: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -502,7 +517,12 @@ class Owner extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, acceptCancelInvoice: false } }); },
+          }
         );
       });
     const isConfirmed = await confirmAction();
@@ -524,6 +544,7 @@ class Owner extends Component {
     this.setState({ isLoading: false });
   };
   handleDenyCancelInvoice = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, denyCancelInvoice: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -547,7 +568,12 @@ class Owner extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, denyCancelInvoice: false } }); },
+          }
         );
       });
 
@@ -754,8 +780,12 @@ class Owner extends Component {
   };
   //on table change action (coupon)
   handleEditCoupon = (index) => {
-    this.setState({ isEditingCoupon: index, isAddingCoupon: false });
+    console.log(this.state.loadedCouponInfo[index])
+    // this.setState({ isEditingCoupon: index, isAddingCoupon: false });
   };
+  handleSaveCoupon = async (index) => {
+
+  }
   //form controller
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
@@ -814,16 +844,8 @@ class Owner extends Component {
     });
   };
   render() {
-    const {
-      loadedProductInfo,
-      codeProductType,
-      codePetType,
-      loadedInvoiceInfo,
-      codePaymentStatus,
-      codeShippingStatus,
-      loadedBannerInfo,
-      codeBannerStatus,
-      loadedCouponInfo,
+    const { codeProductType, codePetType, codePaymentStatus, codeShippingStatus, codeBannerStatus,
+      loadedProductInfo, loadedInvoiceInfo, loadedBannerInfo, loadedCouponInfo,
       codeCouponStatus,
       codeDiscountType,
       isLoading,
@@ -1097,12 +1119,22 @@ class Owner extends Component {
                           <td>{item.CanceledAt ? new Date(item.CanceledAt).toLocaleString('vi-VN') : ''}</td>
                           <td className="f" onClick={(e) => e.stopPropagation()}>
                             {item.PaymentStatus === 'PEND' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
-                              <button className="btn-confirm-payment" onClick={() => this.handleConfirmPayment(item.InvoiceID)} title="Xác nhận thanh toán">
+                              <button
+                                className="btn-confirm-payment"
+                                onClick={() => this.handleConfirmPayment(item.InvoiceID)}
+                                title="Xác nhận thanh toán"
+                                disabled={disabledButtons.confirmPayment}
+                              >
                                 <IonIcon icon={cashOutline}></IonIcon>
                               </button>
                             )}
                             {item.PaymentStatus === 'PAID' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
-                              <button className="btn-confirm-delivery" onClick={() => this.handleConfirmDelivery(item.InvoiceID)} title="Xác nhận giao hàng">
+                              <button
+                                className="btn-confirm-delivery"
+                                onClick={() => this.handleConfirmDelivery(item.InvoiceID)}
+                                title="Xác nhận giao hàng"
+                                disabled={disabledButtons.confirmDelivery}
+                              >
                                 <IonIcon icon={checkmarkCircleOutline}></IonIcon>
                               </button>
                             )}
@@ -1113,10 +1145,20 @@ class Owner extends Component {
                             )}
                             {item.ShippingStatus === 'PEND_CANCEL' && (
                               <div>
-                                <button className="btn-accept-cancel" onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)} title="Chấp nhận hủy">
+                                <button
+                                  className="btn-accept-cancel"
+                                  onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)}
+                                  title="Chấp nhận hủy"
+                                  disabled={disabledButtons.acceptCancelInvoice}
+                                >
                                   <IonIcon icon={banOutline}></IonIcon>
                                 </button>
-                                <button className="btn-deny-cancel" onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)} title="Từ chối hủy">
+                                <button
+                                  className="btn-deny-cancel"
+                                  onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)}
+                                  title="Từ chối hủy"
+                                  disabled={disabledButtons.denyCancelInvoice}
+                                >
                                   <IonIcon icon={refreshOutline}></IonIcon>
                                 </button>
                               </div>

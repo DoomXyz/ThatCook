@@ -338,39 +338,40 @@ const validateBannerInput = async (bannerInfo) => {
 const validateCouponInput = async (couponInfo) => {
   if (!couponInfo || !Object.keys(couponInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã giảm giá!' };
 
-  const { couponCode, name, minOrderValue, couponType, discountValue, maxDiscount, startDate, expireDate } = couponInfo;
+  const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, discounttype, startdate, enddate } = couponInfo;
   const couponCodeRegex = /^[a-zA-Z0-9]{5,20}$/;
 
-  if (!couponCode) return { valid: false, errMessage: 'Vui lòng nhập mã giảm giá!' };
-  if (!couponCodeRegex.test(couponCode.trim())) return { valid: false, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+  if (!couponcode) return { valid: false, errMessage: 'Vui lòng nhập mã giảm giá!' };
+  if (!couponCodeRegex.test(couponcode.trim())) return { valid: false, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
-  if (name?.trim().length > 0 && name.trim().length > 65535) return { valid: false, errMessage: 'Mô tả giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+  if (coupondescription?.trim().length > 0 && coupondescription.trim().length > 65535) return { valid: false, errMessage: 'Mô tả giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
-  if (minOrderValue !== undefined && minOrderValue < 0) return { valid: false, errMessage: 'Giá trị mua ít nhất không được nhỏ hơn 0!' };
+  if (minordervalue !== undefined && minordervalue < 0) return { valid: false, errMessage: 'Giá trị mua ít nhất không được nhỏ hơn 0!' };
 
-  if (!couponType) return { valid: false, errMessage: 'Loại giảm giá không được để trống!' };
-  const typeResponse = await getAllCodes('DiscountType');
-  const validDiscountType = typeResponse.data?.map((item) => item.Code) || [];
-  if (!validDiscountType.includes(couponType)) return { valid: false, errMessage: 'Loại giảm giá không hợp lệ!' };
+  if (!discountvalue) return { valid: false, errMessage: 'Giá trị giảm không được để trống!' };
+  if (discounttype === 'PERC' && (discountvalue > 100 || discountvalue < 0)) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
+  if (discounttype === 'FIXED' && discountvalue < 0) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
 
-  if (!discountValue) return { valid: false, errMessage: 'Giá trị giảm không được để trống!' };
-  if (couponType === 'PERC' && (discountValue > 100 || discountValue < 0)) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
-  if (couponType === 'FIXED' && discountValue < 0) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
-
-  if (maxDiscount !== undefined) {
-    if (maxDiscount < 0) return { valid: false, errMessage: 'Giảm giá tối đa phải lớn hơn 0!' };
-    if (couponType === 'FIXED' && maxDiscount > discountValue) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
+  if (maxdiscount !== undefined) {
+    if (maxdiscount < 0) return { valid: false, errMessage: 'Giảm giá tối đa phải lớn hơn 0!' };
+    if (discounttype === 'FIXED' && maxdiscount > discountvalue) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
   }
 
-  if (!startDate) return { valid: false, errMessage: 'Ngày bắt đầu không được để trống!' };
+  if (!discounttype) return { valid: false, errMessage: 'Loại giảm giá không được để trống!' };
+  const typeResponse = await getAllCodes('DiscountType');
+  const validDiscountType = typeResponse.data?.map((item) => item.Code) || [];
+  if (!validDiscountType.includes(discounttype)) return { valid: false, errMessage: 'Loại giảm giá không hợp lệ!' };
 
-  if (expireDate) {
-    const startDateObj = new Date(startDate);
-    const expireDateObj = new Date(expireDate);
-    if (isNaN(expireDateObj.getTime())) return { valid: false, errMessage: 'Ngày hết hạn không hợp lệ!' };
+
+  if (!startdate) return { valid: false, errMessage: 'Ngày bắt đầu không được để trống!' };
+
+  if (enddate) {
+    const startdateObj = new Date(startdate);
+    const enddateObj = new Date(enddate);
+    if (isNaN(enddateObj.getTime())) return { valid: false, errMessage: 'Ngày hết hạn không hợp lệ!' };
     const now = new Date();
-    if (expireDateObj <= now) return { valid: false, errMessage: 'Ngày hết hạn phải trong tương lai!' };
-    if (expireDateObj < startDateObj) return { valid: false, errMessage: 'Ngày hết hạn phải sau ngày bắt đầu!' };
+    if (enddateObj <= now) return { valid: false, errMessage: 'Ngày hết hạn phải trong tương lai!' };
+    if (enddateObj < startdateObj) return { valid: false, errMessage: 'Ngày hết hạn phải sau ngày bắt đầu!' };
   }
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
@@ -536,14 +537,14 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
 
   // Time (left-aligned)
   const timeText = `Thời gian: ${appointmentbillData.AppointmentBill?.CreatedAt
-      ? new Date(appointmentbillData.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-      : 'N/A'
+    ? new Date(appointmentbillData.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    : 'N/A'
     }`;
   doc.text(timeText, 14, 40);
 
