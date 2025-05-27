@@ -635,6 +635,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
       const invoice = await db.Invoice.findOne({
         where: { InvoiceID: invoiceid },
         attributes: [
+          'InvoiceID',
           'TotalQuantity',
           'ReceiverName',
           'ReceiverPhone',
@@ -672,6 +673,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
         return;
       }
       const data = {
+        InvoiceID: invoice.InvoiceID,
         ReceiverName: invoice.ReceiverName,
         ReceiverPhone: invoice.ReceiverPhone,
         ReceiverAddress: invoice.ReceiverAddress,
@@ -833,11 +835,11 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
           transaction,
         });
       }
+      await transaction.commit();
       let emailSent = true;
       if (invoiceData.email) {
         emailSent = await sendInvoiceEmail(InvoiceID, invoiceData.email);
       }
-      await transaction.commit();
       if (!emailSent && invoiceData.email) {
         resolve({
           errCode: 0,
@@ -986,9 +988,9 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
   });
 };
 
-const getInvoiceEmail = async (invoiceid, email) => {
+const getInvoiceEmail = async (billid, email) => {
   try {
-    const emailSent = await sendInvoiceEmail(invoiceid, email);
+    const emailSent = await sendInvoiceEmail(billid, email);
     if (emailSent) {
       return {
         errCode: 0,

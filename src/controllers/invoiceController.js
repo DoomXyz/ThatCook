@@ -66,8 +66,8 @@ let handleChangeInvoiceStatus = async (req, res) => {
 
 let handleGetInvoiceEmail = async (req, res) => {
   try {
-    const { invoiceid, email } = req.body;
-    let response = await invoiceService.getInvoiceEmail(invoiceid, email);
+    const { billid, email } = req.body;
+    let response = await invoiceService.getInvoiceEmail(billid, email);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
