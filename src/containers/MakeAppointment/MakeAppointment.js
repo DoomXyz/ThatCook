@@ -120,8 +120,8 @@ class MakeAppointment extends Component {
           type: 'FOLLOW_UP',
           prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
         },
-        () => {
-          this.handleLoadFollowUpAppointmentInfo();
+        async () => {
+          await this.handleLoadFollowUpAppointmentInfo();
         }
       );
     } else {
