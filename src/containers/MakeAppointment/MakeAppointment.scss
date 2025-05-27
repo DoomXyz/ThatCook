@@ -16,7 +16,7 @@ textarea {
 
 .makeappointment-body {
   background-color: white;
-  background-image: url('../../assets/doctor-imgs/bg-ck.png');
+  background-image: url("../../assets/doctor-imgs/bg-ck.png");
   display: flex;
   flex-direction: column; // Add this to stack children vertically
   width: 100%;
@@ -188,6 +188,9 @@ textarea {
             p {
               margin: 0 0.3rem;
               margin-bottom: 0.3rem;
+              max-width: 100%; // Ensure the paragraph takes full width of td
+              word-wrap: break-word; // Break long words to prevent overflow
+              overflow-wrap: break-word; // Modern equivalent of word-wrap
             }
             p:last-child {
               margin-bottom: 0.7rem;
