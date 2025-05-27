@@ -34,17 +34,20 @@ class Register extends Component {
     await this.handleLoadCode(['Gender']);
   }
   //load các code cần trong mảng
-  handleLoadCode = async (codeTypes) => {
+  handleLoadCode = async (codeTypeFilter) => {
     try {
-      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
       const newState = { isLoading: false };
-      codeTypes.forEach((type, index) => {
+      const hasDefault = ['Gender'];
+      codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
         if (!response.status || response.data.length === 0) {
           toast.error(`Không thể tải danh sách ${type}!`);
         }
         newState[`code${type}`] = response.data;
-        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        if (hasDefault.includes(type)) {
+          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        }
       });
       this.setState(newState);
     } catch (error) {

@@ -47,7 +47,6 @@ class VeterinarianSelectModal extends Component {
           toast.error(`Không thể tải danh sách ${type}!`);
         }
         newState[`code${type}`] = response.data;
-        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
       });
       this.setState(newState);
     } catch (error) {

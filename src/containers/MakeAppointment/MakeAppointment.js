@@ -67,7 +67,7 @@ class MakeAppointment extends Component {
   async componentDidMount() {
     await this.handleIsLogin();
     await this.handleLoadCode(['PetGender', 'PetType']);
-    await this.handleLoadServiceInfo();
+    await this.handleGetServiceInfo();
     setTimeout(() => {
       this.handleMountAppointmentType();
     }, 10);
@@ -226,7 +226,7 @@ class MakeAppointment extends Component {
       this.setState({ isLoading: false });
     }
   };
-  handleLoadServiceInfo = async () => {
+  handleGetServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
       const response = responseApi.data;

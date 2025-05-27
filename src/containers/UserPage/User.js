@@ -10,25 +10,23 @@ import './User.scss';
 import Spinner from '../../components/Spinner';
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from '../../services/accountServices';
 import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
 import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
-
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
+import { checkLoginStatus, getAllCodes, uploadImages } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
-import { checkLoginStatus, uploadImages } from '../../utils/pakage';
-
-import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
 
 class User extends Component {
   constructor(props) {
     super(props);
+    this.fileInputRef = React.createRef();
     this.state = {
       // Authentication & General
       isLoading: true,
@@ -48,7 +46,6 @@ class User extends Component {
       gender: '',
       email: '',
       isUploading: false,
-
       // Password Change
       oldPassword: '',
       newPassword: '',
@@ -56,7 +53,6 @@ class User extends Component {
       showOldPassword: false,
       showNewPassword: false,
       showConfirmPassword: false,
-
       // Data Lists
       loadedInvoiceInfo: [],
       loadedInvoiceDetail: null,
@@ -65,7 +61,6 @@ class User extends Component {
       loadedAppointmentBillDetail: null,
       loadedPetInfo: [],
       serviceList: [],
-
       // Codes
       codeGender: [],
       codePaymentType: [],
@@ -76,7 +71,6 @@ class User extends Component {
       codePetGender: [],
       codeAppointmentStatus: [],
       codeAppointmentType: [],
-
       // Pagination
       currentPage: 1,
       tempCurrentPage: '1',
@@ -86,20 +80,17 @@ class User extends Component {
       totalProductPages: 1,
       limitAppointmentPerQuery: 5,
       totalAppointmentPages: 1,
-
       // Filtering & Sorting
       searchValue: '',
       filterValue: 'ALL',
       sortValue: '0',
       date1: '',
       date2: '',
-
       // Modals & Selections
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
       selectedInvoiceID: null,
       selectedAppointment: null,
-
       // Pet Management
       isEditingPet: null,
       isAddingPet: false,
@@ -108,25 +99,25 @@ class User extends Component {
   }
   async componentDidMount() {
     await this.handleIsLogin();
-    await Promise.all([this.handleLoadAllCodes(), this.handleLoadServiceInfo()]);
-    if (this.props.userInfo) {
-      await this.handleIsLogin();
-      setTimeout(() => {
-        const { accountid } = this.state;
-        this.loadAccountInfo(accountid);
-        this.loadInvoiceInfo(accountid);
-        this.loadPetInfo(accountid);
-        this.loadAppointmentInfo(accountid);
-        this.setState({ isLoading: false });
-      }, 10);
-    }
+    await this.handleLoadCode(['Gender', 'PaymentType', 'ShippingMethod', 'PaymentStatus', 'ShippingStatus', 'PetType', 'PetGender', 'AppointmentStatus', 'AppointmentType']);
+    await this.handleGetServiceInfo();
+    setTimeout(() => {
+      this.handleLoadAccountInfo();
+      this.handleLoadInvoiceInfo();
+      this.handleLoadPetInfo();
+      this.handleLoadAppointmentInfo();
+      this.setState({ isLoading: false });
+    }, 10);
   }
   async componentDidUpdate(prevProps, prevState) {
+    console.log(this.state.imageInfo)
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        this.loadAccountInfo();
-        this.loadInvoiceInfo();
+        this.handleLoadAccountInfo();
+        this.handleLoadInvoiceInfo();
+        this.handleLoadPetInfo();
+        this.handleLoadAppointmentInfo();
       }, 10);
     }
   }
@@ -135,6 +126,11 @@ class User extends Component {
       URL.revokeObjectURL(this.state.imageInfo.Image);
     }
   }
+  triggerLoadInformation = async () => {
+    this.setState((prevState) => ({
+      triggerLoadInformation: !prevState.triggerLoadInformation,
+    }));
+  };
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -157,78 +153,65 @@ class User extends Component {
       }
     } catch (e) {
       this.props.navigate('/login');
-      console.log('Token not found!');
     }
   };
-  triggerLoadInformation = () => {
-    this.setState((prevState) => ({
-      triggerLoadInformation: !prevState.triggerLoadInformation,
-    }));
-  };
-  handleLoadAllCodes = async () => {
+  handleLoadCode = async (codeTypeFilter) => {
     try {
-      const codeTypes = ['Gender', 'PaymentType', 'ShippingMethod', 'PaymentStatus', 'ShippingStatus', 'PetType', 'PetGender', 'AppointmentStatus', 'AppointmentType'];
-      const responses = await Promise.all(codeTypes.map((type) => handleGetAllCodesApi(type)));
-      const codeData = {
-        codeGender: [],
-        codePaymentType: [],
-        codeShippingMethod: [],
-        codePaymentStatus: [],
-        codeShippingStatus: [],
-        codePetType: [],
-        codePetGender: [],
-        codeAppointmentStatus: [],
-        codeAppointmentType: [],
-      };
-      responses.forEach((response, index) => {
-        const type = codeTypes[index];
-        if (response && response.length > 0) {
-          codeData[`code${type}`] = response;
-        } else {
-          toast.error(`Không thể tải danh sách ${type.toLowerCase()}!`, {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      const hasDefault = ['Gender'];
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        if (hasDefault.includes(type)) {
+          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
-      this.setState({
-        ...codeData,
-        gender: codeData.codeGender.length > 0 ? codeData.codeGender[0].Code : '',
-      });
-    } catch (e) {
-      console.error('Error loading codes:', e);
-      toast.error('Lỗi khi tải danh sách mã!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
     }
   };
-  handleLoadServiceInfo = async () => {
+  handleGetServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
       const response = responseApi.data;
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
-        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!');
         this.setState({ serviceList: [] });
         return;
       }
       this.setState({ serviceList: response.data });
     } catch (e) {
-      toast.error('Lỗi khi tải danh sách dịch vụ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách dịch vụ!');
     }
   };
-  loadAccountInfo = async (accountid) => {
+  handleReloadData = (type) => {
+    switch (type) {
+      case 1:
+        this.handleLoadAccountInfo();
+        break;
+      case 2:
+        this.handleLoadPetInfo();
+        break;
+      case 3:
+        this.handleLoadInvoiceInfo();
+        break;
+      case 4:
+        this.handleLoadAppointmentInfo();
+        break;
+      default:
+        break;
+    }
+  };
+  handleLoadAccountInfo = async () => {
     try {
+      const { accountid } = this.state;
       const response = await handleGetAccountInfoApi(accountid);
       if (response && response.errCode === 0) {
         const accountInfo = response.data;
@@ -241,47 +224,29 @@ class User extends Component {
           gender: accountInfo.Gender,
           userimage: accountInfo.UserImage,
         });
-      } else {
-        toast.error('Bạn đã được đăng xuất!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
       }
     } catch (e) {
       console.log('Lỗi khi tải tài khoản:', e);
-      toast.error('Lỗi khi tải tài khoản!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải tài khoản!');
     }
   };
-  loadPetInfo = async (accountid) => {
+  handleLoadPetInfo = async () => {
     try {
+      const { accountid } = this.state;
       const response = await handleGetAccountPetInfoApi(accountid);
       if (response && response.errCode === 0) {
         this.setState({
           loadedPetInfo: response.data || [],
         });
-      } else {
-        toast.error('Không thể tải danh sách thú cưng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
       }
     } catch (e) {
       console.error('Lỗi khi tải danh sách thú cưng:', e);
-      toast.error('Lỗi khi tải danh sách thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách thú cưng!');
     }
   };
-  loadInvoiceInfo = async (accountid) => {
+  handleLoadInvoiceInfo = async () => {
     try {
+      const { accountid } = this.state;
       const response = await handleGetAccountInvoiceInfoApi(accountid);
       if (response && response.errCode === 0) {
         this.setState({
@@ -291,15 +256,11 @@ class User extends Component {
       }
     } catch (e) {
       console.log('Lỗi khi tải thông tin đơn hàng:', e);
-      toast.error('Lỗi khi tải thông tin đơn hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải thông tin đơn hàng!');
     }
   };
-  loadAppointmentInfo = async (accountid) => {
-    const { currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
+  handleLoadAppointmentInfo = async () => {
+    const { accountid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
     try {
       this.setState({ isLoading: true });
       const response = await handleLoadAppointmentInfoApi(accountid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2);
@@ -308,22 +269,11 @@ class User extends Component {
           loadedAppointmentInfo: response.data,
           totalAppointmentPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
         });
-      } else {
-        toast.error(response?.errMessage || 'Không thể tải danh sách lịch hẹn!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
       }
     } catch (e) {
       console.error('Lỗi khi tải danh sách lịch hẹn:', e);
-      toast.error('Lỗi khi tải danh sách lịch hẹn!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách lịch hẹn!');
     }
-    this.setState({ isLoading: false });
   };
   handleLoadAppointmentDetails = async (appointmentid) => {
     this.setState({ isLoading: true });
@@ -334,19 +284,11 @@ class User extends Component {
           loadedAppointmentDetail: response.data,
         });
       } else {
-        toast.error(response?.errMessage || 'Không thể tải chi tiết lịch hẹn!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || 'Không thể tải chi tiết lịch hẹn!');
       }
     } catch (e) {
       console.error('Lỗi khi tải chi tiết lịch hẹn:', e);
-      toast.error('Lỗi khi tải chi tiết lịch hẹn!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải chi tiết lịch hẹn!');
     }
     this.setState({ isLoading: false });
   };
@@ -359,23 +301,54 @@ class User extends Component {
           loadedAppointmentBillDetail: response.data,
         });
       } else {
-        toast.error(response?.errMessage || 'Không thể tải chi tiết hóa đơn lịch hẹn!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || 'Không thể tải chi tiết hóa đơn lịch hẹn!');
       }
     } catch (e) {
       console.error('Lỗi khi tải chi tiết hóa đơn lịch hẹn:', e);
-      toast.error('Lỗi khi tải chi tiết hóa đơn lịch hẹn!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải chi tiết hóa đơn lịch hẹn!');
     }
     this.setState({ isLoading: false });
   };
-
+  handleAddImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!');
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh!');
+      return;
+    }
+    const preview = URL.createObjectURL(file);
+    this.setState({
+      imageInfo: { ImageID: Date.now(), Image: preview, file },
+    });
+  };
+  handleEditClick = (field) => {
+    this.setState({
+      editField: field,
+      originalValue: this.state[field], // Lưu giá trị ban đầu của trường
+    });
+  };
+  handleRemoveImage = () => {
+    if (this.fileInputRef.current) {
+      this.fileInputRef.current.value = null; // Reset input file
+    }
+    this.setState({ imageInfo: null })
+  };
+  handleAccountInfoChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'gender' && this.state.editField !== 'gender') {
+      this.setState({
+        editField: 'gender',
+        originalValue: this.state.gender, // Lưu giá trị ban đầu của gender
+      });
+    }
+    this.setState({
+      [name]: value,
+    });
+  };
   handleUpdateAccountInfo = async (e) => {
     e.preventDefault();
     const { imageInfo, isUploading, editField, originalValue, accountid, accountname, username, phone, address, gender, email } = this.state;
@@ -391,22 +364,14 @@ class User extends Component {
     let hasChanges = false;
     if (imageInfo) {
       if (isUploading) {
-        toast.info('Đang tải ảnh, vui lòng chờ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.info('Đang tải ảnh, vui lòng chờ!');
         return;
       }
       this.setState({ isUploading: true, isLoading: true });
       try {
         const uploadResult = await uploadImages([imageInfo]); // Gửi mảng 1 phần tử
         if (!uploadResult.status) {
-          toast.error(uploadResult.error || 'Tải ảnh thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+          toast.error(uploadResult.error || 'Tải ảnh thất bại!');
           return;
         }
         const uploadedImage = uploadResult.images[0];
@@ -419,11 +384,7 @@ class User extends Component {
         };
         hasChanges = true;
       } catch (e) {
-        toast.error('Lỗi khi tải ảnh!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Lỗi khi tải ảnh!');
         return;
       } finally {
         this.setState({ isUploading: false, isLoading: false });
@@ -439,83 +400,51 @@ class User extends Component {
     const accountName = updateInfo.accountname.trim();
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     if (!accountNameRegex.test(accountName)) {
-      toast.error('Tên tài khoản không hợp lệ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      this.loadAccountInfo(accountid);
+      toast.error('Tên tài khoản không hợp lệ!');
+      this.handleLoadAccountInfo(accountid);
       return;
     }
     const phoneNumber = updateInfo.phone.trim();
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      toast.error('Số điện thoại không hợp lệ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      this.loadAccountInfo(accountid);
+      toast.error('Số điện thoại không hợp lệ!');
+      this.handleLoadAccountInfo(accountid);
       return;
     }
     if (hasChanges) {
       let response = await handleChangeAccountInfoApi(updateInfo);
       if (response && response.errCode === 0) {
-        toast.success('Cập nhật thông tin thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        this.triggerLoadInformation();
+        toast.success('Cập nhật thông tin thành công!');
       } else {
-        toast.error(response.errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        this.loadAccountInfo(accountid);
+        toast.error(response.errMessage);
+        this.handleLoadAccountInfo(accountid);
       }
     }
+    await this.triggerLoadInformation();
     this.setState({ editField: null, originalValue: '' });
   };
   handleChangePassword = async (e) => {
     e.preventDefault();
     const { accountid, oldPassword, newPassword, confirmPassword } = this.state;
     if (!oldPassword || !newPassword || !confirmPassword) {
-      toast.error('Vui lòng điền đầy đủ tất cả các trường!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Vui lòng điền đầy đủ tất cả các trường!');
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Mật khẩu mới và xác nhận không khớp!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Mật khẩu mới và xác nhận không khớp!');
       return;
     }
     const checkNewPassword = newPassword.trim();
     const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
     if (!passwordRegex.test(checkNewPassword)) {
-      toast.error('Mật khẩu mới không hợp lệ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Mật khẩu mới không hợp lệ!');
       return;
     }
     try {
       this.setState({ isLoading: true });
       const response = await handleChangePasswordApi(accountid, oldPassword, newPassword);
       if (response && response.errCode === 0) {
-        toast.success('Đổi mật khẩu thành công, hãy đăng nhập lại với mật khẩu mới', {
-          position: 'top-right',
-          autoClose: 1000,
-          closeOnClick: true,
-        });
+        toast.success('Đổi mật khẩu thành công, hãy đăng nhập lại với mật khẩu mới');
         this.setState({
           oldPassword: '',
           newPassword: '',
@@ -531,21 +460,14 @@ class User extends Component {
           this.props.navigate('/login');
         }, 1001);
       } else {
-        toast.error(response.errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage);
       }
     } catch (e) {
-      toast.error('Đổi mật khẩu thất bại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Đổi mật khẩu thất bại!');
     }
     this.setState({ isLoading: false });
   };
+  //cum here
   handleConfirmReceived = async (invoiceid) => {
     const confirmReceived = () =>
       new Promise((resolve) => {
@@ -570,8 +492,7 @@ class User extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
     const isConfirmed = await confirmReceived();
@@ -582,27 +503,15 @@ class User extends Component {
       const status = 'DELI';
       const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
       if (response && response.errCode === 0) {
-        toast.success('Xác nhận nhận hàng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.loadInvoiceInfo(this.state.accountid);
+        toast.success('Xác nhận nhận hàng thành công!');
+        await this.handleLoadInvoiceInfo(this.state.accountid);
       } else {
         const errMessage = response?.errMessage || 'Xác nhận nhận hàng thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Error confirming received:', e);
-      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
@@ -630,8 +539,7 @@ class User extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
     const isConfirmed = await confirmContinue();
@@ -642,27 +550,15 @@ class User extends Component {
       const status = 'PEND';
       const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
       if (response && response.errCode === 0) {
-        toast.success('Tiếp tục đơn hàng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.loadInvoiceInfo(this.state.accountid);
+        toast.success('Tiếp tục đơn hàng thành công!');
+        await this.handleLoadInvoiceInfo(this.state.accountid);
       } else {
         const errMessage = response?.errMessage || 'Tiếp tục đơn hàng thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Error continuing invoice:', e);
-      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
@@ -690,8 +586,7 @@ class User extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
     const isConfirmed = await confirmCancel();
@@ -701,37 +596,21 @@ class User extends Component {
     try {
       const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', null);
       if (response && response.errCode === 0) {
-        toast.success('Hủy lịch hẹn thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        this.loadAppointmentInfo(this.state.accountid);
+        toast.success('Hủy lịch hẹn thành công!');
+        this.handleLoadAppointmentInfo(this.state.accountid);
       } else {
-        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
       }
     } catch (e) {
       console.error('Lỗi khi hủy lịch hẹn:', e);
-      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
   handleSavePet = async (index) => {
     const validation = this.checkValidatePet(index);
     if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(validation.errMessage);
       return;
     }
     this.setState({ isLoading: true });
@@ -752,30 +631,18 @@ class User extends Component {
       }
 
       if (response && response.errCode === 0) {
-        toast.success(this.state.isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.loadPetInfo(this.state.accountid);
+        toast.success(this.state.isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
+        await this.handleLoadPetInfo(this.state.accountid);
         this.setState({
           isEditingPet: null,
           isAddingPet: false,
         });
       } else {
-        toast.error(response?.errMessage || (this.state.isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'), {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || (this.state.isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
       }
     } catch (e) {
       console.error(this.state.isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
-      toast.error(`Lỗi khi ${this.state.isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error(`Lỗi khi ${this.state.isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
     }
     this.setState({ isLoading: false });
   };
@@ -803,8 +670,7 @@ class User extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          </div>
         );
       });
     const isConfirmed = await confirmDelete();
@@ -812,65 +678,16 @@ class User extends Component {
       this.setState({ isLoading: true });
       const response = await handleRemovePetApi(petid);
       if (response && response.errCode === 0) {
-        toast.success('Xóa thú cưng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.loadPetInfo(this.state.accountid);
+        toast.success('Xóa thú cưng thành công!');
+        await this.handleLoadPetInfo(this.state.accountid);
       } else {
-        toast.error('Xóa thú cưng thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Xóa thú cưng thất bại!');
       }
       this.setState({ isLoading: false });
     }
   };
 
-  handleAddImage = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-    const preview = URL.createObjectURL(file);
-    this.setState({
-      imageInfo: { ImageID: Date.now(), Image: preview, file },
-    });
-  };
-  handleEditClick = (field) => {
-    this.setState({
-      editField: field,
-      originalValue: this.state[field], // Lưu giá trị ban đầu của trường
-    });
-  };
-  handleAccountInfoChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'gender' && this.state.editField !== 'gender') {
-      this.setState({
-        editField: 'gender',
-        originalValue: this.state.gender, // Lưu giá trị ban đầu của gender
-      });
-    }
-    this.setState({
-      [name]: value,
-    });
-  };
+
   handleChangePasswordInputChange = (e) => {
     this.setState({ [e.target.name]: e.target.value });
   };
@@ -893,7 +710,7 @@ class User extends Component {
         this.debounceTimeout = setTimeout(() => {
           switch (type) {
             case 'appointment':
-              this.loadAppointmentInfo(this.state.accountid);
+              this.handleLoadAppointmentInfo(this.state.accountid);
               break;
             default:
               break;
@@ -912,7 +729,7 @@ class User extends Component {
       () => {
         switch (type) {
           case 'appointment':
-            this.loadAppointmentInfo(this.state.accountid);
+            this.handleLoadAppointmentInfo(this.state.accountid);
             break;
           default:
             break;
@@ -930,7 +747,7 @@ class User extends Component {
       () => {
         switch (type) {
           case 'appointment':
-            this.loadAppointmentInfo(this.state.accountid);
+            this.handleLoadAppointmentInfo(this.state.accountid);
             break;
           default:
             break;
@@ -948,7 +765,7 @@ class User extends Component {
       () => {
         switch (type) {
           case 'appointment':
-            this.loadAppointmentInfo(this.state.accountid);
+            this.handleLoadAppointmentInfo(this.state.accountid);
             break;
           default:
             break;
@@ -993,10 +810,10 @@ class User extends Component {
       () => {
         switch (type) {
           case 'invoice':
-            this.loadInvoiceInfo(this.state.accountid);
+            this.handleLoadInvoiceInfo(this.state.accountid);
             break;
           case 'appointment':
-            this.loadAppointmentInfo(this.state.accountid);
+            this.handleLoadAppointmentInfo(this.state.accountid);
             break;
           default:
             break;
@@ -1016,10 +833,10 @@ class User extends Component {
       () => {
         switch (type) {
           case 'invoice':
-            this.loadInvoiceInfo(this.state.accountid);
+            this.handleLoadInvoiceInfo(this.state.accountid);
             break;
           case 'appointment':
-            this.loadAppointmentInfo(this.state.accountid);
+            this.handleLoadAppointmentInfo(this.state.accountid);
             break;
           default:
             break;
@@ -1039,10 +856,10 @@ class User extends Component {
       () => {
         switch (type) {
           case 'invoice':
-            this.loadInvoiceInfo(this.state.accountid);
+            this.handleLoadInvoiceInfo(this.state.accountid);
             break;
           case 'appointment':
-            this.loadAppointmentInfo(this.state.accountid);
+            this.handleLoadAppointmentInfo(this.state.accountid);
             break;
           default:
             break;
@@ -1102,8 +919,7 @@ class User extends Component {
               >
                 Không
               </button>
-            </div>,
-            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+            </div>
           );
         });
 
@@ -1115,7 +931,7 @@ class User extends Component {
               isAddingPet: false,
             },
             async () => {
-              await this.loadPetInfo(this.state.accountid);
+              await this.handleLoadPetInfo(this.state.accountid);
               this.setState((prevState) => ({
                 loadedPetInfo: [
                   {
@@ -1155,11 +971,7 @@ class User extends Component {
   };
   handleEditPet = (index) => {
     if (this.state.isAddingPet || this.state.isEditingPet !== null) {
-      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!', {
-        position: 'top-right',
-        autoClose: 1000,
-        closeOnClick: true,
-      });
+      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
       return;
     }
     this.setState({ isEditingPet: index, isAddingPet: false });
@@ -1195,8 +1007,7 @@ class User extends Component {
             >
               Không
             </button>
-          </div>,
-          { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          </div>
         );
       });
 
@@ -1217,7 +1028,7 @@ class User extends Component {
             };
           },
           async () => {
-            await this.loadPetInfo(this.state.accountid);
+            await this.handleLoadPetInfo(this.state.accountid);
           }
         );
       }
@@ -1261,11 +1072,7 @@ class User extends Component {
           tempCurrentPage: '1',
         });
       } else {
-        toast.error(response.errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage);
       }
     } catch (e) {
       this.setState({
@@ -1275,11 +1082,7 @@ class User extends Component {
         currentPage: 1,
         tempCurrentPage: '1',
       });
-      toast.error('Lỗi khi lấy chi tiết đơn hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi lấy chi tiết đơn hàng!');
     }
   };
   handleFormChiTietLichKham = async (appointmentid) => {
@@ -1305,19 +1108,11 @@ class User extends Component {
           });
         }
       } else {
-        toast.error(response?.errMessage || 'Không thể tải chi tiết lịch hẹn!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || 'Không thể tải chi tiết lịch hẹn!');
       }
     } catch (e) {
       console.error('Lỗi khi tải chi tiết lịch hẹn:', e);
-      toast.error('Lỗi khi tải chi tiết lịch hẹn!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải chi tiết lịch hẹn!');
     }
     this.setState({ isLoading: false });
   };
@@ -1340,48 +1135,28 @@ class User extends Component {
       const status = 'PEND_CANCEL';
       const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, cancelreason);
       if (response && response.errCode === 0) {
-        toast.success('Gửi yêu cầu hủy đơn hàng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.loadInvoiceInfo(this.state.accountid);
+        toast.success('Gửi yêu cầu hủy đơn hàng thành công!');
+        await this.handleLoadInvoiceInfo(this.state.accountid);
         this.setState({
           isShowCancelInvoiceModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Gửi yêu cầu hủy đơn hàng thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Edit:', e);
-      toast.error('Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
 
   handleSendEmail = (billid) => {
-    toast.info('Tính năng gửi email chưa được hỗ trợ!', {
-      position: 'top-right',
-      autoClose: 500,
-      closeOnClick: true,
-    });
+    toast.info('Tính năng gửi email chưa được hỗ trợ!');
   };
 
   handleGeneratePDF = () => {
-    toast.info('Tính năng tải PDF đang phát triển!', {
-      position: 'top-right',
-      autoClose: 500,
-      closeOnClick: true,
-    });
+    toast.info('Tính năng tải PDF đang phát triển!');
   };
   renderForm() {
     const {
@@ -1494,10 +1269,27 @@ class User extends Component {
               <div className="user-content-right">
                 <div className="user-content-right-img-content">
                   <div className="user-content-img-description">Ảnh đại diện</div>
-                  <div className="user-content-img-info">{imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : <img src={userimage || defUserImage} alt="Ảnh đại diện" />}</div>
+                  <div className="user-content-img-info" style={{ position: 'relative' }}>
+                    {imageInfo ? (
+                      <img src={imageInfo.Image} alt="Ảnh đại diện" />
+                    ) : userimage ? (
+                      <img src={userimage} alt="Ảnh đại diện" />
+                    ) : (
+                      <img src={defUserImage} alt="Ảnh đại diện" />
+                    )}
+                    {imageInfo && (
+                      <button
+                        type="button"
+                        className="remove-image-btn"
+                        onClick={this.handleRemoveImage}
+                      >
+                        X
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="user-content-img-button">
-                  <input type="file" accept="image/*" id="upload-avatar" onChange={this.handleAddImage} />
+                  <input type="file" accept="image/*" id="upload-avatar" ref={this.fileInputRef} onChange={this.handleAddImage} />
                 </div>
               </div>
             </div>
@@ -1782,7 +1574,9 @@ class User extends Component {
                   <div key={index} className="user-cart-form-info-list-item-row">
                     <div className="user-cart-form-info-list-item-left">
                       <div className="img-product">
-                        <img src={item?.ProductImage || ''} alt="Product" style={{ width: '100px', height: '100px' }} />
+                        {item?.ProductImage && (
+                          <img src={item.ProductImage} alt="Product" style={{ width: '100px', height: '100px' }} />
+                        )}
                       </div>
                     </div>
                     <div className="user-cart-form-info-list-item-center">
@@ -2438,7 +2232,15 @@ class User extends Component {
       <div className="user-page">
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} triggerLoadInformation={this.state.triggerLoadInformation} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
-        <ToastContainer />
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         {isLoading ? (
           <Spinner />
         ) : (
