@@ -91,6 +91,7 @@ class Admin extends Component {
           isLoggedIn: false,
         });
         this.props.navigate('/login');
+
       }
     } catch (e) {
       this.props.navigate('/login');
