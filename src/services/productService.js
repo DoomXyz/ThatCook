@@ -1016,14 +1016,12 @@ let createProduct = (productInfo) => {
           ProductID: productId,
         }, { transaction });
       }
-
       for (const petType of productInfo.PetType) {
         await db.ProductPetType.create({
           ProductID: productId,
           PetType: petType,
         }, { transaction });
       }
-
       if (productInfo.Image && Array.isArray(productInfo.Image) && productInfo.Image.length > 0) {
         for (const image of productInfo.Image) {
           await db.Image.create({
@@ -1033,7 +1031,6 @@ let createProduct = (productInfo) => {
           }, { transaction });
         }
       }
-
       await transaction.commit();
       resolve({
         errCode: 0,
@@ -1065,14 +1062,12 @@ let changeProductInfo = (productInfo) => {
         });
         return;
       }
-
       const isValidateInput = await validateProductInput(productInfo);
       if (isValidateInput) {
         await transaction.rollback();
         resolve(isValidateInput);
         return;
       }
-
       const product = await db.Product.findOne({
         where: { ProductID: productInfo.ProductID },
         transaction,
@@ -1086,7 +1081,6 @@ let changeProductInfo = (productInfo) => {
         });
         return;
       }
-
       if (productInfo.ProductName && productInfo.ProductName !== product.ProductName) {
         const isProductNameExist = await checkProductNameExist(productInfo.ProductName, productInfo.ProductID);
         if (isProductNameExist) {
@@ -1099,7 +1093,6 @@ let changeProductInfo = (productInfo) => {
           return;
         }
       }
-
       let isUpdated = false;
       if (productInfo.ProductName) {
         product.ProductName = productInfo.ProductName.trim();
@@ -1135,7 +1128,6 @@ let changeProductInfo = (productInfo) => {
         }
         isUpdated = true;
       }
-
       if (productInfo.ProductDetail) {
         const createdAt = new Date();
         for (const detail of productInfo.ProductDetail) {
@@ -1157,23 +1149,22 @@ let changeProductInfo = (productInfo) => {
                 { where: { ProductDetailID: detail.ProductDetailID }, transaction }
               );
               isUpdated = true;
+            } else {
+              await db.ProductDetail.create({
+                DetailName: detail.DetailName.trim(),
+                Stock: parseInt(detail.Stock) || 0,
+                SoldCount: parseInt(detail.SoldCount) || 0,
+                ExtraPrice: detail.ExtraPrice,
+                Promotion: detail.Promotion,
+                CreatedAt: createdAt,
+                DetailStatus: detail.DetailStatus,
+                ProductID: productInfo.ProductID,
+              }, { transaction });
+              isUpdated = true;
             }
-          } else {
-            await db.ProductDetail.create({
-              DetailName: detail.DetailName.trim(),
-              Stock: parseInt(detail.Stock) || 0,
-              SoldCount: parseInt(detail.SoldCount) || 0,
-              ExtraPrice: detail.ExtraPrice,
-              Promotion: detail.Promotion,
-              CreatedAt: createdAt,
-              DetailStatus: detail.DetailStatus,
-              ProductID: productInfo.ProductID,
-            }, { transaction });
-            isUpdated = true;
           }
         }
       }
-
       if (productInfo.Image !== undefined) {
         await db.Image.destroy({
           where: { ReferenceType: 'Product', ReferenceID: productInfo.ProductID },
@@ -1190,7 +1181,6 @@ let changeProductInfo = (productInfo) => {
         }
         isUpdated = true;
       }
-
       if (!isUpdated) {
         await transaction.rollback();
         resolve({
@@ -1200,7 +1190,6 @@ let changeProductInfo = (productInfo) => {
         });
         return;
       }
-
       await db.Product.update(
         {
           ProductName: product.ProductName,
@@ -1211,7 +1200,6 @@ let changeProductInfo = (productInfo) => {
         },
         { where: { ProductID: productInfo.ProductID }, transaction }
       );
-
       await transaction.commit();
       resolve({
         errCode: 0,
