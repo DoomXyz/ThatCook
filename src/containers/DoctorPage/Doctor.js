@@ -16,7 +16,7 @@ import { handleLoadAppointmentsApi, handleChangeAppointmentStatusApi, handleLoad
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 
 import { checkLoginStatus, getAllCodes } from '../../utils/pakage';
-import { userLogin, userLogout, saveAppointmentForCheckout } from '../../store/actions';
+import { userLogin, userLogout, saveAppointmentForCheckout, saveTrackInfo } from '../../store/actions';
 
 class Doctor extends Component {
   constructor(props) {
@@ -1572,7 +1572,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
-  saveAppointmentForCheckout: (appointmentData) => dispatch(saveAppointmentForCheckout(appointmentData))
+  saveAppointmentForCheckout: (appointmentData) => dispatch(saveAppointmentForCheckout(appointmentData)),
+  saveTrackInfo: (trackData) => dispatch(saveTrackInfo(trackData)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Doctor);
