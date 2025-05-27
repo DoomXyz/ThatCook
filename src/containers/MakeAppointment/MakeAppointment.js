@@ -27,6 +27,7 @@ const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579
 class MakeAppointment extends Component {
   constructor(props) {
     super(props);
+    this.fileInputRef = React.createRef();
     this.state = {
       isLoading: true,
       isLoggedIn: false,
@@ -545,6 +546,9 @@ class MakeAppointment extends Component {
     this.setState((prevState) => ({
       allImages: [...prevState.allImages, { ImageID: Date.now(), Image: preview, file }],
     }));
+    if (this.fileInputRef.current) {
+      this.fileInputRef.current.value = null;
+    }
   };
   handleRemoveImage = (imageID) => {
     this.setState((prevState) => ({
@@ -820,7 +824,7 @@ class MakeAppointment extends Component {
                   ))}
                   {allImages.length < 3 && (
                     <div className="add-img">
-                      <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
+                      <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" ref={this.fileInputRef} />
                       <label htmlFor="upload-image" className="add-img-label">
                         +
                       </label>

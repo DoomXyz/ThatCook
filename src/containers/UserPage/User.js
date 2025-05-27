@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 
-import { eyeOutline, eyeOffOutline, chevronBack, pencil } from 'ionicons/icons';
+import { eyeOutline, eyeOffOutline, chevronBackOutline, pencil } from 'ionicons/icons';
 
 import './User.scss';
 import Spinner from '../../components/Spinner';
@@ -13,12 +13,12 @@ import Footer from '../../components/HomeFooter';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from '../../services/accountServices';
-import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
+import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices';
 import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
 
-import { checkLoginStatus, getAllCodes, uploadImages } from '../../utils/pakage';
+import { checkLoginStatus, getAllCodes, uploadImages, validatePetInput, generateInvoicePDF } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
 
 const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
@@ -75,11 +75,9 @@ class User extends Component {
       currentPage: 1,
       tempCurrentPage: '1',
       limitInvoicePerQuery: 5,
-      totalInvoicePages: 1,
       limitProductPerQuery: 7,
-      totalProductPages: 1,
       limitAppointmentPerQuery: 5,
-      totalAppointmentPages: 1,
+      totalPages: 1,
       // Filtering & Sorting
       searchValue: '',
       filterValue: 'ALL',
@@ -95,6 +93,17 @@ class User extends Component {
       isEditingPet: null,
       isAddingPet: false,
       limitPetCount: 3,
+      //DisableButton
+      disabledButtons: {
+        confirmReceived: false,
+        continueInvoice: false,
+        cancelAppointment: false,
+        cancelInvoice: false,
+        savePet: false,
+        deletePet: false,
+        cancelPet: false,
+        addPet: false,
+      },
     };
   }
   async componentDidMount() {
@@ -110,7 +119,6 @@ class User extends Component {
     }, 10);
   }
   async componentDidUpdate(prevProps, prevState) {
-    console.log(this.state.imageInfo)
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
@@ -246,12 +254,12 @@ class User extends Component {
   };
   handleLoadInvoiceInfo = async () => {
     try {
-      const { accountid } = this.state;
+      const { accountid, limitInvoicePerQuery } = this.state;
       const response = await handleGetAccountInvoiceInfoApi(accountid);
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
-          totalInvoicePages: Math.ceil(response.data.length / this.state.limitInvoicePerQuery),
+          totalPages: Math.ceil(response.data.length / limitInvoicePerQuery),
         });
       }
     } catch (e) {
@@ -267,7 +275,7 @@ class User extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedAppointmentInfo: response.data,
-          totalAppointmentPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
+          totalPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
         });
       }
     } catch (e) {
@@ -292,23 +300,45 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleLoadAppointmentBillDetail = async (appointmentbillid) => {
-    this.setState({ isLoading: true });
+  handleLoadInvoiceDetail = async (invoiceid) => {
     try {
-      const response = await handleGetAppointmentBillDetailApi(appointmentbillid);
-      if (response && response.errCode === 0) {
-        this.setState({
-          loadedAppointmentBillDetail: response.data,
-        });
-      } else {
-        toast.error(response?.errMessage || 'Không thể tải chi tiết hóa đơn lịch hẹn!');
+      const response = await handleGetInvoiceDetailInfoApi(invoiceid);
+      if (response && response.errCode === 0 && response.data) {
+        return response.data;
       }
+      toast.error(response.errMessage || 'Không tìm thấy đơn hàng!');
+      return null;
     } catch (e) {
-      console.error('Lỗi khi tải chi tiết hóa đơn lịch hẹn:', e);
-      toast.error('Lỗi khi tải chi tiết hóa đơn lịch hẹn!');
+      console.error('Lỗi khi tải chi tiết đơn hàng:', e);
+      toast.error('Lỗi hệ thống khi tải chi tiết đơn hàng!');
+      return null;
     }
-    this.setState({ isLoading: false });
   };
+  handleLoadAppointmentBillDetail = async (appointmentid) => {
+    try {
+      const response = await handleLoadAppointmentDetailsApi(appointmentid);
+      if (response && response.errCode === 0 && response.data) {
+        const appointmentDetail = response.data;
+        let billDetail = null;
+        if (appointmentDetail.AppointmentStatus === 'COMP' && appointmentDetail.AppointmentBill) {
+          const billResponse = await handleGetAppointmentBillDetailApi(appointmentDetail.AppointmentBill.AppointmentBillID);
+          if (billResponse && billResponse.errCode === 0) {
+            billDetail = billResponse.data;
+          } else {
+            toast.warn('Không tải được chi tiết hóa đơn lịch hẹn!');
+          }
+        }
+        return { appointmentDetail, billDetail };
+      }
+      toast.error(response?.errMessage || 'Không tìm thấy lịch hẹn!');
+      return null;
+    } catch (e) {
+      console.error('Lỗi khi tải chi tiết lịch hẹn:', e);
+      toast.error('Lỗi hệ thống khi tải chi tiết lịch hẹn!');
+      return null;
+    }
+  };
+  //AccountInfo & Password Management
   handleAddImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -324,6 +354,12 @@ class User extends Component {
     this.setState({
       imageInfo: { ImageID: Date.now(), Image: preview, file },
     });
+    if (this.fileInputRef.current) {
+      this.fileInputRef.current.value = null;
+    }
+  };
+  handleRemoveImage = () => {
+    this.setState({ imageInfo: null })
   };
   handleEditClick = (field) => {
     this.setState({
@@ -331,18 +367,13 @@ class User extends Component {
       originalValue: this.state[field], // Lưu giá trị ban đầu của trường
     });
   };
-  handleRemoveImage = () => {
-    if (this.fileInputRef.current) {
-      this.fileInputRef.current.value = null; // Reset input file
-    }
-    this.setState({ imageInfo: null })
-  };
   handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'gender' && this.state.editField !== 'gender') {
+    const { editField, gender } = this.state
+    if (name === 'gender' && editField !== 'gender') {
       this.setState({
         editField: 'gender',
-        originalValue: this.state.gender, // Lưu giá trị ban đầu của gender
+        originalValue: gender, // Lưu giá trị ban đầu của gender
       });
     }
     this.setState({
@@ -423,6 +454,14 @@ class User extends Component {
     await this.triggerLoadInformation();
     this.setState({ editField: null, originalValue: '' });
   };
+  handleChangePasswordInputChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+  toggleShowPassword = (field) => {
+    this.setState((prevState) => ({
+      [field]: !prevState[field],
+    }));
+  };
   handleChangePassword = async (e) => {
     e.preventDefault();
     const { accountid, oldPassword, newPassword, confirmPassword } = this.state;
@@ -467,434 +506,17 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  //cum here
-  handleConfirmReceived = async (invoiceid) => {
-    const confirmReceived = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận đã nhận hàng?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>
-        );
-      });
-    const isConfirmed = await confirmReceived();
-    if (!isConfirmed) return;
-    this.setState({ isLoading: true });
-    try {
-      const type = 'ShippingStatus';
-      const status = 'DELI';
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
-      if (response && response.errCode === 0) {
-        toast.success('Xác nhận nhận hàng thành công!');
-        await this.handleLoadInvoiceInfo(this.state.accountid);
-      } else {
-        const errMessage = response?.errMessage || 'Xác nhận nhận hàng thất bại!';
-        toast.error(errMessage);
-      }
-    } catch (e) {
-      console.error('Error confirming received:', e);
-      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!');
-    }
-    this.setState({ isLoading: false });
-  };
-  handleContinueInvoice = async (invoiceid) => {
-    const confirmContinue = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận tiếp tục đơn hàng?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>
-        );
-      });
-    const isConfirmed = await confirmContinue();
-    if (!isConfirmed) return;
-    this.setState({ isLoading: true });
-    try {
-      const type = 'ShippingStatus';
-      const status = 'PEND';
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
-      if (response && response.errCode === 0) {
-        toast.success('Tiếp tục đơn hàng thành công!');
-        await this.handleLoadInvoiceInfo(this.state.accountid);
-      } else {
-        const errMessage = response?.errMessage || 'Tiếp tục đơn hàng thất bại!';
-        toast.error(errMessage);
-      }
-    } catch (e) {
-      console.error('Error continuing invoice:', e);
-      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!');
-    }
-    this.setState({ isLoading: false });
-  };
-  handleCancelAppointment = async (appointmentid) => {
-    const confirmCancel = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Bạn có muốn hủy lịch hẹn này?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>
-        );
-      });
-    const isConfirmed = await confirmCancel();
-    if (!isConfirmed) return;
-
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', null);
-      if (response && response.errCode === 0) {
-        toast.success('Hủy lịch hẹn thành công!');
-        this.handleLoadAppointmentInfo(this.state.accountid);
-      } else {
-        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
-      }
-    } catch (e) {
-      console.error('Lỗi khi hủy lịch hẹn:', e);
-      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!');
-    }
-    this.setState({ isLoading: false });
-  };
-  handleSavePet = async (index) => {
-    const validation = this.checkValidatePet(index);
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage);
+  //PetInfo Management
+  handleEditPet = (index) => {
+    const { isAddingPet, isEditingPet } = this.state
+    if (isAddingPet || isEditingPet !== null) {
+      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
       return;
     }
-    this.setState({ isLoading: true });
-    try {
-      const pet = this.state.loadedPetInfo[index];
-      const petInfo = {
-        petname: pet.PetName.trim(),
-        pettype: pet.PetType,
-        petgender: pet.PetGender,
-        age: parseInt(pet.Age),
-        petweight: parseFloat(pet.PetWeight),
-      };
-      let response;
-      if (this.state.isAddingPet) {
-        response = await handleSavePetInfoApi(this.state.accountid, petInfo);
-      } else {
-        response = await handleChangePetInfoApi(pet.PetID, petInfo);
-      }
-
-      if (response && response.errCode === 0) {
-        toast.success(this.state.isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
-        await this.handleLoadPetInfo(this.state.accountid);
-        this.setState({
-          isEditingPet: null,
-          isAddingPet: false,
-        });
-      } else {
-        toast.error(response?.errMessage || (this.state.isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
-      }
-    } catch (e) {
-      console.error(this.state.isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
-      toast.error(`Lỗi khi ${this.state.isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
-    }
-    this.setState({ isLoading: false });
-  };
-  handleDeletePet = async (petid) => {
-    const confirmDelete = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Bạn có chắc muốn xóa thú cưng này?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>
-        );
-      });
-    const isConfirmed = await confirmDelete();
-    if (isConfirmed) {
-      this.setState({ isLoading: true });
-      const response = await handleRemovePetApi(petid);
-      if (response && response.errCode === 0) {
-        toast.success('Xóa thú cưng thành công!');
-        await this.handleLoadPetInfo(this.state.accountid);
-      } else {
-        toast.error('Xóa thú cưng thất bại!');
-      }
-      this.setState({ isLoading: false });
-    }
-  };
-
-
-  handleChangePasswordInputChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value });
-  };
-  toggleShowPassword = (field) => {
-    this.setState((prevState) => ({
-      [field]: !prevState[field],
-    }));
-  };
-
-  handleSearchChange = (event, type) => {
-    const value = event.target.value;
-    this.setState(
-      {
-        searchValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
-        this.debounceTimeout = setTimeout(() => {
-          switch (type) {
-            case 'appointment':
-              this.handleLoadAppointmentInfo(this.state.accountid);
-              break;
-            default:
-              break;
-          }
-        }, 500);
-      }
-    );
-  };
-  handleFilter = (value, type) => {
-    this.setState(
-      {
-        filterValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 'appointment':
-            this.handleLoadAppointmentInfo(this.state.accountid);
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handleSort = (value, type) => {
-    this.setState(
-      {
-        sortValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 'appointment':
-            this.handleLoadAppointmentInfo(this.state.accountid);
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  resetDateFilter = (dateField, type) => {
-    this.setState(
-      {
-        [dateField]: '',
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 'appointment':
-            this.handleLoadAppointmentInfo(this.state.accountid);
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handlePageChange = (page, type) => {
-    this.setState({ isLoading: true });
-    const { totalInvoicePages, totalProductPages, totalAppointmentPages } = this.state;
-    let totalPages;
-    let limitPerQuery;
-    switch (type) {
-      case 'invoice':
-        totalPages = totalInvoicePages;
-        limitPerQuery = this.state.limitInvoicePerQuery;
-        break;
-      case 'product':
-        totalPages = totalProductPages;
-        limitPerQuery = this.state.limitProductPerQuery;
-        break;
-      case 'appointment':
-        totalPages = totalAppointmentPages;
-        limitPerQuery = this.state.limitAppointmentPerQuery;
-        break;
-      default:
-        totalPages = 1;
-        limitPerQuery = 10;
-    }
-    let newPage = page;
-    if (isNaN(page) || page <= 0) {
-      newPage = 1;
-    } else if (page > totalPages) {
-      newPage = totalPages;
-    }
-    this.setState(
-      {
-        isLoading: false,
-        currentPage: newPage,
-        tempCurrentPage: newPage.toString(),
-      },
-      () => {
-        switch (type) {
-          case 'invoice':
-            this.handleLoadInvoiceInfo(this.state.accountid);
-            break;
-          case 'appointment':
-            this.handleLoadAppointmentInfo(this.state.accountid);
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handlePrevPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.max(1, prevState.currentPage - 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-        };
-      },
-      () => {
-        switch (type) {
-          case 'invoice':
-            this.handleLoadInvoiceInfo(this.state.accountid);
-            break;
-          case 'appointment':
-            this.handleLoadAppointmentInfo(this.state.accountid);
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handleNextPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.min(type === 'invoice' ? prevState.totalInvoicePages : type === 'product' ? prevState.totalProductPages : prevState.totalAppointmentPages, prevState.currentPage + 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-        };
-      },
-      () => {
-        switch (type) {
-          case 'invoice':
-            this.handleLoadInvoiceInfo(this.state.accountid);
-            break;
-          case 'appointment':
-            this.handleLoadAppointmentInfo(this.state.accountid);
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handlePageInputBlur = (type) => {
-    const { tempCurrentPage } = this.state;
-    const page = parseInt(tempCurrentPage, 10);
-    this.handlePageChange(page, type);
-  };
-  handlePageKeyDown = (event, type) => {
-    if (event.key === 'Enter') {
-      const { tempCurrentPage } = this.state;
-      const page = parseInt(tempCurrentPage, 10);
-      this.handlePageChange(page, type);
-    }
-  };
-  getDayOfWeek = (date) => {
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return days[date.getDay()];
-  };
-  checkValidatePet = (index) => {
-    const item = this.state.loadedPetInfo[index];
-    if (!item.PetName) return { errCode: -1, errMessage: `Tên thú cưng không được để trống!` };
-    const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    if (!petNameRegex.test(item.PetName.trim())) return { errCode: -1, errMessage: `Tên thú cưng không hợp lệ (2-50 ký tự)!` };
-    if (!item.PetType) return { errCode: -1, errMessage: `Loại thú cưng không được để trống!` };
-    if (!item.PetGender) return { errCode: -1, errMessage: `Giới tính thú cưng không được để trống!` };
-    if (!item.Age || isNaN(item.Age) || parseInt(item.Age) < 0 || parseInt(item.Age) > 999) return { errCode: -1, errMessage: `Tuổi thú cưng không hợp lệ (0-999)!` };
-    if (!item.PetWeight || isNaN(item.PetWeight) || parseFloat(item.PetWeight) <= 0 || parseFloat(item.PetWeight) > 999.99) return { errCode: -1, errMessage: `Cân nặng thú cưng không hợp lệ (0.01-999.99)!` };
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
+    this.setState({ isEditingPet: index, isAddingPet: false });
   };
   handleAddPet = () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: true } });
     if (this.state.isAddingPet || this.state.isEditingPet !== null) {
       const confirmAddNew = () =>
         new Promise((resolve) => {
@@ -919,10 +541,14 @@ class User extends Component {
               >
                 Không
               </button>
-            </div>
+            </div>,
+            {
+              autoClose: 2000,
+              closeOnClick: false,
+              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } }); },
+            }
           );
         });
-
       confirmAddNew().then((isConfirmed) => {
         if (isConfirmed) {
           this.setState(
@@ -968,22 +594,10 @@ class User extends Component {
         isAddingPet: true,
       }));
     }
-  };
-  handleEditPet = (index) => {
-    if (this.state.isAddingPet || this.state.isEditingPet !== null) {
-      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
-      return;
-    }
-    this.setState({ isEditingPet: index, isAddingPet: false });
-  };
-  handlePetChange = (index, field, value) => {
-    this.setState((prevState) => {
-      const newPets = [...prevState.loadedPetInfo];
-      newPets[index] = { ...newPets[index], [field]: value };
-      return { loadedPetInfo: newPets };
-    });
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } });
   };
   handleCancelPet = () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: true } });
     const confirmCancel = () =>
       new Promise((resolve) => {
         toast(
@@ -1007,10 +621,14 @@ class User extends Component {
             >
               Không
             </button>
-          </div>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: false } }); },
+          }
         );
       });
-
     confirmCancel().then((isConfirmed) => {
       if (isConfirmed) {
         this.setState(
@@ -1034,7 +652,372 @@ class User extends Component {
       }
     });
   };
+  handlePetChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newPets = [...prevState.loadedPetInfo];
+      newPets[index] = { ...newPets[index], [field]: value };
+      return { loadedPetInfo: newPets };
+    });
+  };
+  handleSavePet = async (index) => {
+    const { accountid, loadedPetInfo, isAddingPet } = this.state
+    const pet = loadedPetInfo[index];
+    const newPetInfo = {
+      petname: pet.PetName.trim(),
+      pettype: pet.PetType,
+      petgender: pet.PetGender,
+      petweight: parseFloat(pet.PetWeight),
+      age: parseInt(pet.Age),
+    };
+    const isValidatePetInput = await validatePetInput(newPetInfo);
+    if (!isValidatePetInput.valid) {
+      toast.error(`${isValidatePetInput.errMessage} tại dòng ${index + 1}`);
+      return;
+    }
+    this.setState({ isLoading: true });
+    try {
 
+      let response;
+      if (isAddingPet) {
+        response = await handleSavePetInfoApi(accountid, newPetInfo);
+      } else {
+        response = await handleChangePetInfoApi(pet.PetID, newPetInfo);
+      }
+      if (response && response.errCode === 0) {
+        toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
+        await this.handleLoadPetInfo(accountid);
+        this.setState({
+          isEditingPet: null,
+          isAddingPet: false,
+        });
+      } else {
+        toast.error(response?.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
+      }
+    } catch (e) {
+      console.error(isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
+      toast.error(`Lỗi khi ${isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
+    }
+    this.setState({ isLoading: false });
+  };
+  handleDeletePet = async (petid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: true } });
+    const confirmDelete = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Bạn có chắc muốn xóa thú cưng này?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }); },
+          }
+        );
+      });
+    const isConfirmed = await confirmDelete();
+    if (isConfirmed) {
+      this.setState({ isLoading: true });
+      const response = await handleRemovePetApi(petid);
+      if (response && response.errCode === 0) {
+        toast.success('Xóa thú cưng thành công!');
+        await this.handleLoadPetInfo(this.state.accountid);
+      } else {
+        toast.error('Xóa thú cưng thất bại!');
+      }
+    }
+    this.setState({ isLoading: false });
+  };
+  //InvoiceAction Management
+  handleConfirmReceived = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: true } });
+    const confirmReceived = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận đã nhận hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } }); },
+          }
+        );
+      });
+    const isConfirmed = await confirmReceived();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const type = 'ShippingStatus';
+      const status = 'DELI';
+      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
+      if (response && response.errCode === 0) {
+        toast.success('Xác nhận nhận hàng thành công!');
+        await this.handleLoadInvoiceInfo(this.state.accountid);
+      } else {
+        const errMessage = response?.errMessage || 'Xác nhận nhận hàng thất bại!';
+        toast.error(errMessage);
+      }
+    } catch (e) {
+      console.error('Error confirming received:', e);
+      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
+  };
+  handleContinueInvoice = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: true } });
+    const confirmContinue = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận tiếp tục đơn hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } }); },
+          }
+        );
+      });
+    const isConfirmed = await confirmContinue();
+    if (!isConfirmed) return;
+    this.setState({ isLoading: true });
+    try {
+      const type = 'ShippingStatus';
+      const status = 'PEND';
+      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
+      if (response && response.errCode === 0) {
+        toast.success('Tiếp tục đơn hàng thành công!');
+        await this.handleLoadInvoiceInfo(this.state.accountid);
+      } else {
+        const errMessage = response?.errMessage || 'Tiếp tục đơn hàng thất bại!';
+        toast.error(errMessage);
+      }
+    } catch (e) {
+      console.error('Error continuing invoice:', e);
+      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
+  };
+  //AppointmentAction Management
+  handleCancelAppointment = async (appointmentid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: true } });
+    const confirmCancel = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Bạn có muốn hủy lịch hẹn này?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } }); },
+          }
+        );
+      });
+    const isConfirmed = await confirmCancel();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', null);
+      if (response && response.errCode === 0) {
+        toast.success('Hủy lịch hẹn thành công!');
+        this.handleLoadAppointmentInfo(this.state.accountid);
+      } else {
+        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
+      }
+    } catch (e) {
+      console.error('Lỗi khi hủy lịch hẹn:', e);
+      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
+  };
+  //Search, filter, sort, paginated
+  handleSearchChange = (event, type) => {
+    const value = event.target.value;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
+        this.debounceTimeout = setTimeout(() => {
+          this.handleReloadData(type);
+        }, 500);
+      }
+    );
+  };
+  handleFilter = (value, type) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type)
+      }
+    );
+  };
+  handleSort = (value, type) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  resetDateFilter = (dateField, type) => {
+    this.setState(
+      {
+        [dateField]: '',
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handlePageChange = (page, type) => {
+    this.setState({ isLoading: true });
+    const { totalPages } = this.state;
+    let newPage = page;
+    if (isNaN(page) || page <= 0) {
+      newPage = 1;
+    } else if (page > totalPages) {
+      newPage = totalPages;
+    }
+    this.setState({
+      isLoading: false,
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString(),
+    }, () => {
+      this.handleReloadData(type);
+    });
+  };
+  handlePrevPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      }, () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handleNextPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handlePageInputBlur = (type) => {
+    const { tempCurrentPage } = this.state;
+    const page = parseInt(tempCurrentPage, 10);
+    this.handlePageChange(page, type);
+  };
+  handlePageKeyDown = (event, type) => {
+    if (event.key === 'Enter') {
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page, type);
+    }
+  };
+  //Utilities
+  getDayOfWeek = (date) => {
+    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    return days[date.getDay()];
+  };
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 1, editField: null, currentPage: 1, tempCurrentPage: '1' });
@@ -1060,63 +1043,46 @@ class User extends Component {
     this.setState({ actionPage: 3, currentPage: 1, tempCurrentPage: '1' });
   };
   handleFormChiTietDonHang = async (invoiceid) => {
-    try {
-      const response = await handleGetInvoiceDetailInfoApi(invoiceid);
-      if (response && response.errCode === 0) {
-        this.setState({
-          actionPage: 4,
-          selectedInvoiceID: invoiceid,
-          loadedInvoiceDetail: response.data,
-          totalProductPages: Math.ceil(response.data.ProductList.length / this.state.limitProductPerQuery),
-          currentPage: 1,
-          tempCurrentPage: '1',
-        });
-      } else {
-        toast.error(response.errMessage);
-      }
-    } catch (e) {
+    if (this.state.selectedInvoiceID === invoiceid && this.state.loadedInvoiceDetail) {
+      this.setState({ actionPage: 4 });
+      return;
+    }
+    this.setState({ isLoading: true });
+    const invoiceDetail = await this.handleLoadInvoiceDetail(invoiceid);
+    if (invoiceDetail) {
       this.setState({
         actionPage: 4,
         selectedInvoiceID: invoiceid,
-        loadedInvoiceDetail: null,
+        loadedInvoiceDetail: invoiceDetail,
+        totalPages: Math.ceil((invoiceDetail.ProductList?.length || 0) / this.state.limitProductPerQuery),
         currentPage: 1,
         tempCurrentPage: '1',
       });
-      toast.error('Lỗi khi lấy chi tiết đơn hàng!');
-    }
-  };
-  handleFormChiTietLichKham = async (appointmentid) => {
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleLoadAppointmentDetailsApi(appointmentid);
-      if (response && response.errCode === 0) {
-        if (response.data.AppointmentStatus === 'COMP' && response.data.AppointmentBill) {
-          // Lịch hẹn đã khám, gọi API lấy chi tiết hóa đơn
-          await this.handleLoadAppointmentBillDetail(response.data.AppointmentBill.AppointmentBillID);
-          this.setState({
-            actionPage: 9, // Chuyển sang case 9 cho lịch hẹn đã khám
-            selectedAppointmentID: appointmentid,
-            loadedAppointmentDetail: response.data,
-          });
-        } else {
-          // Lịch hẹn chưa khám
-          this.setState({
-            actionPage: 6, // Chuyển sang case 6 cho lịch hẹn chưa khám
-            selectedAppointmentID: appointmentid,
-            loadedAppointmentDetail: response.data,
-            loadedAppointmentBillDetail: null, // Xóa dữ liệu hóa đơn nếu có
-          });
-        }
-      } else {
-        toast.error(response?.errMessage || 'Không thể tải chi tiết lịch hẹn!');
-      }
-    } catch (e) {
-      console.error('Lỗi khi tải chi tiết lịch hẹn:', e);
-      toast.error('Lỗi khi tải chi tiết lịch hẹn!');
+    } else {
+      this.setState({ actionPage: 2 });
     }
     this.setState({ isLoading: false });
   };
-
+  handleFormChiTietLichKham = async (appointmentid) => {
+    if (this.state.selectedAppointmentID === appointmentid && this.state.loadedAppointmentDetail) {
+      this.setState({ actionPage: this.state.loadedAppointmentDetail.AppointmentStatus === 'COMP' && this.state.loadedAppointmentDetail.AppointmentBill ? 9 : 6 });
+      return;
+    }
+    this.setState({ isLoading: true, loadedAppointmentBillDetail: null });
+    const result = await this.handleLoadAppointmentBillDetail(appointmentid);
+    if (result) {
+      this.setState({
+        actionPage: result.appointmentDetail.AppointmentStatus === 'COMP' && result.appointmentDetail.AppointmentBill ? 9 : 6,
+        selectedAppointmentID: appointmentid,
+        loadedAppointmentDetail: result.appointmentDetail,
+        loadedAppointmentBillDetail: result.billDetail,
+      });
+    } else {
+      this.setState({ actionPage: 5 });
+    }
+    this.setState({ isLoading: false });
+  };
+  //CancelInvoice Modal
   handleSelectedCancelInvoice = (invoiceid) => {
     this.setState({
       selectedCancelInvoice: invoiceid,
@@ -1150,14 +1116,52 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-
-  handleSendEmail = (billid) => {
-    toast.info('Tính năng gửi email chưa được hỗ trợ!');
+  //Hyper Utilities
+  handleGeneratePDF = (data, type) => {
+    if (!data) {
+      toast.error('Không có dữ liệu hóa đơn để tạo PDF!');
+      return;
+    }
+    switch (type) {
+      case 1:
+        generateInvoicePDF(data);
+        break
+      default:
+        break
+    }
+  };
+  handleSendEmail = async (billid, type) => {
+    const { email } = this.state;
+    if (!email) {
+      toast.info('Email không được bỏ trống!')
+      return
+    }
+    try {
+      this.setState({ isLoading: true })
+      const sendInfo = {
+        billid,
+        email,
+      }
+      let response
+      switch (type) {
+        case 1: response = await handleSendInvoiceEmailApi(sendInfo);
+          break;
+        default:
+          break;
+      }
+      if (response && response.errCode === 0) {
+        toast.success('Gửi email thành công!');
+        this.setState({ actionPage: 0 })
+      } else {
+        toast.error(response?.errMessage || 'Gửi email thất bại!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi gửi email:', e);
+      toast.error('Lỗi khi gửi email!');
+    }
+    this.setState({ isLoading: false })
   };
 
-  handleGeneratePDF = () => {
-    toast.info('Tính năng tải PDF đang phát triển!');
-  };
   renderForm() {
     const {
       userimage,
@@ -1191,17 +1195,15 @@ class User extends Component {
       selectedInvoiceID,
       loadedInvoiceDetail,
       limitProductPerQuery,
-      totalProductPages,
       loadedAppointmentInfo,
       limitAppointmentPerQuery,
-      totalAppointmentPages,
+      totalPages,
       filterValue,
       sortValue,
       date1,
       date2,
       serviceList,
       limitInvoicePerQuery,
-      totalInvoicePages,
       loadedAppointmentBillDetail,
       currentPage,
       tempCurrentPage,
@@ -1209,6 +1211,7 @@ class User extends Component {
       showNewPassword,
       showConfirmPassword,
       isAddingPet,
+      disabledButtons
     } = this.state;
     switch (actionPage) {
       case 1:
@@ -1418,6 +1421,7 @@ class User extends Component {
                                   e.stopPropagation();
                                   this.handleSelectedCancelInvoice(invoice.InvoiceID);
                                 }}
+                                disabled={disabledButtons.cancelInvoice}
                               >
                                 Hủy đơn hàng
                               </button>
@@ -1430,6 +1434,7 @@ class User extends Component {
                                   e.stopPropagation();
                                   this.handleConfirmReceived(invoice.InvoiceID);
                                 }}
+                                disabled={disabledButtons.confirmReceived}
                               >
                                 Xác nhận giao hàng
                               </button>
@@ -1455,21 +1460,21 @@ class User extends Component {
                   <p>Không có đơn hàng nào.</p>
                 )}
               </div>
-              {totalInvoicePages > 1 && (
+              {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button className="first" onClick={() => this.handlePageChange(1, 'invoice')} disabled={currentPage === 1}>
+                    <button type='button' className="first" onClick={() => this.handlePageChange(1, 3)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button className="prev" onClick={() => this.handlePrevPage('invoice')} disabled={currentPage === 1}>
+                    <button type='button' className="prev" onClick={() => this.handlePrevPage(3)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 'invoice')} onBlur={() => this.handlePageInputBlur('invoice')} />
-                    <span className="total-pages">/ {totalInvoicePages}</span>
-                    <button className="next" onClick={() => this.handleNextPage('invoice')} disabled={currentPage === totalInvoicePages}>
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 3)} onBlur={() => this.handlePageInputBlur(3)} />
+                    <span className="total-pages">/ {totalPages}</span>
+                    <button type='button' className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button className="last" onClick={() => this.handlePageChange(totalInvoicePages, 'invoice')} disabled={currentPage === totalInvoicePages}>
+                    <button type='button' className="last" onClick={() => this.handlePageChange(totalPages, 3)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -1514,7 +1519,7 @@ class User extends Component {
           return (
             <div>
               <div className="back" onClick={this.handleFormLichSuDonHang}>
-                <IonIcon icon={chevronBack}></IonIcon>
+                <IonIcon icon={chevronBackOutline}></IonIcon>
                 <h5>
                   <b>Trở lại</b>
                 </h5>
@@ -1528,7 +1533,7 @@ class User extends Component {
             <div className="user-cart-form-info-top">
               <div className="user-cart-form-info-left">
                 <div className="back" onClick={this.handleFormLichSuDonHang}>
-                  <IonIcon icon={chevronBack}></IonIcon>
+                  <IonIcon icon={chevronBackOutline}></IonIcon>
                   <h5>
                     <b>Trở lại</b>
                   </h5>
@@ -1556,16 +1561,16 @@ class User extends Component {
             </div>
             <div className="user-cart-form-info-address">
               <div className="user-info-tab">
-                <div className="descreption-user">Địa chỉ nhận hàng:</div>
-                <div className="value-user">{loadedInvoiceDetail?.ReceiverAddress || 'N/A'}</div>
-              </div>
-              <div className="user-info-tab">
                 <div className="descreption-user">Tên người nhận hàng:</div>
                 <div className="value-user">{loadedInvoiceDetail?.ReceiverName || 'N/A'}</div>
               </div>
               <div className="user-info-tab">
                 <div className="descreption-user">SĐT nhận hàng:</div>
                 <div className="value-user">{loadedInvoiceDetail?.ReceiverPhone || 'N/A'}</div>
+              </div>
+              <div className="user-info-tab">
+                <div className="descreption-user">Địa chỉ nhận hàng:</div>
+                <div className="value-user">{loadedInvoiceDetail?.ReceiverAddress || 'N/A'}</div>
               </div>
             </div>
             <div className="user-cart-form-info-list-item">
@@ -1614,21 +1619,21 @@ class User extends Component {
                 <p>Không có sản phẩm trong đơn hàng.</p>
               )}
             </div>
-            {totalProductPages > 1 && (
+            {totalPages > 1 && (
               <div className="page-content">
                 <div className="page-content-item">
-                  <button className="first" onClick={() => this.handlePageChange(1, 'product')} disabled={currentPage === 1}>
+                  <button className="first" type='button' onClick={() => this.handlePageChange(1, 0)} disabled={currentPage === 1}>
                     {'<<'}
                   </button>
-                  <button className="prev" onClick={() => this.handlePrevPage('product')} disabled={currentPage === 1}>
+                  <button className="prev" type='button' onClick={() => this.handlePrevPage(0)} disabled={currentPage === 1}>
                     {'<'}
                   </button>
-                  <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 'product')} onBlur={() => this.handlePageInputBlur('product')} />
-                  <span className="total-pages">/ {totalProductPages}</span>
-                  <button className="next" onClick={() => this.handleNextPage('product')} disabled={currentPage === totalProductPages}>
+                  <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 0)} onBlur={() => this.handlePageInputBlur(5)} />
+                  <span className="total-pages">/ {totalPages}</span>
+                  <button className="next" type='button' onClick={() => this.handleNextPage(0)} disabled={currentPage === totalPages}>
                     {'>'}
                   </button>
-                  <button className="last" onClick={() => this.handlePageChange(totalProductPages, 'product')} disabled={currentPage === totalProductPages}>
+                  <button className="last" type='button' onClick={() => this.handlePageChange(totalPages, 0)} disabled={currentPage === totalPages}>
                     {'>>'}
                   </button>
                 </div>
@@ -1701,6 +1706,16 @@ class User extends Component {
                   })()}
                 </div>
               </div>
+              <div className="price-item">
+                <div className="value">
+                  <button type='button' onClick={() => this.handleGeneratePDF(loadedInvoiceDetail, 1)} className="pdf-btn">
+                    Tải PDF
+                  </button>
+                  <button type='button' onClick={() => this.handleSendEmail(selectedInvoiceID, 1)} className="email-btn">
+                    Gửi hóa đơn về Email
+                  </button>
+                </div>
+              </div>
             </div>
           </form>
         );
@@ -1716,7 +1731,7 @@ class User extends Component {
               </h3>
 
               <div className="appointment-filter">
-                <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 'appointment')}>
+                <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 4)}>
                   <option value="ALL">Tất cả</option>
                   <optgroup label="Theo trạng thái">
                     {codeAppointmentStatus.map((status) => (
@@ -1735,14 +1750,14 @@ class User extends Component {
                 </select>
               </div>
               <div className="appointment-sort">
-                <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 'appointment')}>
+                <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 4)}>
                   <option value="0">Mặc định</option>
                   <option value="1">Mới nhất</option>
                   <option value="2">Cũ nhất</option>
                 </select>
               </div>
               <div className="appointment-search">
-                <input type="text" placeholder="Nhập tên dịch vụ hoặc thú cưng" value={searchValue} onChange={(event) => this.handleSearchChange(event, 'appointment')} />
+                <input type="text" placeholder="Nhập tên dịch vụ hoặc thú cưng" value={searchValue} onChange={(event) => this.handleSearchChange(event, 4)} />
               </div>
               <div className="appointment-date-filter ">
                 <div className="f">
@@ -1752,7 +1767,7 @@ class User extends Component {
                       onChange={(date) => {
                         const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
                         this.setState({ date1: formattedDate }, () => {
-                          this.handleFilter('ALL', 'appointment');
+                          this.handleFilter('ALL', 4);
                         });
                       }}
                       dateFormat="dd/MM/yyyy"
@@ -1760,7 +1775,10 @@ class User extends Component {
                       className="date-picker"
                     />
                     {date1 && (
-                      <button onClick={() => this.resetDateFilter('date1', 'appointment')} style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      <button type='button'
+                        onClick={() => this.resetDateFilter('date1', 4)}
+                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
                         x
                       </button>
                     )}
@@ -1772,7 +1790,7 @@ class User extends Component {
                       onChange={(date) => {
                         const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
                         this.setState({ date2: formattedDate }, () => {
-                          this.handleFilter('ALL', 'appointment');
+                          this.handleFilter('ALL', 4);
                         });
                       }}
                       dateFormat="dd/MM/yyyy"
@@ -1781,7 +1799,8 @@ class User extends Component {
                     />
                     {date2 && (
                       <button
-                        onClick={() => this.resetDateFilter('date2', 'appointment')} // Thêm type
+                        type='button'
+                        onClick={() => this.resetDateFilter('date2', 4)} // Thêm type
                         style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
                       >
                         x
@@ -1827,10 +1846,12 @@ class User extends Component {
                       <div className="appointment-list-item-bottom">
                         {appointment.AppointmentStatus === 'PEND' && (
                           <button
+                            type='button'
                             onClick={(e) => {
                               e.stopPropagation();
                               this.handleCancelAppointment(appointment.AppointmentID);
                             }}
+                            disabled={disabledButtons.cancelAppointment}
                           >
                             Hủy đặt lịch
                           </button>
@@ -1842,21 +1863,21 @@ class User extends Component {
                   <p>Không có lịch khám nào.</p>
                 )}
               </div>
-              {totalAppointmentPages > 1 && (
+              {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button className="first" onClick={() => this.handlePageChange(1, 'appointment')} disabled={currentPage === 1}>
+                    <button type='button' className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button className="prev" onClick={() => this.handlePrevPage('appointment')} disabled={currentPage === 1}>
+                    <button type='button' className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
-                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 'appointment')} onBlur={() => this.handlePageInputBlur('appointment')} />
-                    <span className="total-pages">/ {totalAppointmentPages}</span>
-                    <button className="next" onClick={() => this.handleNextPage('appointment')} disabled={currentPage === totalAppointmentPages}>
+                    <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
+                    <span className="total-pages">/ {totalPages}</span>
+                    <button type='button' className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button className="last" onClick={() => this.handlePageChange(totalAppointmentPages, 'appointment')} disabled={currentPage === totalAppointmentPages}>
+                    <button type='button' className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -1870,7 +1891,7 @@ class User extends Component {
           return (
             <div>
               <div className="back" onClick={this.handleFormDatLich}>
-                <IonIcon icon={chevronBack}></IonIcon>
+                <IonIcon icon={chevronBackOutline}></IonIcon>
                 <h5>
                   <b>Trở lại</b>
                 </h5>
@@ -1884,7 +1905,7 @@ class User extends Component {
             <div className="user-appointment-form-detail-top-2">
               <div className="user-appointment-form-detail-left-2">
                 <div className="back" onClick={this.handleFormDatLich}>
-                  <IonIcon icon={chevronBack}></IonIcon>
+                  <IonIcon icon={chevronBackOutline}></IonIcon>
                   <h5>
                     <b>Trở lại</b>
                   </h5>
@@ -1971,7 +1992,12 @@ class User extends Component {
                   </div>
                   {loadedAppointmentDetail.AppointmentStatus === 'PEND' && (
                     <div className="user-appointment-form-detail-bottom">
-                      <button className="cancel-app" type="button" onClick={() => this.handleCancelAppointment(loadedAppointmentDetail.AppointmentID)}>
+                      <button
+                        className="cancel-app"
+                        type="button"
+                        onClick={() => this.handleCancelAppointment(loadedAppointmentDetail.AppointmentID)}
+                        disabled={disabledButtons.cancelAppointment}
+                      >
                         Hủy đặt lịch
                       </button>
                     </div>
@@ -1992,7 +2018,11 @@ class User extends Component {
                 <b>Thông tin thú cưng:</b>
               </h3>
               {loadedPetInfo.length < limitPetCount && (
-                <button type="button" onClick={this.handleAddPet}>
+                <button
+                  type="button"
+                  onClick={this.handleAddPet}
+                  disabled={disabledButtons.addPet}
+                >
                   Thêm thú cưng
                 </button>
               )}
@@ -2053,10 +2083,20 @@ class User extends Component {
                       <div className="f">
                         {isEditingPet === index ? (
                           <>
-                            <button type="button" className="save-pet" onClick={() => this.handleSavePet(index)}>
+                            <button
+                              type="button"
+                              className="save-pet"
+                              onClick={() => this.handleSavePet(index)}
+                              disabled={this.state.disabledButtons.savePet}
+                            >
                               Lưu
                             </button>
-                            <button type="button" className="cancel-pet" onClick={this.handleCancelPet}>
+                            <button
+                              type="button"
+                              className="cancel-pet"
+                              onClick={this.handleCancelPet}
+                              disabled={disabledButtons.cancelPet}
+                            >
                               Hủy
                             </button>
                           </>
@@ -2065,7 +2105,12 @@ class User extends Component {
                             <button type="button" className="edit-pet" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
-                            <button type="button" className="delete-pet" onClick={() => this.handleDeletePet(pet.PetID)}>
+                            <button
+                              type="button"
+                              className="delete-pet"
+                              onClick={() => this.handleDeletePet(pet.PetID)}
+                              disabled={this.state.disabledButtons.deletePet}
+                            >
                               <b>X</b>
                             </button>
                           </>
@@ -2087,7 +2132,7 @@ class User extends Component {
               <h3>
                 <b>Thêm thú cưng:</b>
               </h3>
-              <button onClick={this.handleFormThuCung}>Hủy</button>
+              <button type='button' onClick={this.handleFormThuCung}>Hủy</button>
             </div>
             <div className="user-add-pet-form-content">
               <div>
@@ -2109,7 +2154,13 @@ class User extends Component {
                   ))}
                 </select>
               </div>
-              <button onClick={() => this.handleSavePet(0)}>Thêm</button>
+              <button
+                type='button'
+                onClick={() => this.handleSavePet(0)}
+                disabled={disabledButtons.savePet}
+              >
+                Thêm
+              </button>
             </div>
           </form>
         );
@@ -2118,7 +2169,7 @@ class User extends Component {
           return (
             <div>
               <div className="back" onClick={this.handleFormDatLich}>
-                <IonIcon icon={chevronBack}></IonIcon>
+                <IonIcon icon={chevronBackOutline}></IonIcon>
                 <h5>
                   <b>Trở lại</b>
                 </h5>
@@ -2132,7 +2183,7 @@ class User extends Component {
             <div className="user-appointment-form-detail-top">
               <div className="user-appointment-form-detail-left">
                 <div className="back" onClick={this.handleFormDatLich}>
-                  <IonIcon icon={chevronBack}></IonIcon>
+                  <IonIcon icon={chevronBackOutline}></IonIcon>
                   <h5>
                     <b>Trở lại</b>
                   </h5>
@@ -2202,10 +2253,10 @@ class User extends Component {
                     <p style={{ fontSize: '18px', color: '#d32f2f' }}>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.TotalPayment).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
                   </div>
                   <div className="user-appointment-form-detail-bottom">
-                    <button type="button" onClick={() => this.handleSendEmail(loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID)} className="email-btn">
+                    <button type="button" onClick={() => this.handleSendEmail(loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID, 2)} className="email-btn">
                       Gửi qua email
                     </button>
-                    <button type="button" onClick={() => this.handleGeneratePDF()} className="pdf-btn">
+                    <button type="button" onClick={() => this.handleGeneratePDF(loadedInvoiceDetail, 2)} className="pdf-btn">
                       Tải PDF
                     </button>
                   </div>

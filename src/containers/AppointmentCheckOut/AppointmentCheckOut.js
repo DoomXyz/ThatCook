@@ -17,6 +17,7 @@ import { uploadImages } from '../../utils/pakage';
 class AppointmentCheckOut extends Component {
     constructor(props) {
         super(props);
+        this.fileInputRef = React.createRef();
         this.state = {
             veterinarianid: '',
             appointmentid: '',
@@ -101,6 +102,9 @@ class AppointmentCheckOut extends Component {
         this.setState({
             image: { ImageID: Date.now(), Image: preview, file },
         });
+        if (this.fileInputRef.current) {
+            this.fileInputRef.current.value = null;
+        }
     };
     handleRemoveImage = () => {
         if (this.state.image?.Image) {
@@ -358,7 +362,7 @@ class AppointmentCheckOut extends Component {
                                     )}
                                     {!image && (
                                         <div className="add-img">
-                                            <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" disabled={isUploading} />
+                                            <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" disabled={isUploading} ref={this.fileInputRef} />
                                             <label htmlFor="upload-image" className="add-img-label">
                                                 +
                                             </label>

@@ -16,7 +16,7 @@ import Header from '../../components/HomeHeader.js';
 import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
 import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
 
-import { getAllCodes } from '../../utils/pakage';
+import { getAllCodes, generateInvoicePDF } from '../../utils/pakage';
 import { clearTrackInfo } from '../../store/actions/index.js';
 
 import logo from '../../assets/images/logo1.png';
@@ -94,7 +94,6 @@ class Track extends Component {
       switch (type) {
         case 1: // Product
           const invoiceResponse = await handleGetInvoiceDetailInfoApi(id);
-          console.log('loaded invoice detail: ', invoiceResponse);
           if (invoiceResponse && invoiceResponse.errCode === 0) {
             return { success: true, data: invoiceResponse.data, stateKey: 'loadedInvoiceDetails' };
           }
@@ -181,132 +180,38 @@ class Track extends Component {
     return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
   //Tải pdf và gửi email
-  handleGeneratePDF = () => {
-    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
-    if (!loadedInvoiceDetails) {
+  handleGeneratePDF = (data, type) => {
+    if (!data) {
       toast.error('Không có dữ liệu hóa đơn để tạo PDF!');
       return;
     }
-
-    const doc = new jsPDF();
-
-    let fontLoaded = false;
-    try {
-      doc.addFileToVFS('Roboto-Regular-normal.ttf', RobotoRegularFont);
-      doc.addFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal');
-      doc.setFont('Roboto-Regular');
-      fontLoaded = true;
-    } catch (e) {
-      console.error('Error loading custom font:', e);
-      doc.setFont('Helvetica');
-      fontLoaded = false;
+    switch (type) {
+      case 1:
+        generateInvoicePDF(data);
+        break
+      default:
+        break
     }
-
-    doc.setFontSize(18);
-    doc.text('MINCOW', 14, 20);
-    doc.setFontSize(10);
-    doc.text('Pet Accessories & Food', 14, 26);
-
-    const address = '136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM';
-    doc.text(address, 14, 34);
-
-    const dateText = `Thời gian: ${loadedInvoiceDetails.CreatedAt
-      ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-      : 'N/A'
-      }`;
-    doc.text(dateText, 14, 42);
-    doc.text(`Mã hóa đơn: ${this.state.billid}`, 150, 42, { align: 'right' });
-
-    const customerText = `Khách hàng: ${loadedInvoiceDetails.ReceiverName || 'N/A'}\nSĐT: ${loadedInvoiceDetails.ReceiverPhone || 'N/A'}\nĐịa chỉ: ${loadedInvoiceDetails.ReceiverAddress || 'N/A'}`;
-    doc.text(customerText, 14, 50);
-
-    const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType || 'N/A'}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod || 'N/A'}\nTrạng thái giao hàng: ${codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus || 'N/A'}`;
-    doc.text(statusText, 14, 70);
-
-    doc.setLineWidth(0.5);
-    doc.line(14, 85, 196, 85);
-
-    const tableData = (loadedInvoiceDetails.ProductList || []).map((item) => [item.ProductName || 'N/A', item.DetailName || 'N/A', `${parseFloat(item.ItemPrice || 0).toLocaleString('vi-VN')}đ`, item.ItemQuantity || 0, `${(parseFloat(item.ItemPrice || 0) * (item.ItemQuantity || 0)).toLocaleString('vi-VN')}đ`]);
-
-    autoTable(doc, {
-      startY: 90,
-      head: [['Tên sản phẩm', 'Loại', 'Giá', 'Số lượng', 'Thành tiền']],
-      body: tableData,
-      theme: 'grid',
-      styles: {
-        font: fontLoaded ? 'Roboto-Regular' : 'Helvetica',
-        fontSize: 9,
-        cellPadding: 2,
-        overflow: 'linebreak',
-        textColor: [0, 0, 0],
-        halign: 'left',
-      },
-      headStyles: {
-        fillColor: [200, 200, 200],
-        textColor: [0, 0, 0],
-        fontSize: 9,
-        fontStyle: 'normal',
-        halign: 'center',
-      },
-      columnWidths: [60, 40, 25, 20, 25],
-      columnStyles: {
-        0: { halign: 'center', overflow: 'linebreak' },
-        1: { halign: 'center', overflow: 'linebreak' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-        4: { halign: 'center' },
-      },
-      margin: { left: 14, right: 14 },
-    });
-
-    let finalY = doc.lastAutoTable.finalY;
-
-    doc.setLineWidth(0.5);
-    doc.line(14, finalY + 2, 196, finalY + 2);
-
-    doc.setFontSize(10);
-    doc.text(`Tổng sản phẩm: ${loadedInvoiceDetails.TotalQuantity || 0}`, 14, finalY + 10);
-    doc.text(`Tổng tiền hàng: ${parseFloat(loadedInvoiceDetails.TotalPrice || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 16);
-    doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod || 'N/A'}): ${this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString('vi-VN')}đ`, 14, finalY + 22);
-    doc.text(`Giảm giá: -${parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 28);
-    doc.setFont(fontLoaded ? 'Roboto-Regular' : 'Helvetica', 'normal');
-    doc.text(`Tổng thanh toán: ${parseFloat(loadedInvoiceDetails.TotalPayment || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 34);
-
-    doc.setLineWidth(0.5);
-    doc.line(14, finalY + 38, 196, finalY + 38);
-
-    const note1 = '*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).';
-    const note2 = 'Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).';
-
-    doc.setFontSize(9);
-    const splitNote1 = doc.splitTextToSize(note1, 180);
-    const splitNote2 = doc.splitTextToSize(note2, 180);
-
-    doc.text(splitNote1, 14, finalY + 46);
-    doc.text(splitNote2, 14, finalY + 54);
-
-    doc.save(`HoaDon_${this.state.billid}.pdf`);
   };
-  handleSendEmail = async (billid) => {
+  handleSendEmail = async (billid, type) => {
     const { email } = this.state;
+    if (!email) {
+      toast.info('Email không được bỏ trống!')
+      return
+    }
     try {
-      if (!email) {
-        toast.info('Email không được bỏ trống!')
-        return
-      }
       this.setState({ isLoading: true })
       const sendInfo = {
-        invoiceid: billid,
+        billid,
         email,
       }
-      const response = await handleSendInvoiceEmailApi(sendInfo);
+      let response
+      switch (type) {
+        case 1: response = await handleSendInvoiceEmailApi(sendInfo);
+          break;
+        default:
+          break;
+      }
       if (response && response.errCode === 0) {
         toast.success('Gửi email thành công!');
         this.setState({ actionPage: 0 })
@@ -723,10 +628,10 @@ class Track extends Component {
                                 )}
                                 <input type="text" value={email} placeholder='Hãy nhập email để gửi hóa đơn' onChange={(e) => this.setState({ email: e.target.value })} />
                                 <div className="f">
-                                  <button onClick={this.handleGeneratePDF} className="pdf-btn">
+                                  <button onClick={() => this.handleGeneratePDF(loadedInvoiceDetails, 1)} className="pdf-btn">
                                     Tải PDF
                                   </button>
-                                  <button onClick={() => this.handleSendEmail(billid)} className="email-btn">
+                                  <button onClick={() => this.handleSendEmail(billid, 1)} className="email-btn">
                                     Gửi qua email
                                   </button>
                                   <button onClick={this.handleBackToSearch} className="back-btn">

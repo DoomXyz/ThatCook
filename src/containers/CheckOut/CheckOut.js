@@ -281,7 +281,9 @@ class CheckOut extends Component {
       ...copyState,
     });
     if (type === 'shippingmethod') {
-      this.handleCalculateTotalPayment();
+      setTimeout(() => {
+        this.handleCalculateTotalPayment();
+      }, 10);
     }
   };
   handleFirstPage = () => {

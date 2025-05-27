@@ -1,3 +1,7 @@
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import RobotoRegularFont from '../assets/fonts/Roboto-Regular-normal.js';
+
 import { handleVerifyTokenApi } from '../services/accountServices';
 import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../services/utilitiesServices';
 
@@ -175,7 +179,6 @@ const validateServiceInput = (serviceInfo) => {
   const { ServiceName, Price, Duration, Description } = serviceInfo;
   const nameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
 
-  console.log(ServiceName)
   if (!ServiceName?.trim()) return { valid: false, errMessage: 'Tên dịch vụ không được để trống!' };
   if (!nameRegex.test(ServiceName.trim())) return { valid: false, errMessage: 'Tên dịch vụ không hợp lệ (2-50 ký tự, chỉ chữ, số và khoảng trắng)!' };
 
@@ -248,4 +251,145 @@ const validateAppointmentInput = async (appointmentInfo) => {
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
 
-export { checkLoginStatus, getAllCodes, uploadImages, validateAccountInput, validateCodeInput, validateVeterinarianInput, validateServiceInput, validatePetInput, validateAppointmentInput };
+const generateInvoicePDF = async (invoiceData) => {
+  const doc = new jsPDF();
+  let fontLoaded = false;
+
+  try {
+    doc.addFileToVFS('Roboto-Regular-normal.ttf', RobotoRegularFont);
+    doc.addFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal');
+    doc.setFont('Roboto-Regular');
+    fontLoaded = true;
+  } catch (e) {
+    console.error('Error loading custom font:', e);
+    doc.setFont('Helvetica');
+  }
+
+  const [paymentTypeResponse, shippingMethodResponse, shippingStatusResponse] = await Promise.all([
+    getAllCodes('PaymentType'),
+    getAllCodes('ShippingMethod'),
+    getAllCodes('ShippingStatus'),
+  ]);
+
+  const codePaymentType = paymentTypeResponse.status ? paymentTypeResponse.data : [];
+  const codeShippingMethod = shippingMethodResponse.status ? shippingMethodResponse.data : [];
+  const codeShippingStatus = shippingStatusResponse.status ? shippingStatusResponse.data : [];
+
+  doc.setFontSize(18);
+  doc.text('MINCOW', 14, 20);
+  doc.setFontSize(10);
+  doc.text('Pet Accessories & Food', 14, 26);
+  doc.text('136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM', 14, 34);
+
+  const dateText = `Thời gian: ${invoiceData.CreatedAt
+    ? new Date(invoiceData.CreatedAt).toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+    : 'N/A'}`;
+  doc.text(dateText, 14, 42);
+  doc.text(`Mã hóa đơn: ${invoiceData.InvoiceID || 'N/A'}`, 150, 42, { align: 'right' });
+
+  const customerText = `Khách hàng: ${invoiceData.ReceiverName || 'N/A'}\nSĐT: ${invoiceData.ReceiverPhone || 'N/A'}\nĐịa chỉ: ${invoiceData.ReceiverAddress || 'N/A'}`;
+  doc.text(customerText, 14, 50);
+
+  const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === invoiceData.PaymentType)?.CodeValueVI || invoiceData.PaymentType || 'N/A'}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod)?.CodeValueVI || invoiceData.ShippingMethod || 'N/A'}\nTrạng thái giao hàng: ${codeShippingStatus.find((item) => item.Code === invoiceData.ShippingStatus)?.CodeValueVI || invoiceData.ShippingStatus || 'N/A'}`;
+  doc.text(statusText, 14, 70);
+
+  doc.setLineWidth(0.5);
+  doc.line(14, 85, 196, 85);
+
+  const tableData = (invoiceData.ProductList || []).map((item) => [
+    item.ProductName || 'N/A',
+    item.DetailName || 'N/A',
+    `${parseFloat(item.ItemPrice || 0).toLocaleString('vi-VN')}đ`,
+    item.ItemQuantity || 0,
+    `${(parseFloat(item.ItemPrice || 0) * (item.ItemQuantity || 0)).toLocaleString('vi-VN')}đ`,
+  ]);
+
+  autoTable(doc, {
+    startY: 90,
+    head: [['Tên sản phẩm', 'Loại', 'Giá', 'Số lượng', 'Thành tiền']],
+    body: tableData,
+    theme: 'grid',
+    styles: {
+      font: fontLoaded ? 'Roboto-Regular' : 'Helvetica',
+      fontSize: 9,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      textColor: [0, 0, 0],
+      halign: 'left',
+    },
+    headStyles: {
+      fillColor: [200, 200, 200],
+      textColor: [0, 0, 0],
+      fontSize: 9,
+      fontStyle: 'normal',
+      halign: 'center',
+    },
+    columnWidths: [60, 40, 25, 20, 25],
+    columnStyles: {
+      0: { halign: 'center', overflow: 'linebreak' },
+      1: { halign: 'center', overflow: 'linebreak' },
+      2: { halign: 'center' },
+      3: { halign: 'center' },
+      4: { halign: 'center' },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  let finalY = doc.lastAutoTable.finalY;
+
+  doc.setLineWidth(0.5);
+  doc.line(14, finalY + 2, 196, finalY + 2);
+
+  const shippingFee = codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod)?.ExtraValue
+    ? parseFloat(codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod).ExtraValue)
+    : 0;
+
+  doc.setFontSize(10);
+  doc.text(`Tổng sản phẩm: ${invoiceData.TotalQuantity || 0}`, 14, finalY + 10);
+  doc.text(`Tổng tiền hàng: ${parseFloat(invoiceData.TotalPrice || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 16);
+  doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod)?.CodeValueVI || invoiceData.ShippingMethod || 'N/A'}): ${shippingFee.toLocaleString('vi-VN')}đ`, 14, finalY + 22);
+  doc.text(`Giảm giá: -${parseFloat(invoiceData.DiscountAmount || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 28);
+  doc.setFont(fontLoaded ? 'Roboto-Regular' : 'Helvetica', 'normal');
+  doc.text(`Tổng thanh toán: ${parseFloat(invoiceData.TotalPayment || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 34);
+
+  doc.setLineWidth(0.5);
+  doc.line(14, finalY + 38, 196, finalY + 38);
+
+  const note1 = '*Lưu ý: giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).';
+  const note2 = 'Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).';
+  doc.setFontSize(9);
+  const splitNote1 = doc.splitTextToSize(note1, 180);
+  const splitNote2 = doc.splitTextToSize(note2, 180);
+  doc.text(splitNote1, 14, finalY + 46);
+  doc.text(splitNote2, 14, finalY + 54);
+
+  const timestamp = new Date().toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).replace(/[,/: ]/g, '');
+  doc.save(`HoaDon_${invoiceData.InvoiceID || 'unknown'}_${timestamp}.pdf`);
+};
+
+export {
+  checkLoginStatus,
+  getAllCodes,
+  uploadImages,
+  validateAccountInput,
+  validateCodeInput,
+  validateVeterinarianInput,
+  validateServiceInput,
+  validatePetInput,
+  validateAppointmentInput,
+  generateInvoicePDF,
+};
