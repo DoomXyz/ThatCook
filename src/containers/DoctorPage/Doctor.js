@@ -845,7 +845,7 @@ class Doctor extends Component {
     switch (actionPage) {
       case 1:
         return (
-          <form className="doctor-info-form" onSubmit={this.handleChangeVeterinarianInfo}>
+          <form className="doctor-info-form" key="doctor-info-form" onSubmit={this.handleChangeVeterinarianInfo}>
             <div className='doctor-head'>
               <div className='doctor-head-left'>
                 <h3>
@@ -900,7 +900,7 @@ class Doctor extends Component {
         );
       case 2:
         return (
-          <form className="wait-appointment-form">
+          <form className="wait-appointment-form" key="wait-appointment-form">
             <div className="wait-appointment-container">
               <h3>
                 <b>Lịch khám cần xác nhận: </b>
@@ -1031,8 +1031,14 @@ class Doctor extends Component {
                           </div>
                         </div>
                         <div className="wait-appointment-object-right" >
-                          <div className="day-wait-appointment"> {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}</div>
-                          <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment-day">Ngày : </div>
+                            <div className="day-wait-appointment"> {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}</div>
+                          </div>
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment-day">Giờ: </div>
+                            <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
+                          </div>
                         </div>
                       </div>
                       <div className='wait-appointment-object-notes' onClick={() => this.handleFormChiTietLichHen(appointment.AppointmentID, 2)}>
@@ -1047,27 +1053,29 @@ class Doctor extends Component {
                 )}
               </div>
               {totalAppointmentPages > 1 && (
-                <div className="pagination">
-                  <button onClick={() => this.handlePageChange(1, 2)} disabled={currentPage === 1}>
-                    {'<<'}
-                  </button>
-                  <button onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
-                    {'<'}
-                  </button>
-                  <input
-                    type="text"
-                    value={tempCurrentPage}
-                    onChange={(event) => this.handlePageInputChange(event)}
-                    onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
-                    onBlur={() => this.handlePageInputBlur(2)}
-                  />
-                  <span>/ {totalAppointmentPages}</span>
-                  <button onClick={() => this.handleNextPage(2)} disabled={currentPage === totalAppointmentPages}>
-                    {'>'}
-                  </button>
-                  <button onClick={() => this.handlePageChange(totalAppointmentPages, 2)} disabled={currentPage === totalAppointmentPages}>
-                    {'>>'}
-                  </button>
+                <div className="page-content">
+                  <div className="page-content-item">
+                    <button className="first" onClick={() => this.handlePageChange(1, 2)} disabled={currentPage === 1}>
+                      {'<<'}
+                    </button>
+                    <button className="prev" onClick={() => this.handlePrevPage(2)} disabled={currentPage === 1}>
+                      {'<'}
+                    </button>
+                    <input
+                      type="text"
+                      value={tempCurrentPage}
+                      onChange={(event) => this.handlePageInputChange(event)}
+                      onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
+                      onBlur={() => this.handlePageInputBlur(2)}
+                    />
+                    <span>/ {totalAppointmentPages}</span>
+                    <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalAppointmentPages}>
+                      {'>'}
+                    </button>
+                    <button className="last" onClick={() => this.handlePageChange(totalAppointmentPages, 2)} disabled={currentPage === totalAppointmentPages}>
+                      {'>>'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1075,7 +1083,7 @@ class Doctor extends Component {
         );
       case 3:
         return (
-          <form className="doctor-celendar-form">
+          <form className="doctor-celendar-form" key="doctor-celendar-form">
             <div className="calendar-container">
               <h3>
                 <b>Lịch khám: </b>
@@ -1135,7 +1143,7 @@ class Doctor extends Component {
         );
       case 4:
         return (
-          <form className="appointment-history-form">
+          <form className="appointment-history-form" key="appointment-history-form">
             <div className="wait-appointment-container">
               <h3>
                 <b>Lịch sử khám: </b>
@@ -1243,12 +1251,18 @@ class Doctor extends Component {
                           </div>
                         </div>
                         <div className="wait-appointment-object-right" >
-                          <div className="day-wait-appointment"> {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}</div>
-                          <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment-day">Ngày: </div>
+                            <div className="day-wait-appointment"> {new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}</div>
+                          </div>
+                          <div className='wait-appointment-info'>
+                            <div className="descreption-wait-appointment-day">Giờ: </div>
+                            <div className="time-wait-appointment">{appointment.StartTime.slice(0, 5)} đến {appointment.EndTime.slice(0, 5)}</div>
+                          </div>
                         </div>
                       </div>
                       <div className='wait-appointment-object-notes'>
-                        <div className="descreption-wait-appointment">Ghi chú: </div>
+                        <div className="descreption-wait-appointment">Ghi chú:</div>
                         <div className="note-wait-appointment">{appointment.Notes}</div>
                       </div>
 
@@ -1259,27 +1273,29 @@ class Doctor extends Component {
                 )}
               </div>
               {totalAppointmentPages > 1 && (
-                <div className="pagination">
-                  <button onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
-                    {'<<'}
-                  </button>
-                  <button onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
-                    {'<'}
-                  </button>
-                  <input
-                    type="text"
-                    value={tempCurrentPage}
-                    onChange={(event) => this.handlePageInputChange(event)}
-                    onKeyDown={(event) => this.handlePageKeyDown(event, 4)}
-                    onBlur={() => this.handlePageInputBlur(4)}
-                  />
-                  <span>/ {totalAppointmentPages}</span>
-                  <button onClick={() => this.handleNextPage(4)} disabled={currentPage === totalAppointmentPages}>
-                    {'>'}
-                  </button>
-                  <button onClick={() => this.handlePageChange(totalAppointmentPages, 4)} disabled={currentPage === totalAppointmentPages}>
-                    {'>>'}
-                  </button>
+                <div className="page-content">
+                  <div className="page-content-item">
+                    <button className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
+                      {'<<'}
+                    </button>
+                    <button className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
+                      {'<'}
+                    </button>
+                    <input
+                      type="text"
+                      value={tempCurrentPage}
+                      onChange={(event) => this.handlePageInputChange(event)}
+                      onKeyDown={(event) => this.handlePageKeyDown(event, 4)}
+                      onBlur={() => this.handlePageInputBlur(4)}
+                    />
+                    <span>/ {totalAppointmentPages}</span>
+                    <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalAppointmentPages}>
+                      {'>'}
+                    </button>
+                    <button className="last" onClick={() => this.handlePageChange(totalAppointmentPages, 4)} disabled={currentPage === totalAppointmentPages}>
+                      {'>>'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1287,7 +1303,7 @@ class Doctor extends Component {
         );
       case 5:
         return (
-          <form className="appointment-detail-form">
+          <form className="appointment-detail-form" key="appointment-detail-form">
             <div className="appointment-detail-container">
               <h3>
                 <b>Chi tiết lịch khám</b>
@@ -1368,7 +1384,7 @@ class Doctor extends Component {
                     </div>
                     <div className="detail-item">
                       <label>Ghi chú:</label>
-                      <div className='note-wait-appointment'>{loadedAppointmentDetail.Notes}</div>
+                      <span>{loadedAppointmentDetail.Notes}</span>
                     </div>
                     {loadedAppointmentDetail.PrevAppointmentID && (
                       <div className="detail-item">

@@ -37,6 +37,7 @@ $transition: all 0.3s ease;
 .doctor-action-form {
   display: flex;
   flex-direction: column;
+  margin-top: 20px;
   gap: 10px;
   padding: 20px;
   background-color: #f9f9f9;
@@ -104,6 +105,47 @@ $transition: all 0.3s ease;
       padding-right: 10px;
     }
 
+    .value-doctor-input {
+      display: flex;
+      color: #333;
+      /* Tùy chỉnh kiểu dáng cho value */
+      flex: 7;
+      /* Chiếm không gian tối đa bên phải */
+      text-align: right;
+      /* Căn phải cho value, tùy chỉnh nếu cần */
+      justify-content: flex-start;
+      border: none;
+      /* Xóa viền mặc định */
+      border-bottom: 1px solid #ccc;
+      /* Thêm gạch chân */
+      background: transparent;
+      /* Nền trong suốt */
+      outline: none;
+
+      /* Xóa viền focus mặc định */
+      &:focus {
+        border-bottom: 1px solid #007bff;
+        /* Đổi màu gạch chân khi focus */
+      }
+    }
+
+    .value-doctor {
+      display: flex;
+      color: #333;
+      padding-right: 10px;
+      flex: 3;
+      text-align: justify;
+      justify-content: flex-end;
+      max-width: 100%;
+      /* Đảm bảo không vượt quá chiều rộng container cha */
+      overflow-wrap: break-word;
+      /* Buộc các từ dài xuống dòng */
+      white-space: normal;
+      /* Cho phép văn bản xuống dòng tự nhiên */
+      word-break: break-all;
+      /* Nếu chuỗi không có khoảng trắng, vẫn cắt và xuống dòng */
+    }
+
     .doctor-value-sv {
       padding-left: 10px;
       display: flex;
@@ -129,6 +171,7 @@ $transition: all 0.3s ease;
     }
 
     .edit-button {
+      height: 30px;
       display: flex;
       justify-content: center;
       margin-left: 10px;
@@ -270,6 +313,7 @@ $transition: all 0.3s ease;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
+  max-width: 1100px;
   min-height: 400px;
   /* Đặt chiều cao tối thiểu cố định */
   display: flex;
@@ -308,7 +352,11 @@ $transition: all 0.3s ease;
     padding: 5px;
 
     label {
-      padding-right: 5px;
+      padding-right: 15px;
+    }
+
+    input {
+      width: 100px;
     }
   }
 }
@@ -317,6 +365,7 @@ $transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  max-width: 100%;
 
   .filter-left,
   .filter-right {
@@ -367,24 +416,13 @@ $transition: all 0.3s ease;
   }
 }
 
-
-
 .wait-appointment-list {
+  max-width: 100%;
   padding: 10px;
   border-top: rgb(184, 184, 184) 2px solid;
 }
 
 .wait-appointment-object {
-  border: 1px solid #d3d3d3;
-  /* Border màu xám nhạt để phân biệt */
-  border-radius: 8px;
-  /* Bo góc cho mềm mại */
-  margin-bottom: 15px;
-  /* Khoảng cách giữa các object */
-  padding: 10px;
-  /* Padding bên trong */
-  background-color: #f9f9f9;
-  /* Màu nền nhẹ để nổi bật */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   max-width: 100%;
   /* Đảm bảo không vượt quá container cha */
@@ -396,13 +434,43 @@ $transition: all 0.3s ease;
     font-weight: bold;
   }
 
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+
+    .wait-appointment-object-head {
+      background-color: #36d05a;
+      border: #b5b5b5 3px solid;
+    }
+  }
+
+  &.vet-specific:hover {
+    .wait-appointment-object-head {
+      background-color: #a9d3ff;
+      border: #b5b5b5 3px solid;
+    }
+  }
+
+  &.public-appointment:hover {
+    .wait-appointment-object-head {
+      background-color: #fcd37a;
+      border: #b5b5b5 3px solid;
+    }
+  }
+
   .wait-appointment-object-head {
+    border: #6c757d 1px solid;
+    padding: 5px;
+    padding-bottom: 1px;
+    background-color: #28a745;
     display: flex;
     flex-direction: row;
+    border-radius: 8px;
 
     .title {
+      padding-top: 5px;
       display: flex;
-      gap: 10px;
       flex: 1;
       /* Khoảng cách giữa các nút */
     }
@@ -447,15 +515,18 @@ $transition: all 0.3s ease;
         /* Đậm hơn khi hover */
       }
     }
-
   }
 
   /* Đổ bóng nhẹ để tạo chiều sâu */
   .wait-appointment-object-center {
-    border-top: #6c757d 1px solid;
+    padding: 10px;
+    border: #6c757d 1px solid;
     display: flex;
     flex-direction: row;
-    padding-top: 5px;
+    border-bottom: #6c757d 1px solid;
+    background-color: #ffe3ac;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 
     .wait-appointment-object-left {
       display: flex;
@@ -470,38 +541,53 @@ $transition: all 0.3s ease;
       flex-direction: column;
       justify-content: flex-start;
       text-align: right;
+
+      .day-wait-appointment,
+      .time-wait-appointment {
+        width: 180px;
+        padding-left: 5px;
+        padding-bottom: 21px;
+        border-bottom: 1px dashed #000000; // Hiệu ứng rách đơn giản hơn
+      }
     }
 
-    .wait-appointment-info {
+    .wait-appointment-info,
+    .wait-appointment-day {
+      margin-top: 5px;
+      margin-bottom: 5px;
       display: flex;
       flex-direction: row;
-      gap: 15px;
+      height: 20px;
     }
 
-    .descreption-wait-appointment {
+    .descreption-wait-appointment-day {
+      display: flex;
+      justify-content: center;
+      width: 48px;
       display: flex;
       font-weight: bold;
     }
-  }
 
-  .note-wait-appointment {
-    display: flex;
-    color: #333;
-    padding-right: 10px;
-    flex: 3;
-    text-align: right;
-    justify-content: flex-end;
-    max-width: 100%;
-    /* Đảm bảo không vượt quá chiều rộng container cha */
-    overflow-wrap: break-word;
-    /* Buộc các từ dài xuống dòng */
-    white-space: normal;
-    /* Cho phép văn bản xuống dòng tự nhiên */
-    word-break: break-all;
-    /* Nếu chuỗi không có khoảng trắng, vẫn cắt và xuống dòng */
+    .descreption-wait-appointment {
+      width: 100px;
+      display: flex;
+      font-weight: bold;
+    }
+
+    .value-wait-appointment {
+      width: 690px;
+      border-bottom: 1px rgb(0, 0, 0) dashed;
+      padding-left: 5px;
+      padding-bottom: 21px;
+    }
   }
 
   .wait-appointment-object-notes {
+    border: #6c757d 1px solid;
+    border-top: none;
+    background-color: #ffe3ac;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
     display: flex;
     flex-direction: row;
     gap: 15px;
@@ -516,14 +602,30 @@ $transition: all 0.3s ease;
     text-overflow: ellipsis;
     /* Tùy chọn: Thêm dấu ba chấm cho văn bản tràn */
     padding: 5px 0;
-    /* Thêm khoảng đệm để đẹp mắt hơn */
-  }
 
-  &:hover {
-    border-color: #007bff;
-    /* Đổi màu border khi hover */
-    background-color: #f1faff;
-    /* Đổi màu nền nhẹ khi hover */
+    /* Thêm khoảng đệm để đẹp mắt hơn */
+    .descreption-wait-appointment {
+      padding-left: 20px;
+      width: 100px;
+      display: flex;
+      font-weight: bold;
+    }
+
+    .note-wait-appointment {
+      display: flex;
+      color: #333;
+      padding-right: 10px;
+      flex: 3;
+      text-align: justify;
+      justify-content: flex-end;
+      max-width: 100%;
+      overflow-wrap: break-word;
+      white-space: normal;
+      // Bỏ word-break: break-all, hoặc thay bằng word-break: break-word
+      text-decoration: underline 1px dashed rgb(14, 14, 14);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 5px;
+    }
   }
 
   .wait-appointment-left,
@@ -532,38 +634,75 @@ $transition: all 0.3s ease;
     /* Chia đều không gian */
   }
 
-
-
   &.vet-specific {
-    background-color: #e6f3ff;
-    /* Xanh nhạt cho lịch bác sĩ */
-    border-left: 4px solid #007bff;
+    .wait-appointment-object-head {
+      background-color: #76b6fb;
+    }
+
     /* Viền trái xanh đậm */
   }
 
   &.public-appointment {
-    background-color: #fff3e6;
-    /* Cam nhạt cho lịch công khai */
-    border-left: 4px solid #ff9900;
     /* Viền trái cam */
+    .wait-appointment-object-head {
+      background-color: #f8c659;
+    }
   }
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin-top: 20px;
+.page-content {
+  font-size: 18px;
 
-  button {
-    background-color: #007bff;
-    padding: 8px 12px;
-    font-size: 14px;
+  .page-content-item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    justify-content: center;
 
-    &:disabled {
-      background-color: #6c757d;
-      cursor: not-allowed;
+    input {
+      width: 30px;
+      text-align: center;
+      border: none !important;
+      background-color: transparent;
+      color: rgb(91, 85, 85);
+      font-weight: bold;
+      outline: none;
+    }
+
+    span {
+      width: 30px;
+      text-align: center;
+      border: none !important;
+      background-color: transparent;
+      color: rgb(91, 85, 85);
+      font-weight: bold;
+      outline: none;
+    }
+
+    .total-pages {
+      margin-left: 5px;
+      color: rgb(91, 85, 85);
+      font-weight: bold;
+    }
+
+    button {
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      background-color: rgb(104, 90, 90);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover:not(:disabled) {
+        background-color: rgb(62, 54, 54);
+      }
+
+      &:disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+      }
     }
   }
 }
@@ -582,15 +721,13 @@ $transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   border-bottom: 2px solid #007bff;
-  padding-bottom: 10px;
-
-
+  padding-bottom: 5px;
 }
 
 .appointment-detail-content {
-  background-color: #f8f9fa;
+  background-color: #f1f3f6;
   border-radius: 8px;
-  padding: 20px;
+  padding: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
@@ -642,7 +779,8 @@ $transition: all 0.3s ease;
 
 .action-button-confirm-button,
 .action-button-cancel-button,
-.action-button-view-bill-button {
+.action-button-view-bill-button,
+.action-button-complete-button {
   padding: 12px 24px;
   border: none;
   border-radius: 4px;
@@ -651,7 +789,8 @@ $transition: all 0.3s ease;
 }
 
 .action-button-confirm-button,
-.action-button-view-bill-button {
+.action-button-view-bill-button,
+.action-button-complete-button {
   background-color: #28a745;
   /* Màu xanh cho nút xác nhận */
   color: white;
@@ -757,7 +896,9 @@ $transition: all 0.3s ease;
   width: 100%;
   /* Chiếm toàn bộ chiều rộng container */
   margin-bottom: 20px;
-  padding: 0 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-bottom: #ccc 1px solid;
   /* Khoảng cách lề để nút không sát mép */
 }
 
@@ -824,7 +965,6 @@ $transition: all 0.3s ease;
 .calendar-object {
   display: flex;
   width: 100%;
-  background-color: #ffffff;
   border-left: 5px solid #28a745;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -835,11 +975,11 @@ $transition: all 0.3s ease;
   .calendar-object-left {
     display: flex;
     flex-direction: column;
+    width: 40px;
     /* Đảm bảo lấp đầy chiều cao */
     flex-grow: 1;
     margin-bottom: 0px;
-    border-right: 1px black solid;
-    /* Bo góc dưới trái */
+    border-right: 2px dashed #28a745; // Hiệu ứng rách đơn giản hơn
 
     .description-appointment {
       display: flex;
@@ -874,15 +1014,14 @@ $transition: all 0.3s ease;
       border-radius: 4px;
       display: inline-flex;
     }
-
   }
 
   .calendar-object-right {
-
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 20px;
+    width: 100px;
     min-height: 100%;
     /* Đảm bảo lấp đầy chiều cao */
     flex-grow: 1;
@@ -892,7 +1031,6 @@ $transition: all 0.3s ease;
     border-bottom-left-radius: 10px;
     /* Bo góc dưới trái */
     border-bottom-right-radius: 10px;
-
 
     .status-appointment {
       display: flex;
@@ -913,7 +1051,6 @@ $transition: all 0.3s ease;
       &[data-status="COMP"] {
         background-color: #28a745;
         color: #fff;
-        ;
       }
 
       &[data-status="CANCELED"] {
@@ -928,8 +1065,6 @@ $transition: all 0.3s ease;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
-
-
 }
 
 /* Responsive adjustments */
@@ -978,7 +1113,6 @@ $transition: all 0.3s ease;
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-
   .celendar-button {
     flex-direction: column;
     gap: 10px;
@@ -1027,10 +1161,10 @@ $transition: all 0.3s ease;
   border-radius: 50%;
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: #2196f3;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   transform: translateX(26px);
 }
