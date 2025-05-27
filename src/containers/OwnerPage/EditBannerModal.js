@@ -12,20 +12,20 @@ import Button from 'react-bootstrap/Button';
 
 import { handleLoadFilteredProductInfoApi } from '../../services/productServices';
 import { handleGetBannerInfoApi } from '../../services/bannerServices';
-import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
 
-import bannertest from '../../assets/bannerimgs/1.webp';
+import { getAllCodes, uploadImages, validateBannerInput } from '../../utils/pakage';
 
 class EditBannerModal extends Component {
   constructor(props) {
     super(props);
+    this.fileInputRef = React.createRef();
     this.state = {
       loadedBannerInfo: null,
       selectedBannerID: null,
-      codeBannerStatus: [],
       codeProductType: [],
       codePetType: [],
-      bannerimage: '',
+      codeBannerStatus: [],
+      imageInfo: null,
       hiddenat: null,
       bannerstatus: '',
       productid: '',
@@ -33,21 +33,16 @@ class EditBannerModal extends Component {
       producttype: 'ALL',
       pettype: [],
       isUploading: false,
-      imageFile: null,
-      imagePreview: null,
       loadedProductInfo: [],
+      disabledButtons: {
+        saveBanner: false,
+      },
     };
     this.debounceTimeout = null;
   }
-
   async componentDidMount() {
-    await Promise.all([this.handleLoadCodeProductType(), this.handleLoadCodePetType(), this.handleLoadCodeBannerStatus()]);
-    const { selectedBannerID } = this.props;
-    if (selectedBannerID) {
-      await this.handleLoadBannerInfo(selectedBannerID);
-    }
+    await this.handleLoadCode(['ProductType', 'PetType', 'BannerStatus']);
   }
-
   async componentDidUpdate(prevProps) {
     const { selectedBannerID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
@@ -57,100 +52,51 @@ class EditBannerModal extends Component {
       }
     }
   }
-
   componentWillUnmount() {
-    if (this.state.imagePreview) {
-      URL.revokeObjectURL(this.state.imagePreview);
+    if (this.state.imageInfo?.Image) {
+      URL.revokeObjectURL(this.state.imageInfo.Image);
     }
   }
-
+  handleLoadCode = async (codeTypes) => {
+    try {
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      const hasDefault = ['BannerStatus'];
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        if (hasDefault.includes(type)) {
+          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        }
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
   resetState = () => {
+    const { codeBannerStatus } = this.state
     this.setState({
-      loadedBannerInfo: null,
-      selectedBannerID: null,
-      bannerimage: '',
+      imageInfo: null,
       hiddenat: null,
-      bannerstatus: '',
+      bannerstatus: codeBannerStatus.length > 0 ? codeBannerStatus[0].Code : '',
       productid: '',
       productname: '',
       producttype: 'ALL',
       pettype: [],
       isUploading: false,
-      imageFile: null,
-      imagePreview: null,
       loadedProductInfo: [],
     });
   };
-
-  handleLoadCodeProductType = async () => {
-    try {
-      const codeProductType = await handleGetAllCodesApi('ProductType');
-      if (!codeProductType || codeProductType.length === 0) {
-        toast.error('Không thể tải danh sách loại sản phẩm!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeProductType,
-        producttype: 'ALL',
-      });
-    } catch (e) {
-      console.error('Error loading product type code:', e);
-      toast.error('Lỗi khi tải danh sách loại sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  toggle = () => {
+    this.resetState();
+    this.props.toggleFromModal();
   };
-
-  handleLoadCodePetType = async () => {
-    try {
-      const codePetType = await handleGetAllCodesApi('PetType');
-      if (!codePetType || codePetType.length === 0) {
-        toast.error('Không thể tải danh sách loại thú cưng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codePetType });
-    } catch (e) {
-      console.error('Error loading pet type code:', e);
-      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
-  handleLoadCodeBannerStatus = async () => {
-    try {
-      const codeBannerStatus = await handleGetAllCodesApi('BannerStatus');
-      if (!codeBannerStatus || codeBannerStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái banner!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeBannerStatus,
-        bannerstatus: codeBannerStatus.length > 0 ? codeBannerStatus[0].Code : '',
-      });
-    } catch (e) {
-      console.error('Error loading banner status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái banner!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
   handleLoadBannerInfo = async (bannerid) => {
     try {
       const response = await handleGetBannerInfoApi(bannerid);
@@ -166,27 +112,18 @@ class EditBannerModal extends Component {
           productname: banner.ProductName || '',
           producttype: banner.ProductType || 'ALL',
           pettype: banner.PetTypes || [],
-          imagePreview: banner.BannerImage,
+          imageInfo: { ImageID: Date.now(), Image: banner.BannerImage },
         });
       } else {
         this.resetState();
-        toast.error('Tải thông tin banner thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Tải thông tin banner thất bại!');
       }
     } catch (e) {
       console.error('Error loading banner info:', e);
       this.resetState();
-      toast.error('Lỗi khi tải thông tin banner!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải thông tin banner!');
     }
   };
-
   handleLoadFilteredProductInfo = async () => {
     try {
       const { producttype, pettype, searchValue } = this.state;
@@ -194,22 +131,13 @@ class EditBannerModal extends Component {
       if (response && response.errCode === 0) {
         this.setState({ loadedProductInfo: response.data });
       } else {
-        toast.error('Tải danh sách sản phẩm thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Tải danh sách sản phẩm thất bại!');
       }
     } catch (e) {
       console.error('Error loading products:', e);
-      toast.error('Lỗi khi tải danh sách sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách sản phẩm!');
     }
   };
-
   handleSelectChange = (e, field) => {
     this.setState({ [field]: e.target.value }, () => {
       if (field === 'producttype') {
@@ -217,7 +145,6 @@ class EditBannerModal extends Component {
       }
     });
   };
-
   handlePetTypeChange = (e) => {
     const petType = e.target.value;
     const isChecked = e.target.checked;
@@ -229,74 +156,49 @@ class EditBannerModal extends Component {
       () => this.handleLoadFilteredProductInfo(this.state.searchValue)
     );
   };
-
   handleProductChange = (selectedOption) => {
     this.setState({
       productid: selectedOption ? selectedOption.value : '',
       productname: selectedOption ? selectedOption.label : '',
     });
   };
-
   handleAddImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
-      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!');
       return;
     }
     if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Vui lòng chọn file ảnh!');
       return;
     }
     const preview = URL.createObjectURL(file);
     this.setState({
-      imageFile: file,
-      imagePreview: preview,
-      bannerimage: null,
+      imageInfo: { ImageID: Date.now(), Image: preview, file },
     });
+    if (this.fileInputRef.current) {
+      this.fileInputRef.current.value = null;
+    }
   };
-
   handleRemoveImage = () => {
     this.setState({
-      imageFile: null,
-      imagePreview: null,
-      bannerimage: null,
+      imageInfo: null,
     });
   };
-
-  checkValidateInput = () => {
-    const { bannerimage, imageFile, createdat, bannerstatus, productid } = this.state;
-    if (!bannerimage && !imageFile) {
-      return { errCode: -1, errMessage: 'Vui lòng thêm hình ảnh banner!' };
-    }
-    if (!bannerstatus) {
-      return { errCode: -1, errMessage: 'Trạng thái banner không được để trống!' };
-    }
-    if (!productid) {
-      return { errCode: -1, errMessage: 'Vui lòng chọn sản phẩm!' };
-    }
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
-  };
-
   handleSaveBanner = async () => {
-    const validation = this.checkValidateInput();
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+    const { imageInfo, hiddenat, bannerstatus } = this.state;
+    const bannerInfo = {
+      BannerImage: imageInfo?.Image,
+      HiddenAt: hiddenat ? hiddenat.toISOString().split('T')[0] : null,
+      BannerStatus: bannerstatus,
+    };
+    const isValidateInput = await validateBannerInput(bannerInfo);
+    if (!isValidateInput.valid) {
+      toast.error(isValidateInput.errMessage);
       return;
     }
-
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, saveBanner: true } });
     const confirmSave = () =>
       new Promise((resolve) => {
         toast(
@@ -321,39 +223,32 @@ class EditBannerModal extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, saveBanner: false } }); },
+          }
         );
       });
-
     const isConfirmed = await confirmSave();
     if (!isConfirmed) return;
-
     if (this.state.isUploading) {
-      toast.info('Đang tải ảnh, vui lòng chờ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.info('Đang tải ảnh, vui lòng chờ!');
       return;
     }
-
     this.setState({ isUploading: true });
     try {
       let bannerImage = this.state.bannerimage;
-      if (this.state.imageFile) {
-        const response = await uploadImageToCloudinaryApi(this.state.imageFile);
-        if (response.errCode === 0) {
-          bannerImage = response.data.secure_url;
-        } else {
-          toast.error('Tải ảnh banner thất bại!', {
-            position: 'top-right',
-            autoClose: 500,
-            closeOnClick: true,
-          });
+      if (this.state.imageInfo?.file) {
+        const uploadResult = await uploadImages([this.state.imageInfo]);
+        if (!uploadResult.status) {
+          toast.error(uploadResult.error || 'Tải ảnh thất bại!');
           return;
         }
+        bannerImage = uploadResult.images[0].Image;
+      } else if (this.state.imageInfo) {
+        bannerImage = this.state.imageInfo.Image;
       }
-
       const bannerInfo = {
         BannerID: this.state.selectedBannerID,
         BannerImage: bannerImage,
@@ -361,26 +256,17 @@ class EditBannerModal extends Component {
         BannerStatus: this.state.bannerstatus,
         ProductID: this.state.productid,
       };
-
       await this.props.handleChangeBannerFromModal(bannerInfo);
     } catch (e) {
       console.error('Lỗi khi lưu banner:', e);
-      toast.error('Lỗi khi lưu banner!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi lưu banner!');
     } finally {
       this.setState({ isUploading: false });
     }
   };
 
-  toggle = () => {
-    this.props.toggleFromModal();
-  };
-
   render() {
-    const { codeBannerStatus, codePetType, codeProductType, imagePreview, hiddenat, bannerstatus, producttype, pettype, loadedProductInfo, productid, productname } = this.state;
+    const { codeBannerStatus, codePetType, codeProductType, imageInfo, hiddenat, bannerstatus, producttype, pettype, loadedProductInfo, productid, productname, disabledButtons } = this.state;
     const productOptions = loadedProductInfo.map((product) => ({
       value: product.ProductID,
       label: product.ProductName,
@@ -393,19 +279,19 @@ class EditBannerModal extends Component {
         <Modal.Body>
           <div className="modal-content">
             <div className="modal-content-edit-img">
-              <p>Hình ảnh banner (tối đa 1):</p>
+              <p>Hình ảnh banner:</p>
               <div className="f">
-                {imagePreview && (
+                {imageInfo?.Image && (
                   <div className="modal-content-edit-img-item f">
-                    <img src={imagePreview} alt="Banner" />
+                    <img src={imageInfo.Image} alt="Banner" />
                     <button className="delete-img" onClick={this.handleRemoveImage}>
                       <IonIcon icon={closeOutline}></IonIcon>
                     </button>
                   </div>
                 )}
-                {!imagePreview && (
+                {!imageInfo && (
                   <div className="add-img">
-                    <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" />
+                    <input type="file" accept="image/*" onChange={this.handleAddImage} style={{ display: 'none' }} id="upload-image" ref={this.fileInputRef} />
                     <label htmlFor="upload-image" className="add-img-label">
                       <p>+</p>
                     </label>
@@ -414,6 +300,7 @@ class EditBannerModal extends Component {
               </div>
             </div>
             <div className="modal-content-add-product">
+              Tìm kiếm
               <div className="f">
                 <div className="modal-content-add-category f">
                   <p>Loại sản phẩm:</p>
@@ -470,7 +357,7 @@ class EditBannerModal extends Component {
           <Button variant="secondary" onClick={this.toggle}>
             Đóng
           </Button>
-          <Button variant="primary" onClick={this.handleSaveBanner}>
+          <Button variant="primary" onClick={this.handleSaveBanner} disabled={disabledButtons.saveBanner}>
             Lưu
           </Button>
         </Modal.Footer>

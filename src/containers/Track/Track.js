@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import RobotoRegularFont from '../../assets/fonts/Roboto-Regular-normal.js';
 
 import { checkmarkCircleOutline, closeCircleOutline, refreshOutline } from 'ionicons/icons';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
@@ -16,7 +13,7 @@ import Header from '../../components/HomeHeader.js';
 import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
 import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
 
-import { getAllCodes, generateInvoicePDF } from '../../utils/pakage';
+import { getAllCodes, generateInvoicePDF, generateAppointmentBillPDF } from '../../utils/pakage';
 import { clearTrackInfo } from '../../store/actions/index.js';
 
 import logo from '../../assets/images/logo1.png';
@@ -188,33 +185,37 @@ class Track extends Component {
     switch (type) {
       case 1:
         generateInvoicePDF(data);
-        break
+        break;
+      case 3:
+        generateAppointmentBillPDF(data);
+        break;
       default:
-        break
+        break;
     }
   };
   handleSendEmail = async (billid, type) => {
     const { email } = this.state;
     if (!email) {
-      toast.info('Email không được bỏ trống!')
-      return
+      toast.info('Không tìm thấy Email để gửi hóa đơn!');
+      return;
     }
     try {
-      this.setState({ isLoading: true })
+      this.setState({ isLoading: true });
       const sendInfo = {
         billid,
         email,
-      }
-      let response
+      };
+      let response;
       switch (type) {
-        case 1: response = await handleSendInvoiceEmailApi(sendInfo);
+        case 1:
+          response = await handleSendInvoiceEmailApi(sendInfo);
           break;
         default:
           break;
       }
       if (response && response.errCode === 0) {
         toast.success('Gửi email thành công!');
-        this.setState({ actionPage: 0 })
+        this.setState({ actionPage: 0 });
       } else {
         toast.error(response?.errMessage || 'Gửi email thất bại!');
       }
@@ -222,7 +223,7 @@ class Track extends Component {
       console.log('Lỗi khi gửi email:', e);
       toast.error('Lỗi khi gửi email!');
     }
-    this.setState({ isLoading: false })
+    this.setState({ isLoading: false });
   };
   //Hàm thao tác của Product
   handleConfirmReceived = async (invoiceid) => {
@@ -254,7 +255,9 @@ class Track extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } });
+            },
           }
         );
       });
@@ -307,7 +310,9 @@ class Track extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } });
+            },
           }
         );
       });
@@ -393,7 +398,9 @@ class Track extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } });
+            },
           }
         );
       });
@@ -425,20 +432,10 @@ class Track extends Component {
   };
 
   render() {
-    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails,
-      codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender,
-      isShowCancelInvoiceModal, selectedCancelInvoice, billid, email, disabledButtons } = this.state;
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid, email, disabledButtons } = this.state;
     return (
       <div className="view-invoice">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} />
         {isLoading ? (
           <Spinner />
@@ -612,7 +609,7 @@ class Track extends Component {
                               </div>
                               <div className="bill-actions">
                                 {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                  <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng" >
+                                  <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng">
                                     <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
                                   </button>
                                 )}
@@ -626,7 +623,7 @@ class Track extends Component {
                                     <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
                                   </button>
                                 )}
-                                <input type="text" value={email} placeholder='Hãy nhập email để gửi hóa đơn' onChange={(e) => this.setState({ email: e.target.value })} />
+                                <input type="text" value={email} placeholder="Hãy nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />
                                 <div className="f">
                                   <button onClick={() => this.handleGeneratePDF(loadedInvoiceDetails, 1)} className="pdf-btn">
                                     Tải PDF
@@ -743,7 +740,7 @@ class Track extends Component {
                                       <td>{codePetType.find((item) => item.Code === loadedAppointmentDetails.Pet?.PetType)?.CodeValueVI || loadedAppointmentDetails.Pet?.PetType || 'N/A'}</td>
                                       <td>{loadedAppointmentDetails.Pet?.PetWeight ? `${loadedAppointmentDetails.Pet.PetWeight} kg` : 'N/A'}</td>
                                       <td>{loadedAppointmentDetails.Pet?.Age ? `${loadedAppointmentDetails.Pet.Age} tuổi` : 'N/A'}</td>
-                                      <td>{this.getCodeValue(loadedAppointmentDetails.Pet.PetGender, "PetGender")}</td>
+                                      <td>{this.getCodeValue(loadedAppointmentDetails.Pet.PetGender, 'PetGender')}</td>
                                     </tr>
                                   </tbody>
                                   <tfoot>
@@ -903,7 +900,7 @@ class Track extends Component {
                                   <button onClick={() => this.handleSendEmail(loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID)} className="email-btn-appointment">
                                     Gửi qua email
                                   </button>
-                                  <button onClick={() => console.log(`Tải PDF cho mã hóa đơn: ${loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID}`)} className="pdf-btn-appointment">
+                                  <button onClick={() => this.handleGeneratePDF(loadedAppointmentBillDetails, 3)} className="pdf-btn-appointment">
                                     Tải PDF
                                   </button>
                                 </div>

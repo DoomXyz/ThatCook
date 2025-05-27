@@ -1,48 +1,48 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
-import Modal from 'react-bootstrap/Modal';
 
 import { closeOutline } from 'ionicons/icons';
 
 import './EditProductModal.scss';
+import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
 import { handleGetProductInfoApi } from '../../services/productServices';
-import { handleGetAllCodesApi, uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
+
+import { getAllCodes, validateProductInput, validateProductDetailInput, uploadImages } from '../../utils/pakage';
 
 class EditProductModal extends Component {
   constructor(props) {
     super(props);
+    this.fileInputRef = React.createRef();
     this.state = {
       loadedProductInfo: null,
       loadedProductDetailInfo: null,
       selectedProductID: null,
-      codePetType: [],
       codeProductType: [],
       codeDetailStatus: [],
+      codePetType: [],
       productname: '',
       producttype: '',
       pettype: [],
-      imagelist: [],
       productprice: '',
-      productimage: '',
       productdescription: '',
       isUploading: false,
       allImages: [],
       isEditingDetail: null,
       isAddingDetail: false,
+      disabledButtons: {
+        saveProduct: false,
+        addDetail: false,
+        saveDetail: false,
+        cancelDetail: false,
+      },
     };
   }
-
   async componentDidMount() {
-    await Promise.all([this.handleLoadCodeProductType(), this.handleLoadCodePetType(), this.handleLoadCodeDetailStatus()]);
-    const { selectedProductID } = this.props;
-    if (selectedProductID) {
-      await this.handleLoadProductInfo(selectedProductID);
-    }
+    await this.handleLoadCode(['ProductType', 'DetailStatus', 'PetType']);
   }
-
   async componentDidUpdate(prevProps) {
     const { selectedProductID, isOpen } = this.props;
     if (isOpen && !prevProps.isOpen) {
@@ -52,98 +52,51 @@ class EditProductModal extends Component {
       }
     }
   }
-
   componentWillUnmount() {
     this.state.allImages.forEach((img) => {
       if (img.Image && img.file) URL.revokeObjectURL(img.Image);
     });
   }
-
+  handleLoadCode = async (codeTypes) => {
+    try {
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      const hasDefault = ['ProductType'];
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        if (hasDefault.includes(type)) {
+          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        }
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
   resetState = () => {
+    const { codeProductType } = this.state
     this.setState({
-      loadedProductInfo: null,
-      loadedProductDetailInfo: null,
-      selectedProductID: null,
       productname: '',
-      producttype: '',
+      producttype: codeProductType.length > 0 ? codeProductType[0].Code : '',
       pettype: [],
-      imagelist: [],
       productprice: '',
-      productimage: '',
       productdescription: '',
-      isUploading: false,
       allImages: [],
+      isUploading: false,
       isEditingDetail: null,
       isAddingDetail: false,
     });
   };
-
-  handleLoadCodeProductType = async () => {
-    try {
-      const codeProductType = await handleGetAllCodesApi('ProductType');
-      if (!codeProductType || codeProductType.length === 0) {
-        toast.error('Không thể tải danh sách loại sản phẩm!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        codeProductType,
-        producttype: codeProductType.length > 0 ? codeProductType[0].Code : '',
-      });
-    } catch (e) {
-      console.error('Error loading product type code:', e);
-      toast.error('Lỗi khi tải danh sách loại sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  toggle = async () => {
+    this.resetState();
+    this.props.toggleFromModal();
   };
-
-  handleLoadCodePetType = async () => {
-    try {
-      const codePetType = await handleGetAllCodesApi('PetType');
-      if (!codePetType || codePetType.length === 0) {
-        toast.error('Không thể tải danh sách loại thú cưng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codePetType });
-    } catch (e) {
-      console.error('Error loading pet type code:', e);
-      toast.error('Lỗi khi tải danh sách loại thú cưng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
-  handleLoadCodeDetailStatus = async () => {
-    try {
-      const codeDetailStatus = await handleGetAllCodesApi('DetailStatus');
-      if (!codeDetailStatus || codeDetailStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái chi tiết!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codeDetailStatus });
-    } catch (e) {
-      console.error('Error loading detail status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái chi tiết!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-
   handleLoadProductInfo = async (productid) => {
     try {
       const response = await handleGetProductInfoApi(productid);
@@ -164,44 +117,22 @@ class EditProductModal extends Component {
           productname: productInfo.ProductName,
           producttype: productInfo.ProductType,
           pettype: productInfo.PetType || [],
-          imagelist: productInfo.Image || [],
           productprice: productInfo.ProductPrice,
-          productimage: productInfo.ProductImage,
           productdescription: productInfo.ProductDescription,
           allImages,
         });
       } else {
         this.resetState();
-        toast.error('Tải sản phẩm thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Tải sản phẩm thất bại!');
       }
     } catch (e) {
-      console.error('Error loading product:', e);
       this.resetState();
-      toast.error('Lỗi khi tải sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải sản phẩm!');
     }
   };
-
-  toggle = async () => {
-    this.resetState();
-    this.props.toggleFromModal();
-  };
-
   handleInputChange = (e, field) => {
     this.setState({ [field]: e.target.value });
   };
-
-  handleSelectChange = (e) => {
-    this.setState({ producttype: e.target.value });
-  };
-
   handlePetTypeChange = (e) => {
     const petType = e.target.value;
     const isChecked = e.target.checked;
@@ -210,82 +141,156 @@ class EditProductModal extends Component {
       return { pettype: updatedPetTypes };
     });
   };
-
   handleAddImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (this.state.allImages.length >= 5) {
-      toast.error('Tối đa 5 hình ảnh!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Tối đa 5 hình ảnh!');
       return;
     }
     if (file.size > 20 * 1024 * 1024) {
-      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Ảnh quá lớn, vui lòng chọn ảnh dưới 20MB!');
       return;
     }
     if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Vui lòng chọn file ảnh!');
       return;
     }
     const preview = URL.createObjectURL(file);
     this.setState((prevState) => ({
       allImages: [...prevState.allImages, { ImageID: Date.now(), Image: preview, file }],
     }));
+    if (this.fileInputRef.current) {
+      this.fileInputRef.current.value = null;
+    }
   };
-
   handleRemoveImage = (imageID) => {
     this.setState((prevState) => ({
       allImages: prevState.allImages.filter((img) => img.ImageID !== imageID),
     }));
   };
+  handleSaveProduct = async () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, saveProduct: true } });
+    const { productname, producttype, productprice, allImages, productdescription, pettype, loadedProductDetailInfo, selectedProductID } = this.state;
+    const productInfo = {
+      ProductName: productname,
+      ProductType: producttype,
+      ProductPrice: productprice,
+      ProductDescription: productdescription,
+      PetType: pettype,
+      Image: allImages,
+    };
+    const isValidateProduct = await validateProductInput(productInfo);
+    if (!isValidateProduct.valid) {
+      toast.error(isValidateProduct.errMessage);
+      return;
+    }
+    const isValidateDetails = await validateProductDetailInput(loadedProductDetailInfo);
+    if (!isValidateDetails.valid) {
+      toast.error(isValidateDetails.errMessage);
+      return;
+    }
+    const confirmSave = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận lưu thông tin sản phẩm?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, saveProduct: false } }); },
+          }
+        );
+      });
+    const isConfirmed = await confirmSave();
+    if (!isConfirmed) return;
 
-  handleDetailChange = (index, field, value) => {
-    this.setState((prevState) => {
-      const newDetails = [...prevState.loadedProductDetailInfo];
-      newDetails[index] = { ...newDetails[index], [field]: value };
-      if (field === 'Stock') {
-        newDetails[index].DetailStatus = parseInt(value) > 0 ? newDetails[index].DetailStatus : 'OUT';
+    if (this.state.isUploading) {
+      toast.info('Đang tải ảnh, vui lòng chờ!');
+      return;
+    }
+    this.setState({ isUploading: true });
+    try {
+      const { allImages, productname, producttype, pettype, productprice, productdescription, selectedProductID, loadedProductDetailInfo } = this.state;
+      const uploadedImages = [];
+      if (allImages.length > 0) {
+        if (allImages.length > 5) {
+          toast.error('Tối đa 5 hình ảnh!');
+          this.setState({ isUploading: false });
+          return;
+        }
+        const newImages = allImages.filter((img) => img.file);
+        if (newImages.length > 0) {
+          const uploadResult = await uploadImages(newImages);
+          if (!uploadResult.status) {
+            toast.error(uploadResult.error);
+            this.setState({ isUploading: false });
+            return;
+          }
+          uploadedImages.push(...allImages.filter((img) => !img.file), ...uploadResult.images);
+        } else {
+          uploadedImages.push(...allImages);
+        }
       }
-      return { loadedProductDetailInfo: newDetails };
-    });
+      if (uploadedImages.length === 0) {
+        toast.error('Vui lòng thêm ít nhất 1 hình ảnh!');
+        this.setState({ isUploading: false });
+        return;
+      }
+      const productInfo = {
+        ProductID: selectedProductID,
+        ProductName: productname,
+        ProductPrice: parseFloat(productprice).toFixed(2),
+        ProductImage: uploadedImages[0].Image,
+        ProductType: producttype,
+        ProductDescription: productdescription,
+        PetType: pettype,
+        ProductDetail: loadedProductDetailInfo.map((item) => ({
+          ProductDetailID: item.ProductDetailID,
+          DetailName: item.DetailName,
+          Stock: parseInt(item.Stock),
+          SoldCount: item.SoldCount || 0,
+          ExtraPrice: item.ExtraPrice ? parseFloat(item.ExtraPrice).toFixed(2) : '0.00',
+          Promotion: item.Promotion ? parseFloat(item.Promotion).toFixed(2) : '0.00',
+          DetailStatus: item.DetailStatus,
+        })),
+        Image: uploadedImages.slice(1),
+      };
+      await this.props.handleChangeProductFromModal(productInfo);
+    } catch (e) {
+      toast.error('Lỗi khi lưu sản phẩm!');
+    } finally {
+      this.setState({ isUploading: false, disabledButtons: { ...this.state.disabledButtons, saveProduct: false } });
+    }
   };
-
   handleEditDetail = (index) => {
     if (this.state.isAddingDetail || this.state.isEditingDetail !== null) {
-      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa chi tiết khác!', {
-        position: 'top-right',
-        autoClose: 1000,
-        closeOnClick: true,
-      });
+      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa chi tiết khác!');
       return;
     }
     this.setState({ isEditingDetail: index, isAddingDetail: false });
   };
-  handleSaveDetail = (index) => {
-    const validation = this.checkValidateDetail(index);
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-    this.setState({ isEditingDetail: null, isAddingDetail: false });
-  };
-
   handleAddDetail = () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, addDetail: true } });
     if (this.state.isAddingDetail || this.state.isEditingDetail !== null) {
       const confirmAddNew = () =>
         new Promise((resolve) => {
@@ -315,10 +320,13 @@ class EditProductModal extends Component {
                 Không
               </button>
             </div>,
-            { position: 'top-center', autoClose: 2000, closeOnClick: false }
+            {
+              autoClose: 2000,
+              closeOnClick: false,
+              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, addDetail: false } }); },
+            }
           );
         });
-
       confirmAddNew().then((isConfirmed) => {
         if (isConfirmed) {
           this.setState(
@@ -363,9 +371,10 @@ class EditProductModal extends Component {
         isAddingDetail: true,
       }));
     }
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, addDetail: false } });
   };
-
   handleCancelDetail = () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelDetail: true } });
     const confirmCancel = () =>
       new Promise((resolve) => {
         toast(
@@ -394,10 +403,13 @@ class EditProductModal extends Component {
               Không
             </button>
           </div>,
-          { position: 'top-center', autoClose: 2000, closeOnClick: false }
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelDetail: false } }); },
+          }
         );
       });
-
     confirmCancel().then((isConfirmed) => {
       if (isConfirmed) {
         this.setState((prevState) => {
@@ -412,232 +424,31 @@ class EditProductModal extends Component {
             isEditingDetail: null,
             isAddingDetail: false,
           };
-        }, () => {
-          // Tải lại thông tin sản phẩm để làm mới dữ liệu
-          if (this.state.selectedProductID) {
-            this.handleLoadProductInfo(this.state.selectedProductID);
-          }
         });
       }
     });
   };
-
-  checkValidateDetail = (index) => {
-    const item = this.state.loadedProductDetailInfo[index];
-    if (!item.DetailName)
-      return {
-        errCode: -1,
-        errMessage: `Tên chi tiết tại dòng ${index + 1} không được để trống!`,
-      };
-    const regex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
-    if (!regex.test(item.DetailName.trim()))
-      return {
-        errCode: -1,
-        errMessage: `Tên chi tiết tại dòng ${index + 1} không hợp lệ!`,
-      };
-    if (item.Stock === '' || item.Stock === undefined)
-      return {
-        errCode: -1,
-        errMessage: `Số lượng tồn tại dòng ${index + 1} không được để trống!`,
-      };
-    if (isNaN(item.Stock) || parseInt(item.Stock) < 0)
-      return {
-        errCode: -1,
-        errMessage: `Số lượng tồn tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!`,
-      };
-    if (parseInt(item.Stock) === 0 && item.DetailStatus === 'AVAIL')
-      return {
-        errCode: -1,
-        errMessage: `Số lượng tồn tại dòng ${index + 1} bằng 0, không thể chọn trạng thái Còn hàng!`,
-      };
-    if (item.ExtraPrice !== '' && item.ExtraPrice !== undefined && (isNaN(item.ExtraPrice) || parseFloat(item.ExtraPrice) < 0)) {
-      return {
-        errCode: -1,
-        errMessage: `Giá thêm tại dòng ${index + 1} phải lớn hơn hoặc bằng 0!`,
-      };
-    }
-    if (item.Promotion !== '' && item.Promotion !== undefined && (isNaN(item.Promotion) || parseFloat(item.Promotion) < 0 || parseFloat(item.Promotion) > 100)) {
-      return {
-        errCode: -1,
-        errMessage: `Khuyến mãi tại dòng ${index + 1} phải từ 0 đến 100%!`,
-      };
-    }
-    if (!item.DetailStatus)
-      return {
-        errCode: -1,
-        errMessage: `Trạng thái chi tiết tại dòng ${index + 1} không được để trống!`,
-      };
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
+  handleDetailChange = (index, field, value) => {
+    this.setState((prevState) => {
+      const newDetails = [...prevState.loadedProductDetailInfo];
+      newDetails[index] = { ...newDetails[index], [field]: value };
+      if (field === 'Stock') {
+        newDetails[index].DetailStatus = parseInt(value) > 0 ? newDetails[index].DetailStatus : 'OUT';
+      }
+      return { loadedProductDetailInfo: newDetails };
+    });
   };
-
-  checkValidateProduct = () => {
-    const { productname, producttype, productprice, allImages, productdescription, pettype, loadedProductDetailInfo } = this.state;
-
-    if (!productname) return { errCode: -1, errMessage: 'Tên sản phẩm không được để trống!' };
-    const nameRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,100}$/;
-    if (!nameRegex.test(productname.trim())) return { errCode: -1, errMessage: 'Tên sản phẩm không hợp lệ!' };
-
-    if (!producttype) return { errCode: -1, errMessage: 'Vui lòng chọn loại sản phẩm!' };
-
-    if (!productprice) return { errCode: -1, errMessage: 'Giá bán không được để trống!' };
-    if (isNaN(productprice) || parseFloat(productprice) <= 0) return { errCode: -1, errMessage: 'Giá bán phải lớn hơn 0!' };
-
-    if (!productdescription) return { errCode: -1, errMessage: 'Mô tả sản phẩm không được để trống!' };
-
-    if (allImages.length === 0) return { errCode: -1, errMessage: 'Vui lòng thêm ít nhất 1 hình ảnh!' };
-    if (allImages.length > 5) return { errCode: -1, errMessage: 'Tối đa 5 hình ảnh!' };
-
-    if (pettype.length === 0)
-      return {
-        errCode: -1,
-        errMessage: 'Vui lòng chọn ít nhất một loại thú cưng!',
-      };
-
-    if (!loadedProductDetailInfo || loadedProductDetailInfo.length === 0)
-      return {
-        errCode: -1,
-        errMessage: 'Vui lòng thêm ít nhất một chi tiết sản phẩm!',
-      };
-
-    for (let i = 0; i < loadedProductDetailInfo.length; i++) {
-      const validation = this.checkValidateDetail(i);
-      if (validation.errCode !== 0) return validation;
-    }
-
-    return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
-  };
-
-  handleSaveProduct = async () => {
-    const validation = this.checkValidateProduct();
-    if (validation.errCode !== 0) {
-      toast.error(validation.errMessage, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+  handleSaveDetail = async (index) => {
+    const isValidateInput = await validateProductDetailInput([this.state.loadedProductDetailInfo[index]]);
+    if (!isValidateInput.valid) {
+      toast.error(`${isValidateInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
-
-    const confirmSave = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận lưu thông tin sản phẩm?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 1000, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmSave();
-    if (!isConfirmed) return;
-
-    if (this.state.isUploading) {
-      toast.info('Đang tải ảnh, vui lòng chờ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-      return;
-    }
-
-    this.setState({ isUploading: true });
-    try {
-      const { allImages, productname, producttype, pettype, productprice, productdescription, selectedProductID, loadedProductDetailInfo } = this.state;
-      const uploadedImages = [];
-      const failedImages = [];
-      for (let img of allImages) {
-        if (img.file) {
-          try {
-            const response = await uploadImageToCloudinaryApi(img.file);
-            if (response.errCode === 0) {
-              uploadedImages.push({
-                ImageID: img.ImageID,
-                Image: response.data.secure_url,
-              });
-            } else {
-              failedImages.push(img.file.name);
-            }
-          } catch (e) {
-            failedImages.push(img.file.name);
-          }
-        } else {
-          uploadedImages.push({
-            ImageID: img.ImageID,
-            Image: img.Image,
-          });
-        }
-      }
-
-      if (failedImages.length > 0) {
-        toast.error(`Không thể tải lên các ảnh: ${failedImages.join(', ')}`, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-
-      if (uploadedImages.length === 0) {
-        toast.error('Vui lòng thêm ít nhất 1 hình ảnh!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        return;
-      }
-
-      const productInfo = {
-        ProductID: selectedProductID,
-        ProductName: productname,
-        ProductPrice: parseFloat(productprice).toFixed(2),
-        ProductImage: uploadedImages[0].Image,
-        ProductType: producttype,
-        ProductDescription: productdescription,
-        PetType: pettype,
-        ProductDetail: loadedProductDetailInfo.map((item) => ({
-          ProductDetailID: item.ProductDetailID,
-          DetailName: item.DetailName,
-          Stock: parseInt(item.Stock),
-          SoldCount: item.SoldCount || 0,
-          ExtraPrice: item.ExtraPrice ? parseFloat(item.ExtraPrice).toFixed(2) : '0.00',
-          Promotion: item.Promotion ? parseFloat(item.Promotion).toFixed(2) : '0.00',
-          DetailStatus: item.DetailStatus,
-        })),
-        Image: uploadedImages.slice(1),
-      };
-      await this.props.handleChangeProductFromModal(productInfo);
-    } catch (e) {
-      toast.error('Lỗi khi lưu sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    } finally {
-      this.setState({ isUploading: false });
-    }
+    this.setState({ isEditingDetail: null, isAddingDetail: false });
   };
-
   render() {
     const { isOpen } = this.props;
     const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, isEditingDetail, codeDetailStatus, isAddingDetail } = this.state;
-
     return (
       <Modal show={isOpen} onHide={this.toggle} centered backdrop="static" className="create-product-modal">
         <Modal.Header closeButton>
@@ -673,7 +484,7 @@ class EditProductModal extends Component {
             <div className="f">
               <div className="modal-content-add-category">
                 <p>Loại sản phẩm:</p>
-                <select value={producttype} onChange={this.handleSelectChange}>
+                <select value={producttype} onChange={(e) => this.handleInputChange(e, 'producttype')} >
                   {codeProductType.map((type) => (
                     <option key={type.Code} value={type.Code}>
                       {type.CodeValueVI}

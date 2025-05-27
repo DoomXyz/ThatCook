@@ -948,6 +948,7 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
                     {date1 && (
                       <button
@@ -974,6 +975,7 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
                     {date2 && (
                       <button
@@ -1177,6 +1179,7 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
                     {date1 && (
                       <button
@@ -1202,6 +1205,7 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
                     {date2 && (
                       <button

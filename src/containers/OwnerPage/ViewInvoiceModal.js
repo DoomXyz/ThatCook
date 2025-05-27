@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
+
+import './ViewInvoiceModal.scss';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import './ViewInvoiceModal.scss';
+
+import { handleGetInvoiceDetailInfoApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices';
+
+import { getAllCodes, generateInvoicePDF } from '../../utils/pakage';
+
 import logo from '../../assets/images/logo1.png';
-import { handleGetInvoiceDetailInfoApi } from '../../services/invoiceServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 
 class ViewInvoiceModal extends Component {
   constructor(props) {
@@ -15,127 +19,100 @@ class ViewInvoiceModal extends Component {
       codePaymentType: [],
       codeShippingMethod: [],
       codeShippingStatus: [],
+      email: '',
     };
   }
-
   async componentDidMount() {
-    await Promise.all([this.handleLoadCodePaymentType(), this.handleLoadCodeShippingMethod(), this.handleLoadCodeShippingStatus()]);
-    if (this.props.selectedInvoiceID) {
-      await this.handleLoadInvoiceDetails(this.props.selectedInvoiceID);
-    }
+    await this.handleLoadCode(['PaymentType', 'ShippingMethod', 'ShippingStatus']);
   }
-
   async componentDidUpdate(prevProps) {
-    if (this.props.isOpen && prevProps.selectedInvoiceID !== this.props.selectedInvoiceID && this.props.selectedInvoiceID) {
-      this.setState({ loadedInvoiceDetails: null });
-      await this.handleLoadInvoiceDetails(this.props.selectedInvoiceID);
+    const { selectedInvoiceID, isOpen } = this.props;
+    if (isOpen && !prevProps.isOpen) {
+      if (selectedInvoiceID) {
+        this.resetState();
+        await this.handleLoadInvoiceDetails(selectedInvoiceID);
+      }
     }
   }
-
-  handleLoadCodePaymentType = async () => {
+  handleLoadCode = async (codeTypes) => {
     try {
-      const codePaymentType = await handleGetAllCodesApi('PaymentType');
-      if (!codePaymentType || codePaymentType.length === 0) {
-        toast.error('Không thể tải danh sách phương thức thanh toán!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codePaymentType });
-    } catch (e) {
-      console.error('Error loading payment type code:', e);
-      toast.error('Lỗi khi tải danh sách phương thức thanh toán!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
       });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
     }
   };
-
-  handleLoadCodeShippingMethod = async () => {
-    try {
-      const codeShippingMethod = await handleGetAllCodesApi('ShippingMethod');
-      if (!codeShippingMethod || codeShippingMethod.length === 0) {
-        toast.error('Không thể tải danh sách phương thức giao hàng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codeShippingMethod });
-    } catch (e) {
-      console.error('Error loading shipping method code:', e);
-      toast.error('Lỗi khi tải danh sách phương thức giao hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  resetState = () => {
+    this.setState({
+      email: ''
+    });
   };
-
-  handleLoadCodeShippingStatus = async () => {
-    try {
-      const codeShippingStatus = await handleGetAllCodesApi('ShippingStatus');
-      if (!codeShippingStatus || codeShippingStatus.length === 0) {
-        toast.error('Không thể tải danh sách trạng thái giao hàng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({ codeShippingStatus });
-    } catch (e) {
-      console.error('Error loading shipping status code:', e);
-      toast.error('Lỗi khi tải danh sách trạng thái giao hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
+  toggle = () => {
+    this.resetState();
+    this.props.toggleFromModal();
   };
-
-  handleLoadInvoiceDetails = async (invoiceId) => {
+  handleLoadInvoiceDetails = async (invoiceid) => {
     try {
-      const response = await handleGetInvoiceDetailInfoApi(invoiceId);
+      const response = await handleGetInvoiceDetailInfoApi(invoiceid);
       if (response && response.errCode === 0) {
         this.setState({ loadedInvoiceDetails: response.data });
       } else {
-        toast.error(response?.errMessage || 'Không thể tải thông tin hóa đơn!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || 'Không thể tải thông tin hóa đơn!');
       }
     } catch (e) {
       console.error('Error loading invoice details:', e);
-      toast.error('Lỗi khi tải thông tin hóa đơn: ' + e.message, {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải thông tin hóa đơn: ' + e.message);
     }
   };
-
-  toggle = () => {
-    this.props.toggleFromModal();
-  };
-
-  handleSendEmail = () => {
-    toast.info('Tính năng gửi email chưa được hỗ trợ!', {
-      position: 'top-right',
-      autoClose: 500,
-      closeOnClick: true,
-    });
-  };
-
   getShippingFee = (shippingMethod) => {
     const method = this.state.codeShippingMethod.find((item) => item.Code === shippingMethod);
     return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
+  handleGeneratePDF = (data) => {
+    if (!data) {
+      toast.error('Không có dữ liệu hóa đơn để tạo PDF!');
+      return;
+    }
+    generateInvoicePDF(data);
+  };
+  handleSendEmail = async (billid) => {
+    const { email } = this.state;
+    if (!email) {
+      toast.info('Hãy nhập Email để gửi hóa đơn!');
+      return;
+    }
+    try {
+      this.setState({ isLoading: true });
+      const sendInfo = {
+        billid,
+        email,
+      };
+      const response = await handleSendInvoiceEmailApi(sendInfo);
+      if (response && response.errCode === 0) {
+        toast.success('Gửi email thành công!');
+        this.setState({ actionPage: 0 });
+      } else {
+        toast.error(response?.errMessage || 'Gửi email thất bại!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi gửi email:', e);
+      toast.error('Lỗi khi gửi email!');
+    }
+    this.setState({ isLoading: false });
+  };
 
   render() {
-    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus } = this.state;
+    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus, email } = this.state;
     const { selectedInvoiceID } = this.props;
 
     return (
@@ -292,7 +269,11 @@ class ViewInvoiceModal extends Component {
           <Button variant="secondary" onClick={this.toggle}>
             Đóng
           </Button>
-          <Button variant="primary" onClick={this.handleSendEmail}>
+          <input type="text" value={email} placeholder="Hãy nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />
+          <Button variant="primary" onClick={() => this.handleGeneratePDF(loadedInvoiceDetails)}>
+            Tải PDF
+          </Button>
+          <Button variant="primary" onClick={() => this.handleSendEmail(loadedInvoiceDetails.InvoiceID)}>
             Gửi qua mail
           </Button>
         </Modal.Footer>

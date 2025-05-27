@@ -1,16 +1,12 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
-import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
-import Select from 'react-select';
-
-import { closeOutline, disc } from 'ionicons/icons';
 
 import './CreateCouponModal.scss';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
+import { getAllCodes, validateCouponInput } from '../../utils/pakage';
 
 class CreateCouponModal extends Component {
     constructor(props) {
@@ -25,134 +21,81 @@ class CreateCouponModal extends Component {
             enddate: null,
             discounttype: '',
             codeDiscountType: [],
+            disabledButtons: {
+                createCoupon: false,
+            },
         };
         this.debounceTimeout = null;
     }
-
     async componentDidMount() {
-        // await Promise.all([this.handleLoadCodeProductType(), this.handleLoadCodePetType(), this.handleLoadCodeBannerStatus()]);
-        await this.handleLoadCodeDiscountType();
+        await this.handleLoadCode(['DiscountType']);
     }
-
     async componentDidUpdate(prevProps) {
         const { isOpen } = this.props;
         if (isOpen && !prevProps.isOpen) {
             this.resetState();
-            await this.handleLoadCodeDiscountType();
         }
     }
-
-    componentWillUnmount() {
-        if (this.state.imagePreview) {
-            URL.revokeObjectURL(this.state.imagePreview);
+    handleLoadCode = async (codeTypes) => {
+        try {
+            const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+            const newState = { isLoading: false };
+            const hasDefault = ['DiscountType'];
+            codeTypes.forEach((type, index) => {
+                const response = responses[index];
+                if (!response.status || response.data.length === 0) {
+                    toast.error(`Không thể tải danh sách ${type}!`);
+                }
+                newState[`code${type}`] = response.data;
+                if (hasDefault.includes(type)) {
+                    newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+                }
+            });
+            this.setState(newState);
+        } catch (error) {
+            console.error('Error loading codes:', error);
+            toast.error('Lỗi khi tải dữ liệu!');
+            this.setState({ isLoading: false });
         }
-    }
-
+    };
     resetState = () => {
+        const { codeDiscountType } = this.state
         this.setState({
             couponcode: '',
             coupondescription: '',
             minordervalue: '',
             discountvalue: '',
             maxdiscount: '',
-            codeDiscountType: this.state.codeDiscountType,
             startdate: null,
             enddate: null,
-            discounttype: '',
+            discounttype: codeDiscountType.length > 0 ? codeDiscountType[0].Code : '',
         });
     };
-
-    handleLoadCodeDiscountType = async () => {
-        try {
-            const codeDiscountType = await handleGetAllCodesApi('DiscountType');
-            if (!codeDiscountType || codeDiscountType.length === 0) {
-                toast.error('Không thể tải danh sách loại giảm giá!', {
-                    position: 'top-right',
-                    autoClose: 500,
-                    closeOnClick: true,
-                });
-            }
-            this.setState({
-                codeDiscountType,
-                discounttype: codeDiscountType.length > 0 ? codeDiscountType[0].Code : '',
-            });
-        } catch (e) {
-            console.error('Error loading discount type code:', e);
-            toast.error('Lỗi khi tải danh sách loại giảm giá!', {
-                position: 'top-right',
-                autoClose: 500,
-                closeOnClick: true,
-            });
-        }
-    };
-
-    handleSelectChange = (e, field) => {
-        this.setState({ [field]: e.target.value }, () => { });
+    toggle = () => {
+        this.resetState();
+        this.props.toggleFromModal();
     };
     handleInputChange = (e, field) => {
         this.setState({ [field]: e.target.value });
     };
-
-    checkValidateInput = () => {
-        const { couponcode, minordervalue, discountvalue, maxdiscount, startdate, enddate, discounttype } = this.state;
-        if (!couponcode) {
-            return { errCode: -1, errMessage: 'Vui lòng nhập mã giảm giá!' };
-        } else {
-            const couponCodeRegex = /^[a-zA-Z0-9]{5,20}$/;
-            if (!couponCodeRegex.test(couponcode.trim())) {
-                return { errCode: 1, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
-            }
-        }
-        if (!discountvalue) {
-            return { errCode: -1, errMessage: 'Giá trị giảm không được để trống!' };
-        } else {
-            if (discounttype === 'PERC') {
-                if (discountvalue > 100) {
-                    return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!' };
-                } else if (discountvalue < 0) {
-                    return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!' };
-                }
-            }
-        }
-        if (!maxdiscount) {
-            return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được để trống!' };
-        } else if (discounttype === 'FIXED' && maxdiscount > discountvalue) {
-            return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
-        }
-        if (!startdate) {
-            return { errCode: -1, errMessage: 'Ngày bắt đầu không được để trống!' };
-        }
-
-        if (enddate) {
-            const startCheck = new Date(startdate);
-            const dateCheck = new Date(enddate);
-            if (isNaN(dateCheck.getTime())) return { errCode: 1, errMessage: 'Ngày hết hiệu lực không hợp lệ!' };
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const starttime = `${hours}:${minutes}`;
-            const [hoursCheck, minutesCheck] = starttime.split(':').map(Number);
-            dateCheck.setHours(hoursCheck, minutesCheck, 0, 0);
-            startCheck.setHours(hoursCheck, minutesCheck, 0, 0);
-            if (dateCheck < now) return { errCode: 1, errMessage: 'Ngày hết hiệu lực phải trong tương lai' };
-            if (dateCheck < startCheck) return { errCode: 1, errMessage: 'Thời gian hết hiệu lực phải lớn hơn thời gian quá khứ' };
-        }
-        if (!discounttype) {
-            return { errCode: -1, errMessage: 'Loại giảm giá chưa được chọn!' };
-        }
-        return { errCode: 0, errMessage: 'Kiểm tra thành công!' };
-    };
-
     handleCreateCoupon = async () => {
-        const validation = this.checkValidateInput();
-        if (validation.errCode !== 0) {
-            toast.error(validation.errMessage, {
-                position: 'top-right',
-                autoClose: 500,
-                closeOnClick: true,
-            });
+        const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, startdate, enddate, discounttype } = this.state;
+        const couponInfo = {
+            couponCode: couponcode,
+            name: coupondescription,
+            minOrderValue: minordervalue ? parseFloat(minordervalue) : 0,
+            couponType: discounttype,
+            discountValue: parseFloat(discountvalue),
+            maxDiscount: maxdiscount ? parseFloat(maxdiscount) : undefined,
+            startDate: startdate ? startdate.toISOString().split('T')[0] : null,
+            expireDate: enddate ? enddate.toISOString().split('T')[0] : null,
+        };
+        const isValidateInput = await validateCouponInput(couponInfo);
+        if (!isValidateInput.valid) {
+            toast.error(isValidateInput.errMessage);
             return;
         }
+        this.setState({ disabledButtons: { ...this.state.disabledButtons, createCoupon: false } });
         const confirmSave = () =>
             new Promise((resolve) => {
                 toast(
@@ -177,53 +120,24 @@ class CreateCouponModal extends Component {
                             Không
                         </button>
                     </div>,
-                    { position: 'top-center', autoClose: 1000, closeOnClick: false }
+                    {
+                        autoClose: 2000,
+                        closeOnClick: false,
+                        onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, createCoupon: false } }); },
+                    }
                 );
             });
-
         const isConfirmed = await confirmSave();
         if (!isConfirmed) return;
         try {
-            const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, startdate, enddate, discounttype } = this.state;
-            const isValidateInput = this.checkValidateInput();
-            if (isValidateInput.errCode !== 0) {
-                toast.error(isValidateInput.errMessage, {
-                    position: 'top-right',
-                    autoClose: 500,
-                    closeOnClick: true,
-                });
-                return;
-            }
-
-            const couponInfo = {
-                couponcode,
-                coupondescription,
-                minordervalue: minordervalue ? minordervalue : 0,
-                discountvalue,
-                maxdiscount,
-                startdate: startdate ? startdate.toISOString().split('T')[0] : null,
-                enddate: enddate ? enddate.toISOString().split('T')[0] : null,
-                discounttype,
-            };
-
             await this.props.handleCreateCouponFromModal(couponInfo);
         } catch (e) {
             console.error('Lỗi khi tạo coupon:', e);
-            toast.error('Lỗi khi tạo coupon!', {
-                position: 'top-right',
-                autoClose: 500,
-                closeOnClick: true,
-            });
+            toast.error('Lỗi khi tạo coupon!');
         }
     };
-
-    toggle = () => {
-        this.props.toggleFromModal();
-    };
-
     render() {
-        const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, codeDiscountType, startdate, enddate, discounttype } = this.state;
-
+        const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, codeDiscountType, startdate, enddate, discounttype, disabledButtons } = this.state;
         return (
             <Modal show={this.props.isOpen} onHide={this.toggle} centered backdrop="static" className="create-coupon-modal">
                 <Modal.Header closeButton>
@@ -238,7 +152,7 @@ class CreateCouponModal extends Component {
                             </div>
                             <div className="modal-content-add-discount-type">
                                 <p>Loại giảm giá:</p>
-                                <select value={discounttype} onChange={(e) => this.handleSelectChange(e, 'discounttype')}>
+                                <select value={discounttype} onChange={(e) => this.handleInputChange(e, 'discounttype')}>
                                     {codeDiscountType.map((type) => (
                                         <option key={type.Code} value={type.Code}>
                                             {type.CodeValueVI}
@@ -310,7 +224,7 @@ class CreateCouponModal extends Component {
                     <Button variant="secondary" onClick={this.toggle}>
                         Đóng
                     </Button>
-                    <Button variant="primary" onClick={this.handleCreateCoupon}>
+                    <Button variant="primary" onClick={this.handleCreateCoupon} disabled={disabledButtons.createCoupon}>
                         Lưu
                     </Button>
                 </Modal.Footer>

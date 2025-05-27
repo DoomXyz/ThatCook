@@ -771,7 +771,12 @@ class MakeAppointment extends Component {
                     <b>*Ngày khám:</b>
                   </p>
                   <div>
-                    <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
+                    <DatePicker
+                      selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null}
+                      onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy" className="date-picker"
+                      isClearable
+                    />
                   </div>
                 </div>
 

@@ -91,6 +91,28 @@ const uploadImages = async (images) => {
   }
 };
 
+const validateCodeInput = (codeInfo) => {
+  if (!codeInfo || !Object.keys(codeInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã!' };
+
+  const { Type, Code, CodeValueVI, ExtraValue } = codeInfo;
+  const typeRegex = /^[A-Za-z0-9]{2,30}$/;
+  const codeRegex = /^[A-Za-z0-9]{1,20}$/;
+  const valueRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
+
+  if (!Type?.trim()) return { valid: false, errMessage: 'Type không được để trống!' };
+  if (!typeRegex.test(Type.trim())) return { valid: false, errMessage: 'Type không hợp lệ (2-30 ký tự, chỉ chữ và số)!' };
+
+  if (!Code?.trim()) return { valid: false, errMessage: 'Code không được để trống!' };
+  if (!codeRegex.test(Code.trim())) return { valid: false, errMessage: 'Code không hợp lệ (1-20 ký tự, chỉ chữ và số)!' };
+
+  if (!CodeValueVI?.trim()) return { valid: false, errMessage: 'CodeValueVI không được để trống!' };
+  if (!valueRegex.test(CodeValueVI.trim())) return { valid: false, errMessage: 'CodeValueVI không hợp lệ (2-50 ký tự, có ít nhất một chữ cái)!' };
+
+  if (ExtraValue && (isNaN(ExtraValue) || parseFloat(ExtraValue) < 0)) return { valid: false, errMessage: 'ExtraValue phải là số không âm!' };
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+};
+
 const validateAccountInput = async (userInfo, type) => {
   const { accountname, email, password, username, phone, address, gender, accounttype } = userInfo;
   const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
@@ -131,26 +153,68 @@ const validateAccountInput = async (userInfo, type) => {
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
 
-const validateCodeInput = (codeInfo) => {
-  if (!codeInfo || !Object.keys(codeInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã!' };
+const validateProductInput = async (productInfo) => {
+  if (!productInfo || !Object.keys(productInfo).length) return { valid: false, errMessage: 'Thiếu thông tin sản phẩm!' };
 
-  const { Type, Code, CodeValueVI, ExtraValue } = codeInfo;
-  const typeRegex = /^[A-Za-z0-9]{2,30}$/;
-  const codeRegex = /^[A-Za-z0-9]{1,20}$/;
-  const valueRegex = /^(?=.*[A-Za-zÀ-ỹ]).{2,50}$/;
+  const { ProductName, ProductType, ProductPrice, ProductDescription, PetType, Image } = productInfo;
+  const productNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,100}$/;
 
-  if (!Type?.trim()) return { valid: false, errMessage: 'Type không được để trống!' };
-  if (!typeRegex.test(Type.trim())) return { valid: false, errMessage: 'Type không hợp lệ (2-30 ký tự, chỉ chữ và số)!' };
+  if (!ProductName) return { valid: false, errMessage: 'Tên sản phẩm không được để trống!' };
+  if (!productNameRegex.test(ProductName.trim())) return { valid: false, errMessage: 'Tên sản phẩm không hợp lệ!' };
 
-  if (!Code?.trim()) return { valid: false, errMessage: 'Code không được để trống!' };
-  if (!codeRegex.test(Code.trim())) return { valid: false, errMessage: 'Code không hợp lệ (1-20 ký tự, chỉ chữ và số)!' };
+  if (!ProductType) return { valid: false, errMessage: 'Loại sản phẩm không được để trống!' };
+  const productTypeResponse = await getAllCodes('ProductType');
+  const validProductType = productTypeResponse.data?.map((item) => item.Code) || [];
+  if (!validProductType.includes(ProductType)) return { valid: false, errMessage: 'Loại sản phẩm không hợp lệ!' };
 
-  if (!CodeValueVI?.trim()) return { valid: false, errMessage: 'CodeValueVI không được để trống!' };
-  if (!valueRegex.test(CodeValueVI.trim())) return { valid: false, errMessage: 'CodeValueVI không hợp lệ (2-50 ký tự, có ít nhất một chữ cái)!' };
+  if (!ProductPrice) return { valid: false, errMessage: 'Giá sản phẩm không được để trống!' };
+  const price = parseFloat(ProductPrice);
+  if (isNaN(price) || price <= 0) return { valid: false, errMessage: 'Giá sản phẩm phải lớn hơn 0!' };
 
-  if (ExtraValue && (isNaN(ExtraValue) || parseFloat(ExtraValue) < 0)) return { valid: false, errMessage: 'ExtraValue phải là số không âm!' };
+  if (ProductDescription?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả sản phẩm vượt quá giới hạn ký tự!' };
 
-  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+  if (!PetType || !Array.isArray(PetType) || !PetType.length) return { valid: false, errMessage: 'Vui lòng chọn ít nhất một loại thú cưng!' };
+  for (const petType of PetType) {
+    const petTypeResponse = await getAllCodes('PetType');
+    const validPetType = petTypeResponse.data?.map((item) => item.Code) || [];
+    if (!validPetType.includes(petType)) return { valid: false, errMessage: `Loại thú cưng ${petType} không hợp lệ!` };
+  }
+
+  if (!Image || !Array.isArray(Image) || Image.length === 0) return { valid: false, errMessage: 'Vui lòng thêm ít nhất 1 hình ảnh!' };
+  if (Image.length > 5) return { valid: false, errMessage: 'Tối đa 5 hình ảnh!' };
+  if (Image.some(img => !img.Image || !img.Image.trim() || img.Image.trim().length > 2048)) {
+    return { valid: false, errMessage: 'Danh sách ảnh không hợp lệ hoặc vượt quá 2048 ký tự!' };
+  }
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin sản phẩm hoàn tất!' };
+};
+
+const validateProductDetailInput = async (productDetail) => {
+  const detailNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+  if (!productDetail || !Array.isArray(productDetail) || !productDetail.length) return { valid: false, errMessage: 'Vui lòng thêm ít nhất một chi tiết sản phẩm!' };
+
+  for (let i = 0; i < productDetail.length; i++) {
+    const detail = productDetail[i];
+    if (!detail.DetailName) return { valid: false, errMessage: `Tên chi tiết tại dòng ${i + 1} không được để trống!` };
+    if (!detailNameRegex.test(detail.DetailName.trim())) return { valid: false, errMessage: `Tên chi tiết tại dòng ${i + 1} không hợp lệ!` };
+
+    if (detail.Stock === undefined || detail.Stock === '') return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} không được để trống!` };
+    if (isNaN(detail.Stock) || parseInt(detail.Stock) < 0) return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!` };
+
+    if (detail.ExtraPrice === undefined || detail.ExtraPrice === '') return { valid: false, errMessage: `Giá thêm tại dòng ${i + 1} không được để trống!` };
+    if (isNaN(detail.ExtraPrice) || parseFloat(detail.ExtraPrice) < 0) return { valid: false, errMessage: `Giá thêm tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!` };
+
+    if (detail.Promotion === undefined || detail.Promotion === '') return { valid: false, errMessage: `Khuyến mãi tại dòng ${i + 1} không được để trống!` };
+    if (isNaN(detail.Promotion) || parseFloat(detail.Promotion) < 0 || parseFloat(detail.Promotion) > 100) return { valid: false, errMessage: `Khuyến mãi tại dòng ${i + 1} phải từ 0 đến 100%!` };
+
+    if (!detail.DetailStatus) return { valid: false, errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không được để trống!` };
+    const detailStatusResponse = await getAllCodes('DetailStatus');
+    const validDetailStatus = detailStatusResponse.data?.map((item) => item.Code) || [];
+    if (!validDetailStatus.includes(detail.DetailStatus)) return { valid: false, errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không hợp lệ!` };
+
+    if (parseInt(detail.Stock) === 0 && detail.DetailStatus === 'AVAIL') return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} bằng 0, không thể chọn trạng thái Còn hàng!` };
+  }
+  return { valid: true, errMessage: 'Kiểm tra chi tiết sản phẩm hoàn tất!' };
 };
 
 const validateVeterinarianInput = async (veterinarianInfo) => {
@@ -247,6 +311,67 @@ const validateAppointmentInput = async (appointmentInfo) => {
   if (notes?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
   if (!serviceid || !petid) return { valid: false, errMessage: 'Thông tin thú cưng và dịch vụ không được bỏ trống!' };
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+};
+
+const validateBannerInput = async (bannerInfo) => {
+  if (!bannerInfo || !Object.keys(bannerInfo).length) return { valid: false, errMessage: 'Thiếu thông tin banner!' };
+
+  const { BannerImage, HiddenAt, BannerStatus } = bannerInfo;
+
+  if (!BannerImage) return { valid: false, errMessage: 'Thiếu hình ảnh banner!' };
+
+  if (HiddenAt !== undefined && HiddenAt !== null) {
+    const hiddenAtDate = new Date(HiddenAt);
+    if (isNaN(hiddenAtDate.getTime()) || hiddenAtDate <= new Date()) return { valid: false, errMessage: 'Ngày ẩn không hợp lệ hoặc phải lớn hơn thời gian hiện tại!' };
+  }
+
+  if (!BannerStatus) return { valid: false, errMessage: 'Trạng thái banner không được để trống!' };
+  const bannerStatusResponse = await getAllCodes('BannerStatus');
+  const validBannerStatus = bannerStatusResponse.data?.map((item) => item.Code) || [];
+  if (!validBannerStatus.includes(BannerStatus)) return { valid: false, errMessage: `Trạng thái banner ${BannerStatus} không hợp lệ!` };
+
+  return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
+};
+
+const validateCouponInput = async (couponInfo) => {
+  if (!couponInfo || !Object.keys(couponInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã giảm giá!' };
+
+  const { couponCode, name, minOrderValue, couponType, discountValue, maxDiscount, startDate, expireDate } = couponInfo;
+  const couponCodeRegex = /^[a-zA-Z0-9]{5,20}$/;
+
+  if (!couponCode) return { valid: false, errMessage: 'Vui lòng nhập mã giảm giá!' };
+  if (!couponCodeRegex.test(couponCode.trim())) return { valid: false, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+
+  if (name?.trim().length > 0 && name.trim().length > 65535) return { valid: false, errMessage: 'Mô tả giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+
+  if (minOrderValue !== undefined && minOrderValue < 0) return { valid: false, errMessage: 'Giá trị mua ít nhất không được nhỏ hơn 0!' };
+
+  if (!couponType) return { valid: false, errMessage: 'Loại giảm giá không được để trống!' };
+  const typeResponse = await getAllCodes('DiscountType');
+  const validDiscountType = typeResponse.data?.map((item) => item.Code) || [];
+  if (!validDiscountType.includes(couponType)) return { valid: false, errMessage: 'Loại giảm giá không hợp lệ!' };
+
+  if (!discountValue) return { valid: false, errMessage: 'Giá trị giảm không được để trống!' };
+  if (couponType === 'PERC' && (discountValue > 100 || discountValue < 0)) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
+  if (couponType === 'FIXED' && discountValue < 0) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
+
+  if (maxDiscount !== undefined) {
+    if (maxDiscount < 0) return { valid: false, errMessage: 'Giảm giá tối đa phải lớn hơn 0!' };
+    if (couponType === 'FIXED' && maxDiscount > discountValue) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
+  }
+
+  if (!startDate) return { valid: false, errMessage: 'Ngày bắt đầu không được để trống!' };
+
+  if (expireDate) {
+    const startDateObj = new Date(startDate);
+    const expireDateObj = new Date(expireDate);
+    if (isNaN(expireDateObj.getTime())) return { valid: false, errMessage: 'Ngày hết hạn không hợp lệ!' };
+    const now = new Date();
+    if (expireDateObj <= now) return { valid: false, errMessage: 'Ngày hết hạn phải trong tương lai!' };
+    if (expireDateObj < startDateObj) return { valid: false, errMessage: 'Ngày hết hạn phải sau ngày bắt đầu!' };
+  }
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
@@ -381,15 +506,182 @@ const generateInvoicePDF = async (invoiceData) => {
   doc.save(`HoaDon_${invoiceData.InvoiceID || 'unknown'}_${timestamp}.pdf`);
 };
 
+const generateAppointmentBillPDF = async (appointmentbillData) => {
+  const doc = new jsPDF();
+  let fontLoaded = false;
+
+  try {
+    doc.addFileToVFS('Roboto-Regular-normal.ttf', RobotoRegularFont);
+    doc.addFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal');
+    doc.setFont('Roboto-Regular');
+    fontLoaded = true;
+  } catch (e) {
+    console.error('Error loading custom font:', e);
+    doc.setFont('Helvetica');
+  }
+
+  // Fetch code values for display
+  const [appointmentStatusResponse, petTypeResponse, petGenderResponse] = await Promise.all([getAllCodes('AppointmentStatus'), getAllCodes('PetType'), getAllCodes('PetGender')]);
+
+  const codeAppointmentStatus = appointmentStatusResponse.status ? appointmentStatusResponse.data : [];
+  const codePetType = petTypeResponse.status ? petTypeResponse.data : [];
+  const codePetGender = petGenderResponse.status ? petGenderResponse.data : [];
+
+  // Header Section
+  doc.setFontSize(18);
+  doc.text('MINCOW', 14, 20);
+  doc.setFontSize(10);
+  doc.text('Website Thương mại & Dịch vụ Dành cho thú cưng', 14, 26);
+  doc.text('Địa chỉ: 136 Huỳnh Văn Bánh, P. 11, Q. Phú Nhuận, Tp.HCM', 14, 32);
+
+  // Time (left-aligned)
+  const timeText = `Thời gian: ${appointmentbillData.AppointmentBill?.CreatedAt
+      ? new Date(appointmentbillData.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+      : 'N/A'
+    }`;
+  doc.text(timeText, 14, 40);
+
+  // Bill ID (right-aligned)
+  doc.text(`Mã hóa đơn: ${appointmentbillData.AppointmentBill?.AppointmentBillID || 'N/A'}`, 196, 40, { align: 'right' });
+
+  // Status and Service Info (right-aligned, with custom line height)
+  const statusLine = `Trạng thái: ${codeAppointmentStatus.find((item) => item.Code === appointmentbillData.AppointmentStatus)?.CodeValueVI || appointmentbillData.AppointmentStatus || 'N/A'}`;
+  const serviceLine = `Dịch vụ: ${appointmentbillData.Service?.ServiceName || 'N/A'}`;
+  const vetLine = `Bác sĩ: ${appointmentbillData.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}`;
+
+  const statusLineHeight = 8; // Line height for status text (in mm)
+  doc.text(statusLine, 196, 50, { align: 'right' });
+  doc.text(serviceLine, 196, 50 + statusLineHeight, { align: 'right' });
+  doc.text(vetLine, 196, 50 + statusLineHeight * 2, { align: 'right' });
+
+  // Customer and Pet Info (left-aligned, with custom line height)
+  const customerLine = `Khách hàng: ${appointmentbillData.CustomerName || 'N/A'}`;
+  const petNameLine = `Tên thú cưng: ${appointmentbillData.Pet?.PetName || 'N/A'}`;
+  const petTypeLine = `Loại thú cưng: ${codePetType.find((item) => item.Code === appointmentbillData.Pet?.PetType)?.CodeValueVI || appointmentbillData.Pet?.PetType || 'N/A'}`;
+  const petGenderLine = `Giới tính: ${codePetGender.find((item) => item.Code === appointmentbillData.Pet?.PetGender)?.CodeValueVI || appointmentbillData.Pet?.PetGender || 'N/A'}`;
+
+  const customerLineHeight = 8; // Line height for customer text (in mm)
+  doc.text(customerLine, 14, 48);
+  doc.text(petNameLine, 14, 48 + customerLineHeight);
+  doc.text(petTypeLine, 14, 48 + customerLineHeight * 2);
+  doc.text(petGenderLine, 14, 48 + customerLineHeight * 3);
+
+  // Separator Line
+  const separatorY = Math.max(50 + statusLineHeight * 3, 48 + customerLineHeight * 4);
+  doc.setLineWidth(0.5);
+  doc.line(14, separatorY, 196, separatorY);
+
+  // Table for Appointment Details
+  const tableData = [
+    [
+      appointmentbillData.AppointmentDate ? `${new Date(appointmentbillData.AppointmentDate).toLocaleDateString('vi-VN')} ${appointmentbillData.StartTime} - ${appointmentbillData.EndTime}` : 'N/A',
+      appointmentbillData.AppointmentBill?.ServicePrice ? parseFloat(appointmentbillData.AppointmentBill.ServicePrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
+      appointmentbillData.AppointmentBill?.MedicalPrice ? parseFloat(appointmentbillData.AppointmentBill.MedicalPrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
+      appointmentbillData.AppointmentBill?.TotalPayment ? parseFloat(appointmentbillData.AppointmentBill.TotalPayment).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
+    ],
+  ];
+
+  autoTable(doc, {
+    startY: 83,
+    head: [['Ngày khám', 'Phí dịch vụ', 'Phí dược phẩm', 'Tổng thanh toán']],
+    body: tableData,
+    theme: 'grid',
+    styles: {
+      font: fontLoaded ? 'Roboto-Regular' : 'Helvetica',
+      fontSize: 9,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      textColor: [0, 0, 0],
+      halign: 'left',
+    },
+    headStyles: {
+      fillColor: [200, 200, 200],
+      textColor: [0, 0, 0],
+      fontSize: 9,
+      fontStyle: 'normal',
+      halign: 'center',
+    },
+    columnWidths: [50, 35, 35, 35],
+    columnStyles: {
+      0: { halign: 'center', overflow: 'linebreak' },
+      1: { halign: 'center' },
+      2: { halign: 'center' },
+      3: { halign: 'center' },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  let finalY = doc.lastAutoTable.finalY;
+
+  // Separator Line
+  doc.setLineWidth(0.5);
+  doc.line(14, finalY + 2, 196, finalY + 2);
+
+  // Footer: Notes and Medical Image
+  doc.setFontSize(10);
+  const notesText = `Ghi chú của bác sĩ: ${appointmentbillData.AppointmentBill?.MedicalNotes || 'Không có ghi chú'}`;
+  const splitNotes = doc.splitTextToSize(notesText, 180);
+  doc.text(splitNotes, 14, finalY + 10);
+
+  // Medical Image (if available)
+  if (appointmentbillData.AppointmentBill?.MedicalImage) {
+    try {
+      doc.addImage(appointmentbillData.AppointmentBill.MedicalImage, 'JPEG', 14, finalY + 20, 50, 50); // Adjust size and position as needed
+      finalY += 60; // Adjust Y position after image
+    } catch (e) {
+      console.error('Error adding medical image to PDF:', e);
+      doc.text('Đơn thuốc: Không thể tải hình ảnh', 14, finalY + 20);
+      finalY += 10;
+    }
+  } else {
+    doc.text('Đơn thuốc: Không có hình ảnh', 14, finalY + 20);
+    finalY += 10;
+  }
+
+  // Separator Line
+  doc.setLineWidth(0.5);
+  doc.line(14, finalY + 5, 196, finalY + 5);
+
+  // Footer Note
+  const note = 'Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng (0901131141).';
+  doc.setFontSize(9);
+  const splitNote = doc.splitTextToSize(note, 180);
+  doc.text(splitNote, 14, finalY + 13);
+
+  // Save the PDF
+  const timestamp = new Date()
+    .toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+    .replace(/[,/: ]/g, '');
+  doc.save(`HoaDonLichKham_${appointmentbillData.AppointmentBill?.AppointmentBillID || 'unknown'}_${timestamp}.pdf`);
+};
+
 export {
   checkLoginStatus,
   getAllCodes,
   uploadImages,
-  validateAccountInput,
   validateCodeInput,
+  validateAccountInput,
+  validateProductInput,
+  validateProductDetailInput,
   validateVeterinarianInput,
   validateServiceInput,
   validatePetInput,
   validateAppointmentInput,
+  validateBannerInput,
+  validateCouponInput,
   generateInvoicePDF,
+  generateAppointmentBillPDF,
 };

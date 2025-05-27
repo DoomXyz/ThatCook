@@ -4,136 +4,96 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 
-import { pencil, searchOutline, add, homeOutline, cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { pencil, searchOutline, add, homeOutline, cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline, logOutOutline } from 'ionicons/icons';
 
 import './Owner.scss';
 import Spinner from '../../components/Spinner';
+import CreateProductModal from './CreateProductModal';
+import EditProductModal from './EditProductModal';
+import ViewInvoiceModal from './ViewInvoiceModal';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+import CreateBannerModal from './CreateBannerModal';
+import EditBannerModal from './EditBannerModal';
+import CreateCouponModal from './CreateCouponModal.js';
 
 import { handleLogoutApi } from '../../services/accountServices';
 import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from '../../services/productServices';
 import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
 import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
-import { handleGetAllCodesApi } from '../../services/utilitiesServices';
 import { handleCreateCouponApi, handleLoadCouponInfoApi } from '../../services/couponServices';
 
-import { checkLoginStatus } from '../../utils/pakage';
+import { getAllCodes, checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
-
-import CreateProductModal from './CreateProductModal';
-import EditProductModal from './EditProductModal';
-import ViewInvoiceModal from './ViewInvoiceModal';
-import CreateBannerModal from './CreateBannerModal';
-import CreateCouponModal from './CreateCouponModal.js';
-import EditBannerModal from './EditBannerModal';
-import CancelInvoiceModal from '../../components/CancelInvoiceModal';
-
-import { set } from 'lodash';
 
 class Owner extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isShowEditBannerModal: false,
-      isShowCreateBannerModal: false,
-      isShowCreateProductModal: false,
-      isShowEditProductModal: false,
-      isShowViewInvoiceModal: false,
-      isShowCancelInvoiceModal: false,
-      isShowCreateCouponModal: false,
-      accountInfo: null,
-      isLoggedIn: false,
-      isLoading: true,
-      loadedProductTypeFilterValue: [],
-      loadedPetTypeFilterValue: [],
-      loadedPaymentStatusFilterValue: [],
-      loadedShippingStatusFilterValue: [],
-      loadedBannerStatusFilterValue: [],
-      loadedCouponStatusFilterValue: [],
-      loadedDiscountTypeFilterValue: [],
+      // Authentication & General
       actionPage: 1,
+      isLoading: true,
+      isLoggedIn: false,
+      accountInfo: null,
+      // Codes
+      codeProductType: [],
+      codePetType: [],
+      codeDiscountType: [],
+      codePaymentStatus: [],
+      codeShippingStatus: [],
+      codeBannerStatus: [],
+      codeCouponStatus: [],
+      // Pagination
       currentPage: 1,
       tempCurrentPage: '1',
       limitProductPerQuery: 10,
       limitInvoicePerQuery: 10,
-      limitCouponPerQuery: 10,
       limitBannerPerQuery: 5,
+      limitCouponPerQuery: 10,
+      totalPages: 1,
+      // Filtering & Sorting
       searchValue: '',
-      dateFilterValue: '',
       filterValue: 'ALL',
       sortValue: '0',
-      totalProductPages: 1,
-      totalInvoicePages: 1,
-      totalBannerPages: 1,
-      totalCouponPages: 1,
+      dateFilterValue: '',
+      // Data Lists
       loadedProductInfo: [],
       loadedInvoiceInfo: [],
       loadedBannerInfo: [],
       loadedCouponInfo: [],
+      // Modals & Selections
+      isShowCreateProductModal: false,
+      isShowEditProductModal: false,
+      isShowViewInvoiceModal: false,
+      isShowCancelInvoiceModal: false,
+      isShowCreateBannerModal: false,
+      isShowEditBannerModal: false,
+      isShowCreateCouponModal: false,
       selectedProduct: null,
       selectedBanner: null,
       selectedInvoice: null,
-      selectedCoupon: null,
       selectedCancelInvoice: null,
+      selectedCoupon: null,
+      // Coupon Management
+      isEditingCoupon: null,
+      isAddingCoupon: false,
+      // DisableButton
+      disabledButtons: {
+        logout: false,
+      },
     };
     this.debounceTimeout = null;
   }
-
   async componentDidMount() {
     await this.handleIsLogin();
     await this.handleLoadProductInfo();
-    await this.handleLoadProductTypeFilterValue();
-    await this.handleLoadPetTypeFilterValue();
+    await this.handleLoadCode(['ProductType', 'PetType', 'DiscountType', 'PaymentStatus', 'ShippingStatus', 'BannerStatus', 'CouponStatus']);
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      const { actionPage, loadedProductTypeFilterValue, loadedPetTypeFilterValue, loadedPaymentStatusFilterValue, loadedShippingStatusFilterValue, loadedBannerStatusFilterValue, loadedCouponStatusFilterValue, loadedDiscountTypeFilterValue } = this.state;
-      switch (this.state.actionPage) {
-        case 1:
-          if (actionPage === 1) {
-            this.handleLoadProductInfo();
-          }
-          if (loadedProductTypeFilterValue.length === 0) {
-            await this.handleLoadProductTypeFilterValue();
-          }
-          if (loadedPetTypeFilterValue.length === 0) {
-            await this.handleLoadPetTypeFilterValue();
-          }
-          break;
-        case 2:
-          if (actionPage === 2) {
-            this.handleLoadInvoiceInfo();
-          }
-          if (loadedPaymentStatusFilterValue.length === 0) {
-            await this.handleLoadPaymentStatusFilterValue();
-          }
-          if (loadedShippingStatusFilterValue.length === 0) {
-            await this.handleLoadShippingStatusFilterValue();
-          }
-          break;
-        case 3:
-          if (actionPage === 3) {
-            this.handleLoadBannerInfo();
-          }
-          if (loadedBannerStatusFilterValue.length === 0) {
-            await this.handleLoadBannerStatusFilterValue();
-          }
-          break;
-        case 4:
-          if (actionPage === 4) {
-            this.handleLoadCouponInfo();
-          }
-          if (loadedCouponStatusFilterValue.length === 0) {
-            await this.handleLoadCouponStatusFilterValue();
-          }
-          if (loadedDiscountTypeFilterValue.length === 0) {
-            await this.handleLoadDiscountTypeFilterValue();
-          }
-          break;
-        default:
-          break;
-      }
+      this.handleReloadData(this.state.actionPage)
     }
   }
+  //login logout
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -156,11 +116,98 @@ class Owner extends Component {
       }
     } catch (e) {
       this.props.navigate('/login');
-      console.log('Token not found!');
     }
     this.setState({
       isLoading: false,
     });
+  };
+  handleLogout = async () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: true } })
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận đăng xuất?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } }) },
+          }
+        );
+      });
+    const isConfirmed = await confirmAction();
+    if (isConfirmed) {
+      try {
+        await handleLogoutApi();
+        this.props.userLogout();
+        this.setState({
+          isLoggedIn: false,
+          accountInfo: null,
+        });
+        toast.success('Đăng xuất thành công!');
+        this.props.navigate('/login')
+      } catch (e) {
+        console.log(e);
+        toast.error('Đăng xuất thất bại. Vui lòng thử lại!');
+      }
+    }
+  };
+  //load code
+  handleLoadCode = async (codeTypeFilter) => {
+    try {
+      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
+  //load data info
+  handleReloadData = (type) => {
+    switch (type) {
+      case 1:
+        this.handleLoadProductInfo();
+        break;
+      case 2:
+        this.handleLoadInvoiceInfo();
+        break;
+      case 3:
+        this.handleLoadBannerInfo();
+        break;
+      case 4:
+        this.handleLoadCouponInfo();
+        break;
+      default:
+        break;
+    }
   };
   handleLoadProductInfo = async () => {
     const { currentPage, limitProductPerQuery, searchValue, filterValue, sortValue } = this.state;
@@ -169,60 +216,12 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedProductInfo: response.data,
-          totalProductPages: Math.ceil(response.totalItems / limitProductPerQuery),
+          totalPages: Math.ceil(response.totalItems / limitProductPerQuery),
         });
       }
     } catch (e) {
       console.log('Error loading invoiceinfo:', e);
-      toast.error('Lỗi khi load danh sách sản phẩm!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadProductTypeFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('ProductType');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedProductTypeFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading pettype code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadPetTypeFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('PetType');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedPetTypeFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading pettype code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách sản phẩm!');
     }
   };
   handleLoadInvoiceInfo = async () => {
@@ -232,60 +231,12 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
-          totalInvoicePages: Math.ceil(response.totalItems / limitInvoicePerQuery),
+          totalPages: Math.ceil(response.totalItems / limitInvoicePerQuery),
         });
       }
     } catch (e) {
       console.log('Error loading invoiceinfo:', e);
-      toast.error('Lỗi khi load danh sách đơn hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadPaymentStatusFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('PaymentStatus');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedPaymentStatusFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading paymentstatus code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadShippingStatusFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('ShippingStatus');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedShippingStatusFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading shippingstatus code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách đơn hàng!');
     }
   };
   handleLoadBannerInfo = async () => {
@@ -295,104 +246,30 @@ class Owner extends Component {
       if (response && response.errCode === 0) {
         this.setState({
           loadedBannerInfo: response.data,
-          totalBannerPages: Math.ceil(response.totalItems / limitBannerPerQuery),
+          totalPages: Math.ceil(response.totalItems / limitBannerPerQuery),
         });
       }
     } catch (e) {
       console.log('Error loading bannerinfo:', e);
-      toast.error('Lỗi khi load danh sách banner!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách banner!');
     }
   };
   handleLoadCouponInfo = async () => {
     const { currentPage, limitCouponPerQuery, searchValue, filterValue, sortValue, dateFilterValue } = this.state;
     try {
       const response = await handleLoadCouponInfoApi(currentPage, limitCouponPerQuery, searchValue, filterValue, sortValue, dateFilterValue);
-      console.log(response);
       if (response && response.data.errCode === 0) {
         this.setState({
           loadedCouponInfo: response.data.data,
-          totalCouponPages: Math.ceil(response.data.totalItems / limitCouponPerQuery),
+          totalPages: Math.ceil(response.data.totalItems / limitCouponPerQuery),
         });
       }
     } catch (e) {
       console.log('Error loading couponinfo:', e);
-      toast.error('Lỗi khi load danh sách coupon!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi load danh sách coupon!');
     }
   };
-  handleLoadBannerStatusFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('BannerStatus');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedBannerStatusFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading bannerstatus code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadCouponStatusFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('CouponStatus');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedCouponStatusFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading couponstatus code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
-  handleLoadDiscountTypeFilterValue = async () => {
-    try {
-      const loadedFilterValue = await handleGetAllCodesApi('DiscountType');
-      if (!loadedFilterValue || loadedFilterValue.length === 0) {
-        toast.error('Không thể tải danh sách lọc!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-      this.setState({
-        loadedDiscountTypeFilterValue: loadedFilterValue,
-      });
-    } catch (e) {
-      console.log('Error loading discounttype code:', e);
-      toast.error('Lỗi khi tải danh sách lọc!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-  };
+  //search filter sort
   handleSearchChange = (event, type) => {
     const value = event.target.value;
     this.setState(
@@ -402,27 +279,10 @@ class Owner extends Component {
         tempCurrentPage: '1',
       },
       () => {
-        if (this.debounceTimeout) {
-          clearTimeout(this.debounceTimeout);
-        }
+        if (this.debounceTimeout) { clearTimeout(this.debounceTimeout); }
         this.debounceTimeout = setTimeout(() => {
-          switch (type) {
-            case 1:
-              this.handleLoadProductInfo();
-              break;
-            case 2:
-              this.handleLoadInvoiceInfo();
-              break;
-            case 3:
-              this.handleLoadBannerInfo();
-              break;
-            case 4:
-              this.handleLoadCouponInfo();
-              break;
-            default:
-              break;
-          }
-        }, 500);
+          this.handleReloadData(type);
+        }, 500)
       }
     );
   };
@@ -434,22 +294,7 @@ class Owner extends Component {
         tempCurrentPage: '1',
       },
       () => {
-        switch (type) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          case 4:
-            this.handleLoadCouponInfo();
-            break;
-          default:
-            break;
-        }
+        this.handleReloadData(type);
       }
     );
   };
@@ -459,110 +304,44 @@ class Owner extends Component {
         sortValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          case 4:
-            this.handleLoadCouponInfo();
-            break;
-          default:
-            break;
-        }
+      }, () => {
+        this.handleReloadData(type);
       }
     );
   };
-  handleResetFilter = () => {
+  handleResetFilter = (type) => {
     this.setState(
       {
         currentPage: 1,
         tempCurrentPage: '1',
         searchValue: '',
-        dateFilterValue: '',
         filterValue: 'ALL',
         sortValue: '0',
-      },
-      () => {
-        switch (this.state.actionPage) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          case 4:
-            this.handleLoadCouponInfo();
-            break;
-          default:
-            break;
-        }
+        dateFilterValue: '',
+      }, () => {
+        this.handleReloadData(type);
       }
     );
   };
+  //pagination
   handlePageChange = (page, type) => {
     this.setState({
       isLoading: true,
     });
-    const { totalProductPages, totalInvoicePages, totalBannerPages, totalCouponPages } = this.state;
-    let totalPages;
-    switch (type) {
-      case 1:
-        totalPages = totalProductPages;
-        break;
-      case 2:
-        totalPages = totalInvoicePages;
-        break;
-      case 3:
-        totalPages = totalBannerPages;
-        break;
-      case 4:
-        totalPages = totalCouponPages;
-        break;
-      default:
-        totalPages = 1;
-    }
+    const { totalPages } = this.state;
     let newPage = page;
     if (isNaN(page) || page <= 0) {
       newPage = 1;
     } else if (page > totalPages) {
       newPage = totalPages;
     }
-    this.setState(
-      {
-        isLoading: false,
-        currentPage: newPage,
-        tempCurrentPage: newPage.toString(),
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          case 4:
-            this.handleLoadCouponInfo();
-            break;
-          default:
-            break;
-        }
-      }
-    );
+    this.setState({
+      isLoading: false,
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString(),
+    }, () => {
+      this.handleReloadData(type)
+    });
   };
   handlePrevPage = (type) => {
     this.setState(
@@ -572,53 +351,21 @@ class Owner extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          case 4:
-            this.handleLoadCouponInfo();
-            break;
-          default:
-            break;
-        }
+      }, () => {
+        this.handleReloadData(type);
       }
     );
   };
   handleNextPage = (type) => {
     this.setState(
       (prevState) => {
-        const newPage = Math.min(type === 1 ? prevState.totalProductPages : type === 2 ? prevState.totalInvoicePages : type === 3 ? prevState.totalBannerPages : prevState.totalCouponPages, prevState.currentPage + 1);
+        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
         return {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      },
-      () => {
-        switch (type) {
-          case 1:
-            this.handleLoadProductInfo();
-            break;
-          case 2:
-            this.handleLoadInvoiceInfo();
-            break;
-          case 3:
-            this.handleLoadBannerInfo();
-            break;
-          case 4:
-            this.handleLoadCouponInfo();
-            break;
-          default:
-            break;
-        }
+      }, () => {
+        this.handleReloadData(type);
       }
     );
   };
@@ -638,33 +385,191 @@ class Owner extends Component {
       this.handlePageChange(page, type);
     }
   };
-  handleSelectedProduct = (productid) => {
-    this.setState({
-      selectedProduct: productid,
-      isShowEditProductModal: true,
-    });
+  //form action
+  handleConfirmPayment = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hóa đơn đã thanh toán?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'PaymentStatus', 'PAID', '');
+      if (response && response.errCode === 0) {
+        toast.success('Xác nhận thanh toán thành công!');
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || 'Xác nhận thanh toán thất bại!');
+      }
+    } catch (e) {
+      console.error('Error confirming payment:', e);
+      toast.error('Lỗi khi xác nhận thanh toán, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
   };
-  handleSelectedBanner = (bannerid) => {
-    this.setState({
-      selectedBanner: bannerid,
-      isShowEditBannerModal: true,
-    });
+  handleConfirmDelivery = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hóa đơn đã giao hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
+      if (response && response.errCode === 0) {
+        toast.success('Xác nhận giao hàng thành công!');
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || 'Xác nhận giao hàng thất bại!');
+      }
+    } catch (e) {
+      console.error('Error confirming delivery:', e);
+      toast.error('Lỗi khi xác nhận giao hàng, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
   };
-  handleSelectedInvoice = (invoiceid) => {
-    this.setState({
-      selectedInvoice: invoiceid,
-      isShowViewInvoiceModal: true,
-    });
+  handleAcceptCancelInvoice = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hủy hóa đơn?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', '');
+      if (response && response.errCode === 0) {
+        toast.success('Hủy hóa đơn thành công!');
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || 'Hủy hóa đơn thất bại!');
+      }
+    } catch (e) {
+      console.error('Error canceling invoice:', e);
+      toast.error('Lỗi khi hủy hóa đơn, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
   };
-  handleSelectedCoupon = (couponid) => {
-    console.log(couponid)
+  handleDenyCancelInvoice = async (invoiceid) => {
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Từ chối yêu cầu hủy và tiếp tục hóa đơn?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>
+        );
+      });
+
+    const isConfirmed = await confirmAction();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
+      if (response && response.errCode === 0) {
+        toast.success('Tiếp tục hóa đơn thành công!');
+        await this.handleLoadInvoiceInfo();
+      } else {
+        toast.error(response?.errMessage || 'Tiếp tục hóa đơn thất bại!');
+      }
+    } catch (e) {
+      console.error('Error denying cancel invoice:', e);
+      toast.error('Lỗi khi tiếp tục hóa đơn, vui lòng thử lại!');
+    }
+    this.setState({ isLoading: false });
   };
-  handleSelectedCancelInvoice = (invoiceid) => {
-    this.setState({
-      selectedCancelInvoice: invoiceid,
-      isShowCancelInvoiceModal: true,
-    });
-  };
+  //toggle modal
   toggleCreateProductModal = () => {
     this.setState({
       isShowCreateProductModal: !this.state.isShowCreateProductModal,
@@ -700,68 +605,69 @@ class Owner extends Component {
       isShowCreateCouponModal: !this.state.isShowCreateCouponModal,
     });
   };
+  //modal input
+  handleSelectedProduct = (productid) => {
+    this.setState({
+      selectedProduct: productid,
+      isShowEditProductModal: true,
+    });
+  };
+  handleSelectedInvoice = (invoiceid) => {
+    this.setState({
+      selectedInvoice: invoiceid,
+      isShowViewInvoiceModal: true,
+    });
+  };
+  handleSelectedCancelInvoice = (invoiceid) => {
+    this.setState({
+      selectedCancelInvoice: invoiceid,
+      isShowCancelInvoiceModal: true,
+    });
+  };
+  handleSelectedBanner = (bannerid) => {
+    this.setState({
+      selectedBanner: bannerid,
+      isShowEditBannerModal: true,
+    });
+  };
+  //modal action
   handleCreateProductFromModal = async (productInfo) => {
     this.setState({ isLoading: true });
     try {
       const response = await handleCreateProductApi(productInfo);
       if (response && response.errCode === 0) {
-        toast.success('Thêm sản phẩm mới thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Thêm sản phẩm mới thành công!');
         await this.handleLoadProductInfo();
         this.setState({
           isShowCreateProductModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Thêm sản phẩm mới thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Create Product:', e);
-      toast.error('Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi thêm sản phẩm mới, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
   handleChangeProductFromModal = async (productInfo) => {
     this.setState({ isLoading: true });
     try {
-      console.log(productInfo);
       const response = await handleChangeProductInfoApi(productInfo);
       if (response && response.errCode === 0) {
-        toast.success('Chỉnh sửa thông tin sản phẩm thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Chỉnh sửa thông tin sản phẩm thành công!');
         await this.handleLoadProductInfo();
         this.setState({
           isShowEditProductModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Chỉnh sửa thông tin sản phẩm thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Edit:', e);
-      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
@@ -770,30 +676,18 @@ class Owner extends Component {
     try {
       const response = await handleCreateBannerApi(bannerInfo);
       if (response && response.errCode === 0) {
-        toast.success('Thêm banner mới thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Thêm banner mới thành công!');
         await this.handleLoadBannerInfo();
         this.setState({
           isShowCreateBannerModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Thêm banner mới thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Create Banner:', e);
-      toast.error('Xảy ra lỗi khi thêm banner mới, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi thêm banner mới, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
@@ -802,30 +696,18 @@ class Owner extends Component {
     try {
       const response = await handleChangeBannerInfoApi(bannerInfo);
       if (response && response.errCode === 0) {
-        toast.success('Chỉnh sửa thông tin banner thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Chỉnh sửa thông tin banner thành công!');
         await this.handleLoadBannerInfo();
         this.setState({
           isShowEditBannerModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Chỉnh sửa thông tin banner thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Edit:', e);
-      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi chỉnh sửa, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
@@ -834,30 +716,18 @@ class Owner extends Component {
     try {
       const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', cancelreason);
       if (response && response.errCode === 0) {
-        toast.success('Hủy hóa đơn thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Hủy hóa đơn thành công!');
         await this.handleLoadInvoiceInfo();
         this.setState({
           isShowCancelInvoiceModal: false,
           selectedCancelInvoice: null,
         });
       } else {
-        toast.error(response?.errMessage || 'Hủy hóa đơn thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response?.errMessage || 'Hủy hóa đơn thất bại!');
       }
     } catch (e) {
       console.error('Error canceling invoice:', e);
-      toast.error('Lỗi khi hủy hóa đơn, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi hủy hóa đơn, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
@@ -867,33 +737,26 @@ class Owner extends Component {
       const responseApi = await handleCreateCouponApi(couponInfo);
       const response = responseApi.data;
       if (response && response.errCode === 0) {
-        toast.success('Thêm coupon mới thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Thêm coupon mới thành công!');
         await this.handleLoadCouponInfo();
         this.setState({
           isShowCreateCouponModal: false,
         });
       } else {
         const errMessage = response?.errMessage || 'Thêm coupon mới thất bại!';
-        toast.error(errMessage, {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(errMessage);
       }
     } catch (e) {
       console.error('Create Coupon:', e);
-      toast.error('Xảy ra lỗi khi thêm coupon mới, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Xảy ra lỗi khi thêm coupon mới, vui lòng thử lại!');
     }
     this.setState({ isLoading: false });
   };
+  //on table change action (coupon)
+  handleEditCoupon = (index) => {
+    this.setState({ isEditingCoupon: index, isAddingCoupon: false });
+  };
+  //form controller
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
     this.setState({
@@ -901,9 +764,11 @@ class Owner extends Component {
       currentPage: 1,
       tempCurrentPage: '1',
       searchValue: '',
-      dateFilterValue: '',
       filterValue: 'ALL',
       sortValue: '0',
+      dateFilterValue: '',
+    }, async () => {
+      await this.handleLoadProductInfo();
     });
   };
   handleFormDanhSachDonHang = (e) => {
@@ -913,9 +778,11 @@ class Owner extends Component {
       currentPage: 1,
       tempCurrentPage: '1',
       searchValue: '',
-      dateFilterValue: '',
       filterValue: 'ALL',
       sortValue: '0',
+      dateFilterValue: '',
+    }, async () => {
+      await this.handleLoadInvoiceInfo();
     });
   };
   handleFormDanhSachBanner = (e) => {
@@ -925,9 +792,11 @@ class Owner extends Component {
       currentPage: 1,
       tempCurrentPage: '1',
       searchValue: '',
-      dateFilterValue: '',
       filterValue: 'ALL',
       sortValue: '0',
+      dateFilterValue: '',
+    }, async () => {
+      await this.handleLoadBannerInfo();
     });
   };
   handleFormDanhSachCoupon = (e) => {
@@ -937,261 +806,26 @@ class Owner extends Component {
       currentPage: 1,
       tempCurrentPage: '1',
       searchValue: '',
-      dateFilterValue: '',
       filterValue: 'ALL',
       sortValue: '0',
+      dateFilterValue: '',
+    }, async () => {
+      await this.handleLoadCouponInfo();
     });
   };
-  handleConfirmPayment = async (invoiceid) => {
-    const confirmAction = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận hóa đơn đã thanh toán?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 500, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmAction();
-    if (!isConfirmed) return;
-
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'PaymentStatus', 'PAID', '');
-      if (response && response.errCode === 0) {
-        toast.success('Xác nhận thanh toán thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.handleLoadInvoiceInfo();
-      } else {
-        toast.error(response?.errMessage || 'Xác nhận thanh toán thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error('Error confirming payment:', e);
-      toast.error('Lỗi khi xác nhận thanh toán, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-    this.setState({ isLoading: false });
-  };
-  handleConfirmDelivery = async (invoiceid) => {
-    const confirmAction = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận hóa đơn đã giao hàng?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 500, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmAction();
-    if (!isConfirmed) return;
-
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
-      if (response && response.errCode === 0) {
-        toast.success('Xác nhận giao hàng thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.handleLoadInvoiceInfo();
-      } else {
-        toast.error(response?.errMessage || 'Xác nhận giao hàng thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error('Error confirming delivery:', e);
-      toast.error('Lỗi khi xác nhận giao hàng, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-    this.setState({ isLoading: false });
-  };
-  handleAcceptCancelInvoice = async (invoiceid) => {
-    const confirmAction = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận hủy hóa đơn?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 500, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmAction();
-    if (!isConfirmed) return;
-
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', '');
-      if (response && response.errCode === 0) {
-        toast.success('Hủy hóa đơn thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.handleLoadInvoiceInfo();
-      } else {
-        toast.error(response?.errMessage || 'Hủy hóa đơn thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error('Error canceling invoice:', e);
-      toast.error('Lỗi khi hủy hóa đơn, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-    this.setState({ isLoading: false });
-  };
-  handleDenyCancelInvoice = async (invoiceid) => {
-    const confirmAction = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Từ chối yêu cầu hủy và tiếp tục hóa đơn?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { position: 'top-center', autoClose: 500, closeOnClick: false }
-        );
-      });
-
-    const isConfirmed = await confirmAction();
-    if (!isConfirmed) return;
-
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
-      if (response && response.errCode === 0) {
-        toast.success('Tiếp tục hóa đơn thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-        await this.handleLoadInvoiceInfo();
-      } else {
-        toast.error(response?.errMessage || 'Tiếp tục hóa đơn thất bại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
-      }
-    } catch (e) {
-      console.error('Error denying cancel invoice:', e);
-      toast.error('Lỗi khi tiếp tục hóa đơn, vui lòng thử lại!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
-    }
-    this.setState({ isLoading: false });
-  };
-
   render() {
     const {
       loadedProductInfo,
-      loadedProductTypeFilterValue,
-      loadedPetTypeFilterValue,
+      codeProductType,
+      codePetType,
       loadedInvoiceInfo,
-      loadedPaymentStatusFilterValue,
-      loadedShippingStatusFilterValue,
+      codePaymentStatus,
+      codeShippingStatus,
       loadedBannerInfo,
-      loadedBannerStatusFilterValue,
+      codeBannerStatus,
       loadedCouponInfo,
-      loadedCouponStatusFilterValue,
-      loadedDiscountTypeFilterValue,
+      codeCouponStatus,
+      codeDiscountType,
       isLoading,
       actionPage,
       searchValue,
@@ -1200,10 +834,7 @@ class Owner extends Component {
       dateFilterValue,
       currentPage,
       tempCurrentPage,
-      totalProductPages,
-      totalInvoicePages,
-      totalBannerPages,
-      totalCouponPages,
+      totalPages,
       isShowCreateProductModal,
       isShowEditProductModal,
       isShowCreateBannerModal,
@@ -1215,6 +846,7 @@ class Owner extends Component {
       selectedBanner,
       selectedInvoice,
       selectedCancelInvoice,
+      disabledButtons
     } = this.state;
     const renderSection = () => {
       switch (actionPage) {
@@ -1238,18 +870,18 @@ class Owner extends Component {
                       <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                         <option value="ALL">Tất cả</option>
                         <option value="PROMOTION">Sản phẩm có khuyến mãi</option>
-                        {loadedProductTypeFilterValue && loadedProductTypeFilterValue.length > 0 && (
+                        {codeProductType && codeProductType.length > 0 && (
                           <optgroup label="Loại sản phẩm">
-                            {loadedProductTypeFilterValue.map((item) => (
+                            {codeProductType.map((item) => (
                               <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
                                 {item.CodeValueVI}
                               </option>
                             ))}
                           </optgroup>
                         )}
-                        {loadedPetTypeFilterValue && loadedPetTypeFilterValue.length > 0 && (
+                        {codePetType && codePetType.length > 0 && (
                           <optgroup label="Sản phẩm cho thú cưng">
-                            {loadedPetTypeFilterValue.map((item) => (
+                            {codePetType.map((item) => (
                               <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
                                 {item.CodeValueVI}
                               </option>
@@ -1292,7 +924,7 @@ class Owner extends Component {
                             return (
                               <tr key={item.ProductID} className="owner-mid-content-right-list-product-item">
                                 <td>{item.ProductID}</td>
-                                <td>{loadedProductTypeFilterValue.find((filterItem) => filterItem.Code === item.ProductType)?.CodeValueVI || item.ProductType}</td>
+                                <td>{codeProductType.find((filterItem) => filterItem.Code === item.ProductType)?.CodeValueVI || item.ProductType}</td>
                                 <td>{item.ProductName}</td>
                                 <td>
                                   <img src={item.ProductImage || ''} alt={item.ProductName} style={{ width: '50px', height: '50px' }} />
@@ -1315,7 +947,7 @@ class Owner extends Component {
                         )}
                       </tbody>
                     </table>
-                    {totalProductPages > 1 && (
+                    {totalPages > 1 && (
                       <div className="page-content">
                         <div className="page-content-item">
                           <button className="first" onClick={() => this.handlePageChange(1, 1)} disabled={currentPage === 1}>
@@ -1331,11 +963,11 @@ class Owner extends Component {
                             onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
                             onBlur={() => this.handlePageInputBlur(1)}
                           />
-                          <span className="total-pages">/ {totalProductPages}</span>
-                          <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalProductPages}>
+                          <span className="total-pages">/ {totalPages}</span>
+                          <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalPages}>
                             {'>'}
                           </button>
-                          <button className="last" onClick={() => this.handlePageChange(totalProductPages, 1)} disabled={currentPage === totalProductPages}>
+                          <button className="last" onClick={() => this.handlePageChange(totalPages, 1)} disabled={currentPage === totalPages}>
                             {'>>'}
                           </button>
                         </div>
@@ -1361,18 +993,18 @@ class Owner extends Component {
                     <br />
                     <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 2)}>
                       <option value="ALL">Tất cả</option>
-                      {loadedPaymentStatusFilterValue && loadedPaymentStatusFilterValue.length > 0 && (
+                      {codePaymentStatus && codePaymentStatus.length > 0 && (
                         <optgroup label="Tình trạng thanh toán">
-                          {loadedPaymentStatusFilterValue.map((item) => (
+                          {codePaymentStatus.map((item) => (
                             <option key={`paymentstatus-${item.Code}`} value={`paymentstatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
                           ))}
                         </optgroup>
                       )}
-                      {loadedShippingStatusFilterValue && loadedShippingStatusFilterValue.length > 0 && (
+                      {codeShippingStatus && codeShippingStatus.length > 0 && (
                         <optgroup label="Tình trạng giao hàng">
-                          {loadedShippingStatusFilterValue.map((item) => (
+                          {codeShippingStatus.map((item) => (
                             <option key={`shippingstatus-${item.Code}`} value={`shippingstatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
@@ -1418,8 +1050,9 @@ class Owner extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
-                    <button style={{ marginLeft: '10px' }} onClick={this.handleResetFilter}>
+                    <button style={{ marginLeft: '10px' }} onClick={() => this.handleResetFilter(2)}>
                       Reset
                     </button>
                   </div>
@@ -1459,8 +1092,8 @@ class Owner extends Component {
                           <td className="f">
                             <p>{parseFloat(item.TotalPayment).toLocaleString('vi-VN')} vnđ</p>
                           </td>
-                          <td>{loadedPaymentStatusFilterValue.find((filterItem) => filterItem.Code === item.PaymentStatus)?.CodeValueVI || item.PaymentStatus}</td>
-                          <td>{loadedShippingStatusFilterValue.find((filterItem) => filterItem.Code === item.ShippingStatus)?.CodeValueVI || item.ShippingStatus}</td>
+                          <td>{codePaymentStatus.find((filterItem) => filterItem.Code === item.PaymentStatus)?.CodeValueVI || item.PaymentStatus}</td>
+                          <td>{codeShippingStatus.find((filterItem) => filterItem.Code === item.ShippingStatus)?.CodeValueVI || item.ShippingStatus}</td>
                           <td>{item.CanceledAt ? new Date(item.CanceledAt).toLocaleString('vi-VN') : ''}</td>
                           <td className="f" onClick={(e) => e.stopPropagation()}>
                             {item.PaymentStatus === 'PEND' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
@@ -1498,7 +1131,7 @@ class Owner extends Component {
                     )}
                   </tbody>
                 </table>
-                {totalInvoicePages > 1 && (
+                {totalPages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
                       <button className="first" onClick={() => this.handlePageChange(1, 2)} disabled={currentPage === 1}>
@@ -1508,11 +1141,11 @@ class Owner extends Component {
                         {'<'}
                       </button>
                       <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 2)} onBlur={() => this.handlePageInputBlur(2)} />
-                      <span className="total-pages">/ {totalInvoicePages}</span>
-                      <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalInvoicePages}>
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalPages}>
                         {'>'}
                       </button>
-                      <button className="last" onClick={() => this.handlePageChange(totalInvoicePages, 2)} disabled={currentPage === totalInvoicePages}>
+                      <button className="last" onClick={() => this.handlePageChange(totalPages, 2)} disabled={currentPage === totalPages}>
                         {'>>'}
                       </button>
                     </div>
@@ -1539,9 +1172,9 @@ class Owner extends Component {
                     <br />
                     <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 3)}>
                       <option value="ALL">Tất cả</option>
-                      {loadedBannerStatusFilterValue && loadedBannerStatusFilterValue.length > 0 && (
+                      {codeBannerStatus && codeBannerStatus.length > 0 && (
                         <optgroup label="Trạng thái">
-                          {loadedBannerStatusFilterValue.map((item) => (
+                          {codeBannerStatus.map((item) => (
                             <option key={`bannerstatus-${item.Code}`} value={`bannerstatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
@@ -1579,8 +1212,9 @@ class Owner extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
-                    <button style={{ marginLeft: '10px' }} onClick={this.handleResetFilter}>
+                    <button style={{ marginLeft: '10px' }} onClick={() => this.handleResetFilter(3)}>
                       Reset
                     </button>
                   </div>
@@ -1613,7 +1247,7 @@ class Owner extends Component {
                           <td>
                             <img src={item.ProductImage || ''} alt="Sản phẩm" style={{ width: '50px', height: '50px' }} />
                           </td>
-                          <td>{loadedBannerStatusFilterValue.find((filterItem) => filterItem.Code === item.BannerStatus)?.CodeValueVI || item.BannerStatus}</td>
+                          <td>{codeBannerStatus.find((filterItem) => filterItem.Code === item.BannerStatus)?.CodeValueVI || item.BannerStatus}</td>
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
@@ -1646,7 +1280,7 @@ class Owner extends Component {
                     )}
                   </tbody>
                 </table>
-                {totalBannerPages > 1 && (
+                {totalPages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
                       <button className="first" onClick={() => this.handlePageChange(1, 3)} disabled={currentPage === 1}>
@@ -1656,11 +1290,11 @@ class Owner extends Component {
                         {'<'}
                       </button>
                       <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 3)} onBlur={() => this.handlePageInputBlur(3)} />
-                      <span className="total-pages">/ {totalBannerPages}</span>
-                      <button className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalBannerPages}>
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalPages}>
                         {'>'}
                       </button>
-                      <button className="last" onClick={() => this.handlePageChange(totalBannerPages, 3)} disabled={currentPage === totalBannerPages}>
+                      <button className="last" onClick={() => this.handlePageChange(totalPages, 3)} disabled={currentPage === totalPages}>
                         {'>>'}
                       </button>
                     </div>
@@ -1687,18 +1321,18 @@ class Owner extends Component {
                     <br />
                     <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 4)}>
                       <option value="ALL">Tất cả</option>
-                      {loadedCouponStatusFilterValue && loadedCouponStatusFilterValue.length > 0 && (
+                      {codeCouponStatus && codeCouponStatus.length > 0 && (
                         <optgroup label="Trạng thái">
-                          {loadedCouponStatusFilterValue.map((item) => (
+                          {codeCouponStatus.map((item) => (
                             <option key={`couponstatus-${item.Code}`} value={`couponstatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
                           ))}
                         </optgroup>
                       )}
-                      {loadedDiscountTypeFilterValue && loadedDiscountTypeFilterValue.length > 0 && (
+                      {codeDiscountType && codeDiscountType.length > 0 && (
                         <optgroup label="Loại giảm giá">
-                          {loadedDiscountTypeFilterValue.map((item) => (
+                          {codeDiscountType.map((item) => (
                             <option key={`discounttype-${item.Code}`} value={`discounttype-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
@@ -1744,8 +1378,9 @@ class Owner extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
-                    <button style={{ marginLeft: '10px' }} onClick={this.handleResetFilter}>
+                    <button style={{ marginLeft: '10px' }} onClick={() => this.handleResetFilter(4)}>
                       Reset
                     </button>
                   </div>
@@ -1770,7 +1405,7 @@ class Owner extends Component {
                   </thead>
                   <tbody>
                     {loadedCouponInfo.length > 0 ? (
-                      loadedCouponInfo.map((item) => (
+                      loadedCouponInfo.map((item, index) => (
                         <tr key={item.CouponID} className="owner-mid-content-right-list-coupon-item">
                           <td>{item.CouponCode}</td>
                           <td>
@@ -1780,8 +1415,8 @@ class Owner extends Component {
                           <td>{parseFloat(item.MaxDiscount).toLocaleString('vi-VN')}vnđ</td>
                           <td>{parseFloat(item.MinOrderValue) > 0 ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ' : 'Không yêu cầu'}</td>
                           <td>{item.CouponDescription || 'N/A'}</td>
-                          <td>{loadedDiscountTypeFilterValue.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType}</td>
-                          <td>{loadedCouponStatusFilterValue.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus}</td>
+                          <td>{codeDiscountType.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType}</td>
+                          <td>{codeCouponStatus.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus}</td>
                           <td>
                             {item.StartDate
                               ? new Date(item.StartDate).toLocaleString('vi-VN', {
@@ -1801,7 +1436,7 @@ class Owner extends Component {
                               : 'Vô thời hạn'}
                           </td>
                           <td className="f" onClick={(e) => e.stopPropagation()}>
-                            <button className="btn-edit" onClick={() => this.handleSelectedCoupon(item.CouponID)}>
+                            <button className="btn-edit" onClick={() => this.handleEditCoupon(index)}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
                           </td>
@@ -1814,7 +1449,7 @@ class Owner extends Component {
                     )}
                   </tbody>
                 </table>
-                {totalCouponPages > 1 && (
+                {totalPages > 1 && (
                   <div className="page-content">
                     <div className="page-content-item">
                       <button className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
@@ -1824,11 +1459,11 @@ class Owner extends Component {
                         {'<'}
                       </button>
                       <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
-                      <span className="total-pages">/ {totalCouponPages}</span>
-                      <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalCouponPages}>
+                      <span className="total-pages">/ {totalPages}</span>
+                      <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
                         {'>'}
                       </button>
-                      <button className="last" onClick={() => this.handlePageChange(totalCouponPages, 4)} disabled={currentPage === totalCouponPages}>
+                      <button className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
                         {'>>'}
                       </button>
                     </div>
@@ -1851,7 +1486,15 @@ class Owner extends Component {
         <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
         <CreateCouponModal isOpen={isShowCreateCouponModal} toggleFromModal={this.toggleCreateCouponModal} handleCreateCouponFromModal={this.handleCreateCouponFromModal} />
-        <ToastContainer />
+        <ToastContainer
+          autoClose={500}
+          newestOnTop={true}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          transition={Slide}
+          limit={1}
+        />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -1861,6 +1504,9 @@ class Owner extends Component {
               <button className="home-button" onClick={() => this.props.navigate('/home')}>
                 <IonIcon icon={homeOutline}></IonIcon>
                 <b>Quay về cửa hàng</b>
+              </button>
+              <button className='logout-button' onClick={this.handleLogout} disabled={disabledButtons.logout}>
+                ĐĂNG XUẤT <IonIcon icon={logOutOutline}></IonIcon>
               </button>
             </div>
             <div className="owner-top-content">

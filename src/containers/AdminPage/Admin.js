@@ -22,35 +22,44 @@ class Admin extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Authentication & General
       actionPage: 1,
       isLoading: true,
       isLoggedIn: false,
       accountInfo: null,
+      // Codes
       codeGender: [],
       codeAccountType: [],
       codeAccountStatus: [],
       codeServiceStatus: [],
       codeTypeFilter: [],
-      loadedAccountInfo: [],
-      loadedCodeInfo: [],
-      loadedServiceInfo: [],
-      selectedAccount: null,
-      selectedCode: null,
+      // Pagination
       currentPage: 1,
       tempCurrentPage: '1',
       limitAccountPerQuery: 10,
       limitCodePerQuery: 10,
       limitServicePerQuery: 5,
       totalPages: 1,
+      // Filtering & Sorting
       searchValue: '',
       filterValue: 'ALL',
       sortValue: '0',
+      // Data Lists
+      loadedAccountInfo: [],
+      loadedCodeInfo: [],
+      loadedServiceInfo: [],
+      // Modals & Selections
       isShowCreateAccountModal: false,
       isShowEditAccountModal: false,
+      selectedAccount: null,
+      selectedCode: null,
+      // Code Management
       isEditingCode: null,
       isAddingCode: false,
+      // Service Management
       isEditingService: null,
       isAddingService: false,
+      // DisableButton
       disabledButtons: {
         logout: false,
         changeStatus: false,
@@ -296,7 +305,69 @@ class Admin extends Component {
       }
     );
   };
-  //modal action
+  //pagination
+  handlePageChange = (page, type) => {
+    this.setState({
+      isLoading: true,
+    });
+    const { totalPages } = this.state;
+    let newPage = page;
+    if (isNaN(page) || page <= 0) {
+      newPage = 1;
+    } else if (page > totalPages) {
+      newPage = totalPages;
+    }
+    this.setState({
+      isLoading: false,
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString(),
+    }, () => {
+      this.handleReloadData(type)
+    });
+  };
+  handlePrevPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      }, () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handleNextPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      }, () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handlePageInputChange = (event) => {
+    const value = event.target.value;
+    this.setState({ tempCurrentPage: value });
+  };
+  handlePageInputBlur = (type) => {
+    const { tempCurrentPage } = this.state;
+    const page = parseInt(tempCurrentPage, 10);
+    this.handlePageChange(page, type);
+  };
+  handlePageKeyDown = (event, type) => {
+    if (event.key === 'Enter') {
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page, type);
+    }
+  };
+  //form action
   handleChangeAccountStatus = async (userInfo) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, changeStatus: true } })
     const confirmAction = () =>
@@ -404,29 +475,27 @@ class Admin extends Component {
       this.setState({ isLoading: false });
     }
   };
-  //ẩn hiện modal tạo tài khoản
+  //toggle modal
   toggleCreateUserModal = () => {
     this.setState({
       isShowCreateAccountModal: !this.state.isShowCreateAccountModal,
     });
   };
-  //ẩn hiện modal chỉnh sửa tài khoản
   toggleEditAccountModal = () => {
     this.setState({
       isShowEditAccountModal: !this.state.isShowEditAccountModal,
     });
   };
+  //modal input
   handleSelectedAccount = (accountid) => {
     this.setState({
       selectedAccount: accountid,
       isShowEditAccountModal: true,
     });
   };
-  //tạo tài khoản từ thông tin truyền từ modal về
+  //modal action
   handleCreateAccountFromModal = async (userInfo) => {
-    this.setState({
-      isLoading: true,
-    });
+    this.setState({ isLoading: true, });
     try {
       const response = await handleRegisterApi(userInfo);
       if (response && response.errCode === 0) {
@@ -443,11 +512,8 @@ class Admin extends Component {
       console.error('Register:', e);
       toast.error('Xảy ra lỗi khi đăng ký, vui lòng thử lại!');
     }
-    this.setState({
-      isLoading: false,
-    });
+    this.setState({ isLoading: false });
   };
-  //sửa user qua thông tin từ modal
   handleEditAccountFromModal = async (userInfo) => {
     this.setState({
       isLoading: true,
@@ -471,68 +537,6 @@ class Admin extends Component {
     this.setState({
       isLoading: false,
     });
-  };
-  //pagination
-  handlePageChange = (page, type) => {
-    this.setState({
-      isLoading: true,
-    });
-    const { totalPages } = this.state;
-    let newPage = page;
-    if (isNaN(page) || page <= 0) {
-      newPage = 1;
-    } else if (page > totalPages) {
-      newPage = totalPages;
-    }
-    this.setState({
-      isLoading: false,
-      currentPage: newPage,
-      tempCurrentPage: newPage.toString(),
-    }, () => {
-      this.handleReloadData(type)
-    });
-  };
-  handlePrevPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.max(1, prevState.currentPage - 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-        };
-      }, () => {
-        this.handleReloadData(type);
-      }
-    );
-  };
-  handleNextPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-        };
-      }, () => {
-        this.handleReloadData(type);
-      }
-    );
-  };
-  handlePageInputChange = (event) => {
-    const value = event.target.value;
-    this.setState({ tempCurrentPage: value });
-  };
-  handlePageInputBlur = (type) => {
-    const { tempCurrentPage } = this.state;
-    const page = parseInt(tempCurrentPage, 10);
-    this.handlePageChange(page, type);
-  };
-  handlePageKeyDown = (event, type) => {
-    if (event.key === 'Enter') {
-      const { tempCurrentPage } = this.state;
-      const page = parseInt(tempCurrentPage, 10);
-      this.handlePageChange(page, type);
-    }
   };
   //on table change action (service)
   handleEditService = (index) => {

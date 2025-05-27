@@ -44,7 +44,7 @@ class CreateAccountModal extends Component {
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.isOpen !== this.props.isOpen) {
-      await this.resetState();
+      this.resetState();
     }
   };
   handleLoadCode = async (codeTypes) => {
@@ -82,7 +82,7 @@ class CreateAccountModal extends Component {
       toast.error('Lỗi khi tải danh sách dịch vụ!');
     }
   };
-  resetState = async () => {
+  resetState = () => {
     const { codeGender, codeAccountType, codeWorkingStatus } = this.state
     this.setState({
       accountname: '',
@@ -103,7 +103,7 @@ class CreateAccountModal extends Component {
     });
   };
   toggle = async () => {
-    await this.resetState();
+    this.resetState();
     this.props.toggleFromModal();
   };
   handleTogglePassword = (type) => {

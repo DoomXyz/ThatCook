@@ -18,7 +18,7 @@ import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleCh
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
 
-import { checkLoginStatus, getAllCodes, uploadImages, validatePetInput, generateInvoicePDF } from '../../utils/pakage';
+import { checkLoginStatus, getAllCodes, uploadImages, validatePetInput, generateInvoicePDF, generateAppointmentBillPDF } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
 
 const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
@@ -29,12 +29,35 @@ class User extends Component {
     this.fileInputRef = React.createRef();
     this.state = {
       // Authentication & General
+      actionPage: 1,
       isLoading: true,
       isLoggedIn: false,
       accountid: '',
       triggerLoadInformation: false,
+      // Codes
+      codeGender: [],
+      codePaymentType: [],
+      codeShippingMethod: [],
+      codePaymentStatus: [],
+      codeShippingStatus: [],
+      codePetType: [],
+      codePetGender: [],
+      codeAppointmentStatus: [],
+      codeAppointmentType: [],
+      // Pagination
+      currentPage: 1,
+      tempCurrentPage: '1',
+      limitInvoicePerQuery: 5,
+      limitProductPerQuery: 7,
+      limitAppointmentPerQuery: 5,
+      totalPages: 1,
+      // Filtering & Sorting
+      searchValue: '',
+      filterValue: 'ALL',
+      sortValue: '0',
+      date1: '',
+      date2: '',
       // User Info
-      actionPage: 1,
       editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
       originalValue: '',
       imageInfo: null,
@@ -61,29 +84,6 @@ class User extends Component {
       loadedAppointmentBillDetail: null,
       loadedPetInfo: [],
       serviceList: [],
-      // Codes
-      codeGender: [],
-      codePaymentType: [],
-      codeShippingMethod: [],
-      codePaymentStatus: [],
-      codeShippingStatus: [],
-      codePetType: [],
-      codePetGender: [],
-      codeAppointmentStatus: [],
-      codeAppointmentType: [],
-      // Pagination
-      currentPage: 1,
-      tempCurrentPage: '1',
-      limitInvoicePerQuery: 5,
-      limitProductPerQuery: 7,
-      limitAppointmentPerQuery: 5,
-      totalPages: 1,
-      // Filtering & Sorting
-      searchValue: '',
-      filterValue: 'ALL',
-      sortValue: '0',
-      date1: '',
-      date2: '',
       // Modals & Selections
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
@@ -93,7 +93,7 @@ class User extends Component {
       isEditingPet: null,
       isAddingPet: false,
       limitPetCount: 3,
-      //DisableButton
+      // DisableButton
       disabledButtons: {
         confirmReceived: false,
         continueInvoice: false,
@@ -148,6 +148,7 @@ class User extends Component {
         }
         this.setState({
           isLoggedIn: true,
+          accountInfo,
           accountid: accountInfo.AccountID,
         });
       } else {
@@ -1126,6 +1127,9 @@ class User extends Component {
       case 1:
         generateInvoicePDF(data);
         break
+      case 3:
+        generateAppointmentBillPDF(data);
+        break;
       default:
         break
     }
@@ -1133,7 +1137,7 @@ class User extends Component {
   handleSendEmail = async (billid, type) => {
     const { email } = this.state;
     if (!email) {
-      toast.info('Email không được bỏ trống!')
+      toast.info('Hãy nhập Email để gửi hóa đơn!')
       return
     }
     try {
@@ -1773,6 +1777,7 @@ class User extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
                     {date1 && (
                       <button type='button'
@@ -1796,6 +1801,7 @@ class User extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
+                      isClearable
                     />
                     {date2 && (
                       <button
@@ -2251,13 +2257,13 @@ class User extends Component {
                   <div className="f">
                     <b>Tổng thanh toán:</b>
                     <p style={{ fontSize: '18px', color: '#d32f2f' }}>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.TotalPayment).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
-                  </div>
+                  </div >
                   <div className="user-appointment-form-detail-bottom">
-                    <button type="button" onClick={() => this.handleSendEmail(loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID, 2)} className="email-btn">
-                      Gửi qua email
-                    </button>
-                    <button type="button" onClick={() => this.handleGeneratePDF(loadedInvoiceDetail, 2)} className="pdf-btn">
+                    <button type="button" onClick={() => this.handleGeneratePDF(loadedAppointmentBillDetail, 3)} className="pdf-btn">
                       Tải PDF
+                    </button>
+                    <button type="button" onClick={() => this.handleSendEmail(loadedAppointmentBillDetail.AppointmentBill.AppointmentBillID, 3)} className="email-btn">
+                      Gửi qua email
                     </button>
                   </div>
                 </div>
@@ -2266,7 +2272,6 @@ class User extends Component {
                   <br />
                   <label>{loadedAppointmentBillDetail.AppointmentBill.MedicalNotes || 'Không có ghi chú'}</label>
                 </div>
-
                 <div className="user-appointment-form-detail-mid-2-right">{loadedAppointmentBillDetail.AppointmentBill.MedicalImage ? <img src={loadedAppointmentBillDetail.AppointmentBill.MedicalImage} alt="Hóa đơn" style={{ maxWidth: '200px' }} /> : <p>Không có hình ảnh hóa đơn</p>}</div>
               </div>
             </div>
@@ -2276,9 +2281,8 @@ class User extends Component {
         return null;
     }
   }
-
   render() {
-    const { actionPage, isLoading, isShowCancelInvoiceModal, selectedCancelInvoice } = this.state;
+    const { actionPage, isLoading, isShowCancelInvoiceModal, selectedCancelInvoice, accountInfo } = this.state;
     return (
       <div className="user-page">
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} triggerLoadInformation={this.state.triggerLoadInformation} />
@@ -2300,15 +2304,19 @@ class User extends Component {
               <div className={`user-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
                 Hồ sơ người dùng
               </div>
-              <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}||${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormThuCung}>
-                Thông tin thú cưng
-              </div>
+              {accountInfo?.AccountType !== "V" && (
+                <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}||${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormThuCung}>
+                  Thông tin thú cưng
+                </div>
+              )}
               <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}||${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
                 Lịch sử đơn hàng
               </div>
-              <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}|| ${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
-                Lịch Khám
-              </div>{' '}
+              {accountInfo?.AccountType !== "V" && (
+                <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}|| ${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
+                  Lịch Khám
+                </div>
+              )}
               <div className={`user-action-change-pw ${actionPage === 3 ? 'active' : ''}`} onClick={this.handleFormDoiMatKhau}>
                 Đổi mật khẩu
               </div>
