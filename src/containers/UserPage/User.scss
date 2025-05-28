@@ -1420,9 +1420,10 @@
   .user-appointment-form-detail-mid-1-2 {
     border-radius: 10px;
     padding: 1rem;
-    background-color: #ffffff;
+    background-color: #ecf1f8;
     border: 1px solid #e9ecef;
     margin-bottom: 1rem;
+    margin-top: 1rem;
 
     .user-appointment-form-detail-mid-1-2-info {
       max-width: 100%;
@@ -1437,14 +1438,18 @@
 
           b {
             min-width: 120px;
-            font-weight: 500;
+            font-weight: bold;
             color: #495057;
           }
 
           p {
+            border-radius: 8px;
+            background-color: white;
             margin: 0;
             color: #212529;
             font-size: 0.95rem;
+            width: 200px;
+            padding-left: 5px;
           }
         }
       }
@@ -1452,7 +1457,7 @@
   }
 
   .user-appointment-form-detail-mid-2-center-2 {
-    background-color: #ffffff;
+    background-color: #ecf1f8;
     padding: 1rem;
     border-radius: 10px;
     border: 1px solid #e9ecef;
@@ -1494,7 +1499,7 @@
 
   .user-appointment-form-detail-mid-2-2 {
     margin-top: 1rem;
-    background-color: #ffffff;
+    background-color: #ecf1f8;
     border-radius: 10px;
     padding: 1rem;
     border: 1px solid #e9ecef;
