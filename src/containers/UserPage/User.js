@@ -2311,7 +2311,7 @@ class User extends Component {
                 Hồ sơ người dùng
               </div>
               {accountInfo?.AccountType !== "V" && (
-                <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormThuCung}>
+                <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}  `} onClick={this.handleFormThuCung}>
                   Thông tin thú cưng
                 </div>
               )}
@@ -2319,7 +2319,7 @@ class User extends Component {
                 Lịch sử đơn hàng
               </div>
               {accountInfo?.AccountType !== "V" && (
-                <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}${actionPage === 9 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
+                <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}${actionPage === 9 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
                   Lịch Khám
                 </div>
               )}
