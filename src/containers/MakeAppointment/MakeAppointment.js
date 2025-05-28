@@ -269,11 +269,11 @@ class MakeAppointment extends Component {
           petweight: data.Pet.PetWeight.toString(),
           selectedVeterinarianInfo: data.Veterinarian
             ? {
-                AccountID: data.VeterinarianID,
-                UserName: data.Veterinarian.UserName,
-                Specialization: data.Veterinarian.Specialization,
-                UserImage: data.Veterinarian.UserImage,
-              }
+              AccountID: data.VeterinarianID,
+              UserName: data.Veterinarian.UserName,
+              Specialization: data.Veterinarian.Specialization,
+              UserImage: data.Veterinarian.UserImage,
+            }
             : {},
           fuaAccountID: data.AccountID,
           customername: data.CustomerName,
@@ -544,8 +544,9 @@ class MakeAppointment extends Component {
   handleUnSelectVeterinarian = async () => {
     this.setState({
       selectedVeterinarianInfo: null,
+    }, async () => {
+      await this.handleLoadAvailableTimes();
     });
-    await this.handleLoadAvailableTimes();
   };
   togglePetSelectModal = () => {
     this.setState({ isShowPetSelectModal: !this.state.isShowPetSelectModal });
@@ -564,19 +565,19 @@ class MakeAppointment extends Component {
           loadedPetList: newPetList,
           ...(selectedPet
             ? {
-                petname: selectedPet.PetName,
-                pettype: selectedPet.PetType,
-                petgender: selectedPet.PetGender,
-                age: selectedPet.Age.toString(),
-                petweight: selectedPet.PetWeight.toString(),
-              }
+              petname: selectedPet.PetName,
+              pettype: selectedPet.PetType,
+              petgender: selectedPet.PetGender,
+              age: selectedPet.Age.toString(),
+              petweight: selectedPet.PetWeight.toString(),
+            }
             : {
-                petname: '',
-                pettype: this.state.codePetType[0].Code || '',
-                petgender: this.state.codePetGender[0].Code || '',
-                age: '',
-                petweight: '',
-              }),
+              petname: '',
+              pettype: this.state.codePetType[0].Code || '',
+              petgender: this.state.codePetGender[0].Code || '',
+              age: '',
+              petweight: '',
+            }),
         });
       } else {
         toast.error('Không thể tải danh sách thú cưng!');
