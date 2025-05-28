@@ -92,8 +92,8 @@ class Doctor extends Component {
   }
   //login
   handleIsLogin = async () => {
-    this.setState({ isLoading: true });
     try {
+      this.setState({ isLoading: true });
       const { status, accountInfo } = await checkLoginStatus();
       if (status && accountInfo && accountInfo.AccountType === 'V') {
         if (!this.props.userInfo) {
@@ -122,8 +122,8 @@ class Doctor extends Component {
   };
   //load filter/code
   handleLoadCode = async (codeTypes) => {
-    this.setState({ isLoading: true });
     try {
+      this.setState({ isLoading: true });
       const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
       const newState = { isLoading: false };
       const hasDefault = ['WorkingStatus'];

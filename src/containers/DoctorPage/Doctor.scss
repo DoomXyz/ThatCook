@@ -209,8 +209,7 @@ $transition: all 0.3s ease;
           }
 
           &:not(:last-child)::after {
-            content: ", ";
-            /* Thêm dấu phẩy và khoảng cách sau mỗi mục trừ mục cuối */
+            content: none;
           }
         }
       }

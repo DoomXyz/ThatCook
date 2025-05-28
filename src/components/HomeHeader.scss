@@ -7,7 +7,7 @@ $transition: all 0.3s ease;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Quicksand', sans-serif !important;
+  font-family: "Quicksand", sans-serif !important;
 }
 
 .f {
@@ -73,7 +73,7 @@ a {
         margin-right: 2.5rem;
         margin-bottom: 5px;
         flex: 1.5;
-        background-image: url('../assets/images/logo1.png');
+        background-image: url("../assets/images/logo1.png");
         height: 55px;
         background-size: contain;
         background-repeat: no-repeat;
@@ -95,7 +95,7 @@ a {
           text-decoration: none;
           color: black;
           font-size: 19px;
-          font-family: 'Quicksand', sans-serif;
+          font-family: "Quicksand", sans-serif;
           transition:
             transform 0.2s ease,
             border-bottom 0.2s ease;
@@ -117,9 +117,9 @@ a {
           height: 2rem;
 
           &.menu-icon a,
-          a[href='/user/makeappointment'],
-          a[href='/appointment'],
-          a[href='/information'],
+          a[href="/user/makeappointment"],
+          a[href="/appointment"],
+          a[href="/information"],
           a:not([href]):not(.sub-menu a):not(.sub-menu-1 a):not(.sub-menu-2 a) {
             display: inline-block;
             cursor: pointer;
@@ -352,6 +352,11 @@ a {
               color: rgb(91, 82, 82);
               width: 50px;
               margin-right: 5px;
+            }
+            .f.disabled {
+              pointer-events: none; /* Vô hiệu hóa tương tác */
+              opacity: 0.5; /* Làm mờ để biểu thị trạng thái vô hiệu hóa */
+              cursor: not-allowed; /* Đổi con trỏ để biểu thị không thể nhấp */
             }
           }
 

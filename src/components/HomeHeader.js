@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Slide, ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
 import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline } from 'ionicons/icons';
@@ -28,6 +28,9 @@ class HomeHeader extends Component {
       codeService: [],
       cartItemsCount: 0,
       isScrolled: false,
+      disabledButtons: {
+        logout: false,
+      },
     };
     this.handleScroll = this.handleScroll.bind(this);
   }
@@ -112,22 +115,14 @@ class HomeHeader extends Component {
       const responseApi = await handleGetServiceInfoApi('ALL');
       const response = responseApi.data
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
-        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!');
         this.setState({ codeService: [] });
         return;
       }
       this.setState({ codeService: response.data });
     } catch (e) {
       console.log('Error loading service:', e);
-      toast.error('Lỗi khi tải danh sách dịch vụ!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách dịch vụ!');
     }
   };
 
@@ -181,6 +176,7 @@ class HomeHeader extends Component {
   };
 
   handleLogout = async () => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: true } });
     const confirmLogout = () =>
       new Promise((resolve) => {
         toast(
@@ -206,9 +202,9 @@ class HomeHeader extends Component {
             </button>
           </div>,
           {
-            autoClose: 1000,
+            autoClose: 2000,
             closeOnClick: false,
-            onClose: () => resolve(false),
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } }); },
           }
         );
       });
@@ -223,18 +219,10 @@ class HomeHeader extends Component {
           accountInfo: null,
         });
         this.props.navigate('/home');
-        toast.success('Đăng xuất thành công!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.success('Đăng xuất thành công!');
       } catch (e) {
         console.log(e);
-        toast.error('Đăng xuất thất bại. Vui lòng thử lại!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Đăng xuất thất bại. Vui lòng thử lại!');
       }
     }
     await this.countCartItem();
@@ -344,6 +332,13 @@ class HomeHeader extends Component {
                           <IonIcon icon={logOutOutline}></IonIcon>
                           <a>Đăng xuất</a>
                         </div>
+                        {/* <div
+                          className={`f ${this.state.disabledButtons.logout ? 'disabled' : ''}`}
+                          onClick={this.state.disabledButtons.logout ? null : this.handleLogout}
+                        >
+                          <IonIcon icon={logOutOutline}></IonIcon>
+                          Đăng xuất
+                        </div> */}
                       </li>
                     </ul>
                   </div>

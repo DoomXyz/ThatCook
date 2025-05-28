@@ -83,6 +83,7 @@ class Admin extends Component {
   //login logout
   handleIsLogin = async () => {
     try {
+      this.setState({ isLoading: true });
       const { status, accountInfo } = await checkLoginStatus();
       if (status && accountInfo && accountInfo.AccountType === 'A') {
         if (!this.props.userInfo) {
@@ -103,10 +104,9 @@ class Admin extends Component {
       }
     } catch (e) {
       this.props.navigate('/login');
+    } finally {
+      this.setState({ isLoading: false });
     }
-    this.setState({
-      isLoading: false,
-    });
   };
   handleLogout = async () => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: true } })
@@ -161,6 +161,7 @@ class Admin extends Component {
   //load filter/code
   handleLoadCode = async (codeTypeFilter) => {
     try {
+      this.setState({ isLoading: true });
       const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {

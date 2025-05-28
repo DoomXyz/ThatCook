@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
+import { toast } from 'react-toastify';
+
+import './CancelInvoiceModal.scss';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import { Slide, ToastContainer, toast } from 'react-toastify';
-import './CancelInvoiceModal.scss';
+
 import { handleGetAllCodesApi } from '../services/utilitiesServices';
 
 class CancelInvoiceModal extends Component {
@@ -23,11 +25,7 @@ class CancelInvoiceModal extends Component {
     try {
       const codeCancelReason = await handleGetAllCodesApi('CancelReason');
       if (!codeCancelReason || codeCancelReason.length === 0) {
-        toast.error('Không thể tải danh sách lý do hủy!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Không thể tải danh sách lý do hủy!');
       }
       // Sắp xếp để "OTHER" là cuối cùng
       const sortedReasons = codeCancelReason.sort((a, b) => {
@@ -38,11 +36,7 @@ class CancelInvoiceModal extends Component {
       this.setState({ codeCancelReason: sortedReasons });
     } catch (e) {
       console.error('Error loading cancel reason codes:', e);
-      toast.error('Lỗi khi tải danh sách lý do hủy!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Lỗi khi tải danh sách lý do hủy!');
     }
   };
 
@@ -59,11 +53,7 @@ class CancelInvoiceModal extends Component {
     let cancelReason = '';
     if (selectedReason === 'OTHER') {
       if (!customReason.trim()) {
-        toast.error('Vui lòng nhập lý do hủy đơn hàng!', {
-          position: 'top-right',
-          autoClose: 500,
-          closeOnClick: true,
-        });
+        toast.error('Vui lòng nhập lý do hủy đơn hàng!');
         return;
       }
       cancelReason = customReason;
@@ -71,11 +61,7 @@ class CancelInvoiceModal extends Component {
       const selectedCode = codeCancelReason.find((reason) => reason.Code === selectedReason);
       cancelReason = selectedCode ? selectedCode.CodeValueVI : '';
     } else {
-      toast.error('Vui lòng chọn hoặc nhập lý do hủy đơn hàng!', {
-        position: 'top-right',
-        autoClose: 500,
-        closeOnClick: true,
-      });
+      toast.error('Vui lòng chọn hoặc nhập lý do hủy đơn hàng!');
       return;
     }
     await this.props.handleCancelInvoiceFromModal(this.props.selectedCancelInvoiceID, cancelReason);
