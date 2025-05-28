@@ -103,6 +103,26 @@ let handleChangeAppointmentStatus = async (req, res) => {
   }
 };
 
+let handleGetAppointmentEmail = async (req, res) => {
+  try {
+    const { billid, email } = req.body;
+    let response = await appointmentService.getAppointmentEmail(billid, email);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+let handleGetAppointmentBillEmail = async (req, res) => {
+  try {
+    const { billid, email } = req.body;
+    let response = await appointmentService.getAppointmentBillEmail(billid, email);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 module.exports = {
   handleGetAvailableTimes,
   handleLoadAppointmentInfo,
@@ -112,4 +132,6 @@ module.exports = {
   handleCreateAppointment,
   handleCreateAppointmentBill,
   handleChangeAppointmentStatus,
+  handleGetAppointmentEmail,
+  handleGetAppointmentBillEmail,
 };

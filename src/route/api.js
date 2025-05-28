@@ -15,42 +15,42 @@ let router = express.Router();
 
 const protectRoute = (req, res, next) => {
     const adminPaths = [
-        // '/api/load-accountinfo',
-        // '/api/change-accountstatus',
+        '/api/load-accountinfo',
+        '/api/change-accountstatus',
 
-        // '/api/load-serviceinfo',
-        // '/api/create-service',
-        // '/api/change-serviceinfo',
-        // '/api/change-servicestatus',
+        '/api/load-serviceinfo',
+        '/api/create-service',
+        '/api/change-serviceinfo',
+        '/api/change-servicestatus',
     ];
 
     const ownerPaths = [
-        // '/api/get-bannerinfo',
-        // '/api/load-bannerinfo',
-        // '/api/create-banner',
-        // '/api/change-bannerinfo',
+        '/api/get-bannerinfo',
+        '/api/load-bannerinfo',
+        '/api/create-banner',
+        '/api/change-bannerinfo',
 
-        // '/api/get-productinfo',
-        // '/api/load-productinfo',
-        // '/api/create-product',
-        // '/api/change-productinfo',
-        // '/api/load-filtered-productinfo',
+        '/api/get-productinfo',
+        '/api/load-productinfo',
+        '/api/create-product',
+        '/api/change-productinfo',
+        '/api/load-filtered-productinfo',
 
-        // '/api/load-couponinfo',
-        // '/api/create-coupon',
-        // '/api/change-couponinfo',
+        '/api/load-couponinfo',
+        '/api/create-coupon',
+        '/api/change-couponinfo',
 
-        // '/api/load-invoiceinfo',
+        '/api/load-invoiceinfo',
     ];
 
     const veterinarianPaths = [
-        // '/api/change-workingstatus',
+        '/api/change-workingstatus',
 
-        // '/api/load-appointments',
-        // '/api/create-appointmentbill',
+        '/api/load-appointments',
+        '/api/create-appointmentbill',
 
-        // '/api/load-schedule',
-        // '/api/change-schedulestatus',
+        '/api/load-schedule',
+        '/api/change-schedulestatus',
     ];
 
     if (adminPaths.includes(req.path)) {
@@ -121,6 +121,8 @@ let initAPIRoutes = (app) => {
     router.get('/api/get-appointmentbilldetail', appointmentController.handleGetAppointmentBillDetail);
     router.post('/api/create-appointment', appointmentController.handleCreateAppointment);
     router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
+    router.post('/api/get-appointment-email', appointmentController.handleGetAppointmentEmail);
+    router.post('/api/get-appointmentbill-email', appointmentController.handleGetAppointmentBillEmail);
     //admin
     router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
     router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

@@ -2,6 +2,230 @@ import { Op, where } from 'sequelize';
 import db from '../models/index';
 import { generateID, checkValidAllCode } from './utilitiesService';
 
+const nodemailer = require('nodemailer');
+
+let sendAppointmentEmail = async (appointmentid, email) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Retrieve appointment details
+    const appointment = await db.Appointment.findOne({
+      where: { AppointmentID: appointmentid },
+      attributes: [
+        'AppointmentID',
+        'CustomerName',
+        'CustomerPhone',
+        'AppointmentDate',
+        'StartTime',
+        'EndTime',
+        'AppointmentStatus',
+        'AppointmentType',
+        'Notes',
+        'ServiceID',
+        'PetID',
+        'VeterinarianID',
+        'CreatedAt',
+      ],
+      include: [
+        {
+          model: db.Service,
+          attributes: ['ServiceName'],
+          required: true,
+        },
+        {
+          model: db.Pet,
+          attributes: ['PetName', 'PetType'],
+          required: true,
+        },
+        {
+          model: db.Account,
+          as: 'Veterinarian',
+          attributes: ['UserName'],
+          required: false,
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+
+    if (!appointment) {
+      console.log('Lịch hẹn không tồn tại');
+      return false;
+    }
+
+    // Retrieve appointment status and type from AllCodes
+    const appointmentStatus = await db.AllCodes.findOne({
+      where: { Type: 'AppointmentStatus', Code: appointment.AppointmentStatus },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    const appointmentType = await db.AllCodes.findOne({
+      where: { Type: 'AppointmentType', Code: appointment.AppointmentType },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    const petType = await db.AllCodes.findOne({
+      where: { Type: 'PetType', Code: appointment.Pet.PetType },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    // Format the email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `Lịch hẹn #${appointment.AppointmentID} - Xác nhận đặt lịch`,
+      text: `
+        Kính gửi Quý khách,
+
+        Cảm ơn quý khách đã đặt lịch tại trung tâm thú y của chúng tôi! Dưới đây là chi tiết lịch hẹn của quý khách:
+
+        Mã lịch hẹn: ${appointment.AppointmentID}
+        Tên khách hàng: ${appointment.CustomerName}
+        Số điện thoại: ${appointment.CustomerPhone}
+        Ngày hẹn: ${new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}
+        Giờ hẹn: ${appointment.StartTime.slice(0, 5)} - ${appointment.EndTime.slice(0, 5)}
+        Tên thú cưng: ${appointment.Pet.PetName} (${petType?.CodeValueVI || appointment.Pet.PetType})
+        Dịch vụ: ${appointment.Service.ServiceName}
+        Bác sĩ phụ trách: ${appointment.Veterinarian?.UserName || 'Chưa phân bác sĩ'}
+        Loại lịch hẹn: ${appointmentType?.CodeValueVI || appointment.AppointmentType}
+        Trạng thái lịch hẹn: ${appointmentStatus?.CodeValueVI || appointment.AppointmentStatus}
+        Ghi chú: ${appointment.Notes || 'Không có ghi chú'}
+        Ngày đặt lịch: ${new Date(appointment.CreatedAt).toLocaleString('vi-VN')}
+
+        Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+
+        Trân trọng,
+        Đội ngũ trung tâm thú y
+      `,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (e) {
+    console.log('Lỗi khi gửi Email: ', e);
+    return false;
+  }
+};
+let sendAppointmentBillEmail = async (appointmentbillid, email) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    // Retrieve appointment bill details
+    const appointmentBill = await db.AppointmentBill.findOne({
+      where: { AppointmentBillID: appointmentbillid },
+      attributes: [
+        'AppointmentBillID',
+        'AppointmentID',
+        'ServicePrice',
+        'MedicalPrice',
+        'TotalPayment',
+        'MedicalNotes',
+        'CreatedAt',
+      ],
+      include: [
+        {
+          model: db.Appointment,
+          attributes: [
+            'CustomerName',
+            'CustomerPhone',
+            'AppointmentDate',
+            'StartTime',
+            'EndTime',
+            'AppointmentStatus',
+            'ServiceID',
+            'PetID',
+          ],
+          include: [
+            {
+              model: db.Service,
+              attributes: ['ServiceName'],
+              required: true,
+            },
+            {
+              model: db.Pet,
+              attributes: ['PetName', 'PetType'],
+              required: true,
+            },
+            {
+              model: db.Account,
+              as: 'Veterinarian',
+              attributes: ['UserName'],
+              required: false,
+            },
+          ],
+          required: true,
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+    if (!appointmentBill) {
+      console.log('Hóa đơn lịch hẹn không tồn tại');
+      return false;
+    }
+    // Retrieve appointment status from AllCodes
+    const appointmentStatus = await db.AllCodes.findOne({
+      where: { Type: 'AppointmentStatus', Code: appointmentBill.Appointment.AppointmentStatus },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    const petType = await db.AllCodes.findOne({
+      where: { Type: 'PetType', Code: appointmentBill.Appointment.Pet.PetType },
+      attributes: ['CodeValueVI'],
+      raw: true,
+    });
+    // Format the email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `Hóa đơn lịch hẹn #${appointmentBill.AppointmentBillID} - Xác nhận thanh toán`,
+      text: `
+        Kính gửi Quý khách,
+
+        Cảm ơn quý khách đã sử dụng dịch vụ tại trung tâm của chúng tôi! Dưới đây là chi tiết hóa đơn lịch hẹn của quý khách:
+
+        Mã hóa đơn: ${appointmentBill.AppointmentBillID}
+        Mã lịch hẹn: ${appointmentBill.AppointmentID}
+        Tên khách hàng: ${appointmentBill.Appointment.CustomerName}
+        Số điện thoại: ${appointmentBill.Appointment.CustomerPhone}
+        Ngày hẹn: ${new Date(appointmentBill.Appointment.AppointmentDate).toLocaleDateString('vi-VN')}
+        Giờ hẹn: ${appointmentBill.Appointment.StartTime.slice(0, 5)} - ${appointmentBill.Appointment.EndTime.slice(0, 5)}
+        Tên thú cưng: ${appointmentBill.Appointment.Pet.PetName} (${petType?.CodeValueVI || appointmentBill.Appointment.Pet.PetType})
+        Dịch vụ: ${appointmentBill.Appointment.Service.ServiceName}
+        Bác sĩ phụ trách: ${appointmentBill.Appointment.Veterinarian?.UserName || 'Chưa phân bác sĩ'}
+        Chi phí dịch vụ: ${parseFloat(appointmentBill.ServicePrice).toLocaleString('vi-VN')} VND
+        Chi phí thuốc: ${parseFloat(appointmentBill.MedicalPrice).toLocaleString('vi-VN')} VND
+        Tổng thanh toán: ${parseFloat(appointmentBill.TotalPayment).toLocaleString('vi-VN')} VND
+        Ghi chú y tế: ${appointmentBill.MedicalNotes || 'Không có ghi chú'}
+        Trạng thái lịch hẹn: ${appointmentStatus?.CodeValueVI || appointmentBill.Appointment.AppointmentStatus}
+        Ngày tạo hóa đơn: ${new Date(appointmentBill.CreatedAt).toLocaleString('vi-VN')}
+
+        Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+
+        Trân trọng,
+        Đội ngũ trung tâm thú y
+      `,
+    };
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (e) {
+    console.log('Lỗi khi gửi Email: ', e);
+    return false;
+  }
+};
 let validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo || Object.keys(appointmentInfo).length === 0) {
     return {
@@ -1310,6 +1534,18 @@ let createAppointment = (customername, customeremail, customerphone, appointment
         }
       }
       await transaction.commit();
+      let emailSent = true;
+      if (customeremail) {
+        emailSent = await sendAppointmentEmail(appointmentID, customeremail);
+      }
+      if (!emailSent && customeremail) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Tạo hóa đơn lịch hẹn thành công, nhưng gửi email thất bại!',
+          data: { AppointmentID: appointmentID },
+        });
+        return;
+      }
       resolve({
         errCode: 0,
         errMessage: 'Đăng ký lịch hẹn thành công!',
@@ -1386,10 +1622,22 @@ let createAppointmentBill = (veterinarianid, appointmentid, serviceprice, medica
         { where: { AppointmentID: appointmentid }, transaction }
       );
       await transaction.commit();
+      let emailSent = true;
+      if (appointment.CustomerEmail) {
+        emailSent = await sendAppointmentBillEmail(appointmentBillID, appointment.CustomerEmail);
+      }
+      if (!emailSent && appointment.CustomerEmail) {
+        resolve({
+          errCode: 0,
+          errMessage: 'Tạo hóa đơn lịch hẹn thành công, nhưng gửi email thất bại!',
+          data: { AppointmentBillID: appointmentBillID },
+        });
+        return;
+      }
       resolve({
         errCode: 0,
         errMessage: 'Tạo hóa đơn lịch hẹn thành công!',
-        data: { AppointmentID: appointmentBill.AppointmentID },
+        data: { AppointmentBillID: appointmentBillID },
       });
     } catch (e) {
       await transaction.rollback();
@@ -1490,6 +1738,52 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
   });
 };
 
+const getAppointmentEmail = async (billid, email) => {
+  try {
+    const emailSent = await sendAppointmentEmail(billid, email);
+    if (emailSent) {
+      return {
+        errCode: 0,
+        errMessage: 'Gửi email lịch hẹn thành công!',
+      };
+    } else {
+      return {
+        errCode: 1,
+        errMessage: 'Gửi email lịch hẹn thất bại!',
+      };
+    }
+  } catch (e) {
+    console.log('Error in handleSendAppointmentEmail: ', e);
+    return {
+      errCode: 2,
+      errMessage: 'Lỗi khi gửi email lịch hẹn: ' + e.message,
+    };
+  }
+};
+
+const getAppointmentBillEmail = async (billid, email) => {
+  try {
+    const emailSent = await sendAppointmentBillEmail(billid, email);
+    if (emailSent) {
+      return {
+        errCode: 0,
+        errMessage: 'Gửi email hóa đơn khám thành công!',
+      };
+    } else {
+      return {
+        errCode: 1,
+        errMessage: 'Gửi email hóa đơn khám thất bại!',
+      };
+    }
+  } catch (e) {
+    console.log('Error in handleSendAppointmentBillEmail: ', e);
+    return {
+      errCode: 2,
+      errMessage: 'Lỗi khi gửi email hóa đơn khám: ' + e.message,
+    };
+  }
+};
+
 module.exports = {
   getAvailableTimes,
   loadAppointmentInfo,
@@ -1499,4 +1793,6 @@ module.exports = {
   createAppointment,
   createAppointmentBill,
   changeAppointmentStatus,
+  getAppointmentEmail,
+  getAppointmentBillEmail,
 };
