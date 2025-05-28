@@ -1209,7 +1209,6 @@ class User extends Component {
       loadedInvoiceDetail,
       limitProductPerQuery,
       loadedAppointmentInfo,
-      limitAppointmentPerQuery,
       totalPages,
       filterValue,
       sortValue,
@@ -1323,7 +1322,7 @@ class User extends Component {
             <div className="user-cart-form-content">
               <div className="order-list">
                 {loadedInvoiceInfo.length > 0 ? (
-                  paginatedInvoiceInfo.map((invoice, index) => (
+                  loadedInvoiceInfo.map((invoice, index) => (
                     <div key={index} className={`order-list-object ${actionPage === 4 ? 'active' : ''}`} onClick={() => this.handleFormChiTietDonHang(invoice.InvoiceID)}>
                       <div className="order-list-object-top">
                         <div className="oder-list-descreption-left">
@@ -1739,7 +1738,6 @@ class User extends Component {
               <h3>
                 <b>Lịch Khám:</b>
               </h3>
-
               <div className="appointment-filter">
                 <select value={filterValue} onChange={(e) => this.handleFilter(e.target.value, 4)}>
                   <option value="ALL">Tất cả</option>
