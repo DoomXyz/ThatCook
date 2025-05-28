@@ -276,28 +276,64 @@ class ViewInvoiceModal extends Component {
               {loadedInvoiceDetails && (
                 <>
                   {loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                    <Button variant="danger" onClick={() => this.props.handleSelectedCancelInvoice(loadedInvoiceDetails.InvoiceID)}>
+                    <Button
+                      variant="danger"
+                      onClick={() => {
+                        this.props.handleSelectedCancelInvoice(loadedInvoiceDetails.InvoiceID);
+                        this.handleLoadInvoiceDetails(selectedInvoiceID);
+                      }}
+                    >
                       Hủy hóa đơn
                     </Button>
                   )}
                   {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus !== 'CANCELED' && loadedInvoiceDetails.ShippingStatus !== 'PEND_CANCEL' && (
-                    <Button className="confirm-payment" variant="primary" onClick={() => this.props.handleConfirmPayment(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.confirmPayment}>
+                    <Button
+                      className="confirm-payment"
+                      variant="primary"
+                      onClick={async () => {
+                        await this.props.handleConfirmPayment(loadedInvoiceDetails.InvoiceID);
+
+                        await this.handleLoadInvoiceDetails(selectedInvoiceID);
+                      }}
+                      disabled={this.props.disabledButtons?.confirmPayment}
+                    >
                       Xác nhận thanh toán
                     </Button>
                   )}
 
                   {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus !== 'CANCELED' && loadedInvoiceDetails.ShippingStatus !== 'DELI' && loadedInvoiceDetails.ShippingStatus !== 'PEND_CANCEL' && (
-                    <Button variant="primary" onClick={() => this.props.handleConfirmDelivery(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.confirmDelivery}>
+                    <Button
+                      variant="primary"
+                      onClick={async () => {
+                        await this.props.handleConfirmDelivery(loadedInvoiceDetails.InvoiceID);
+                        await this.handleLoadInvoiceDetails(selectedInvoiceID);
+                      }}
+                      disabled={this.props.disabledButtons?.confirmDelivery}
+                    >
                       Xác nhận giao hàng
                     </Button>
                   )}
 
                   {loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
                     <>
-                      <Button variant="success" onClick={() => this.props.handleAcceptCancelInvoice(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.acceptCancelInvoice}>
+                      <Button
+                        variant="success"
+                        onClick={async () => {
+                          await this.props.handleAcceptCancelInvoice(loadedInvoiceDetails.InvoiceID);
+                          await this.handleLoadInvoiceDetails(selectedInvoiceID);
+                        }}
+                        disabled={this.props.disabledButtons?.acceptCancelInvoice}
+                      >
                         Chấp nhận hủy
                       </Button>
-                      <Button variant="warning" onClick={() => this.props.handleDenyCancelInvoice(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.denyCancelInvoice}>
+                      <Button
+                        variant="warning"
+                        onClick={async () => {
+                          await this.props.handleDenyCancelInvoice(loadedInvoiceDetails.InvoiceID);
+                          await this.handleLoadInvoiceDetails(selectedInvoiceID);
+                        }}
+                        disabled={this.props.disabledButtons?.denyCancelInvoice}
+                      >
                         Từ chối hủy
                       </Button>
                     </>

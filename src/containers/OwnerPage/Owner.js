@@ -1675,7 +1675,7 @@ class Owner extends Component {
         <EditProductModal isOpen={isShowEditProductModal} toggleFromModal={this.toggleEditProductModal} selectedProductID={selectedProduct} handleChangeProductFromModal={this.handleChangeProductFromModal} />
         <CreateBannerModal isOpen={isShowCreateBannerModal} toggleFromModal={this.toggleCreateBannerModal} handleCreateBannerFromModal={this.handleCreateBannerFromModal} />
         <EditBannerModal isOpen={isShowEditBannerModal} toggleFromModal={this.toggleEditBannerModal} selectedBannerID={selectedBanner} handleChangeBannerFromModal={this.handleChangeBannerFromModal} />
-        <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} />
+        <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} handleConfirmPayment={this.handleConfirmPayment} handleConfirmDelivery={this.handleConfirmDelivery} handleSelectedCancelInvoice={this.handleSelectedCancelInvoice} handleAcceptCancelInvoice={this.handleAcceptCancelInvoice} handleDenyCancelInvoice={this.handleDenyCancelInvoice} disabledButtons={disabledButtons} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
         <CreateCouponModal isOpen={isShowCreateCouponModal} toggleFromModal={this.toggleCreateCouponModal} handleCreateCouponFromModal={this.handleCreateCouponFromModal} />
         <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
