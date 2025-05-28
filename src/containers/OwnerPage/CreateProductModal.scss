@@ -3,7 +3,7 @@
 }
 .create-product-modal {
   .modal-dialog {
-    max-width: 700px;
+    min-width: 61rem;
   }
   .modal-body {
     .modal-content {
@@ -52,7 +52,7 @@
           font-weight: bold;
         }
         input {
-          width: 662px;
+          width: 58.5rem !important;
           padding: 5px;
           margin-right: 10px;
           border-radius: 5px;
@@ -71,6 +71,88 @@
           padding: 5px;
         }
       }
+      .modal-content-add-pettype {
+        p {
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+        }
+        .pettype-checkboxes {
+          margin-right: 1rem;
+          .custom-checkbox {
+            // Ẩn checkbox mặc định
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 2rem; // Kích thước checkbox lớn hơn
+            height: 2rem;
+            margin: 0 8px 0 0; // Khoảng cách với label
+            position: relative;
+            outline: none;
+            cursor: pointer;
+
+            // Tạo hình checkbox tùy chỉnh
+            &:before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              border: 2px solid #ccc; // Viền checkbox
+              border-radius: 4px; // Bo góc
+              background-color: #fff;
+              box-sizing: border-box;
+              transition: all 0.2s ease;
+            }
+
+            // Khi checkbox được chọn
+            &:checked:before {
+              border-color: #007bff; // Màu viền khi checked
+              background-color: #007bff; // Màu nền khi checked
+            }
+
+            // Tạo dấu check
+            &:checked:after {
+              content: '\2713'; // Ký tự dấu check (✓)
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              color: #fff; // Màu dấu check
+              font-size: 16px; // Kích thước dấu check
+              font-weight: bold;
+            }
+
+            // Hover state
+            &:hover:before {
+              border-color: #0056b3; // Màu viền khi hover
+            }
+
+            // Focus state
+            &:focus:before {
+              box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); // Hiệu ứng khi focus
+            }
+
+            // Disabled state
+            &:disabled:before {
+              border-color: #ddd;
+              background-color: #f5f5f5;
+              cursor: not-allowed;
+            }
+          }
+
+          // Style cho container nếu cần (ví dụ: chứa checkbox và label)
+          .checkbox-container {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 16px;
+          }
+          label {
+            margin-right: 1rem;
+          }
+        }
+      }
       .modal-content-add-main-price {
         p {
           font-weight: bold;
@@ -83,39 +165,28 @@
           border-radius: 5px;
         }
       }
-      .modal-content-add-sale {
-        p {
-          font-weight: bold;
-        }
-        input {
-          width: 160px;
-          padding: 5px;
-          padding-right: 0;
-          border-radius: 5px;
-        }
-      }
+
       .modal-content-add-type-price {
         p {
           font-weight: bold;
         }
-        .modal-content-add-type-price-stock-item {
-          input {
-            padding: 5px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            margin-right: 5px;
-            width: 203.1px;
+        .product-detail-table {
+          .table {
+            tbody {
+              tr {
+                td {
+                  .cancel-detail {
+                    border-radius: 0.4rem;
+                    border: none;
+                    color: white;
+                    padding: 0.3rem 0.5rem;
+                    background-color: #fe5238;
+                    margin-left: 0.3rem;
+                  }
+                }
+              }
+            }
           }
-          button {
-            width: 37px;
-            border-radius: 5px;
-            height: 37px;
-            margin-right: 5px;
-          }
-        }
-        .add-detail {
-          margin-left: 5px;
-          color: red;
         }
       }
       .modal-content-add-info {
@@ -124,7 +195,7 @@
         }
         textarea {
           border: 2px solid rgba(91, 82, 82);
-          width: 662px;
+          width: 58.5rem !important;
           padding: 5px;
           border-radius: 5px;
           height: 100px;

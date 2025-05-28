@@ -7,7 +7,7 @@ $transition: all 0.3s ease;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Quicksand", sans-serif !important;
+  font-family: 'Quicksand', sans-serif !important;
 }
 
 .f {
@@ -40,16 +40,15 @@ a {
   background: none;
   border: none;
   color: rgb(91, 82, 82); /* Or match your link color */
-  text-decoration: underline;
+  transition: 0.3s;
   cursor: pointer;
   padding: 0;
   font: inherit;
+  font-size: 1.2rem;
 }
 .link-button:hover {
-  text-decoration: none; /* Or match your link hover style */
-}
-.link-button:focus {
-  outline: 2px solid rgb(91, 82, 82); /* Ensure keyboard focus visibility */
+  transform: translateY(-5px); /* Or match your link hover style */
+  text-decoration: underline;
 }
 
 .body-container {
@@ -65,7 +64,7 @@ a {
     width: 100%;
     background-color: transparent;
     z-index: 1000;
-    border-bottom: 1px solid $border-color;
+
     transition: $transition;
     border: none;
 
@@ -89,7 +88,7 @@ a {
         margin-right: 2.5rem;
         margin-bottom: 5px;
         flex: 1.5;
-        background-image: url("../assets/images/logo1.png");
+        background-image: url('../assets/images/logo1.png');
         height: 55px;
         background-size: contain;
         background-repeat: no-repeat;
@@ -107,16 +106,6 @@ a {
         color: $primary-color;
         position: relative;
 
-        a {
-          text-decoration: none;
-          color: black;
-          font-size: 19px;
-          font-family: "Quicksand", sans-serif;
-          transition:
-            transform 0.2s ease,
-            border-bottom 0.2s ease;
-        }
-
         li:hover .sub-menu-1,
         li:hover .sub-menu,
         li:hover .sub-menu-2 {
@@ -132,77 +121,10 @@ a {
           width: 9rem;
           height: 2rem;
 
-          &.menu-icon a,
-          a[href="/user/makeappointment"],
-          a[href="/appointment"],
-          a[href="/information"],
-          a:not([href]):not(.sub-menu a):not(.sub-menu-1 a):not(.sub-menu-2 a) {
-            display: inline-block;
-            cursor: pointer;
-
-            &:hover {
-              transform: translateY(-2px);
-              border-bottom: 1px solid black;
-            }
-
-            &:active {
-              transform: translateY(2px);
-              border-bottom: 1px solid black;
-            }
-          }
-
-          .sub-menu {
-            border: 2px solid $primary-color;
-            z-index: 10;
-            top: 90px;
-            position: relative;
-            visibility: hidden;
-            width: 7rem;
-            margin-left: 0.2rem;
-            border-radius: 10px;
-            position: absolute;
-            transition: 0.2s;
-            background-color: white;
-            padding: 0;
-            min-height: 5rem;
-
-            li {
-              transition: 0.3s;
-              height: 1.5rem;
-              margin-top: 0.6rem;
-              margin-bottom: 0.2rem;
-              width: 7rem;
-              text-align: center;
-              border-right: none;
-              cursor: default;
-
-              ion-icon {
-                margin-bottom: -0.15rem;
-                margin-right: 0.4rem;
-              }
-
-              a {
-                line-height: 0;
-                font-weight: normal;
-                color: black;
-
-                &:hover {
-                  transform: translateY(-2px);
-                  border-bottom: 1px solid black;
-                }
-
-                &:active {
-                  transform: translateY(2px);
-                  border-bottom: 1px solid black;
-                }
-              }
-            }
-          }
-
           .sub-menu-1 {
             border: 2px solid $primary-color;
             z-index: 10;
-            top: 90px;
+            top: 60px;
             position: relative;
             visibility: hidden;
             width: 10.5rem;
@@ -210,7 +132,7 @@ a {
             margin-left: -3.8rem;
             border-radius: 10px;
             position: absolute;
-            transition: 0.1s;
+            transition: 0.3s;
             background-color: white;
             border: 2px solid black;
             padding: 0;
@@ -228,23 +150,6 @@ a {
               ion-icon {
                 margin-bottom: -0.15rem;
                 margin-right: 0.4rem;
-              }
-
-              a {
-                line-height: 25px;
-                font-weight: normal;
-                color: black;
-                display: inline-block;
-
-                &:hover {
-                  transform: translateY(-2px);
-                  border-bottom: 1px solid black;
-                }
-
-                &:active {
-                  transform: translateY(2px);
-                  border-bottom: 1px solid black;
-                }
               }
             }
           }
@@ -274,28 +179,6 @@ a {
                 margin-bottom: -0.15rem;
                 margin-right: 0.4rem;
               }
-
-              a {
-                cursor: pointer;
-                line-height: 25px;
-                font-weight: normal;
-                color: black;
-
-                p {
-                  transition: 0.3s;
-                  display: inline-block;
-
-                  &:hover {
-                    transform: translateY(-2px);
-                    border-bottom: 1px solid black;
-                  }
-
-                  &:active {
-                    transform: translateY(2px);
-                    border-bottom: 1px solid black;
-                  }
-                }
-              }
             }
           }
         }
@@ -311,10 +194,6 @@ a {
         display: flex;
         flex: 2;
         position: relative;
-
-        p:hover {
-          border-bottom: 2px solid rgb(91, 82, 82);
-        }
 
         li:hover .sub-menu {
           z-index: 10;
@@ -344,26 +223,6 @@ a {
             margin-top: 15px;
             height: 30px;
 
-            a {
-              margin-top: 10px;
-              line-height: 25px;
-              font-weight: normal;
-              color: rgb(91, 82, 82);
-              display: inline-block;
-
-              transition: 0.3s;
-
-              &:hover {
-                transform: translateY(-2px);
-                border-bottom: 1px solid black;
-              }
-
-              &:active {
-                transform: translateY(2px);
-                border-bottom: 1px solid black;
-              }
-            }
-
             ion-icon {
               color: rgb(91, 82, 82);
               width: 50px;
@@ -391,11 +250,6 @@ a {
           color: rgb(91, 82, 82);
         }
 
-        input {
-          border: none;
-          border-bottom: 1px solid black;
-        }
-
         li:first-child {
           border-right: 1px solid black;
           padding-right: 30px;
@@ -406,17 +260,14 @@ a {
 
           a {
             display: flex;
-
-            p {
-              color: black;
-              margin-left: 5px;
-              margin-top: 14px;
-            }
           }
 
           .user {
             cursor: pointer;
-
+            .link-button {
+              margin-top: 0.7rem;
+              font-size: 1rem;
+            }
             img {
               width: 45px;
               height: 45px;

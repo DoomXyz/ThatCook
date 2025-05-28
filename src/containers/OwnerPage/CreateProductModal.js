@@ -47,10 +47,10 @@ class CreateProductModal extends Component {
     this.state.allImages.forEach((img) => {
       if (img.Image && img.file) URL.revokeObjectURL(img.Image);
     });
-  };
+  }
   handleLoadCode = async (codeTypes) => {
     try {
-      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypes.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       const hasDefault = ['ProductType'];
       codeTypes.forEach((type, index) => {
@@ -71,7 +71,7 @@ class CreateProductModal extends Component {
     }
   };
   resetState = () => {
-    const { codeProductType } = this.state
+    const { codeProductType } = this.state;
     this.setState({
       productname: '',
       producttype: codeProductType.length > 0 ? codeProductType[0].Code : '',
@@ -176,7 +176,9 @@ class CreateProductModal extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, saveProduct: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, saveProduct: false } });
+            },
           }
         );
       });
@@ -248,11 +250,7 @@ class CreateProductModal extends Component {
         new Promise((resolve) => {
           toast(
             <div>
-              <p>
-                {this.state.isAddingDetail
-                  ? 'Bạn đang thêm chi tiết sản phẩm chưa lưu. Lưu hoặc hủy trước khi thêm chi tiết mới?'
-                  : 'Bạn có thay đổi chi tiết sản phẩm chưa lưu. Hủy thay đổi và thêm chi tiết mới?'}
-              </p>
+              <p>{this.state.isAddingDetail ? 'Bạn đang thêm chi tiết sản phẩm chưa lưu. Lưu hoặc hủy trước khi thêm chi tiết mới?' : 'Bạn có thay đổi chi tiết sản phẩm chưa lưu. Hủy thay đổi và thêm chi tiết mới?'}</p>
               <button
                 className="toast-confirm-btn"
                 onClick={() => {
@@ -275,7 +273,9 @@ class CreateProductModal extends Component {
             {
               autoClose: 2000,
               closeOnClick: false,
-              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, addDetail: false } }); },
+              onClose: () => {
+                this.setState({ disabledButtons: { ...this.state.disabledButtons, addDetail: false } });
+              },
             }
           );
         });
@@ -331,11 +331,7 @@ class CreateProductModal extends Component {
       new Promise((resolve) => {
         toast(
           <div>
-            <p>
-              {this.state.isAddingDetail
-                ? 'Bạn đang thêm chi tiết sản phẩm chưa lưu. Hủy chi tiết này?'
-                : 'Bạn có thay đổi chi tiết sản phẩm chưa lưu. Hủy thay đổi?'}
-            </p>
+            <p>{this.state.isAddingDetail ? 'Bạn đang thêm chi tiết sản phẩm chưa lưu. Hủy chi tiết này?' : 'Bạn có thay đổi chi tiết sản phẩm chưa lưu. Hủy thay đổi?'}</p>
             <button
               className="toast-confirm-btn"
               onClick={() => {
@@ -358,7 +354,9 @@ class CreateProductModal extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelDetail: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelDetail: false } });
+            },
           }
         );
       });
@@ -446,11 +444,11 @@ class CreateProductModal extends Component {
               </div>
               <div className="modal-content-add-pettype">
                 <p>Loại thú cưng:</p>
-                <div className="pettype-checkboxes ">
+                <div className="pettype-checkboxes f">
                   {codePetType.map((type) => (
-                    <label key={type.Code} className="pettype-checkbox">
-                      <input type="checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
-                      {type.CodeValueVI}
+                    <label key={type.Code} className="pettype-checkbox f">
+                      <input type="checkbox" className="custom-checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
+                      <p>{type.CodeValueVI}</p>
                     </label>
                   ))}
                 </div>
@@ -471,7 +469,7 @@ class CreateProductModal extends Component {
                     <tr>
                       <th>Tên chi tiết</th>
                       <th>Số lượng tồn kho</th>
-                      <th>Giá thêm (vnđ)</th>
+                      <th className="extra-price-product-detail">Giá thêm (vnđ)</th>
                       <th>Khuyến mãi (%)</th>
                       <th>Trạng thái</th>
                       <th>Chỉnh sửa</th>
@@ -481,56 +479,13 @@ class CreateProductModal extends Component {
                     {productDetailInfo && productDetailInfo.length > 0 ? (
                       productDetailInfo.map((item, index) => (
                         <tr key={item.ProductDetailID}>
+                          <td>{isEditingDetail === index ? <input type="text" value={item.DetailName} onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)} /> : item.DetailName}</td>
+                          <td>{isEditingDetail === index ? <input type="number" value={item.Stock} onChange={(e) => this.handleDetailChange(index, 'Stock', e.target.value)} /> : item.Stock}</td>
+                          <td>{isEditingDetail === index ? <input type="number" value={item.ExtraPrice ?? ''} onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)} /> : parseFloat(item.ExtraPrice) || 0}</td>
+                          <td>{isEditingDetail === index ? <input type="number" value={item.Promotion ?? ''} onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)} /> : parseFloat(item.Promotion) || 0}</td>
                           <td>
                             {isEditingDetail === index ? (
-                              <input
-                                type="text"
-                                value={item.DetailName}
-                                onChange={(e) => this.handleDetailChange(index, 'DetailName', e.target.value)}
-                              />
-                            ) : (
-                              item.DetailName
-                            )}
-                          </td>
-                          <td>
-                            {isEditingDetail === index ? (
-                              <input
-                                type="number"
-                                value={item.Stock}
-                                onChange={(e) => this.handleDetailChange(index, 'Stock', e.target.value)}
-                              />
-                            ) : (
-                              item.Stock
-                            )}
-                          </td>
-                          <td>
-                            {isEditingDetail === index ? (
-                              <input
-                                type="number"
-                                value={item.ExtraPrice ?? ''}
-                                onChange={(e) => this.handleDetailChange(index, 'ExtraPrice', e.target.value)}
-                              />
-                            ) : (
-                              parseFloat(item.ExtraPrice) || 0
-                            )}
-                          </td>
-                          <td>
-                            {isEditingDetail === index ? (
-                              <input
-                                type="number"
-                                value={item.Promotion ?? ''}
-                                onChange={(e) => this.handleDetailChange(index, 'Promotion', e.target.value)}
-                              />
-                            ) : (
-                              parseFloat(item.Promotion) || 0
-                            )}
-                          </td>
-                          <td>
-                            {isEditingDetail === index ? (
-                              <select
-                                value={item.DetailStatus}
-                                onChange={(e) => this.handleDetailChange(index, 'DetailStatus', e.target.value)}
-                              >
+                              <select value={item.DetailStatus} onChange={(e) => this.handleDetailChange(index, 'DetailStatus', e.target.value)}>
                                 {codeDetailStatus.map((status) => (
                                   <option key={status.Code} value={status.Code}>
                                     {status.CodeValueVI}
@@ -552,11 +507,7 @@ class CreateProductModal extends Component {
                                 </button>
                               </>
                             ) : (
-                              <button
-                                className="edit-detail"
-                                onClick={() => this.handleEditDetail(index)}
-                                disabled={isEditingDetail !== null || isAddingDetail}
-                              >
+                              <button className="edit-detail" onClick={() => this.handleEditDetail(index)} disabled={isEditingDetail !== null || isAddingDetail}>
                                 Sửa
                               </button>
                             )}
@@ -572,10 +523,7 @@ class CreateProductModal extends Component {
                     )}
                     <tr>
                       <td colSpan="6" style={{ textAlign: 'center' }}>
-                        <button
-                          className={`add-detail-btn ${isAddingDetail ? 'cancel' : ''}`}
-                          onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}
-                        >
+                        <button className={`add-detail-btn ${isAddingDetail ? 'cancel' : ''}`} onClick={isAddingDetail ? this.handleCancelDetail : this.handleAddDetail}>
                           {isAddingDetail ? 'Hủy' : 'Thêm'}
                         </button>
                       </td>

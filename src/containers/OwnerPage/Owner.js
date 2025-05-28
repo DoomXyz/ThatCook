@@ -94,7 +94,7 @@ class Owner extends Component {
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevState.actionPage !== this.state.actionPage) {
-      this.handleReloadData(this.state.actionPage)
+      this.handleReloadData(this.state.actionPage);
     }
   }
   //login logout
@@ -126,7 +126,7 @@ class Owner extends Component {
     }
   };
   handleLogout = async () => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: true } })
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -154,7 +154,9 @@ class Owner extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } }) },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } });
+            },
           }
         );
       });
@@ -168,7 +170,7 @@ class Owner extends Component {
           accountInfo: null,
         });
         toast.success('Đăng xuất thành công!');
-        this.props.navigate('/login')
+        this.props.navigate('/login');
       } catch (e) {
         console.log(e);
         toast.error('Đăng xuất thất bại. Vui lòng thử lại!');
@@ -179,7 +181,7 @@ class Owner extends Component {
   handleLoadCode = async (codeTypeFilter) => {
     try {
       this.setState({ isLoading: true });
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
@@ -284,10 +286,12 @@ class Owner extends Component {
         tempCurrentPage: '1',
       },
       () => {
-        if (this.debounceTimeout) { clearTimeout(this.debounceTimeout); }
+        if (this.debounceTimeout) {
+          clearTimeout(this.debounceTimeout);
+        }
         this.debounceTimeout = setTimeout(() => {
           this.handleReloadData(type);
-        }, 500)
+        }, 500);
       }
     );
   };
@@ -309,7 +313,8 @@ class Owner extends Component {
         sortValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         this.handleReloadData(type);
       }
     );
@@ -323,7 +328,8 @@ class Owner extends Component {
         filterValue: 'ALL',
         sortValue: '0',
         dateFilterValue: '',
-      }, () => {
+      },
+      () => {
         this.handleReloadData(type);
       }
     );
@@ -337,12 +343,15 @@ class Owner extends Component {
     } else if (page > totalPages) {
       newPage = totalPages;
     }
-    this.setState({
-      currentPage: newPage,
-      tempCurrentPage: newPage.toString(),
-    }, () => {
-      this.handleReloadData(type)
-    });
+    this.setState(
+      {
+        currentPage: newPage,
+        tempCurrentPage: newPage.toString(),
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
   };
   handlePrevPage = (type) => {
     this.setState(
@@ -352,7 +361,8 @@ class Owner extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleReloadData(type);
       }
     );
@@ -365,7 +375,8 @@ class Owner extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleReloadData(type);
       }
     );
@@ -416,7 +427,9 @@ class Owner extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmPayment: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmPayment: false } });
+            },
           }
         );
       });
@@ -467,7 +480,9 @@ class Owner extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmDelivery: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmDelivery: false } });
+            },
           }
         );
       });
@@ -518,7 +533,9 @@ class Owner extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, acceptCancelInvoice: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, acceptCancelInvoice: false } });
+            },
           }
         );
       });
@@ -569,7 +586,9 @@ class Owner extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, denyCancelInvoice: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, denyCancelInvoice: false } });
+            },
           }
         );
       });
@@ -626,7 +645,7 @@ class Owner extends Component {
   toggleCreateCouponModal = () => {
     this.setState({
       isShowCreateCouponModal: !this.state.isShowCreateCouponModal,
-      isEditingCoupon: false
+      isEditingCoupon: false,
     });
   };
   //modal input
@@ -862,7 +881,7 @@ class Owner extends Component {
     try {
       const apiResponse = await handleChangeCouponInfoApi(newCouponInfo);
       const response = apiResponse.data;
-      console.log(response)
+      console.log(response);
       if (response && response.errCode === 0) {
         toast.success(response?.errMessage || 'Chỉnh sửa coupon thành công!');
         await this.handleLoadCouponInfo();
@@ -882,66 +901,108 @@ class Owner extends Component {
   //form controller
   handleFormDanhSachSanPham = (e) => {
     e.preventDefault();
-    this.setState({
-      actionPage: 1,
-      currentPage: 1,
-      tempCurrentPage: '1',
-      searchValue: '',
-      filterValue: 'ALL',
-      sortValue: '0',
-      dateFilterValue: '',
-    }, async () => {
-      await this.handleLoadProductInfo();
-    });
+    this.setState(
+      {
+        actionPage: 1,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        dateFilterValue: '',
+      },
+      async () => {
+        await this.handleLoadProductInfo();
+      }
+    );
   };
   handleFormDanhSachDonHang = (e) => {
     e.preventDefault();
-    this.setState({
-      actionPage: 2,
-      currentPage: 1,
-      tempCurrentPage: '1',
-      searchValue: '',
-      filterValue: 'ALL',
-      sortValue: '0',
-      dateFilterValue: '',
-    }, async () => {
-      await this.handleLoadInvoiceInfo();
-    });
+    this.setState(
+      {
+        actionPage: 2,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        dateFilterValue: '',
+      },
+      async () => {
+        await this.handleLoadInvoiceInfo();
+      }
+    );
   };
   handleFormDanhSachBanner = (e) => {
     e.preventDefault();
-    this.setState({
-      actionPage: 3,
-      currentPage: 1,
-      tempCurrentPage: '1',
-      searchValue: '',
-      filterValue: 'ALL',
-      sortValue: '0',
-      dateFilterValue: '',
-    }, async () => {
-      await this.handleLoadBannerInfo();
-    });
+    this.setState(
+      {
+        actionPage: 3,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        dateFilterValue: '',
+      },
+      async () => {
+        await this.handleLoadBannerInfo();
+      }
+    );
   };
   handleFormDanhSachCoupon = (e) => {
     e.preventDefault();
-    this.setState({
-      actionPage: 4,
-      currentPage: 1,
-      tempCurrentPage: '1',
-      searchValue: '',
-      filterValue: 'ALL',
-      sortValue: '0',
-      dateFilterValue: '',
-      isEditingCoupon: null,
-    }, async () => {
-      await this.handleLoadCouponInfo();
-    });
+    this.setState(
+      {
+        actionPage: 4,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        dateFilterValue: '',
+        isEditingCoupon: null,
+      },
+      async () => {
+        await this.handleLoadCouponInfo();
+      }
+    );
   };
   render() {
-    const { actionPage, isLoading, searchValue, filterValue, sortValue, dateFilterValue, currentPage, tempCurrentPage, totalPages, disabledButtons,
-      codeProductType, codePetType, codePaymentStatus, codeShippingStatus, codeBannerStatus, codeDiscountType, codeCouponStatus,
-      loadedProductInfo, loadedInvoiceInfo, loadedBannerInfo, loadedCouponInfo, selectedProduct, selectedBanner, selectedInvoice, selectedCancelInvoice, isEditingCoupon,
-      isShowCreateProductModal, isShowEditProductModal, isShowViewInvoiceModal, isShowCancelInvoiceModal, isShowCreateBannerModal, isShowEditBannerModal, isShowCreateCouponModal,
+    const {
+      actionPage,
+      isLoading,
+      searchValue,
+      filterValue,
+      sortValue,
+      dateFilterValue,
+      currentPage,
+      tempCurrentPage,
+      totalPages,
+      disabledButtons,
+      codeProductType,
+      codePetType,
+      codePaymentStatus,
+      codeShippingStatus,
+      codeBannerStatus,
+      codeDiscountType,
+      codeCouponStatus,
+      loadedProductInfo,
+      loadedInvoiceInfo,
+      loadedBannerInfo,
+      loadedCouponInfo,
+      selectedProduct,
+      selectedBanner,
+      selectedInvoice,
+      selectedCancelInvoice,
+      isEditingCoupon,
+      isShowCreateProductModal,
+      isShowEditProductModal,
+      isShowViewInvoiceModal,
+      isShowCancelInvoiceModal,
+      isShowCreateBannerModal,
+      isShowEditBannerModal,
+      isShowCreateCouponModal,
     } = this.state;
     const renderSection = () => {
       switch (actionPage) {
@@ -1051,13 +1112,7 @@ class Owner extends Component {
                           <button className="prev" onClick={() => this.handlePrevPage(1)} disabled={currentPage === 1}>
                             {'<'}
                           </button>
-                          <input
-                            type="text"
-                            value={tempCurrentPage}
-                            onChange={(event) => this.handlePageInputChange(event)}
-                            onKeyDown={(event) => this.handlePageKeyDown(event, 1)}
-                            onBlur={() => this.handlePageInputBlur(1)}
-                          />
+                          <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 1)} onBlur={() => this.handlePageInputBlur(1)} />
                           <span className="total-pages">/ {totalPages}</span>
                           <button className="next" onClick={() => this.handleNextPage(1)} disabled={currentPage === totalPages}>
                             {'>'}
@@ -1184,30 +1239,18 @@ class Owner extends Component {
                           <td>{item.ReceiverName}</td>
                           <td>{item.ReceiverPhone}</td>
                           <td>{item.TotalQuantity}</td>
-                          <td className="f">
-                            <p>{parseFloat(item.TotalPayment).toLocaleString('vi-VN')} vnđ</p>
-                          </td>
+                          <td>{parseFloat(item.TotalPayment).toLocaleString('vi-VN')} vnđ</td>
                           <td>{codePaymentStatus.find((filterItem) => filterItem.Code === item.PaymentStatus)?.CodeValueVI || item.PaymentStatus}</td>
                           <td>{codeShippingStatus.find((filterItem) => filterItem.Code === item.ShippingStatus)?.CodeValueVI || item.ShippingStatus}</td>
                           <td>{item.CanceledAt ? new Date(item.CanceledAt).toLocaleString('vi-VN') : ''}</td>
-                          <td className="f" onClick={(e) => e.stopPropagation()}>
+                          <td onClick={(e) => e.stopPropagation()}>
                             {item.PaymentStatus === 'PEND' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
-                              <button
-                                className="btn-confirm-payment"
-                                onClick={() => this.handleConfirmPayment(item.InvoiceID)}
-                                title="Xác nhận thanh toán"
-                                disabled={disabledButtons.confirmPayment}
-                              >
+                              <button className="btn-confirm-payment" onClick={() => this.handleConfirmPayment(item.InvoiceID)} title="Xác nhận thanh toán" disabled={disabledButtons.confirmPayment}>
                                 <IonIcon icon={cashOutline}></IonIcon>
                               </button>
                             )}
                             {item.PaymentStatus === 'PAID' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
-                              <button
-                                className="btn-confirm-delivery"
-                                onClick={() => this.handleConfirmDelivery(item.InvoiceID)}
-                                title="Xác nhận giao hàng"
-                                disabled={disabledButtons.confirmDelivery}
-                              >
+                              <button className="btn-confirm-delivery" onClick={() => this.handleConfirmDelivery(item.InvoiceID)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmDelivery}>
                                 <IonIcon icon={checkmarkCircleOutline}></IonIcon>
                               </button>
                             )}
@@ -1217,21 +1260,11 @@ class Owner extends Component {
                               </button>
                             )}
                             {item.ShippingStatus === 'PEND_CANCEL' && (
-                              <div>
-                                <button
-                                  className="btn-accept-cancel"
-                                  onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)}
-                                  title="Chấp nhận hủy"
-                                  disabled={disabledButtons.acceptCancelInvoice}
-                                >
+                              <div className="f">
+                                <button className="btn-accept-cancel" onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)} title="Chấp nhận hủy" disabled={disabledButtons.acceptCancelInvoice}>
                                   <IonIcon icon={banOutline}></IonIcon>
                                 </button>
-                                <button
-                                  className="btn-deny-cancel"
-                                  onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)}
-                                  title="Từ chối hủy"
-                                  disabled={disabledButtons.denyCancelInvoice}
-                                >
+                                <button className="btn-deny-cancel" onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)} title="Từ chối hủy" disabled={disabledButtons.denyCancelInvoice}>
                                   <IonIcon icon={refreshOutline}></IonIcon>
                                 </button>
                               </div>
@@ -1366,22 +1399,22 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                               : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                               : 'Vô thời hạn'}
                           </td>
-                          <td className="f" onClick={(e) => e.stopPropagation()}>
+                          <td onClick={(e) => e.stopPropagation()}>
                             <button className="btn-edit" onClick={() => this.handleSelectedBanner(item.BannerID)}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
@@ -1428,52 +1461,33 @@ class Owner extends Component {
                 <div className="f">
                   <div className="owner-mid-content-search-coupon" style={{ display: actionPage === 4 ? 'flex' : 'none' }}>
                     <p>Tìm kiếm:</p>
-                    <input
-                      type="text"
-                      placeholder="Nhập mã coupon"
-                      value={searchValue}
-                      onChange={(event) => this.handleSearchChange(event, 4)}
-                    />
+                    <input type="text" placeholder="Nhập mã coupon" value={searchValue} onChange={(event) => this.handleSearchChange(event, 4)} />
                     <IonIcon icon={searchOutline}></IonIcon>
                   </div>
-                  <div
-                    style={{ display: actionPage === 4 ? 'flex' : 'none' }}
-                    className="owner-mid-content-coupon-filter-sort f"
-                  >
+                  <div style={{ display: actionPage === 4 ? 'flex' : 'none' }} className="owner-mid-content-coupon-filter-sort f">
                     <div className="owner-mid-content-coupon-filter">
                       <label>Lọc Coupon:</label>
                       <br />
-                      <select
-                        value={filterValue}
-                        onChange={(event) => this.handleFilter(event.target.value, 4)}
-                      >
+                      <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 4)}>
                         <option value="ALL">Tất cả</option>
-                        {codeCouponStatus &&
-                          codeCouponStatus.length > 0 && (
-                            <optgroup label="Trạng thái">
-                              {codeCouponStatus.map((item) => (
-                                <option
-                                  key={`couponstatus-${item.Code}`}
-                                  value={`couponstatus-${item.Code}`}
-                                >
-                                  {item.CodeValueVI}
-                                </option>
-                              ))}
-                            </optgroup>
-                          )}
-                        {codeDiscountType &&
-                          codeDiscountType.length > 0 && (
-                            <optgroup label="Loại giảm giá">
-                              {codeDiscountType.map((item) => (
-                                <option
-                                  key={`discounttype-${item.Code}`}
-                                  value={`discounttype-${item.Code}`}
-                                >
-                                  {item.CodeValueVI}
-                                </option>
-                              ))}
-                            </optgroup>
-                          )}
+                        {codeCouponStatus && codeCouponStatus.length > 0 && (
+                          <optgroup label="Trạng thái">
+                            {codeCouponStatus.map((item) => (
+                              <option key={`couponstatus-${item.Code}`} value={`couponstatus-${item.Code}`}>
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {codeDiscountType && codeDiscountType.length > 0 && (
+                          <optgroup label="Loại giảm giá">
+                            {codeDiscountType.map((item) => (
+                              <option key={`discounttype-${item.Code}`} value={`discounttype-${item.Code}`}>
+                                {item.CodeValueVI}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                         <optgroup label="Giảm giá tối đa">
                           <option value="maxdiscountfixed-0">0 - 20.000 VNĐ</option>
                           <option value="maxdiscountfixed-1">20.000 - 50.000 VNĐ</option>
@@ -1485,10 +1499,7 @@ class Owner extends Component {
                     <div className="owner-mid-content-coupon-sort">
                       <label>Sắp xếp:</label>
                       <br />
-                      <select
-                        value={sortValue}
-                        onChange={(e) => this.handleSort(e.target.value, 4)}
-                      >
+                      <select value={sortValue} onChange={(e) => this.handleSort(e.target.value, 4)}>
                         <option value="0">Mặc định</option>
                         <option value="1">Mới nhất</option>
                         <option value="2">Cũ nhất</option>
@@ -1499,21 +1510,14 @@ class Owner extends Component {
                       </select>
                     </div>
                   </div>
-                  <div
-                    style={{ display: actionPage === 4 ? 'block' : 'none' }}
-                    className="owner-mid-content-coupon-date"
-                  >
+                  <div style={{ display: actionPage === 4 ? 'block' : 'none' }} className="owner-mid-content-coupon-date">
                     <label>Coupon còn hiệu lực trong ngày:</label>
                     <br />
                     <div className="f">
                       <DatePicker
                         selected={dateFilterValue ? new Date(dateFilterValue + 'T00:00:00') : null}
                         onChange={(date) => {
-                          const formattedDate = date
-                            ? new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-                              .toISOString()
-                              .split('T')[0]
-                            : '';
+                          const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
                           this.setState({ dateFilterValue: formattedDate }, () => {
                             if (this.state.actionPage === 4) {
                               this.handleLoadCouponInfo();
@@ -1525,10 +1529,7 @@ class Owner extends Component {
                         className="date-picker"
                         isClearable
                       />
-                      <button
-                        style={{ marginLeft: '10px' }}
-                        onClick={() => this.handleResetFilter(4)}
-                      >
+                      <button style={{ marginLeft: '10px' }} onClick={() => this.handleResetFilter(4)}>
                         Reset
                       </button>
                     </div>
@@ -1554,90 +1555,15 @@ class Owner extends Component {
                     <tbody>
                       {loadedCouponInfo.length > 0 ? (
                         loadedCouponInfo.map((item, index) => (
-                          <tr
-                            key={item.CouponID}
-                            className="owner-mid-content-right-list-coupon-item"
-                          >
+                          <tr key={item.CouponID} className="owner-mid-content-right-list-coupon-item">
+                            <td>{isEditingCoupon === index ? <input type="text" value={item.CouponCode} onChange={(e) => this.handleCouponChange(index, 'CouponCode', e.target.value)} /> : item.CouponCode}</td>
+                            <td>{isEditingCoupon === index ? <input type="number" value={item.DiscountValue} onChange={(e) => this.handleCouponChange(index, 'DiscountValue', e.target.value)} /> : parseFloat(item.DiscountValue).toLocaleString('vi-VN') + (item.DiscountType === 'PERC' ? '%' : 'vnđ')}</td>
+                            <td>{isEditingCoupon === index ? <input type="number" value={item.MaxDiscount} onChange={(e) => this.handleCouponChange(index, 'MaxDiscount', e.target.value)} /> : parseFloat(item.MaxDiscount).toLocaleString('vi-VN') + 'vnđ'}</td>
+                            <td>{isEditingCoupon === index ? <input type="number" value={item.MinOrderValue ?? ''} onChange={(e) => this.handleCouponChange(index, 'MinOrderValue', e.target.value)} /> : parseFloat(item.MinOrderValue) > 0 ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ' : 'Không yêu cầu'}</td>
+                            <td>{isEditingCoupon === index ? <input type="text" value={item.CouponDescription ?? ''} onChange={(e) => this.handleCouponChange(index, 'CouponDescription', e.target.value)} /> : item.CouponDescription || 'N/A'}</td>
                             <td>
                               {isEditingCoupon === index ? (
-                                <input
-                                  type="text"
-                                  value={item.CouponCode}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(index, 'CouponCode', e.target.value)
-                                  }
-                                />
-                              ) : (
-                                item.CouponCode
-                              )}
-                            </td>
-                            <td>
-                              {isEditingCoupon === index ? (
-                                <input
-                                  type="number"
-                                  value={item.DiscountValue}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(index, 'DiscountValue', e.target.value)
-                                  }
-                                />
-                              ) : (
-                                parseFloat(item.DiscountValue).toLocaleString('vi-VN') +
-                                (item.DiscountType === 'PERC' ? '%' : 'vnđ')
-                              )}
-                            </td>
-                            <td>
-                              {isEditingCoupon === index ? (
-                                <input
-                                  type="number"
-                                  value={item.MaxDiscount}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(index, 'MaxDiscount', e.target.value)
-                                  }
-                                />
-                              ) : (
-                                parseFloat(item.MaxDiscount).toLocaleString('vi-VN') + 'vnđ'
-                              )}
-                            </td>
-                            <td>
-                              {isEditingCoupon === index ? (
-                                <input
-                                  type="number"
-                                  value={item.MinOrderValue ?? ''}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(index, 'MinOrderValue', e.target.value)
-                                  }
-                                />
-                              ) : (
-                                parseFloat(item.MinOrderValue) > 0
-                                  ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ'
-                                  : 'Không yêu cầu'
-                              )}
-                            </td>
-                            <td>
-                              {isEditingCoupon === index ? (
-                                <input
-                                  type="text"
-                                  value={item.CouponDescription ?? ''}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(
-                                      index,
-                                      'CouponDescription',
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              ) : (
-                                item.CouponDescription || 'N/A'
-                              )}
-                            </td>
-                            <td>
-                              {isEditingCoupon === index ? (
-                                <select
-                                  value={item.DiscountType}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(index, 'DiscountType', e.target.value)
-                                  }
-                                >
+                                <select value={item.DiscountType} onChange={(e) => this.handleCouponChange(index, 'DiscountType', e.target.value)}>
                                   {codeDiscountType.map((type) => (
                                     <option key={type.Code} value={type.Code}>
                                       {type.CodeValueVI}
@@ -1645,19 +1571,12 @@ class Owner extends Component {
                                   ))}
                                 </select>
                               ) : (
-                                codeDiscountType.find(
-                                  (filterItem) => filterItem.Code === item.DiscountType
-                                )?.CodeValueVI || item.DiscountType
+                                codeDiscountType.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType
                               )}
                             </td>
                             <td>
                               {isEditingCoupon === index ? (
-                                <select
-                                  value={item.CouponStatus}
-                                  onChange={(e) =>
-                                    this.handleCouponChange(index, 'CouponStatus', e.target.value)
-                                  }
-                                >
+                                <select value={item.CouponStatus} onChange={(e) => this.handleCouponChange(index, 'CouponStatus', e.target.value)}>
                                   {codeCouponStatus.map((status) => (
                                     <option key={status.Code} value={status.Code}>
                                       {status.CodeValueVI}
@@ -1665,78 +1584,47 @@ class Owner extends Component {
                                   ))}
                                 </select>
                               ) : (
-                                codeCouponStatus.find(
-                                  (filterItem) => filterItem.Code === item.CouponStatus
-                                )?.CodeValueVI || item.CouponStatus
+                                codeCouponStatus.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus
                               )}
                             </td>
                             <td>
                               {isEditingCoupon === index ? (
-                                <DatePicker
-                                  selected={item.StartDate ? new Date(item.StartDate) : null}
-                                  onChange={(date) =>
-                                    this.handleCouponChange(index, 'StartDate', date)
-                                  }
-                                  dateFormat="dd/MM/yyyy"
-                                  placeholderText="dd/mm/yyyy"
-                                  className="date-picker"
-                                  isClearable
-                                />
+                                <DatePicker selected={item.StartDate ? new Date(item.StartDate) : null} onChange={(date) => this.handleCouponChange(index, 'StartDate', date)} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                              ) : item.StartDate ? (
+                                new Date(item.StartDate).toLocaleString('vi-VN', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                               ) : (
-                                item.StartDate
-                                  ? new Date(item.StartDate).toLocaleString('vi-VN', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                  })
-                                  : 'N/A'
+                                'N/A'
                               )}
                             </td>
                             <td>
                               {isEditingCoupon === index ? (
-                                <DatePicker
-                                  selected={item.EndDate ? new Date(item.EndDate) : null}
-                                  onChange={(date) =>
-                                    this.handleCouponChange(index, 'EndDate', date)
-                                  }
-                                  dateFormat="dd/MM/yyyy"
-                                  placeholderText="dd/mm/yyyy"
-                                  className="date-picker"
-                                  isClearable
-                                />
+                                <DatePicker selected={item.EndDate ? new Date(item.EndDate) : null} onChange={(date) => this.handleCouponChange(index, 'EndDate', date)} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                              ) : item.EndDate ? (
+                                new Date(item.EndDate).toLocaleString('vi-VN', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                               ) : (
-                                item.EndDate
-                                  ? new Date(item.EndDate).toLocaleString('vi-VN', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                  })
-                                  : 'Vô thời hạn'
+                                'Vô thời hạn'
                               )}
                             </td>
-                            <td className="f" onClick={(e) => e.stopPropagation()}>
+                            <td onClick={(e) => e.stopPropagation()}>
                               {isEditingCoupon === index ? (
                                 <>
-                                  <button
-                                    className="save-coupon"
-                                    onClick={() => this.handleSaveCoupon(index)}
-                                    disabled={disabledButtons.saveCoupon}
-                                  >
+                                  <button className="save-coupon" onClick={() => this.handleSaveCoupon(index)} disabled={disabledButtons.saveCoupon}>
                                     Lưu
                                   </button>
-                                  <button
-                                    className="cancel-coupon"
-                                    onClick={() => this.handleCancelCoupon()}
-                                  >
+                                  <button className="cancel-coupon" onClick={() => this.handleCancelCoupon()}>
                                     Hủy
                                   </button>
                                 </>
                               ) : (
-                                <button
-                                  className="btn-edit"
-                                  onClick={() => this.handleEditCoupon(index)}
-                                  disabled={isEditingCoupon !== null}
-                                >
+                                <button className="btn-edit" onClick={() => this.handleEditCoupon(index)} disabled={isEditingCoupon !== null}>
                                   <IonIcon icon={pencil}></IonIcon>
                                 </button>
                               )}
@@ -1753,129 +1641,24 @@ class Owner extends Component {
                   {totalPages > 1 && (
                     <div className="page-content">
                       <div className="page-content-item">
-                        <button
-                          className="first"
-                          onClick={() => this.handlePageChange(1, 4)}
-                          disabled={currentPage === 1}
-                        >
+                        <button className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
                           {'<<'}
                         </button>
-                        <button
-                          className="prev"
-                          onClick={() => this.handlePrevPage(4)}
-                          disabled={currentPage === 1}
-                        >
+                        <button className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
                           {'<'}
                         </button>
-                        <input
-                          type="text"
-                          value={tempCurrentPage}
-                          onChange={(event) => this.handlePageInputChange(event)}
-                          onKeyDown={(event) => this.handlePageKeyDown(event, 4)}
-                          onBlur={() => this.handlePageInputBlur(4)}
-                        />
+                        <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
                         <span className="total-pages">/ {totalPages}</span>
-                        <button
-                          className="next"
-                          onClick={() => this.handleNextPage(4)}
-                          disabled={currentPage === totalPages}
-                        >
+                        <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
                           {'>'}
                         </button>
-                        <button
-                          className="last"
-                          onClick={() => this.handlePageChange(totalPages, 4)}
-                          disabled={currentPage === totalPages}
-                        >
+                        <button className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
                           {'>>'}
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
-              <div className="owner-mid-content-mid-list-coupon">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Mã giảm giá</th>
-                      <th>Giá trị giảm</th>
-                      <th>Giảm tối đa</th>
-                      <th>Mua tối thiểu</th>
-                      <th>Mô tả</th>
-                      <th>Loại giảm giá</th>
-                      <th>Trạng thái</th>
-                      <th>Ngày bắt đầu</th>
-                      <th>Ngày hết hạn</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loadedCouponInfo.length > 0 ? (
-                      loadedCouponInfo.map((item, index) => (
-                        <tr key={item.CouponID} className="owner-mid-content-right-list-coupon-item">
-                          <td>{item.CouponCode}</td>
-                          <td>
-                            {parseFloat(item.DiscountValue).toLocaleString('vi-VN')}
-                            {item.DiscountType === 'PERC' ? '%' : 'vnđ'}
-                          </td>
-                          <td>{parseFloat(item.MaxDiscount).toLocaleString('vi-VN')}vnđ</td>
-                          <td>{parseFloat(item.MinOrderValue) > 0 ? parseFloat(item.MinOrderValue).toLocaleString('vi-VN') + 'vnđ' : 'Không yêu cầu'}</td>
-                          <td>{item.CouponDescription || 'N/A'}</td>
-                          <td>{codeDiscountType.find((filterItem) => filterItem.Code === item.DiscountType)?.CodeValueVI || item.DiscountType}</td>
-                          <td>{codeCouponStatus.find((filterItem) => filterItem.Code === item.CouponStatus)?.CodeValueVI || item.CouponStatus}</td>
-                          <td>
-                            {item.StartDate
-                              ? new Date(item.StartDate).toLocaleString('vi-VN', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
-                              : 'N/A'}
-                          </td>
-                          <td>
-                            {item.EndDate
-                              ? new Date(item.EndDate).toLocaleString('vi-VN', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
-                              : 'Vô thời hạn'}
-                          </td>
-                          <td className="f" onClick={(e) => e.stopPropagation()}>
-                            <button className="btn-edit" onClick={() => this.handleEditCoupon(index)}>
-                              <IonIcon icon={pencil}></IonIcon>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="10">Không tìm thấy coupon nào.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-                {totalPages > 1 && (
-                  <div className="page-content">
-                    <div className="page-content-item">
-                      <button className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
-                        {'<<'}
-                      </button>
-                      <button className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
-                        {'<'}
-                      </button>
-                      <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
-                      <span className="total-pages">/ {totalPages}</span>
-                      <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
-                        {'>'}
-                      </button>
-                      <button className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
-                        {'>>'}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           );
@@ -1893,27 +1676,20 @@ class Owner extends Component {
         <ViewInvoiceModal isOpen={isShowViewInvoiceModal} toggleFromModal={this.toggleViewInvoiceModal} selectedInvoiceID={selectedInvoice} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
         <CreateCouponModal isOpen={isShowCreateCouponModal} toggleFromModal={this.toggleCreateCouponModal} handleCreateCouponFromModal={this.handleCreateCouponFromModal} />
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         {isLoading ? (
           <Spinner />
         ) : (
           <div className="container">
-            <div className="f">
-              <h1 className="name">Trang chủ cửa hàng</h1>
+            <div className="sb">
               <button className="home-button" onClick={() => this.props.navigate('/home')}>
                 <IonIcon icon={homeOutline}></IonIcon>
                 <b>Quay về cửa hàng</b>
               </button>
-              <button className='logout-button' onClick={this.handleLogout} disabled={disabledButtons.logout}>
-                ĐĂNG XUẤT <IonIcon icon={logOutOutline}></IonIcon>
+              <h1 className="name">Trang chủ cửa hàng</h1>
+
+              <button className="logout-button" onClick={this.handleLogout} disabled={disabledButtons.logout}>
+                <b>ĐĂNG XUẤT</b> <IonIcon icon={logOutOutline}></IonIcon>
               </button>
             </div>
             <div className="owner-top-content">

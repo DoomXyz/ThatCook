@@ -38,13 +38,15 @@ class HomeAppointment extends Component {
       },
     };
   }
+
   async componentDidMount() {
     await this.handleLoadVeterinarianInfo();
     await this.handleLoadCode(['WorkingStatus']);
   }
+
   handleLoadCode = async (codeTypes) => {
     try {
-      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypes.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypes.forEach((type, index) => {
         const response = responses[index];
@@ -60,6 +62,7 @@ class HomeAppointment extends Component {
       this.setState({ isLoading: false });
     }
   };
+
   handleLoadVeterinarianInfo = async () => {
     const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
@@ -84,7 +87,7 @@ class HomeAppointment extends Component {
   };
 
   handlePreSelectVeterinarian = (accountID) => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true }, });
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
         toast(
@@ -113,7 +116,7 @@ class HomeAppointment extends Component {
             autoClose: 2000,
             closeOnClick: false,
             onClose: () => {
-              this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: false }, });
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: false } });
             },
           }
         );
@@ -135,30 +138,26 @@ class HomeAppointment extends Component {
     });
   };
 
+  handlePrevDoctor = () => {
+    const { doctorIndex, loadedVeterinarianInfo } = this.state;
+    if (doctorIndex > 0) {
+      this.setState({ doctorIndex: doctorIndex - 1 });
+    }
+  };
+
+  handleNextDoctor = () => {
+    const { doctorIndex, loadedVeterinarianInfo } = this.state;
+    if (doctorIndex < loadedVeterinarianInfo.length - 1) {
+      this.setState({ doctorIndex: doctorIndex + 1 });
+    }
+  };
+
   render() {
-    const {
-      doctorIndex,
-      loadedVeterinarianInfo,
-      codeWorkingStatus,
-      disabledButtons,
-    } = this.state;
+    const { doctorIndex, loadedVeterinarianInfo, codeWorkingStatus, disabledButtons } = this.state;
     return (
       <div className="HomeAppointment-body">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable
-          transition={Slide}
-          limit={1}
-        />
-        <Header
-          navigate={this.props.navigate}
-          cartItems={this.props.cartItems}
-          userInfo={this.props.userInfo}
-          triggerCountCartItem={this.state.triggerCountCartItem}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable transition={Slide} limit={1} />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <div className="home-bg"></div>
         <div className="top-doctor">
           <div className="f">
@@ -167,32 +166,25 @@ class HomeAppointment extends Component {
           </div>
           <div className="stra"></div>
           <div className="doctor-slide-show">
+            <button className="doctor-btn-left" onClick={this.handlePrevDoctor} disabled={doctorIndex === 0}>
+              &lt;
+            </button>
             <div className="doctor-list-wrapper">
               <div
                 className="doctor-list"
                 style={{
-                  transform: `translateX(-${doctorIndex * 100}%)`,
+                  transform: `translateX(calc(50% - ${doctorIndex * 15.7}rem - 7rem))`,
                   transition: 'transform 0.3s ease-in-out',
                 }}
               >
                 {loadedVeterinarianInfo.length > 0 ? (
                   loadedVeterinarianInfo.map((doctor, index) => (
-                    <div
-                      className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`}
-                      key={doctor.AccountID}
-                    >
+                    <div className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`} key={doctor.AccountID}>
                       <img src={doctor.UserImage} alt={doctor.UserName} />
                       <p>{doctor.UserName}</p>
                       <p>Số lượt đặt lịch: {doctor.BookingCount || 0}</p>
-                      <p>
-                        Trạng thái:{' '}
-                        {codeWorkingStatus.find((filterItem) => filterItem.Code === doctor.WorkingStatus)?.CodeValueVI ||
-                          doctor.WorkingStatus}
-                      </p>
-                      <button
-                        onClick={() => this.handlePreSelectVeterinarian(doctor.AccountID)}
-                        disabled={disabledButtons.preSelectVeterinarian}
-                      >
+                      <p>Trạng thái: {codeWorkingStatus.find((filterItem) => filterItem.Code === doctor.WorkingStatus)?.CodeValueVI || doctor.WorkingStatus}</p>
+                      <button onClick={() => this.handlePreSelectVeterinarian(doctor.AccountID)} disabled={disabledButtons.preSelectVeterinarian || index !== doctorIndex}>
                         Đặt lịch ngay
                       </button>
                     </div>
@@ -202,6 +194,9 @@ class HomeAppointment extends Component {
                 )}
               </div>
             </div>
+            <button className="doctor-btn-right" onClick={this.handleNextDoctor} disabled={doctorIndex === loadedVeterinarianInfo.length - 1}>
+              &gt;
+            </button>
           </div>
         </div>
         <div className="service container">
@@ -209,20 +204,20 @@ class HomeAppointment extends Component {
           <div className="stra"></div>
           <div className="f">
             <div className="service-item" onClick={() => this.props.navigate('/service/genhealthcheck')}>
-              <img src={tongquat} alt='' />
+              <img src={tongquat} alt="" />
               <p>Khám Sức Khỏe Tổng Quát</p>
             </div>
             <div className="service-item" onClick={() => this.props.navigate('/service/vaccination')}>
-              <img src={tiemphong} alt='' />
+              <img src={tiemphong} alt="" />
               <p>Tiêm Phòng</p>
             </div>
             <div className="service-item" onClick={() => this.props.navigate('/service/surgery')}>
-              <img src={phauthuat} alt='' />
+              <img src={phauthuat} alt="" />
               <p>Phẫu thuật cơ bản</p>
             </div>
           </div>
           <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
-            <img src={xetnghiem} alt='' />
+            <img src={xetnghiem} alt="" />
             <p>Xét Nghiệm Và Chẩn Đoán</p>
           </div>
         </div>
@@ -237,14 +232,14 @@ class HomeAppointment extends Component {
               <div className="stra"></div>
               <p>Website Thú Y Mincow luôn nỗ lực để đạt được sự hài lòng và tín nhiệm bằng chất lượng dịch vụ, trải nghiệm hoàn hảo với chi phí hợp lý. Đáp ứng kỳ vọng của khách hàng, đạt được sự tin tưởng gắn kết với sứ mệnh phát triển và nâng cao sức khoẻ cho thú cưng Việt Nam.</p>
               <div className="f">
-                <img src={im3} alt='' />
-                <img src={im4} alt='' />
-                <img src={im1} alt='' />
-                <img src={im2} alt='' />
+                <img src={im3} alt="" />
+                <img src={im4} alt="" />
+                <img src={im1} alt="" />
+                <img src={im2} alt="" />
               </div>
             </div>
             <div className="bottom-right">
-              <img src={dr} alt='' />
+              <img src={dr} alt="" />
             </div>
           </div>
           <div className="bottom-bottom"></div>
