@@ -647,6 +647,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
           'PaymentType',
           'ShippingStatus',
           'ShippingMethod',
+          'PaymentStatus',
           'CancelReason',
         ],
         raw: true,
@@ -685,6 +686,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
         PaymentType: invoice.PaymentType,
         ShippingMethod: invoice.ShippingMethod,
         ShippingStatus: invoice.ShippingStatus,
+        PaymentStatus: invoice.PaymentStatus,
         CancelReason: invoice.CancelReason,
         ProductList: [],
       };
