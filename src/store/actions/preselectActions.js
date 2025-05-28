@@ -8,3 +8,8 @@ export const savePreselectInfo = (type, selectedID) => ({
 export const clearPreselectInfo = () => ({
     type: actionTypes.CLEAR_PRESELECT_INFO,
 });
+
+export const selectServiceType = (serviceType) => ({
+    type: actionTypes.SELECT_SERVICE_TYPE,
+    serviceType,
+});

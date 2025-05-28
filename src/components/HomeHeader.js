@@ -13,7 +13,7 @@ import { handleGetCartApi } from '../services/cartServices';
 import { handleGetServiceInfoApi } from '../services/serviceServices';
 
 import { checkLoginStatus } from '../utils/pakage';
-import { userLogin, userLogout, clearCheckOutCart } from '../store/actions/';
+import { userLogin, userLogout, clearCheckOutCart, selectServiceType } from '../store/actions/';
 
 const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
 
@@ -127,14 +127,15 @@ class HomeHeader extends Component {
   };
 
   handleServiceNavigate = (serviceID) => {
-    const servicePaths = {
-      1: '/service/genhealthcheck',
-      2: '/service/vaccination',
-      3: '/service/surgery',
-      4: '/service/test',
+    const serviceTypeMap = {
+      1: 1, // General Health Check
+      2: 2, // Vaccination
+      3: 3, // Surgery
+      4: 4, // Test
     };
-    const path = servicePaths[serviceID] || '/homeappointment';
-    this.props.navigate(path);
+    const serviceType = serviceTypeMap[serviceID] || 1;
+    this.props.selectServiceType(serviceType);
+    this.props.navigate('/showservice');
   };
 
   countCartItem = async () => {
@@ -229,7 +230,7 @@ class HomeHeader extends Component {
   };
 
   render() {
-    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codePetType, codeService, isScrolled } = this.state;
+    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codeService, isScrolled } = this.state;
     return (
       <div className="body-container">
         <div className={`header-container ${isScrolled ? 'scrolled' : ''}`}>
@@ -375,6 +376,7 @@ const mapDispatchToProps = (dispatch) => ({
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
+  selectServiceType: (serviceType) => dispatch(selectServiceType(serviceType)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeHeader);

@@ -15,10 +15,7 @@ import MainPage from '../containers/MainPage/MainPage';
 import HomeAppointment from '../containers/HomeAppointment/HomeAppointment';
 import MakeAppointment from '../containers/MakeAppointment/MakeAppointment';
 import ShowDoctor from '../containers/ShowDoctor/ShowDoctor';
-import GenHealthCheck from '../containers/GenHealthCheck/GenHealthCheck';
-import Vaccination from '../containers/Vaccination/Vaccination';
-import Surgery from '../containers/Surgery/Surgery';
-import Test from '../containers/Test/Test';
+import ShowService from '../containers/ShowService/ShowService';
 import DoctorPage from '../containers/DoctorPage/Doctor';
 import AppointmentCheckOut from '../containers/AppointmentCheckOut/AppointmentCheckOut';
 // class AppRoutes extends Component {
@@ -56,11 +53,8 @@ const AppRoutes = () => {
       <Route path="/homeappointment" element={<HomeAppointment navigate={navigate} />} />
       <Route path="/makeappointment" element={<MakeAppointment navigate={navigate} />} />
       <Route path="/showdoctor" element={<ShowDoctor navigate={navigate} />} />
+      <Route path="/showservice" element={<ShowService navigate={navigate} />} />
       <Route path="/appointmentcheckout" element={<AppointmentCheckOut navigate={navigate} />} />
-      <Route path="/service/genhealthcheck" element={<GenHealthCheck navigate={navigate} />} />
-      <Route path="/service/vaccination" element={<Vaccination navigate={navigate} />} />
-      <Route path="/service/surgery" element={<Surgery navigate={navigate} />} />
-      <Route path="/service/test" element={<Test navigate={navigate} />} />
     </Routes>
   );
 };

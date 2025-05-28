@@ -23,5 +23,6 @@ const actionTypes = Object.freeze({
   //preselect
   SAVE_PRESELECT_INFO: 'SAVE_PRESELECT_INFO',
   CLEAR_PRESELECT_INFO: 'CLEAR_PRESELECT_INFO',
+  SELECT_SERVICE_TYPE: 'SELECT_SERVICE_TYPE',
 });
 export default actionTypes;

@@ -1,5 +1,6 @@
 const initialState = {
     appointmentPreselect: null,
+    serviceType: 1,
 };
 
 const preselectReducer = (state = initialState, action) => {
@@ -16,6 +17,11 @@ const preselectReducer = (state = initialState, action) => {
             return {
                 ...state,
                 appointmentPreselect: null,
+            };
+        case 'SELECT_SERVICE_TYPE':
+            return {
+                ...state,
+                serviceType: action.serviceType,
             };
         default:
             return state;

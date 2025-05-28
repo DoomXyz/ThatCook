@@ -4,7 +4,7 @@ import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 import DatePicker from 'react-datepicker';
 
-import { closeOutline, constructOutline } from 'ionicons/icons';
+import { closeOutline } from 'ionicons/icons';
 
 import './MakeAppointment.scss'; //import scss
 import Spinner from '../../components/Spinner';
@@ -168,24 +168,9 @@ class MakeAppointment extends Component {
               toast.error('Lỗi khi tải thông tin bác sĩ!');
             }
           } else if (this.props.appointmentPreselect.type === 'Service') {
-            const serviceID = this.props.appointmentPreselect.selectedID;
-            try {
-              const response = await handleGetServiceInfoApi(serviceID);
-              if (response.errCode === 0 && response.data) {
-                this.setState({
-                  selectedServiceID: serviceID,
-                  loadedServiceInfo: [response.data], // Giới hạn dropdown chỉ hiển thị dịch vụ đã chọn
-                  originalServiceList: [response.data],
-                });
-              } else {
-                toast.error('Không thể tải thông tin dịch vụ!');
-                this.setState({
-                  selectedServiceID: '',
-                });
-              }
-            } catch (e) {
-              toast.error('Lỗi khi tải thông tin dịch vụ!');
-            }
+            this.setState({
+              selectedServiceID: this.props.appointmentPreselect.selectedID
+            })
           }
           this.props.clearPreselectInfo();
         }
@@ -405,6 +390,7 @@ class MakeAppointment extends Component {
     }
   };
   handleOnChangeInput = (event, type) => {
+    console.log(event.target.value, type)
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
     this.setState({ ...copyState }, async () => {

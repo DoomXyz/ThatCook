@@ -8,6 +8,7 @@ import Footer from '../../components/HomeFooter';
 
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
 
+import { getAllCodes } from '../../utils/pakage';
 import { savePreselectInfo } from '../../store/actions';
 
 import tongquat from '../../assets/doctor-imgs/img1.png';
@@ -31,6 +32,7 @@ class HomeAppointment extends Component {
       sortValue: '1',
       currentPage: 1,
       limitItemPerQuery: 5,
+      codeWorkingStatus: [],
       disabledButtons: {
         preSelectVeterinarian: false,
       },
@@ -38,7 +40,26 @@ class HomeAppointment extends Component {
   }
   async componentDidMount() {
     await this.handleLoadVeterinarianInfo();
+    await this.handleLoadCode(['WorkingStatus']);
   }
+  handleLoadCode = async (codeTypes) => {
+    try {
+      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypes.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
+  };
   handleLoadVeterinarianInfo = async () => {
     const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
@@ -61,6 +82,7 @@ class HomeAppointment extends Component {
       });
     }
   };
+
   handlePreSelectVeterinarian = (accountID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true }, });
     const confirmAction = () =>
@@ -112,10 +134,12 @@ class HomeAppointment extends Component {
       }
     });
   };
+
   render() {
     const {
       doctorIndex,
       loadedVeterinarianInfo,
+      codeWorkingStatus,
       disabledButtons,
     } = this.state;
     return (
@@ -152,11 +176,19 @@ class HomeAppointment extends Component {
                 }}
               >
                 {loadedVeterinarianInfo.length > 0 ? (
-                  loadedVeterinarianInfo.map((doctor) => (
-                    <div className="top-doctor-item" key={doctor.AccountID}>
+                  loadedVeterinarianInfo.map((doctor, index) => (
+                    <div
+                      className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`}
+                      key={doctor.AccountID}
+                    >
                       <img src={doctor.UserImage} alt={doctor.UserName} />
                       <p>{doctor.UserName}</p>
                       <p>Số lượt đặt lịch: {doctor.BookingCount || 0}</p>
+                      <p>
+                        Trạng thái:{' '}
+                        {codeWorkingStatus.find((filterItem) => filterItem.Code === doctor.WorkingStatus)?.CodeValueVI ||
+                          doctor.WorkingStatus}
+                      </p>
                       <button
                         onClick={() => this.handlePreSelectVeterinarian(doctor.AccountID)}
                         disabled={disabledButtons.preSelectVeterinarian}
@@ -177,20 +209,20 @@ class HomeAppointment extends Component {
           <div className="stra"></div>
           <div className="f">
             <div className="service-item" onClick={() => this.props.navigate('/service/genhealthcheck')}>
-              <img src={tongquat} />
+              <img src={tongquat} alt='' />
               <p>Khám Sức Khỏe Tổng Quát</p>
             </div>
             <div className="service-item" onClick={() => this.props.navigate('/service/vaccination')}>
-              <img src={tiemphong} />
+              <img src={tiemphong} alt='' />
               <p>Tiêm Phòng</p>
             </div>
             <div className="service-item" onClick={() => this.props.navigate('/service/surgery')}>
-              <img src={phauthuat} />
+              <img src={phauthuat} alt='' />
               <p>Phẫu thuật cơ bản</p>
             </div>
           </div>
           <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
-            <img src={xetnghiem} />
+            <img src={xetnghiem} alt='' />
             <p>Xét Nghiệm Và Chẩn Đoán</p>
           </div>
         </div>
@@ -205,14 +237,14 @@ class HomeAppointment extends Component {
               <div className="stra"></div>
               <p>Website Thú Y Mincow luôn nỗ lực để đạt được sự hài lòng và tín nhiệm bằng chất lượng dịch vụ, trải nghiệm hoàn hảo với chi phí hợp lý. Đáp ứng kỳ vọng của khách hàng, đạt được sự tin tưởng gắn kết với sứ mệnh phát triển và nâng cao sức khoẻ cho thú cưng Việt Nam.</p>
               <div className="f">
-                <img src={im3} />
-                <img src={im4} />
-                <img src={im1} />
-                <img src={im2} />
+                <img src={im3} alt='' />
+                <img src={im4} alt='' />
+                <img src={im1} alt='' />
+                <img src={im2} alt='' />
               </div>
             </div>
             <div className="bottom-right">
-              <img src={dr} />
+              <img src={dr} alt='' />
             </div>
           </div>
           <div className="bottom-bottom"></div>
