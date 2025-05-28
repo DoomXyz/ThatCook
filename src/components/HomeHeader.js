@@ -338,9 +338,9 @@ class HomeHeader extends Component {
                   <button
                     type="button"
                     className="link-button"
-                    onClick={() => this.props.navigate('/information')}
+                    onClick={() => this.props.navigate('/track')}
                   >
-                    Liên hệ
+                    Tra cứu
                   </button>
                 </li>
               )}

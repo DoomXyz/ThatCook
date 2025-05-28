@@ -279,7 +279,6 @@ class User extends Component {
   handleLoadAppointmentInfo = async () => {
     const { accountid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
     try {
-      this.setState({ isLoading: true });
       const response = await handleLoadAppointmentInfoApi(accountid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2);
       if (response && response.errCode === 0) {
         this.setState({
@@ -1024,7 +1023,7 @@ class User extends Component {
   //form controller
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 1, editField: null, currentPage: 1, tempCurrentPage: '1' });
+    this.setState({ actionPage: 1, editField: null });
   };
   handleFormLichSuDonHang = (e) => {
     e.preventDefault();
@@ -1036,15 +1035,15 @@ class User extends Component {
   };
   handleFormThuCung = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 7, currentPage: 1, tempCurrentPage: '1' });
+    this.setState({ actionPage: 7 });
   };
   handleFromThemThuCung = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 8, currentPage: 1, tempCurrentPage: '1' });
+    this.setState({ actionPage: 8 });
   };
   handleFormDoiMatKhau = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 3, currentPage: 1, tempCurrentPage: '1' });
+    this.setState({ actionPage: 3 });
   };
   handleFormChiTietDonHang = async (invoiceid) => {
     if (this.state.selectedInvoiceID === invoiceid && this.state.loadedInvoiceDetail) {
@@ -1642,7 +1641,7 @@ class User extends Component {
                   <button className="prev" type='button' onClick={() => this.handlePrevPage(0)} disabled={currentPage === 1}>
                     {'<'}
                   </button>
-                  <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 0)} onBlur={() => this.handlePageInputBlur(5)} />
+                  <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 0)} onBlur={() => this.handlePageInputBlur(0)} />
                   <span className="total-pages">/ {totalPages}</span>
                   <button className="next" type='button' onClick={() => this.handleNextPage(0)} disabled={currentPage === totalPages}>
                     {'>'}
@@ -1734,9 +1733,6 @@ class User extends Component {
           </form>
         );
       case 5:
-        const startAppointmentIndex = (currentPage - 1) * limitAppointmentPerQuery;
-        const endAppointmentIndex = startAppointmentIndex + limitAppointmentPerQuery;
-        const paginatedAppointmentInfo = loadedAppointmentInfo.slice(startAppointmentIndex, endAppointmentIndex);
         return (
           <form className="user-appointment-form">
             <div className="f">
@@ -1828,8 +1824,8 @@ class User extends Component {
             </div>
             <div className="user-appointment-form-content">
               <div className="appointment-list">
-                {paginatedAppointmentInfo.length > 0 ? (
-                  paginatedAppointmentInfo.map((appointment) => (
+                {loadedAppointmentInfo.length > 0 ? (
+                  loadedAppointmentInfo.map((appointment) => (
                     <div key={appointment.AppointmentID} className={`appointment-list-item ${actionPage === 6 ? 'active' : ''}`} onClick={() => this.handleFormChiTietLichKham(appointment.AppointmentID)}>
                       <div className="appointment-list-item-top-1">
                         <b>
