@@ -307,9 +307,6 @@ class Admin extends Component {
   };
   //pagination
   handlePageChange = (page, type) => {
-    this.setState({
-      isLoading: true,
-    });
     const { totalPages } = this.state;
     let newPage = page;
     if (isNaN(page) || page <= 0) {
@@ -318,7 +315,6 @@ class Admin extends Component {
       newPage = totalPages;
     }
     this.setState({
-      isLoading: false,
       currentPage: newPage,
       tempCurrentPage: newPage.toString(),
     }, () => {

@@ -57,7 +57,15 @@ class User extends Component {
       sortValue: '0',
       date1: '',
       date2: '',
-      // User Info
+      // Data Lists
+      loadedInvoiceInfo: [],
+      loadedInvoiceDetail: null,
+      loadedAppointmentInfo: [],
+      loadedAppointmentDetail: null,
+      loadedAppointmentBillDetail: null,
+      loadedPetInfo: [],
+      serviceList: [],
+      // AccountInfo
       editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
       originalValue: '',
       imageInfo: null,
@@ -69,21 +77,12 @@ class User extends Component {
       gender: '',
       email: '',
       isUploading: false,
-      // Password Change
       oldPassword: '',
       newPassword: '',
       confirmPassword: '',
       showOldPassword: false,
       showNewPassword: false,
       showConfirmPassword: false,
-      // Data Lists
-      loadedInvoiceInfo: [],
-      loadedInvoiceDetail: null,
-      loadedAppointmentInfo: [],
-      loadedAppointmentDetail: null,
-      loadedAppointmentBillDetail: null,
-      loadedPetInfo: [],
-      serviceList: [],
       // Modals & Selections
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
@@ -134,11 +133,13 @@ class User extends Component {
       URL.revokeObjectURL(this.state.imageInfo.Image);
     }
   }
+  //header action
   triggerLoadInformation = async () => {
     this.setState((prevState) => ({
       triggerLoadInformation: !prevState.triggerLoadInformation,
     }));
   };
+  //login
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -147,14 +148,15 @@ class User extends Component {
           this.props.userLogin(accountInfo);
         }
         this.setState({
-          isLoggedIn: true,
           accountInfo,
+          isLoggedIn: true,
           accountid: accountInfo.AccountID,
         });
       } else {
         await handleLogoutApi();
         this.props.userLogout();
         this.setState({
+          accountInfo: null,
           isLoggedIn: false,
           accountid: '',
         });
@@ -164,6 +166,7 @@ class User extends Component {
       this.props.navigate('/login');
     }
   };
+  //load filter/code
   handleLoadCode = async (codeTypeFilter) => {
     try {
       const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
@@ -200,6 +203,7 @@ class User extends Component {
       toast.error('Lỗi khi tải danh sách dịch vụ!');
     }
   };
+  //load data info
   handleReloadData = (type) => {
     switch (type) {
       case 1:
@@ -381,7 +385,7 @@ class User extends Component {
       [name]: value,
     });
   };
-  handleUpdateAccountInfo = async (e) => {
+  handleChangeAccountInfo = async (e) => {
     e.preventDefault();
     const { imageInfo, isUploading, editField, originalValue, accountid, accountname, username, phone, address, gender, email } = this.state;
     let updateInfo = {
@@ -746,6 +750,114 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
+  //search, filter, sort
+  handleSearchChange = (event, type) => {
+    const value = event.target.value;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
+        this.debounceTimeout = setTimeout(() => {
+          this.handleReloadData(type);
+        }, 500);
+      }
+    );
+  };
+  handleFilter = (value, type) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type)
+      }
+    );
+  };
+  handleSort = (value, type) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  resetDateFilter = (dateField, type) => {
+    this.setState(
+      {
+        [dateField]: '',
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  //pagination
+  handlePageChange = (page, type) => {
+    const { totalPages } = this.state;
+    let newPage = page;
+    if (isNaN(page) || page <= 0) {
+      newPage = 1;
+    } else if (page > totalPages) {
+      newPage = totalPages;
+    }
+    this.setState({
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString(),
+    }, () => {
+      this.handleReloadData(type);
+    });
+  };
+  handlePrevPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      }, () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handleNextPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
+  };
+  handlePageInputBlur = (type) => {
+    const { tempCurrentPage } = this.state;
+    const page = parseInt(tempCurrentPage, 10);
+    this.handlePageChange(page, type);
+  };
+  handlePageKeyDown = (event, type) => {
+    if (event.key === 'Enter') {
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page, type);
+    }
+  };
   //InvoiceAction Management
   handleConfirmReceived = async (invoiceid) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: true } });
@@ -905,120 +1017,7 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  //Search, filter, sort, paginated
-  handleSearchChange = (event, type) => {
-    const value = event.target.value;
-    this.setState(
-      {
-        searchValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
-        this.debounceTimeout = setTimeout(() => {
-          this.handleReloadData(type);
-        }, 500);
-      }
-    );
-  };
-  handleFilter = (value, type) => {
-    this.setState(
-      {
-        filterValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        this.handleReloadData(type)
-      }
-    );
-  };
-  handleSort = (value, type) => {
-    this.setState(
-      {
-        sortValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        this.handleReloadData(type);
-      }
-    );
-  };
-  resetDateFilter = (dateField, type) => {
-    this.setState(
-      {
-        [dateField]: '',
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        this.handleReloadData(type);
-      }
-    );
-  };
-  handlePageChange = (page, type) => {
-    this.setState({ isLoading: true });
-    const { totalPages } = this.state;
-    let newPage = page;
-    if (isNaN(page) || page <= 0) {
-      newPage = 1;
-    } else if (page > totalPages) {
-      newPage = totalPages;
-    }
-    this.setState({
-      isLoading: false,
-      currentPage: newPage,
-      tempCurrentPage: newPage.toString(),
-    }, () => {
-      this.handleReloadData(type);
-    });
-  };
-  handlePrevPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.max(1, prevState.currentPage - 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-        };
-      }, () => {
-        this.handleReloadData(type);
-      }
-    );
-  };
-  handleNextPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-        };
-      },
-      () => {
-        this.handleReloadData(type);
-      }
-    );
-  };
-  handlePageInputBlur = (type) => {
-    const { tempCurrentPage } = this.state;
-    const page = parseInt(tempCurrentPage, 10);
-    this.handlePageChange(page, type);
-  };
-  handlePageKeyDown = (event, type) => {
-    if (event.key === 'Enter') {
-      const { tempCurrentPage } = this.state;
-      const page = parseInt(tempCurrentPage, 10);
-      this.handlePageChange(page, type);
-    }
-  };
-  //Utilities
-  getDayOfWeek = (date) => {
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return days[date.getDay()];
-  };
+  //form controller
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
     this.setState({ actionPage: 1, editField: null, currentPage: 1, tempCurrentPage: '1' });
@@ -1082,6 +1081,11 @@ class User extends Component {
       this.setState({ actionPage: 5 });
     }
     this.setState({ isLoading: false });
+  };
+  //Utilities
+  getDayOfWeek = (date) => {
+    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    return days[date.getDay()];
   };
   //CancelInvoice Modal
   handleSelectedCancelInvoice = (invoiceid) => {
@@ -1220,7 +1224,7 @@ class User extends Component {
     switch (actionPage) {
       case 1:
         return (
-          <form className="user-info-form" onSubmit={this.handleUpdateAccountInfo}>
+          <form className="user-info-form" onSubmit={this.handleChangeAccountInfo}>
             <h3>
               <b>Thông tin người dùng:</b>
             </h3>
@@ -1269,7 +1273,7 @@ class User extends Component {
                     ))}
                   </div>
                 </div>
-                <div className="change-info-button" onSubmit={this.handleUpdateAccountInfo}>
+                <div className="change-info-button" onSubmit={this.handleChangeAccountInfo}>
                   <button> Cập nhật </button>
                 </div>
               </div>

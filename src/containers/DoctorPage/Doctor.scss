@@ -472,13 +472,17 @@ $transition: all 0.3s ease;
 
       button {
         position: absolute;
-        right: 10px;
+        right: 30px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
         border: none;
         cursor: pointer;
         color: $danger-color;
+        z-index: 10; // Đảm bảo nút nằm trên DatePicker
+        padding: 5px; // Thêm padding
+        font-size: 16px; // Tăng kích thước chữ
+        line-height: 1; // Đảm bảo chữ "x" căn giữa
       }
     }
   }

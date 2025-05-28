@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 
-import { pencil, chevronForwardOutline, chevronBackOutline } from 'ionicons/icons';
+import { pencil, chevronForwardOutline, chevronBackOutline, closeCircleOutline } from 'ionicons/icons';
 
 import './Doctor.scss'; // Import SCSS
 import Spinner from '../../components/Spinner';
@@ -21,45 +21,50 @@ import { userLogin, userLogout, saveAppointmentForCheckout, saveTrackInfo } from
 class Doctor extends Component {
   constructor(props) {
     super(props);
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const startWeek = new Date(today);
-    startWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
     this.state = {
+      // Authentication & General
+      actionPage: 1,
+      fromForm: '',
       isLoading: true,
       isLoggedIn: false,
-      veterinarianid: '',
-      veterinarianname: '',
-      workingstatus: '',
-      bio: '',
-      specialization: '',
-      actionPage: 1,
-      editField: null,
-      servicesList: [],
-      originalValue: '',
+      accountInfo: null,
+      // Codes
       codeWorkingStatus: [],
       codeAppointmentStatus: [],
       codeScheduleStatus: [],
       codeAppointmentType: [],
       codePetType: [],
       codePetGender: [],
-      serviceList: [],
-      loadedPendingAppointments: [],
-      loadedCompleteAppointments: [],
-      loadedSchedules: [],
+      // Pagination
       currentPage: 1,
       tempCurrentPage: '1',
-      limitAppointmentPerQuery: 1,
-      totalAppointmentPages: 1,
+      limitAppointmentPerQuery: 5,
+      totalPages: 1,
+      // Filtering & Sorting
       searchValue: '',
       filterValue: 'ALL',
       sortValue: '0',
       date1: '',
       date2: '',
-      selectedAppointment: null,
+      // VeterinarianInfo
+      editField: null,
+      originalValue: '',
+      veterinarianid: '',
+      veterinarianname: '',
+      workingstatus: '',
+      bio: '',
+      specialization: '',
+      serviceList: [],
+      // Data Lists
+      loadedPendingAppointments: [],
+      loadedSchedules: [],
+      loadedCompleteAppointments: [],
       loadedAppointmentDetail: null,
-      fromForm: '',
-      currentWeekStart: startWeek,
+      // Selections
+      selectedAppointment: null,
+      // Date management
+      currentWeekStart: this.getStartOfWeek(),
+      // DisableButton
       disabledButtons: {
         changeAppointment: false,
         changeSchedule: false,
@@ -72,23 +77,20 @@ class Doctor extends Component {
     await this.handleIsLogin();
     await this.handleLoadCode(['WorkingStatus', 'AppointmentStatus', 'ScheduleStatus', 'AppointmentType', 'PetType', 'PetGender']);
     await this.handleGetServiceInfo();
-    if (this.props.userInfo) {
-      await this.handleIsLogin();
-      setTimeout(() => {
-        const { veterinarianid } = this.state;
-        this.loadVeterinarianInfo(veterinarianid);
-      }, 10);
-    }
+    setTimeout(() => {
+      this.handleLoadVeterinarianInfo();
+      this.setState({ isLoading: false });
+    }, 10);
   }
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
       setTimeout(() => {
-        const { veterinarianid } = this.state;
-        this.loadVeterinarianInfo(veterinarianid);
+        this.handleLoadVeterinarianInfo();
       }, 10);
     }
   }
+  //login
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -97,17 +99,17 @@ class Doctor extends Component {
           this.props.userLogin(accountInfo);
         }
         this.setState({
+          accountInfo,
           isLoggedIn: true,
           veterinarianid: accountInfo.AccountID,
-          veterinarianname: accountInfo.UserName,
         });
       } else {
         await handleLogoutApi();
         this.props.userLogout();
         this.setState({
+          accountInfo: null,
           isLoggedIn: false,
           veterinarianid: '',
-          veterinarianname: '',
         });
         this.props.navigate('/login');
       }
@@ -115,17 +117,21 @@ class Doctor extends Component {
       this.props.navigate('/login');
     }
   };
+  //load filter/code
   handleLoadCode = async (codeTypes) => {
     try {
       const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
       const newState = { isLoading: false };
+      const hasDefault = ['WorkingStatus'];
       codeTypes.forEach((type, index) => {
         const response = responses[index];
         if (!response.status || response.data.length === 0) {
           toast.error(`Không thể tải danh sách ${type}!`);
         }
         newState[`code${type}`] = response.data;
-        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        if (hasDefault.includes(type)) {
+          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        }
       });
       this.setState(newState);
     } catch (error) {
@@ -137,35 +143,137 @@ class Doctor extends Component {
   handleGetServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
-      if (response.errCode === 0 && response.data && response.data.length > 0) {
-        this.setState({
-          loadedServiceInfo: response.data,
-        });
-      } else {
-        toast.error('Không thể tải danh sách dịch vụ!');
+      const response = responseApi.data;
+      if (response.errCode !== 0 || !response.data || response.data.length === 0) {
+        toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!');
+        this.setState({ serviceList: [] });
+        return;
       }
+      this.setState({ serviceList: response.data });
     } catch (e) {
-      console.log('Error loading service info:', e);
       toast.error('Lỗi khi tải danh sách dịch vụ!');
     }
   };
+  //load data info
+  handleReloadData = (type) => {
+    switch (type) {
+      case 1:
+        this.handleLoadVeterinarianInfo();
+        break;
+      case 2:
+        this.handleLoadPendingAppointments();
+        break;
+      case 3:
+        this.handleLoadSchedule();
+        break;
+      case 4:
+        this.handleLoadCompleteAppointments();
+        break;
+      default:
+        break;
+    }
+  };
+  handleLoadVeterinarianInfo = async () => {
+    try {
+      const { veterinarianid } = this.state
+      const response = await handleGetVeterinarianInfoApi(veterinarianid);
+      if (response && response.errCode === 0) {
+        const veterinarianInfo = response.data;
+        this.setState({
+          specialization: veterinarianInfo.Specialization,
+          workingstatus: veterinarianInfo.WorkingStatus,
+          bio: veterinarianInfo.Bio,
+          servicesList: veterinarianInfo.services
+        });
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải thông tin bác sĩ:', e);
+      toast.error('Lỗi khi tải thông tin!');
+    }
+  };
+  handleLoadPendingAppointments = async () => {
+    const { veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
+    try {
+      const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "PEND");
+      if (response && response.errCode === 0) {
+        this.setState({
+          loadedPendingAppointments: response.data,
+          totalPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
+        });
+      } else {
+        toast.error('Không thể tải danh sách lịch hẹn!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải lịch hẹn:', e);
+      toast.error('Lỗi hệ thống khi tải danh sách!');
+    }
+  };
+  handleLoadSchedule = async () => {
+    const { veterinarianid, currentWeekStart } = this.state;
+    try {
+      const startDate = currentWeekStart.toISOString().split('T')[0];
+      const response = await handleLoadScheduleApi(veterinarianid, startDate);
+      if (response && response.errCode === 0) {
+        this.setState({
+          loadedSchedules: response.data,
+        });
+      } else {
+        toast.error('Không thể tải lịch làm việc!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải lịch làm việc:', e);
+      toast.error('Lỗi hệ thống khi tải lịch làm việc!');
+    }
+  };
+  handleLoadCompleteAppointments = async () => {
+    const { veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
+    try {
+      const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "COMP");
+      if (response && response.errCode === 0) {
+        this.setState({
+          loadedCompleteAppointments: response.data,
+          totalPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
+        });
+      } else {
+        toast.error('Không thể tải danh sách lịch hẹn hoàn thành!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải lịch hẹn hoàn thành:', e);
+      toast.error('Lỗi hệ thống khi tải danh sách!');
+    }
+  };
+  handleLoadAppointmentDetails = async (appointmentid) => {
+    try {
+      const response = await handleLoadAppointmentDetailsApi(appointmentid);
+      if (response && response.errCode === 0) {
+        this.setState({ loadedAppointmentDetail: response.data, });
+      } else {
+        toast.error('Không thể tải chi tiết lịch hẹn!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi tải chi tiết lịch hẹn:', e);
+      toast.error('Lỗi hệ thống khi tải chi tiết lịch hẹn!');
+    }
+    this.setState({ isLoading: false });
+  };
+  //VeterinarianInfo Management
+  handleEditClick = (field) => {
+    this.setState({
+      editField: field,
+      originalValue: this.state[field], // Lưu giá trị ban đầu của trường
+    });
+  };
   handleVeterinarianInfoChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'workingstatus' && this.state.editField !== 'workingstatus') {
+    const { editField, workingstatus } = this.state
+    if (name === 'workingstatus' && editField !== 'workingstatus') {
       this.setState({
         editField: 'workingstatus',
-        originalValue: this.state.workingstatus,
+        originalValue: workingstatus,
       });
     }
     this.setState({
       [name]: value,
-    });
-  };
-  handleChangeInfoClick = (field) => {
-    this.setState({
-      editField: field,
-      originalValue: this.state[field], // Lưu giá trị ban đầu của trường
     });
   };
   handleChangeVeterinarianInfo = async (e) => {
@@ -196,7 +304,7 @@ class Doctor extends Component {
         toast.success('Cập nhật thông tin thành công!');
       } else {
         toast.error(response.errMessage);
-        this.loadVeterinarianInfo(updateInfo.accountid);
+        this.handleLoadVeterinarianInfo(updateInfo.accountid);
       }
     }
     this.setState({ editField: null, originalValue: '' });
@@ -216,127 +324,114 @@ class Doctor extends Component {
       toast.error('Lỗi hệ thống khi cập nhật trạng thái!');
     }
   };
-  loadVeterinarianInfo = async (veterinarianid) => {
-    try {
-      this.setState({ isLoading: true });
-      const response = await handleGetVeterinarianInfoApi(veterinarianid);
-      if (response && response.errCode === 0) {
-        const veterinarianInfo = response.data;
-        this.setState({
-          specialization: veterinarianInfo.Specialization,
-          workingstatus: veterinarianInfo.WorkingStatus,
-          bio: veterinarianInfo.Bio,
-          servicesList: veterinarianInfo.services
-        });
+  //search filter sort
+  handleSearchChange = (event, type) => {
+    const value = event.target.value;
+    this.setState(
+      {
+        searchValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        if (this.debounceTimeout) { clearTimeout(this.debounceTimeout); }
+        this.debounceTimeout = setTimeout(() => {
+          this.handleReloadData(type);
+        }, 500)
       }
-    } catch (e) {
-      console.log('Lỗi khi tải thông tin bác sĩ:', e);
-      toast.error('Lỗi khi tải thông tin!');
-    }
-    this.setState({ isLoading: false });
+    );
   };
-  handleLoadPendingAppointments = async () => {
-    const {
-      veterinarianid,
-      currentPage,
-      limitAppointmentPerQuery,
-      searchValue,
-      filterValue,
-      sortValue,
-      date1,
-      date2,
-    } = this.state;
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "PEND");
-      if (response && response.errCode === 0) {
-        this.setState({
-          loadedPendingAppointments: response.data,
-          totalAppointmentPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
-        });
-      } else {
-        toast.error('Không thể tải danh sách lịch hẹn!');
+  handleFilter = (value, type) => {
+    this.setState(
+      {
+        filterValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
       }
-    } catch (e) {
-      console.log('Lỗi khi tải lịch hẹn:', e);
-      toast.error('Lỗi hệ thống khi tải danh sách!');
-    }
-    this.setState({ isLoading: false });
+    );
   };
-  handleLoadCompleteAppointments = async () => {
-    const {
-      veterinarianid,
-      currentPage,
-      limitAppointmentPerQuery,
-      searchValue,
-      filterValue,
-      sortValue,
-      date1,
-      date2,
-    } = this.state;
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleLoadAppointmentsApi(
-        veterinarianid,
-        currentPage,
-        limitAppointmentPerQuery,
-        searchValue,
-        filterValue,
-        sortValue,
-        date1,
-        date2,
-        "COMP",
-      );
-      if (response && response.errCode === 0) {
-        this.setState({
-          loadedCompleteAppointments: response.data,
-          totalAppointmentPages: Math.ceil(response.totalItems / limitAppointmentPerQuery),
-        });
-      } else {
-        toast.error('Không thể tải danh sách lịch hẹn hoàn thành!');
+  handleSort = (value, type) => {
+    this.setState(
+      {
+        sortValue: value,
+        currentPage: 1,
+        tempCurrentPage: '1',
+      },
+      () => {
+        this.handleReloadData(type);
       }
-    } catch (e) {
-      console.log('Lỗi khi tải lịch hẹn hoàn thành:', e);
-      toast.error('Lỗi hệ thống khi tải danh sách!');
-    }
-    this.setState({ isLoading: false });
+    );
   };
-  handleLoadSchedule = async () => {
-    const { veterinarianid, currentWeekStart } = this.state;
-    this.setState({ isLoading: true });
-    try {
-      const startDate = currentWeekStart.toISOString().split('T')[0];
-      const response = await handleLoadScheduleApi(veterinarianid, startDate);
-      if (response && response.errCode === 0) {
-        this.setState({
-          loadedSchedules: response.data,
-        });
-      } else {
-        toast.error('Không thể tải lịch làm việc!');
+  resetDateFilter = (dateField, type) => {
+    this.setState({
+      [dateField]: null
+    }, () => {
+      this.handleReloadData(type);
+    }
+    );
+  };
+  //pagination
+  handlePageChange = (page, type) => {
+    const { totalPages } = this.state;
+    let newPage = page;
+    if (isNaN(page) || page <= 0) {
+      newPage = 1;
+    } else if (page > totalPages) {
+      newPage = totalPages;
+    }
+    this.setState({
+      currentPage: newPage,
+      tempCurrentPage: newPage.toString(),
+    }, () => {
+      this.handleReloadData(type)
+    });
+  };
+  handlePrevPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.max(1, prevState.currentPage - 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      }, () => {
+        this.handleReloadData(type);
       }
-    } catch (e) {
-      console.log('Lỗi khi tải lịch làm việc:', e);
-      toast.error('Lỗi hệ thống khi tải lịch làm việc!');
-    }
-    this.setState({ isLoading: false });
+    );
   };
-  handleLoadAppointmentDetails = async (appointmentid) => {
-    this.setState({ isLoading: true });
-    try {
-      const response = await handleLoadAppointmentDetailsApi(appointmentid);
-      if (response && response.errCode === 0) {
-        this.setState({
-          loadedAppointmentDetail: response.data,
-        });
-      } else {
-        toast.error('Không thể tải chi tiết lịch hẹn!');
+  handleNextPage = (type) => {
+    this.setState(
+      (prevState) => {
+        const newPage = Math.min(prevState.totalPages, prevState.currentPage + 1);
+        return {
+          currentPage: newPage,
+          tempCurrentPage: newPage.toString(),
+        };
+      }, () => {
+        this.handleReloadData(type);
       }
-    } catch (e) {
-      console.log('Lỗi khi tải chi tiết lịch hẹn:', e);
-      toast.error('Lỗi hệ thống khi tải chi tiết lịch hẹn!');
-    }
-    this.setState({ isLoading: false });
+    );
   };
+  handlePageInputChange = (event) => {
+    const value = event.target.value;
+    this.setState({ tempCurrentPage: value });
+  };
+  handlePageInputBlur = (type) => {
+    const { tempCurrentPage } = this.state;
+    const page = parseInt(tempCurrentPage, 10);
+    this.handlePageChange(page, type);
+  };
+  handlePageKeyDown = (event, type) => {
+    if (event.key === 'Enter') {
+      const { tempCurrentPage } = this.state;
+      const page = parseInt(tempCurrentPage, 10);
+      this.handlePageChange(page, type);
+    }
+  };
+  //Appointment Management
   handleChangeAppointmentStatus = async (appointmentid, status) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, changeAppointment: true } });
     const { veterinarianid, workingstatus } = this.state;
@@ -397,6 +492,7 @@ class Doctor extends Component {
       }
     }
   };
+  //Schedule Management
   handleChangeScheduleStatus = async (scheduleid, status) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, changeSchedule: true } });
     let isConfirmed = false;
@@ -450,46 +546,6 @@ class Doctor extends Component {
       }
     }
   };
-  handleViewBill = (billid) => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, viewBill: true } });
-    const confirmAction = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Xác nhận xem hóa đơn?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          {
-            autoClose: 2000,
-            closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, viewBill: false } }); },
-          }
-        );
-      });
-    confirmAction().then((isConfirmed) => {
-      if (isConfirmed) {
-        this.props.saveTrackInfo({ billid, billtype: 3 });
-        this.props.navigate('/track');
-      }
-    });
-  };
   handleAppointmentCheckOut = (appointmentid) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, appointmentCheckout: true } });
     const confirmAction = () =>
@@ -535,11 +591,48 @@ class Doctor extends Component {
       }
     });
   };
-  resetDateFilter = (dateField) => {
-    this.setState({ [dateField]: null }, () => {
-      this.handleLoadPendingAppointments();
+  //AppointmentBill Management
+  handleViewBill = (billid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, viewBill: true } });
+    const confirmAction = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận xem hóa đơn?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, viewBill: false } }); },
+          }
+        );
+      });
+    confirmAction().then((isConfirmed) => {
+      if (isConfirmed) {
+        this.props.saveTrackInfo({ billid, billtype: 3 });
+        this.props.navigate('/track');
+      }
     });
   };
+  //form controller
   handleFormHoSoBacSi = (e) => {
     e.preventDefault();
     const { veterinarianid } = this.state
@@ -549,7 +642,7 @@ class Doctor extends Component {
         editField: null,
         originalValue: '',
       }, () => {
-        this.loadVeterinarianInfo(veterinarianid);
+        this.handleLoadVeterinarianInfo(veterinarianid);
       }
     );
   };
@@ -572,14 +665,10 @@ class Doctor extends Component {
   };
   handleFormLichKham = (e) => {
     e.preventDefault();
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const startWeek = new Date(today);
-    startWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
     this.setState(
       {
         actionPage: 3,
-        currentWeekStart: startWeek,
+        currentWeekStart: this.getStartOfWeek()
       },
       () => {
         this.handleLoadSchedule();
@@ -612,192 +701,24 @@ class Doctor extends Component {
         fromForm: type,
       },
       () => {
-        this.handleLoadAppointmentDetails(this.state.selectedAppointment);
+        this.handleLoadAppointmentDetails(appointmentid);
       }
     );
   };
-  handleSearchChange = (event, type) => {
-    const value = event.target.value;
-    this.setState(
-      {
-        searchValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
-        this.debounceTimeout = setTimeout(() => {
-          switch (type) {
-            case 2:
-              this.handleLoadPendingAppointments()
-              break;
-            case 4:
-              this.handleLoadCompleteAppointments()
-              break;
-            default:
-              break;
-          }
-        }, 500);
-      }
-    );
-  };
-  handleFilter = (value, type) => {
-    this.setState(
-      {
-        filterValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 2:
-            this.handleLoadPendingAppointments()
-            break;
-          case 4:
-            this.handleLoadCompleteAppointments()
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handleSort = (value, type) => {
-    this.setState(
-      {
-        sortValue: value,
-        currentPage: 1,
-        tempCurrentPage: '1',
-      },
-      () => {
-        switch (type) {
-          case 2:
-            this.handleLoadPendingAppointments()
-            break;
-          case 4:
-            this.handleLoadCompleteAppointments()
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handlePageChange = (page, type) => {
-    const { totalAppointmentPages } = this.state;
-    let newPage = page;
-    let totalPages;
-    switch (type) {
-      case 2:
-        totalPages = totalAppointmentPages;
-        break;
-      case 4:
-        totalPages = totalAppointmentPages;
-        break;
-      default:
-        totalPages = 1;
-    }
-    if (isNaN(page) || page <= 0) newPage = 1;
-    else if (page > totalPages) newPage = totalPages;
-    this.setState(
-      { currentPage: newPage, tempCurrentPage: newPage.toString() },
-      () => {
-        switch (type) {
-          case 2:
-            this.handleLoadPendingAppointments()
-            break;
-          case 4:
-            this.handleLoadCompleteAppointments()
-            break;
-          default:
-            break;
-        }
-      }
-    );
-  };
-  handlePrevPage = (type) => {
-    this.setState(
-      (prevState) => {
-        const newPage = Math.max(1, prevState.currentPage - 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-          isLoading: true,
-        };
-      },
-      () => {
-        switch (type) {
-          case 2:
-            this.handleLoadPendingAppointments();
-            break;
-          case 4:
-            this.handleLoadCompleteAppointments()
-            break;
-          default:
-            break;
-        }
-        this.setState({ isLoading: false });
-      }
-    );
-  };
-  handleNextPage = (type) => {
-    this.setState(
-      (prevState) => {
-        let totalPages;
-        switch (type) {
-          case 2:
-            totalPages = prevState.totalAppointmentPages;
-            break;
-          case 4:
-            totalPages = prevState.totalAppointmentPages;
-            break;
-          default:
-            totalPages = 1;
-        }
-        const newPage = Math.min(totalPages, prevState.currentPage + 1);
-        return {
-          currentPage: newPage,
-          tempCurrentPage: newPage.toString(),
-          isLoading: true,
-        };
-      },
-      () => {
-        switch (type) {
-          case 2:
-            this.handleLoadPendingAppointments();
-            break;
-          case 4:
-            this.handleLoadCompleteAppointments()
-            break;
-          default:
-            break;
-        }
-        this.setState({ isLoading: false });
-      }
-    );
-  };
-  handlePageInputChange = (event) => {
-    const value = event.target.value;
-    this.setState({ tempCurrentPage: value });
-  };
-  handlePageInputBlur = (type) => {
-    const { tempCurrentPage } = this.state;
-    const page = parseInt(tempCurrentPage, 10);
-    this.handlePageChange(page, type);
-  };
-  handlePageKeyDown = (event, type) => {
-    if (event.key === 'Enter') {
-      const { tempCurrentPage } = this.state;
-      const page = parseInt(tempCurrentPage, 10);
-      this.handlePageChange(page, type);
-    }
-  };
-  formatDate = (date) => {
-    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
-  };
+  //ultilities
+  getStartOfWeek() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const startWeek = new Date(today);
+    startWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    return startWeek;
+  }
   getDayOfWeek = (date) => {
     const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
     return days[date.getDay()];
+  };
+  formatDate = (date) => {
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
   handlePreviousWeek = () => {
     this.setState(
@@ -819,12 +740,10 @@ class Doctor extends Component {
       () => this.handleLoadSchedule()
     );
   };
-
   renderForm() {
-    const { actionPage, veterinarianid, veterinarianname, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
+    const { actionPage, veterinarianid, accountInfo, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
       editField, bio, servicesList, specialization, workingstatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType, codePetType, codePetGender,
-      serviceList, filterValue, sortValue, currentPage, tempCurrentPage, date1, date2, totalAppointmentPages, fromForm, disabledButtons } = this.state;
-
+      serviceList, filterValue, sortValue, currentPage, tempCurrentPage, date1, date2, totalPages, fromForm, disabledButtons } = this.state;
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
     const groupedSchedules = {};
@@ -850,7 +769,7 @@ class Doctor extends Component {
             <div className='doctor-head'>
               <div className='doctor-head-left'>
                 <h3>
-                  <b>Thông tin bác sĩ: Bs.{veterinarianname}</b>
+                  <b>Thông tin bác sĩ: BS. {accountInfo?.UserName}</b>
                 </h3>
               </div>
               <div className='doctor-head-right' >
@@ -868,7 +787,6 @@ class Doctor extends Component {
                 </div>
               </div>
             </div>
-
             <div className="doctor-info-form-content">
               <div className="doctor-info-tab">
                 <div className="descreption-doctor">Dịch vụ thực hiện:
@@ -888,19 +806,18 @@ class Doctor extends Component {
                   )}
                 </div>
               </div>
-
               <div className="doctor-info-tab">
                 <div className="descreption-doctor">Chuyên Khoa: </div>
                 {editField === 'specialization' ? <input type="text" name='specialization' value={specialization}
                   onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{specialization}</div>}
-                <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('specialization')}>
+                <button type="button" className="edit-button" onClick={() => this.handleEditClick('specialization')}>
                   <IonIcon icon={pencil}></IonIcon>
                 </button>
               </div>
               <div className="doctor-info-tab">
                 <div className="descreption-doctor">Tiểu sử: </div>
                 {editField === 'bio' ? <input type="text" name='bio' value={bio} onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{bio}</div>}
-                <button type="button" className="edit-button" onClick={() => this.handleChangeInfoClick('bio')}>
+                <button type="button" className="edit-button" onClick={() => this.handleEditClick('bio')}>
                   <IonIcon icon={pencil}></IonIcon>
                 </button>
               </div>
@@ -954,6 +871,7 @@ class Doctor extends Component {
                         const formattedDate = date
                           ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0]
                           : '';
+                        console.log('date1:', formattedDate);
                         this.setState({ date1: formattedDate }, () => {
                           this.handleLoadPendingAppointments();
                         });
@@ -961,14 +879,12 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
-                      isClearable
                     />
                     {date1 && (
                       <button
-                        onClick={() => this.resetDateFilter('date1')}
-                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => this.resetDateFilter('date1', 2)}
                       >
-                        x
+                        <IonIcon icon={closeCircleOutline}></IonIcon>
                       </button>
                     )}
                   </div>
@@ -988,17 +904,14 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
-                      isClearable
                     />
                     {date2 && (
                       <button
-                        onClick={() => this.resetDateFilter('date2')}
-                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => this.resetDateFilter('date2', 2)}
                       >
-                        x
+                        <IonIcon icon={closeCircleOutline}></IonIcon>
                       </button>
                     )}
-
                   </div>
                 </div>
               </div>
@@ -1065,7 +978,7 @@ class Doctor extends Component {
                   <p>Không có lịch hẹn nào.</p>
                 )}
               </div>
-              {totalAppointmentPages > 1 && (
+              {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
                     <button className="first" onClick={() => this.handlePageChange(1, 2)} disabled={currentPage === 1}>
@@ -1081,11 +994,11 @@ class Doctor extends Component {
                       onKeyDown={(event) => this.handlePageKeyDown(event, 2)}
                       onBlur={() => this.handlePageInputBlur(2)}
                     />
-                    <span>/ {totalAppointmentPages}</span>
-                    <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalAppointmentPages}>
+                    <span>/ {totalPages}</span>
+                    <button className="next" onClick={() => this.handleNextPage(2)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button className="last" onClick={() => this.handlePageChange(totalAppointmentPages, 2)} disabled={currentPage === totalAppointmentPages}>
+                    <button className="last" onClick={() => this.handlePageChange(totalPages, 2)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -1200,13 +1113,12 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
-                      isClearable
                     />
                     {date1 && (
                       <button
-                        onClick={() => this.resetDateFilter('date1')}
-                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => this.resetDateFilter('date1', 4)}
                       >
+                        <IonIcon icon={closeCircleOutline}></IonIcon>
                       </button>
                     )}
                   </div>
@@ -1226,16 +1138,15 @@ class Doctor extends Component {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="dd/mm/yyyy"
                       className="date-picker"
-                      isClearable
+
                     />
                     {date2 && (
                       <button
-                        onClick={() => this.resetDateFilter('date2')}
-                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => this.resetDateFilter('date2', 4)}
                       >
+                        <IonIcon icon={closeCircleOutline}></IonIcon>
                       </button>
                     )}
-
                   </div>
                 </div>
               </div>
@@ -1278,14 +1189,13 @@ class Doctor extends Component {
                         <div className="descreption-wait-appointment">Ghi chú:</div>
                         <div className="note-wait-appointment">{appointment.Notes}</div>
                       </div>
-
                     </div>
                   ))
                 ) : (
                   <p>Không có lịch hẹn nào.</p>
                 )}
               </div>
-              {totalAppointmentPages > 1 && (
+              {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
                     <button className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
@@ -1301,11 +1211,11 @@ class Doctor extends Component {
                       onKeyDown={(event) => this.handlePageKeyDown(event, 4)}
                       onBlur={() => this.handlePageInputBlur(4)}
                     />
-                    <span>/ {totalAppointmentPages}</span>
-                    <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalAppointmentPages}>
+                    <span>/ {totalPages}</span>
+                    <button className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button className="last" onClick={() => this.handlePageChange(totalAppointmentPages, 4)} disabled={currentPage === totalAppointmentPages}>
+                    <button className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>

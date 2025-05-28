@@ -329,9 +329,6 @@ class Owner extends Component {
   };
   //pagination
   handlePageChange = (page, type) => {
-    this.setState({
-      isLoading: true,
-    });
     const { totalPages } = this.state;
     let newPage = page;
     if (isNaN(page) || page <= 0) {
@@ -340,7 +337,6 @@ class Owner extends Component {
       newPage = totalPages;
     }
     this.setState({
-      isLoading: false,
       currentPage: newPage,
       tempCurrentPage: newPage.toString(),
     }, () => {
@@ -941,32 +937,10 @@ class Owner extends Component {
     });
   };
   render() {
-    const { codeProductType, codePetType, codePaymentStatus, codeShippingStatus, codeBannerStatus,
-      loadedProductInfo, loadedInvoiceInfo, loadedBannerInfo, loadedCouponInfo,
-      codeCouponStatus,
-      codeDiscountType,
-      isLoading,
-      actionPage,
-      searchValue,
-      sortValue,
-      filterValue,
-      dateFilterValue,
-      currentPage,
-      tempCurrentPage,
-      totalPages,
-      isShowCreateProductModal,
-      isShowEditProductModal,
-      isShowCreateBannerModal,
-      isShowEditBannerModal,
-      isShowViewInvoiceModal,
-      isShowCancelInvoiceModal,
-      isShowCreateCouponModal,
-      selectedProduct,
-      selectedBanner,
-      selectedInvoice,
-      selectedCancelInvoice,
-      isEditingCoupon,
-      disabledButtons
+    const { actionPage, isLoading, searchValue, filterValue, sortValue, dateFilterValue, currentPage, tempCurrentPage, totalPages, disabledButtons,
+      codeProductType, codePetType, codePaymentStatus, codeShippingStatus, codeBannerStatus, codeDiscountType, codeCouponStatus,
+      loadedProductInfo, loadedInvoiceInfo, loadedBannerInfo, loadedCouponInfo, selectedProduct, selectedBanner, selectedInvoice, selectedCancelInvoice, isEditingCoupon,
+      isShowCreateProductModal, isShowEditProductModal, isShowViewInvoiceModal, isShowCancelInvoiceModal, isShowCreateBannerModal, isShowEditBannerModal, isShowCreateCouponModal,
     } = this.state;
     const renderSection = () => {
       switch (actionPage) {
