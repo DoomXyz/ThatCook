@@ -237,7 +237,7 @@
       align-items: center;
       cursor: pointer;
 
-      input[type='radio'] {
+      input[type="radio"] {
         margin-right: 5px;
         cursor: pointer;
       }
@@ -249,7 +249,7 @@
       cursor: pointer;
       padding-right: 40px;
 
-      input[type='radio'] {
+      input[type="radio"] {
         margin-right: 5px;
         cursor: pointer;
       }
@@ -274,7 +274,8 @@
       height: 100px;
       background-color: #ccc;
       border-radius: 50%;
-      overflow: hidden;
+      position: relative;
+      /* Ensure relative positioning for absolute child */
 
       img {
         width: 100%;
@@ -284,9 +285,13 @@
       }
 
       .remove-image-btn {
+        padding: 5px;
+        /* Reduced padding for better fit */
         position: absolute;
-        top: 5px;
-        right: 5px;
+        top: 1px;
+        /* Move it slightly above the top edge */
+        right: 1px;
+        /* Move it slightly outside the right edge */
         background: red;
         color: white;
         border: none;
@@ -299,13 +304,14 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 16px;
+        z-index: 1;
+        /* Ensure it stays above other elements */
 
         &:hover {
           background: darkred;
         }
       }
     }
-
 
     .button-submit {
       margin-top: 20px;
@@ -445,7 +451,6 @@
           justify-content: space-between;
           /* Căn đều hai bên hoặc tùy chỉnh */
           align-items: center;
-          /* Căn giữa theo chiều dọc */
         }
 
         /* Khoảng cách giữa các price-item */
@@ -485,7 +490,6 @@
           color: white;
           border: none;
         }
-
       }
     }
   }
@@ -880,6 +884,23 @@
     text-align: right;
     /* Căn phải cho value, tùy chỉnh nếu cần */
     justify-content: flex-end;
+
+    button {
+      margin-right: 0.5rem;
+      padding: 0.3rem;
+      border-radius: 0.3rem;
+      border: none;
+    }
+
+    .email-btn {
+      color: white;
+      background-color: rgb(59, 131, 255);
+    }
+
+    .pdf-btn {
+      color: white;
+      background-color: orange;
+    }
   }
 }
 
@@ -1054,42 +1075,46 @@
 }
 
 .user-appointment-form-detail {
-  background-color: rgba(253, 253, 253, 0);
-  padding: 0px;
-  border-radius: 8px;
+  background-color: #f7f9fc; // Nền nhẹ nhàng, không trắng hoàn toàn
+  padding: 1rem;
+  border-radius: 12px;
   width: 100%;
-  min-height: 400px;
-  /* Đặt chiều cao tối thiểu cố định */
+  min-height: 450px;
   display: flex;
-  /* Sử dụng flex để quản lý nội dung */
   flex-direction: column;
   justify-content: flex-start;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); // Thêm bóng nhẹ để tạo chiều sâu
 
   .user-appointment-form-detail-top {
     display: flex;
-    padding: 10px;
+    padding: 1rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    border-radius: 0.5rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+    margin-bottom: 1rem;
 
     .user-appointment-form-detail-left {
       flex: 5;
       display: flex;
       justify-content: flex-start;
-      margin-bottom: 10px;
+      align-items: center;
 
       .back {
-        padding-top: 10px;
         display: flex;
         align-items: center;
-        /* Căn giữa theo chiều dọc */
-        gap: 5px;
+        gap: 8px;
         cursor: pointer;
-        /* Khoảng cách giữa icon và text */
-      }
+        transition: color 0.3s ease;
 
-      .back h5 {
-        margin: 0px;
+        &:hover {
+          color: #007bff; // Màu xanh khi hover
+        }
+
+        h5 {
+          margin: 0;
+          font-size: 1rem;
+          font-weight: 600;
+        }
       }
     }
 
@@ -1097,249 +1122,261 @@
       flex: 5;
       display: flex;
       justify-content: flex-end;
-      margin-top: 10px;
+      align-items: center;
 
       .appointment-detail-tab {
         display: flex;
         flex-direction: row;
-        /* label và value nằm ngang */
-        justify-content: space-between;
-        /* Căn đều hai bên hoặc tùy chỉnh */
-      }
+        align-items: center;
+        gap: 1rem;
 
-      .mlk {
-        padding-right: 5px;
-        cursor: not-allowed;
-      }
+        .mlk,
+        .ctmd {
+          padding: 0.5rem;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #333;
+        }
 
-      .ctmd {
-        padding-right: 10px;
-        border-right: 2px solid black;
-        cursor: not-allowed;
-      }
+        .ctmd {
+          border-right: 2px solid #e0e0e0;
+        }
 
-      .tt {
-        padding-left: 10px;
-        color: green;
-        cursor: not-allowed;
+        .tt {
+          padding-left: 1rem;
 
-        h5 {
-          color: inherit;
+          h5 {
+            color: #28a745; // Màu xanh lá cho trạng thái
+            font-weight: 600;
+            font-size: 1rem;
+          }
         }
       }
     }
   }
 
   .user-appointment-form-detail-mid-1 {
-    border-radius: 0.5rem;
-    padding-top: 0.5rem;
-    background-color: white;
-
-    p {
-      margin: 0;
-    }
+    border-radius: 10px;
+    padding: 1rem;
+    background-color: #edfafc;
+    border: 1px solid #e9ecef;
+    margin-bottom: 1rem;
 
     h4 {
-      text-decoration: underline;
-      margin-top: 0;
-      margin-left: 0.4rem;
+      text-decoration: none;
+      margin: 0 0 0.5rem 0.4rem;
+      font-size: 1.2rem;
+      color: #1a73e8; // Màu xanh dương cho tiêu đề
+      font-weight: bold;
     }
 
-    .user-appointment-form-detail-mid-1-left-info {
-      margin-bottom: 0.5rem;
-      line-height: 1.7rem;
+    .sb {
+      display: flex;
+      gap: 2rem;
 
-      b {
-        margin: 0 0.5rem;
-        margin-left: 1rem;
-      }
-    }
+      .user-appointment-form-detail-mid-1-left-info,
+      .user-appointment-form-detail-mid-1-right-info {
+        flex: 1;
+        line-height: 2rem;
 
-    .user-appointment-form-detail-mid-1-right-info {
-      margin-bottom: 0.5rem;
+        .f {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.5rem;
 
-      .f {
-        margin-bottom: 0.3rem;
+          b {
+            min-width: 120px;
+            font-weight: bold;
+            color: #495057;
+          }
 
-        p {
-          margin-right: 0.5rem;
-          margin-left: 0.5rem;
-          text-align: left;
+          p {
+            padding-left: 10px;
+            width: 300px;
+            border-radius: 8px;
+            background-color: white;
+            margin: 0;
+            color: #212529;
+            font-size: 0.95rem;
+          }
         }
       }
     }
   }
 
   .user-appointment-form-detail-mid-2 {
-    background-color: white;
-    padding: 0.5rem 0;
-    border-radius: 0.5rem;
-    width: 100%;
+    background-color: #edfafc;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
 
     h4 {
-      text-decoration: underline;
-      margin-top: 0;
-      margin-left: 0.4rem;
+      text-decoration: none;
+      margin: 0 0 0.5rem 0.4rem;
+      font-size: 1.2rem;
+      color: #1a73e8;
+      font-weight: 600;
     }
 
-    p {
-      margin: 0;
-    }
+    .sb {
+      display: flex;
+      gap: 2rem;
 
-    .user-appointment-form-detail-mid-2-left {
-      padding-right: 1.5rem;
-      border-right: 1px solid black;
+      .user-appointment-form-detail-mid-2-left {
+        flex: 1;
+        padding-right: 1.5rem;
+        border-right: 1px solid #e0e0e0;
 
-      .f {
-        margin-bottom: 0.3rem;
+        .f {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.5rem;
+          padding: 0.5rem 0;
 
-        b {
-          margin: 0 1rem;
+          b {
+            min-width: 120px;
+            font-weight: bold;
+            color: #495057;
+          }
+
+          p {
+            padding-right: 5px;
+            width: 250px;
+            border-radius: 8px;
+            background-color: white;
+            margin: 0;
+            color: #212529;
+            font-size: 0.95rem;
+            text-align: right;
+
+            &.total {
+              color: #dc3545; // Màu đỏ cho tổng thanh toán
+              font-weight: bold;
+              font-size: 1.1rem;
+            }
+          }
+        }
+
+        .user-appointment-form-detail-bottom {
+          margin-top: 1.5rem;
+          display: flex;
+          gap: 1rem;
+
+          button {
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+
+            &.pdf-btn {
+              background-color: #fd7e14; // Màu cam cho nút PDF
+              color: white;
+
+              &:hover {
+                background-color: #e06c00;
+              }
+            }
+
+            &.email-btn {
+              background-color: #007bff; // Màu xanh dương cho nút Email
+              color: white;
+
+              &:hover {
+                background-color: #0056b3;
+              }
+            }
+          }
         }
       }
 
-      .f:nth-child(1) {
-        margin-top: 0.1rem;
-      }
-
-      .f:nth-child(2) {
-        padding: 0.3rem;
-        margin-left: 1rem;
+      .user-appointment-form-detail-mid-2-center-label {
+        flex: 1;
 
         b {
-          margin: 0;
+          min-width: 120px;
+          font-weight: bold;
+          color: #495057;
         }
 
-        margin-top: 1.2rem;
-        border-bottom: 1px solid black;
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .f:nth-child(3) {
-        padding: 0.3rem;
-        margin-left: 1rem;
-
-        b {
-          margin: 0;
+        label {
+          padding: 5px;
+          border-radius: 8px;
+          background-color: white;
+          display: block;
+          margin-top: 0.5rem;
+          color: #212529;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          max-width: 100%;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          border: #d2d2d2 1px solid;
         }
-
-        border-bottom: 1px solid black;
-        display: flex;
-        justify-content: space-between;
       }
 
-      .f:nth-child(4) {
-        padding: 0.3rem;
-        margin-left: 1rem;
+      .user-appointment-form-detail-mid-2-right {
+        flex: 0.5;
 
-        b {
-          margin: 0;
+        img {
+          max-width: 200px;
+          border-radius: 8px;
+          border: 1px solid #e0e0e0;
         }
 
         p {
-          color: red;
-          font-weight: bold;
+          color: #6c757d;
+          font-size: 0.9rem;
         }
-
-        border-bottom: 1px solid black;
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .user-appointment-form-detail-bottom {
-        margin-top: 1rem;
-        margin-left: 1rem;
-
-        button {
-          margin-right: 0.5rem;
-          padding: 0.3rem;
-          border-radius: 0.3rem;
-          border: none;
-        }
-
-        .email-btn {
-          color: white;
-          background-color: rgb(59, 131, 255);
-        }
-
-        .pdf-btn {
-          color: white;
-          background-color: orange;
-        }
-      }
-    }
-
-    .user-appointment-form-detail-mid-2-center {
-      margin-left: -13.5rem;
-
-      textarea {
-        height: 12.7rem;
-      }
-    }
-
-    .user-appointment-form-detail-mid-2-center-label {
-      width: 25rem;
-
-      textarea {
-        height: 12.7rem;
-      }
-
-      label {
-        max-width: 100%; // Ensure the paragraph takes full width of td
-        word-wrap: break-word; // Break long words to prevent overflow
-        overflow-wrap: break-word; // Modern equivalent of word-wrap
-        margin: 0;
-      }
-    }
-
-    .user-appointment-form-detail-mid-2-right {
-      margin-right: 5rem;
-
-      img {
-        max-width: 11rem;
       }
     }
   }
 }
 
+// Phần user-appointment-form-detail-2 (nếu vẫn cần, tối ưu tương tự)
 .user-appointment-form-detail-2 {
-  background-color: rgba(253, 253, 253, 0);
-  padding: 0px;
-  border-radius: 8px;
+  background-color: #f7f9fc;
+  padding: 1rem;
+  border-radius: 12px;
   width: 100%;
-  min-height: 400px;
-  /* Đặt chiều cao tối thiểu cố định */
+  min-height: 450px;
   display: flex;
-  /* Sử dụng flex để quản lý nội dung */
   flex-direction: column;
   justify-content: flex-start;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
   .user-appointment-form-detail-top-2 {
     display: flex;
-    padding: 10px;
+    padding: 1rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    border-radius: 0.5rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+    margin-bottom: 1rem;
 
     .user-appointment-form-detail-left-2 {
       flex: 5;
       display: flex;
       justify-content: flex-start;
-      margin-bottom: 10px;
+      align-items: center;
 
       .back {
-        padding-top: 10px;
         display: flex;
         align-items: center;
-        /* Căn giữa theo chiều dọc */
-        gap: 5px;
+        gap: 8px;
         cursor: pointer;
-        /* Khoảng cách giữa icon và text */
-      }
+        transition: color 0.3s ease;
 
-      .back h5 {
-        margin: 0px;
+        &:hover {
+          color: #007bff;
+        }
+
+        h5 {
+          margin: 0;
+          font-size: 1rem;
+          font-weight: 600;
+        }
       }
     }
 
@@ -1347,145 +1384,144 @@
       flex: 5;
       display: flex;
       justify-content: flex-end;
-      margin-top: 10px;
+      align-items: center;
 
       .appointment-detail-tab-2 {
         display: flex;
         flex-direction: row;
-        /* label và value nằm ngang */
-        justify-content: space-between;
-        /* Căn đều hai bên hoặc tùy chỉnh */
-      }
+        align-items: center;
+        gap: 1rem;
 
-      .mlk {
-        padding-right: 5px;
-        cursor: not-allowed;
-      }
+        .mlk,
+        .ctmd {
+          padding: 0.5rem;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #333;
+        }
 
-      .ctmd {
-        padding-right: 10px;
-        border-right: 2px solid black;
-        cursor: not-allowed;
-      }
+        .ctmd {
+          border-right: 2px solid #e0e0e0;
+        }
 
-      .tt {
-        padding-left: 10px;
-        color: green;
-        cursor: not-allowed;
+        .tt {
+          padding-left: 1rem;
 
-        h5 {
-          color: inherit;
+          h5 {
+            color: #28a745;
+            font-weight: 600;
+            font-size: 1rem;
+          }
         }
       }
     }
   }
 
   .user-appointment-form-detail-mid-1-2 {
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-    padding-top: 0.5rem;
-    background-color: white;
+    border-radius: 10px;
+    padding: 1rem;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    margin-bottom: 1rem;
 
     .user-appointment-form-detail-mid-1-2-info {
-      max-width: 69rem;
-      margin-left: 0.8rem;
-    }
+      max-width: 100%;
+      line-height: 2rem;
 
-    p {
-      margin: 0;
-    }
+      .user-appointment-form-detail-mid-1-left-info-2,
+      .user-appointment-form-detail-mid-1-right-info-2 {
+        .f {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.5rem;
 
-    .user-appointment-form-detail-mid-1-left-info-2 {
-      margin-bottom: 0.5rem;
-      line-height: 1.7rem;
+          b {
+            min-width: 120px;
+            font-weight: 500;
+            color: #495057;
+          }
 
-      b {
-        margin-right: 0.3rem;
-      }
-    }
-
-    .user-appointment-form-detail-mid-1-right-info-2 {
-      margin-bottom: 0.5rem;
-      line-height: 1.7rem;
-
-      b {
-        margin-right: 0.3rem;
+          p {
+            margin: 0;
+            color: #212529;
+            font-size: 0.95rem;
+          }
+        }
       }
     }
   }
 
   .user-appointment-form-detail-mid-2-center-2 {
-    background-color: white;
-    padding: 0.5rem 0;
-    border-radius: 0.5rem;
-    width: 100%;
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
 
     .user-appointment-form-detail-mid-2-center-2-content {
-      margin-left: 0.8rem;
-      max-width: 69rem;
+      max-width: 100%;
 
       .notes {
         padding-left: 1.5rem;
-        border-left: 1px solid rgb(0, 0, 0, 0.3);
-        max-width: 47rem;
+        border-left: 2px solid #007bff;
 
         p {
-          max-width: 100%; // Ensure the paragraph takes full width of td
-          word-wrap: break-word; // Break long words to prevent overflow
-          overflow-wrap: break-word; // Modern equivalent of word-wrap
-          margin: 0;
+          max-width: 100%;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          color: #212529;
+          font-size: 0.95rem;
+          line-height: 1.6;
         }
       }
 
       .cancel-app {
-        padding: 0.3rem 0.5rem;
-        background-color: rgb(235, 0, 0);
-        border-radius: 0.3rem;
+        padding: 0.5rem 1.5rem;
+        background-color: #dc3545;
+        border-radius: 6px;
         color: white;
         border: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+          background-color: #c82333;
+        }
       }
     }
   }
 
   .user-appointment-form-detail-mid-2-2 {
-    margin-top: 0.5rem;
-    background-color: white;
-
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
-    width: 100%;
+    margin-top: 1rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
 
     h4 {
-      text-decoration: underline;
-      margin-top: 0;
-      margin-left: 0.4rem;
-    }
-
-    p {
-      margin: 0;
+      text-decoration: none;
+      margin: 0 0 0.5rem 0.4rem;
+      font-size: 1.2rem;
+      color: #1a73e8;
+      font-weight: 600;
     }
 
     .user-appointment-form-detail-mid-2-left-2 {
-      border-top-left-radius: 0.5rem;
-      border-top-right-radius: 0.5rem;
-      padding: 0 0.5rem;
-
-      background-color: #58a7fb;
-      height: 3rem;
-      padding-top: 0.4rem;
-
-      font-size: 1.5rem;
-
-      b {
-        margin-right: 0.2rem;
-      }
+      background-color: #007bff;
+      color: white;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
     }
 
     .user-appointment-form-detail-mid-2-right-2 {
-      margin-right: 5rem;
-
       img {
-        max-width: 11rem;
+        max-width: 200px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
       }
     }
   }

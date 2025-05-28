@@ -15,7 +15,7 @@ $border-radius: 8px;
 $transition: all 0.3s ease;
 
 .doctor-page {
-  padding-top: 60px;
+  padding-top: 80px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -26,7 +26,7 @@ $transition: all 0.3s ease;
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: 40px 40px 40px 360px;
+  padding: 20px 40px 40px 360px;
   /* Thêm padding-left để tránh che bởi doctor-action-form */
   min-height: calc(100vh - 100px);
   /* Đảm bảo đủ cao để cuộn */
@@ -510,6 +510,7 @@ $transition: all 0.3s ease;
   max-width: 100%;
   /* Đảm bảo không vượt quá container cha */
   box-sizing: border-box;
+  padding-bottom: 7px;
 
   /* Đảm bảo padding không làm tăng kích thước */
   h4 {
@@ -700,7 +701,7 @@ $transition: all 0.3s ease;
       padding-right: 10px;
       flex: 3;
       text-align: justify;
-      justify-content: flex-end;
+      justify-content: flex-start;
       max-width: 100%;
       overflow-wrap: break-word;
       white-space: normal;

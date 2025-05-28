@@ -1170,8 +1170,10 @@ class User extends Component {
     } catch (e) {
       console.log('Lỗi khi gửi email:', e);
       toast.error('Lỗi khi gửi email!');
+    } finally {
+      this.handleFormChiTietDonHang(this.state.selectedInvoiceID)
+      this.setState({ isLoading: false })
     }
-    this.setState({ isLoading: false })
   };
 
   renderForm() {
@@ -2313,15 +2315,15 @@ class User extends Component {
                 Hồ sơ người dùng
               </div>
               {accountInfo?.AccountType !== "V" && (
-                <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}||${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormThuCung}>
+                <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormThuCung}>
                   Thông tin thú cưng
                 </div>
               )}
-              <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}||${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
+              <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
                 Lịch sử đơn hàng
               </div>
               {accountInfo?.AccountType !== "V" && (
-                <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}|| ${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
+                <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}${actionPage === 9 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
                   Lịch Khám
                 </div>
               )}
