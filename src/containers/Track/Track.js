@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { checkmarkCircleOutline, closeCircleOutline, refreshOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBackOutline } from 'ionicons/icons';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
 import './Track.scss';
@@ -487,19 +487,19 @@ class Track extends Component {
                                 <div className="view-invoice-modal-content-top-address">
                                   <p>136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
                                 </div>
-                                <div className="sb f">
+                                <div className="sb">
                                   <div className="view-invoice-modal-content-top-time">
                                     <p>
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                          second: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -607,32 +607,34 @@ class Track extends Component {
                                   </tfoot>
                                 </table>
                               </div>
-                              <div className="bill-actions">
-                                {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                  <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng">
-                                    <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
-                                  </button>
-                                )}
-                                {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                  <button className="received-order-btn" onClick={() => this.handleConfirmReceived(billid)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmReceived}>
-                                    <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
-                                  </button>
-                                )}
-                                {(loadedInvoiceDetails.PaymentStatus === 'PEND' || loadedInvoiceDetails.PaymentStatus === 'PAID') && loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
-                                  <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(billid)} title="Tiếp tục đơn hàng" disabled={disabledButtons.continueInvoice}>
-                                    <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
-                                  </button>
-                                )}
-                                <input type="text" value={email} placeholder="Hãy nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />
-                                <div className="f">
-                                  <button onClick={() => this.handleGeneratePDF(loadedInvoiceDetails, 1)} className="pdf-btn">
-                                    Tải PDF
-                                  </button>
+                              <div className="bill-actions-invoice">
+                                <div className="sb">
+                                  <input type="text" value={email} placeholder="Nhập email nếu bạn muốn gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />{' '}
                                   <button onClick={() => this.handleSendEmail(billid, 1)} className="email-btn">
                                     Gửi qua email
                                   </button>
+                                </div>
+                                <div className="sb">
                                   <button onClick={this.handleBackToSearch} className="back-btn">
-                                    <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
+                                    <IonIcon icon={chevronBackOutline}></IonIcon> Quay về
+                                  </button>
+                                  {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                                    <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng">
+                                      <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
+                                    </button>
+                                  )}
+                                  {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                                    <button className="received-order-btn" onClick={() => this.handleConfirmReceived(billid)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmReceived}>
+                                      <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
+                                    </button>
+                                  )}
+                                  {(loadedInvoiceDetails.PaymentStatus === 'PEND' || loadedInvoiceDetails.PaymentStatus === 'PAID') && loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
+                                    <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(billid)} title="Tiếp tục đơn hàng" disabled={disabledButtons.continueInvoice}>
+                                      <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
+                                    </button>
+                                  )}
+                                  <button onClick={() => this.handleGeneratePDF(loadedInvoiceDetails, 1)} className="pdf-btn">
+                                    Tải PDF
                                   </button>
                                 </div>
                               </div>
@@ -685,12 +687,12 @@ class Track extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -767,16 +769,18 @@ class Track extends Component {
                                   </tfoot>
                                 </table>
                               </div>
-                              <div className="bill-actions-app">
-                                {loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
-                                  <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn" disabled={disabledButtons.cancelAppointment}>
-                                    <IonIcon icon={closeCircleOutline}></IonIcon> Hủy lịch hẹn
-                                  </button>
-                                )}
-                                <div className="f">
-                                  <button onClick={this.handleBackToSearch} className="back-btn-app">
-                                    <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
-                                  </button>
+                              <div className="sb">
+                                <button onClick={this.handleBackToSearch} className="back-btn-app">
+                                  <IonIcon icon={chevronBackOutline}></IonIcon>
+                                  Quay về
+                                </button>
+
+                                <div className="bill-actions-app">
+                                  {loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
+                                    <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn" disabled={disabledButtons.cancelAppointment}>
+                                      <IonIcon icon={closeCircleOutline}></IonIcon> Hủy lịch hẹn
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </>
@@ -812,12 +816,12 @@ class Track extends Component {
                                       <b>Thời gian:</b>
                                       {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
                                         ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>

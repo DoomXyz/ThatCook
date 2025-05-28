@@ -60,20 +60,22 @@
           align-items: center;
           justify-content: center;
           background-color: white;
-
-          img {
-            max-width: 25px;
-          }
         }
         .pay-top-cart {
           &.pay-top-item {
             background-color: rgb(240, 227, 234);
+            ion-icon {
+              font-size: 2rem;
+            }
           }
         }
         .pay-top-moneycheck {
           &.pay-top-item {
             border: 3px solid rgb(60, 60, 234);
             background-color: rgb(240, 227, 234);
+            ion-icon {
+              font-size: 2rem;
+            }
           }
         }
       }

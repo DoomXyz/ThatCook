@@ -13,7 +13,7 @@ import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleGetCartDetailApi } from '../../services/cartServices';
 import { handleCreateInvoiceApi } from '../../services/invoiceServices';
-import { handleCheckCouponApi, handleGetCouponApi } from '../../services/couponServices'
+import { handleCheckCouponApi, handleGetCouponApi } from '../../services/couponServices';
 
 import { checkLoginStatus, getAllCodes } from '../../utils/pakage';
 import { clearCart, clearCheckOutCart, saveCartForCheckOut, userLogin, userLogout, saveTrackInfo } from '../../store/actions';
@@ -76,7 +76,7 @@ class CheckOut extends Component {
   }
   handleLoadCode = async (codeTypeFilter) => {
     try {
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
@@ -109,11 +109,11 @@ class CheckOut extends Component {
         this.props.userLogout();
         this.setState({
           accountInfo: null,
-          isLoggedIn: false
+          isLoggedIn: false,
         });
       }
     } catch (e) {
-      this.props.navigate('/home')
+      this.props.navigate('/home');
     }
     this.setState({
       isLoading: false,
@@ -227,9 +227,8 @@ class CheckOut extends Component {
     if (tempCouponCode !== couponCode) {
       try {
         const responseApi = await handleGetCouponApi(tempCouponCode);
-        const response = responseApi.data
-        if (response && response.errCode === 0 &&
-          parseFloat(finalPrice) > parseFloat(response.data.MinOrderValue) && response.data.CouponStatus === "ACTIVE") {
+        const response = responseApi.data;
+        if (response && response.errCode === 0 && parseFloat(finalPrice) > parseFloat(response.data.MinOrderValue) && response.data.CouponStatus === 'ACTIVE') {
           this.setState({ isLoading: true });
           toast.success('Áp dụng mã giảm giá thành công!');
           this.setState({ couponCode: tempCouponCode, isLoading: false });
@@ -254,7 +253,7 @@ class CheckOut extends Component {
     if (couponCode) {
       try {
         const responseApi = await handleCheckCouponApi(couponCode, finalPrice);
-        const response = responseApi.data
+        const response = responseApi.data;
         if (response && response.errCode === 0) {
           discount = response.data;
           this.setState({ discountAmout: discount });
@@ -331,8 +330,7 @@ class CheckOut extends Component {
     }
   };
   handleCompleteOrder = async () => {
-    const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode,
-      totalPriceAfterPromo, discountAmout, totalPayment, isBuyNow } = this.state;
+    const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment, isBuyNow } = this.state;
     await this.loadCheckOutCart();
     let couponID = null;
     try {
@@ -370,6 +368,13 @@ class CheckOut extends Component {
     } else if (paymenttype === 'CASH') {
       paymentStatus = 'PEND';
     }
+    if (receiverEmail) {
+      const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+.[^\s@]+$/;
+      if (!emailRegex.test(receiverEmail)) {
+        toast.error('Email sai định dạng!');
+        return;
+      }
+    }
     const invoiceData = {
       accountid: isLoggedIn ? accountInfo.AccountID : null,
       receivername: receiverName,
@@ -406,7 +411,7 @@ class CheckOut extends Component {
           checkOutCart: [],
           loadedCheckOutCartDetailInfo: [],
         });
-        toast.success("Đặt hàng thành công!")
+        toast.success('Đặt hàng thành công!');
         this.props.saveTrackInfo({ billid: response.data.InvoiceID, billtype: 1 });
         this.props.navigate('/track');
       } else {
@@ -420,23 +425,14 @@ class CheckOut extends Component {
   };
 
   render() {
-    const { isLoading, receiverName, receiverPhone, receiverAddress, receiverEmail, tempCouponCode, codePaymentType, codeShippingMethod, paymenttype, shippingmethod,
-      discountAmout, loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced } = this.state;
+    const { isLoading, receiverName, receiverPhone, receiverAddress, receiverEmail, tempCouponCode, codePaymentType, codeShippingMethod, paymenttype, shippingmethod, discountAmout, loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced } = this.state;
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
     const endIndex = startIndex + limitProductPerQuery;
     const paginatedCheckOutCartDetailInfo = loadedCheckOutCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div className="none-logged-body">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         {isLoading ? (
           <Spinner />
@@ -487,7 +483,7 @@ class CheckOut extends Component {
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Email</label>
-                        <input type="text" value={receiverEmail} placeholder='Nhập Email nếu cần gửi hóa đơn' onChange={(event) => this.handleOnChangeInput(event, 'receiverEmail')} />
+                        <input type="text" value={receiverEmail} placeholder="Nhập Email nếu cần gửi hóa đơn" onChange={(event) => this.handleOnChangeInput(event, 'receiverEmail')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Mã giảm giá</label>

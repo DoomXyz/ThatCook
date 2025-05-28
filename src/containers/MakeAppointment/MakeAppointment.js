@@ -115,10 +115,11 @@ class MakeAppointment extends Component {
     if (!this.props.fuAppointmentInfo && this.state.accountInfo?.AccountType === 'V') {
       this.props.navigate('/user/veterinarian');
     } else if (this.props.fuAppointmentInfo) {
-      this.setState({
-        type: 'FOLLOW_UP',
-        prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
-      },
+      this.setState(
+        {
+          type: 'FOLLOW_UP',
+          prevAppointmentID: this.props.fuAppointmentInfo.appointmentid,
+        },
         async () => {
           await this.handleLoadFollowUpAppointmentInfo();
         }
@@ -169,8 +170,8 @@ class MakeAppointment extends Component {
             }
           } else if (this.props.appointmentPreselect.type === 'Service') {
             this.setState({
-              selectedServiceID: this.props.appointmentPreselect.selectedID
-            })
+              selectedServiceID: this.props.appointmentPreselect.selectedID,
+            });
           }
           this.props.clearPreselectInfo();
         }
@@ -268,11 +269,11 @@ class MakeAppointment extends Component {
           petweight: data.Pet.PetWeight.toString(),
           selectedVeterinarianInfo: data.Veterinarian
             ? {
-              AccountID: data.VeterinarianID,
-              UserName: data.Veterinarian.UserName,
-              Specialization: data.Veterinarian.Specialization,
-              UserImage: data.Veterinarian.UserImage,
-            }
+                AccountID: data.VeterinarianID,
+                UserName: data.Veterinarian.UserName,
+                Specialization: data.Veterinarian.Specialization,
+                UserImage: data.Veterinarian.UserImage,
+              }
             : {},
           fuaAccountID: data.AccountID,
           customername: data.CustomerName,
@@ -390,7 +391,7 @@ class MakeAppointment extends Component {
     }
   };
   handleOnChangeInput = (event, type) => {
-    console.log(event.target.value, type)
+    console.log(event.target.value, type);
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
     this.setState({ ...copyState }, async () => {
@@ -563,19 +564,19 @@ class MakeAppointment extends Component {
           loadedPetList: newPetList,
           ...(selectedPet
             ? {
-              petname: selectedPet.PetName,
-              pettype: selectedPet.PetType,
-              petgender: selectedPet.PetGender,
-              age: selectedPet.Age.toString(),
-              petweight: selectedPet.PetWeight.toString(),
-            }
+                petname: selectedPet.PetName,
+                pettype: selectedPet.PetType,
+                petgender: selectedPet.PetGender,
+                age: selectedPet.Age.toString(),
+                petweight: selectedPet.PetWeight.toString(),
+              }
             : {
-              petname: '',
-              pettype: this.state.codePetType[0].Code || '',
-              petgender: this.state.codePetGender[0].Code || '',
-              age: '',
-              petweight: '',
-            }),
+                petname: '',
+                pettype: this.state.codePetType[0].Code || '',
+                petgender: this.state.codePetGender[0].Code || '',
+                age: '',
+                petweight: '',
+              }),
         });
       } else {
         toast.error('Không thể tải danh sách thú cưng!');
@@ -647,15 +648,7 @@ class MakeAppointment extends Component {
     const { isLoading, isLoggedIn, accountInfo, codePetType, codePetGender, petgender, pettype, customername, customerphone, customeremail, petname, age, petweight, appointmentDateTime, selectedServiceID, loadedServiceInfo, starttime, availableTimes, notes, allImages, selectedPetID, isShowPetSelectModal, isShowVeterinarianSelectModal, selectedVeterinarianInfo, loadedPetList, type } = this.state;
     return (
       <div className="makeappointment-body">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         <PetSelectModal isOpen={isShowPetSelectModal} toggleFromModal={this.togglePetSelectModal} accountID={isLoggedIn ? accountInfo.AccountID : null} handleSelectPetFromModal={this.handleSelectPetFromModal} onPetListChange={this.handlePetListChange} />
         <VeterinarianSelectModal isOpen={isShowVeterinarianSelectModal} toggleFromModal={this.toggleVeterinarianSelectModal} handleSelectVeterinarianFromModal={this.handleSelectVeterinarianFromModal} />
         {isLoading ? (
@@ -679,6 +672,8 @@ class MakeAppointment extends Component {
               {!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '' || type === 'FOLLOW_UP' ? (
                 <div className="makeappointment-content-pet-info">
                   <b>*Thông tin Thú cưng</b>
+                  <p>Tên thú cưng:</p>
+                  <br />
                   <input type="text" placeholder="Hãy nhập Tên thú cưng" value={petname} onChange={(event) => this.handleOnChangeInput(event, 'petname')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
                   <div className="f">
                     <p>Loại: </p>
@@ -706,9 +701,17 @@ class MakeAppointment extends Component {
                       )}
                     </select>
                   </div>
-                  <div className="f">
-                    <input type="text" placeholder="Hãy nhập Tuổi" value={age} onChange={(event) => this.handleOnChangeInput(event, 'age')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
-                    <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
+                  <div className="old-weight f">
+                    <div>
+                      <p>Tháng tuổi:</p>
+                      <br />
+                      <input type="text" placeholder="Hãy nhập Tuổi" value={age} onChange={(event) => this.handleOnChangeInput(event, 'age')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'}></input>
+                    </div>
+                    <div>
+                      <p>Cân nặng (kg):</p>
+                      <br />
+                      <input type="text" placeholder="Hãy nhập Cân nặng" value={petweight} onChange={(event) => this.handleOnChangeInput(event, 'petweight')} disabled={(isLoggedIn && loadedPetList.length > 0) || type === 'FOLLOW_UP'} />
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -741,9 +744,7 @@ class MakeAppointment extends Component {
                           </p>
                         </div>
                         {type !== 'FOLLOW_UP' && (
-                          <button
-                            className="cancel-doctor-btn"
-                            onClick={this.handleUnSelectVeterinarian}>
+                          <button className="cancel-doctor-btn" onClick={this.handleUnSelectVeterinarian}>
                             X
                           </button>
                         )}
@@ -760,12 +761,7 @@ class MakeAppointment extends Component {
                     <b>*Ngày khám:</b>
                   </p>
                   <div>
-                    <DatePicker
-                      selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null}
-                      onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy"
-                      placeholderText="dd/mm/yyyy" className="date-picker"
-                      isClearable
-                    />
+                    <DatePicker selected={appointmentDateTime ? new Date(appointmentDateTime.getTime() - appointmentDateTime.getTimezoneOffset() * 60000) : null} onChange={this.handleOnChangeDateInput} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
                   </div>
                 </div>
 
