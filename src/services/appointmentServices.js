@@ -32,6 +32,14 @@ const handleGetAppointmentBillDetailApi = (appointmentbillid) => {
   return axios.get(`/api/get-appointmentbilldetail?appointmentbillid=${appointmentbillid}`);
 };
 
+const handleSendAppointmentEmailApi = (sendInfo) => {
+  return axios.post('/api/get-appointment-email', sendInfo);
+};
+
+const handleSendAppointmentBillEmailApi = (sendInfo) => {
+  return axios.post('/api/get-appointmentbill-email', sendInfo);
+};
+
 export {
   handleCreateAppointmentApi,
   handleGetAvailableTimesApi,
@@ -41,4 +49,6 @@ export {
   handleChangeAppointmentStatusApi,
   handleCreateAppointmentBillApi,
   handleGetAppointmentBillDetailApi,
+  handleSendAppointmentEmailApi,
+  handleSendAppointmentBillEmailApi,
 };

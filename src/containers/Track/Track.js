@@ -11,7 +11,7 @@ import Spinner from '../../components/Spinner.js';
 import Header from '../../components/HomeHeader.js';
 
 import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
-import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices.js';
+import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi, handleSendAppointmentBillEmailApi } from '../../services/appointmentServices.js';
 
 import { getAllCodes, generateInvoicePDF, generateAppointmentBillPDF } from '../../utils/pakage';
 import { clearTrackInfo } from '../../store/actions/index.js';
@@ -193,8 +193,7 @@ class Track extends Component {
         break;
     }
   };
-  handleSendEmail = async (billid, type) => {
-    const { email } = this.state;
+  handleSendEmail = async (billid, email, type) => {
     if (!email) {
       toast.info('Không tìm thấy Email để gửi hóa đơn!');
       return;
@@ -209,6 +208,9 @@ class Track extends Component {
       switch (type) {
         case 1:
           response = await handleSendInvoiceEmailApi(sendInfo);
+          break;
+        case 3:
+          response = await handleSendAppointmentBillEmailApi(sendInfo);
           break;
         default:
           break;
@@ -493,13 +495,13 @@ class Track extends Component {
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            second: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          second: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -610,7 +612,7 @@ class Track extends Component {
                               <div className="bill-actions-invoice">
                                 <div className="sb">
                                   <input type="text" value={email} placeholder="Nhập email nếu bạn muốn gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />{' '}
-                                  <button onClick={() => this.handleSendEmail(billid, 1)} className="email-btn">
+                                  <button onClick={() => this.handleSendEmail(billid, email, 1)} className="email-btn">
                                     Gửi qua email
                                   </button>
                                 </div>
@@ -687,12 +689,12 @@ class Track extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -816,12 +818,12 @@ class Track extends Component {
                                       <b>Thời gian:</b>
                                       {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
                                         ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -900,8 +902,9 @@ class Track extends Component {
                                 <button onClick={this.handleBackToSearch} className="back-btn-appointment">
                                   <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
                                 </button>
+                                {console.log(loadedAppointmentBillDetails)}
                                 <div>
-                                  <button onClick={() => this.handleSendEmail(loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID)} className="email-btn-appointment">
+                                  <button onClick={() => this.handleSendEmail(loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID, loadedAppointmentBillDetails.CustomerEmail, 3)} className="email-btn-appointment">
                                     Gửi qua email
                                   </button>
                                   <button onClick={() => this.handleGeneratePDF(loadedAppointmentBillDetails, 3)} className="pdf-btn-appointment">

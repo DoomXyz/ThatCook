@@ -11,7 +11,7 @@ import Header from '../../components/HomeHeader';
 
 import { handleLoadAppointmentDetailsApi, handleCreateAppointmentBillApi } from '../../services/appointmentServices';
 
-import { saveFuAppointmentInfo, clearAppointmentCheckout } from '../../store/actions';
+import { saveFuAppointmentInfo, clearAppointmentCheckout, saveTrackInfo } from '../../store/actions';
 import { uploadImages } from '../../utils/pakage';
 
 class AppointmentCheckOut extends Component {
@@ -215,6 +215,7 @@ class AppointmentCheckOut extends Component {
                             <button
                                 onClick={() => {
                                     this.props.saveFuAppointmentInfo({ appointmentid: response.data.AppointmentID });
+                                    this.props.clearAppointmentCheckout();
                                     this.props.navigate('/makeappointment');
                                 }}
                                 style={{
@@ -229,7 +230,8 @@ class AppointmentCheckOut extends Component {
                             </button>
                             <button
                                 onClick={() => {
-                                    this.props.saveTrackInfo({ billid: response.data.InvoiceID, billtype: 3 });
+                                    this.props.saveTrackInfo({ billid: response.data.AppointmentBillID, billtype: 3 });
+                                    this.props.clearAppointmentCheckout();
                                     this.props.navigate('/track');
                                 }}
                                 style={{
@@ -396,6 +398,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     saveFuAppointmentInfo: (fuAppointmentInfo) => dispatch(saveFuAppointmentInfo(fuAppointmentInfo)),
     clearAppointmentCheckout: () => dispatch(clearAppointmentCheckout()),
+    saveTrackInfo: (trackData) => dispatch(saveTrackInfo(trackData)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(AppointmentCheckOut);
