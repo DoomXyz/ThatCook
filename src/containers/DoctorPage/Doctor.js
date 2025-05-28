@@ -769,7 +769,7 @@ class Doctor extends Component {
             <div className='doctor-head'>
               <div className='doctor-head-left'>
                 <h3>
-                  <b>Thông tin bác sĩ: BS. {accountInfo?.UserName}</b>
+                  <b>Thông tin của bác sĩ: {accountInfo?.UserName}</b>
                 </h3>
               </div>
               <div className='doctor-head-right' >
