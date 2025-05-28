@@ -287,8 +287,9 @@ a {
           .user-none {
             p {
               margin-top: 15px;
-              margin-left: 10px;
-              cursor: pointer;
+            }
+            button {
+              margin: 0 0.3rem;
             }
           }
         }

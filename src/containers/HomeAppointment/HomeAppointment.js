@@ -15,6 +15,9 @@ import tongquat from '../../assets/doctor-imgs/img1.png';
 import phauthuat from '../../assets/doctor-imgs/phauthuat.png';
 import tiemphong from '../../assets/doctor-imgs/tiemphong.png';
 import xetnghiem from '../../assets/doctor-imgs/xetnghiem.png';
+import xquang from '../../assets/doctor-imgs/x-quang.png';
+import dieutrikysinhtrung from '../../assets/doctor-imgs/dieu-tri-ky.png';
+import chamsocrangmieng from '../../assets/doctor-imgs/sieu-am.png';
 import dr from '../../assets/doctor-imgs/dr.png';
 import im1 from '../../assets/doctor-imgs/dv2.jpg';
 import im2 from '../../assets/doctor-imgs/dv4.jpg';
@@ -151,6 +154,17 @@ class HomeAppointment extends Component {
       this.setState({ doctorIndex: doctorIndex + 1 });
     }
   };
+  handleServiceNavigate = (serviceID) => {
+    const serviceTypeMap = {
+      1: 1, // General Health Check
+      2: 2, // Vaccination
+      3: 3, // Surgery
+      4: 4, // Test
+    };
+    const serviceType = serviceTypeMap[serviceID] || 1;
+    this.props.selectServiceType(serviceType);
+    this.props.navigate('/showservice');
+  };
 
   render() {
     const { doctorIndex, loadedVeterinarianInfo, codeWorkingStatus, disabledButtons } = this.state;
@@ -216,9 +230,23 @@ class HomeAppointment extends Component {
               <p>Phẫu thuật cơ bản</p>
             </div>
           </div>
-          <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
-            <img src={xetnghiem} alt="" />
-            <p>Xét Nghiệm Và Chẩn Đoán</p>
+          <div className="f">
+            <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
+              <img src={xetnghiem} alt="" />
+              <p>Xét Nghiệm Và Chẩn Đoán</p>
+            </div>
+            <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
+              <img src={chamsocrangmieng} alt="" />
+              <p>Chăm sóc răng miệng</p>
+            </div>
+            <div className="service-item xquang" onClick={() => this.props.navigate('/service/test')}>
+              <img src={xquang} alt="" />
+              <p>X-quang</p>
+            </div>
+          </div>
+          <div className="service-item last" onClick={() => this.props.navigate('/service/test')}>
+            <img src={dieutrikysinhtrung} alt="" />
+            <p>Điều trị ký sinh trùng</p>
           </div>
         </div>
         <div className="bottom">
