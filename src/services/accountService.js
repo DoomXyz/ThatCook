@@ -1544,7 +1544,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         {
           model: db.VeterinarianInfo,
           as: 'VeterinarianInfo',
-          attributes: ['Bio', 'WorkingStatus'],
+          attributes: ['Bio', 'Specialization', 'WorkingStatus'],
           required: true,
         },
       ];
@@ -1638,6 +1638,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
         UserImage: row.UserImage,
         Bio: row.VeterinarianInfo.Bio,
         WorkingStatus: row.VeterinarianInfo.WorkingStatus,
+        Specialization: row.VeterinarianInfo.Specialization,
         BookingCount: parseInt(row.BookingCount) || 0,
       }));
       resolve({
