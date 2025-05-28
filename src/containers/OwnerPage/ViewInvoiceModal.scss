@@ -1,6 +1,10 @@
 .f {
   display: flex;
 }
+.sb {
+  display: flex;
+  justify-content: space-between;
+}
 .cen {
   text-align: center;
 }
@@ -86,19 +90,40 @@
     }
   }
 }
-.modal-footer {
-  button:first-child {
-    background-color: rgb(93, 93, 212);
+.view-invoice-modal-footer {
+  margin-top: 1rem;
+  .send-mail {
+    margin-bottom: 0.5rem;
+    input {
+      outline: none;
+      border-radius: 0.3rem;
+      padding: 0.3rem;
+      width: 28rem;
+    }
+    .mail {
+      background-color: rgb(93, 93, 212);
+      color: white;
+      border: none;
+      padding: 7px;
+      border-radius: 5px;
+    }
+  }
+
+  .pdf {
+    background-color: rgb(87, 158, 250);
     color: white;
     border: none;
     padding: 7px;
     border-radius: 5px;
   }
-  button:last-child {
-    background-color: rgb(1, 187, 1);
+  .confirm-payment {
+    background-color: rgb(0, 193, 0);
     color: white;
     border: none;
     padding: 7px;
     border-radius: 5px;
+  }
+  .confirm-payment:hover {
+    background-color: rgb(0, 156, 0);
   }
 }

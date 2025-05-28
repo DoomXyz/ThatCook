@@ -459,7 +459,11 @@ input {
           tbody {
             .owner-mid-content-right-list-coupon-item {
               td {
-                padding: 1.3rem;
+                padding: 1.3rem 0;
+                input {
+                  overflow: none;
+                  width: 8rem;
+                }
               }
 
               td:nth-child(10) {
@@ -640,8 +644,8 @@ input {
               td:nth-child(10) {
                 // Ensure consistent height
                 button {
-                  width: 40px;
-                  height: 40px;
+                  width: 35px;
+                  height: 35px;
 
                   border-radius: 7px;
                   border: none;

@@ -1221,7 +1221,7 @@ class Owner extends Component {
                       <th>Tình trạng thanh toán</th>
                       <th>Tình trạng giao hàng</th>
                       <th>Đã hủy lúc</th>
-                      <th>Action</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1244,31 +1244,33 @@ class Owner extends Component {
                           <td>{codeShippingStatus.find((filterItem) => filterItem.Code === item.ShippingStatus)?.CodeValueVI || item.ShippingStatus}</td>
                           <td>{item.CanceledAt ? new Date(item.CanceledAt).toLocaleString('vi-VN') : ''}</td>
                           <td onClick={(e) => e.stopPropagation()}>
-                            {item.PaymentStatus === 'PEND' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
-                              <button className="btn-confirm-payment" onClick={() => this.handleConfirmPayment(item.InvoiceID)} title="Xác nhận thanh toán" disabled={disabledButtons.confirmPayment}>
-                                <IonIcon icon={cashOutline}></IonIcon>
-                              </button>
-                            )}
-                            {item.PaymentStatus === 'PAID' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
-                              <button className="btn-confirm-delivery" onClick={() => this.handleConfirmDelivery(item.InvoiceID)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmDelivery}>
-                                <IonIcon icon={checkmarkCircleOutline}></IonIcon>
-                              </button>
-                            )}
-                            {item.ShippingStatus === 'PEND' && (
-                              <button className="btn-cancel" onClick={() => this.handleSelectedCancelInvoice(item.InvoiceID)} title="Hủy hóa đơn">
-                                <IonIcon icon={closeCircleOutline}></IonIcon>
-                              </button>
-                            )}
-                            {item.ShippingStatus === 'PEND_CANCEL' && (
-                              <div className="f">
-                                <button className="btn-accept-cancel" onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)} title="Chấp nhận hủy" disabled={disabledButtons.acceptCancelInvoice}>
-                                  <IonIcon icon={banOutline}></IonIcon>
+                            <div>
+                              {item.PaymentStatus === 'PEND' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'PEND_CANCEL' && (
+                                <button className="btn-confirm-payment" onClick={() => this.handleConfirmPayment(item.InvoiceID)} title="Xác nhận thanh toán" disabled={disabledButtons.confirmPayment}>
+                                  <IonIcon icon={cashOutline}></IonIcon>
                                 </button>
-                                <button className="btn-deny-cancel" onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)} title="Từ chối hủy" disabled={disabledButtons.denyCancelInvoice}>
-                                  <IonIcon icon={refreshOutline}></IonIcon>
+                              )}
+                              {item.PaymentStatus === 'PAID' && item.ShippingStatus !== 'CANCELED' && item.ShippingStatus !== 'DELI' && item.ShippingStatus !== 'PEND_CANCEL' && (
+                                <button className="btn-confirm-delivery" onClick={() => this.handleConfirmDelivery(item.InvoiceID)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmDelivery}>
+                                  <IonIcon icon={checkmarkCircleOutline}></IonIcon>
                                 </button>
-                              </div>
-                            )}
+                              )}
+                              {item.ShippingStatus === 'PEND' && (
+                                <button className="btn-cancel" onClick={() => this.handleSelectedCancelInvoice(item.InvoiceID)} title="Hủy hóa đơn">
+                                  <IonIcon icon={closeCircleOutline}></IonIcon>
+                                </button>
+                              )}
+                              {item.ShippingStatus === 'PEND_CANCEL' && (
+                                <div className="f">
+                                  <button className="btn-accept-cancel" onClick={() => this.handleAcceptCancelInvoice(item.InvoiceID)} title="Chấp nhận hủy" disabled={disabledButtons.acceptCancelInvoice}>
+                                    <IonIcon icon={banOutline}></IonIcon>
+                                  </button>
+                                  <button className="btn-deny-cancel" onClick={() => this.handleDenyCancelInvoice(item.InvoiceID)} title="Từ chối hủy" disabled={disabledButtons.denyCancelInvoice}>
+                                    <IonIcon icon={refreshOutline}></IonIcon>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -1589,7 +1591,7 @@ class Owner extends Component {
                             </td>
                             <td>
                               {isEditingCoupon === index ? (
-                                <DatePicker selected={item.StartDate ? new Date(item.StartDate) : null} onChange={(date) => this.handleCouponChange(index, 'StartDate', date)} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                                <DatePicker selected={item.StartDate ? new Date(item.StartDate) : null} onChange={(date) => this.handleCouponChange(index, 'StartDate', date)} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
                               ) : item.StartDate ? (
                                 new Date(item.StartDate).toLocaleString('vi-VN', {
                                   day: '2-digit',
@@ -1602,7 +1604,7 @@ class Owner extends Component {
                             </td>
                             <td>
                               {isEditingCoupon === index ? (
-                                <DatePicker selected={item.EndDate ? new Date(item.EndDate) : null} onChange={(date) => this.handleCouponChange(index, 'EndDate', date)} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                                <DatePicker selected={item.EndDate ? new Date(item.EndDate) : null} onChange={(date) => this.handleCouponChange(index, 'EndDate', date)} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" />
                               ) : item.EndDate ? (
                                 new Date(item.EndDate).toLocaleString('vi-VN', {
                                   day: '2-digit',

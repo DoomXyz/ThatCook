@@ -769,7 +769,7 @@ class Track extends Component {
                                   </tfoot>
                                 </table>
                               </div>
-                              <div className="sb">
+                              <div className="sb min-width">
                                 <button onClick={this.handleBackToSearch} className="back-btn-app">
                                   <IonIcon icon={chevronBackOutline}></IonIcon>
                                   Quay về

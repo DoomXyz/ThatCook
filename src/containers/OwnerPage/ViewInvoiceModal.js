@@ -36,7 +36,7 @@ class ViewInvoiceModal extends Component {
   }
   handleLoadCode = async (codeTypes) => {
     try {
-      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypes.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypes.forEach((type, index) => {
         const response = responses[index];
@@ -54,7 +54,7 @@ class ViewInvoiceModal extends Component {
   };
   resetState = () => {
     this.setState({
-      email: ''
+      email: '',
     });
   };
   toggle = () => {
@@ -137,13 +137,13 @@ class ViewInvoiceModal extends Component {
                         Thời gian:{' '}
                         {loadedInvoiceDetails.CreatedAt
                           ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                          })
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                            })
                           : 'N/A'}
                       </p>
                     </div>
@@ -234,8 +234,9 @@ class ViewInvoiceModal extends Component {
                             <sup>đ</sup>
                           </td>
                         </tr>
-                      ) : ""
-                      }
+                      ) : (
+                        ''
+                      )}
                       <tr>
                         <td colSpan="5">
                           <b>Tổng thanh toán:</b>
@@ -264,19 +265,54 @@ class ViewInvoiceModal extends Component {
               <div className="error">Không tìm thấy thông tin hóa đơn.</div>
             )}
           </div>
+          <div className="view-invoice-modal-footer">
+            <div className="send-mail sb">
+              <input type="text" value={email} placeholder="Hãy nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />
+              <Button className="mail" variant="primary" onClick={() => this.handleSendEmail(loadedInvoiceDetails?.InvoiceID)}>
+                Gửi qua mail
+              </Button>
+            </div>
+            <div className="sb">
+              {loadedInvoiceDetails && (
+                <>
+                  {loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                    <Button variant="danger" onClick={() => this.props.handleSelectedCancelInvoice(loadedInvoiceDetails.InvoiceID)}>
+                      Hủy hóa đơn
+                    </Button>
+                  )}
+                  {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus !== 'CANCELED' && loadedInvoiceDetails.ShippingStatus !== 'PEND_CANCEL' && (
+                    <Button className="confirm-payment" variant="primary" onClick={() => this.props.handleConfirmPayment(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.confirmPayment}>
+                      Xác nhận thanh toán
+                    </Button>
+                  )}
+
+                  {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus !== 'CANCELED' && loadedInvoiceDetails.ShippingStatus !== 'DELI' && loadedInvoiceDetails.ShippingStatus !== 'PEND_CANCEL' && (
+                    <Button variant="primary" onClick={() => this.props.handleConfirmDelivery(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.confirmDelivery}>
+                      Xác nhận giao hàng
+                    </Button>
+                  )}
+
+                  {loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
+                    <>
+                      <Button variant="success" onClick={() => this.props.handleAcceptCancelInvoice(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.acceptCancelInvoice}>
+                        Chấp nhận hủy
+                      </Button>
+                      <Button variant="warning" onClick={() => this.props.handleDenyCancelInvoice(loadedInvoiceDetails.InvoiceID)} disabled={this.props.disabledButtons?.denyCancelInvoice}>
+                        Từ chối hủy
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+              <div></div>
+
+              <Button className="pdf" variant="primary" onClick={() => this.handleGeneratePDF(loadedInvoiceDetails)}>
+                Tải PDF
+              </Button>
+            </div>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={this.toggle}>
-            Đóng
-          </Button>
-          <input type="text" value={email} placeholder="Hãy nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />
-          <Button variant="primary" onClick={() => this.handleGeneratePDF(loadedInvoiceDetails)}>
-            Tải PDF
-          </Button>
-          <Button variant="primary" onClick={() => this.handleSendEmail(loadedInvoiceDetails.InvoiceID)}>
-            Gửi qua mail
-          </Button>
-        </Modal.Footer>
+        <Modal.Footer></Modal.Footer>
       </Modal>
     );
   }
