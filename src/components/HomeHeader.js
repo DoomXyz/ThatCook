@@ -230,7 +230,7 @@ class HomeHeader extends Component {
   };
 
   render() {
-    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codeService, isScrolled } = this.state;
+    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codeService, isScrolled, disabledButtons } = this.state;
     return (
       <div className="body-container">
         <div className={`header-container ${isScrolled ? 'scrolled' : ''}`}>
@@ -243,69 +243,105 @@ class HomeHeader extends Component {
             ></div>
             <div className="menu">
               <li className="menu-icon">
-                <a>
+                <button type="button" className="link-button">
                   <IonIcon icon={menuOutline}></IonIcon>
-                </a>
+                </button>
                 <ul className="sub-menu-1">
                   <li>
-                    <a
+                    <button
+                      type="button"
+                      className="link-button"
                       onClick={() => {
                         this.props.navigate('/home');
                       }}
                     >
                       <IonIcon icon={cartOutline}></IonIcon>Cửa Hàng
-                    </a>
+                    </button>
                   </li>
                   <li>
-                    <a
+                    <button
+                      type="button"
+                      className="link-button"
                       onClick={() => {
                         this.props.navigate('/homeappointment');
                       }}
                     >
                       <IonIcon icon={newspaperOutline}></IonIcon>Dịch vụ
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </li>
               <li>
-                <a>Dịch vụ</a>
+                <button type="button" className="link-button">Dịch vụ</button>
                 <ul className="sub-menu-2">
                   {codeService.length > 0 ? (
                     codeService.map((service) => (
                       <li key={service.ServiceID}>
-                        <a>
-                          <p onClick={() => this.handleServiceNavigate(service.ServiceID)}>{service.ServiceName}</p>
-                        </a>
+                        <button
+                          type="button"
+                          className="link-button"
+                          onClick={() => this.handleServiceNavigate(service.ServiceID)}
+                        >
+                          {service.ServiceName}
+                        </button>
                       </li>
                     ))
                   ) : (
                     <li>
-                      <a>
-                        <p>Không có dịch vụ</p>
-                      </a>
+                      <span>Không có dịch vụ</span>
                     </li>
                   )}
                 </ul>
               </li>
               <li>
-                <a onClick={() => this.props.navigate('/makeappointment')}>Đặt lịch</a>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => this.props.navigate('/makeappointment')}
+                >
+                  Đặt lịch
+                </button>
               </li>
               <li>
-                <a onClick={() => this.props.navigate('/showdoctor')}>Bác sĩ</a>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => this.props.navigate('/showdoctor')}
+                >
+                  Bác sĩ
+                </button>
               </li>
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === 'C' ? (
                   <li>
-                    <a onClick={() => this.props.navigate('/track')}>Tra cứu</a>
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => this.props.navigate('/track')}
+                    >
+                      Tra cứu
+                    </button>
                   </li>
                 ) : (
                   <li>
-                    <a onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}>Nghiệp vụ</a>
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}
+                    >
+                      Nghiệp vụ
+                    </button>
                   </li>
                 )
               ) : (
                 <li>
-                  <a onClick={() => this.props.navigate('/information')}>Liên hệ</a>
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => this.props.navigate('/information')}
+                  >
+                    Liên hệ
+                  </button>
                 </li>
               )}
             </div>
@@ -325,21 +361,27 @@ class HomeHeader extends Component {
                       <li>
                         <div className="f" onClick={() => this.props.navigate('/user/customer')}>
                           <IonIcon icon={informationCircleOutline}></IonIcon>
-                          <a>Thông tin người dùng</a>
+                          <button
+                            type="button"
+                            className="link-button"
+                            onClick={() => this.props.navigate('/user/customer')}
+                          >
+                            Thông tin người dùng
+                          </button>
                         </div>
                       </li>
                       <li>
                         <div className="f" onClick={this.handleLogout}>
                           <IonIcon icon={logOutOutline}></IonIcon>
-                          <a>Đăng xuất</a>
+                          <button
+                            type="button"
+                            className="link-button"
+                            onClick={this.handleLogout}
+                            disabled={disabledButtons.logout}
+                          >
+                            Đăng xuất
+                          </button>
                         </div>
-                        {/* <div
-                          className={`f ${this.state.disabledButtons.logout ? 'disabled' : ''}`}
-                          onClick={this.state.disabledButtons.logout ? null : this.handleLogout}
-                        >
-                          <IonIcon icon={logOutOutline}></IonIcon>
-                          Đăng xuất
-                        </div> */}
                       </li>
                     </ul>
                   </div>
@@ -347,13 +389,21 @@ class HomeHeader extends Component {
                   <div className="user-none" id="user-icon">
                     <div className="f">
                       <IonIcon icon={person}></IonIcon>
-                      <a onClick={() => this.props.navigate('/login')}>
-                        <p>Đăng nhập</p>
-                      </a>
+                      <button
+                        type="button"
+                        className="link-button"
+                        onClick={() => this.props.navigate('/login')}
+                      >
+                        Đăng nhập
+                      </button>
                       <p>|</p>
-                      <a onClick={() => this.props.navigate('/register')}>
-                        <p>Đăng ký</p>
-                      </a>
+                      <button
+                        type="button"
+                        className="link-button"
+                        onClick={() => this.props.navigate('/register')}
+                      >
+                        Đăng ký
+                      </button>
                     </div>
                   </div>
                 )}

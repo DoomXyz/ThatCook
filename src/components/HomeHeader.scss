@@ -36,6 +36,22 @@ a {
   text-decoration: none;
 }
 
+.link-button {
+  background: none;
+  border: none;
+  color: rgb(91, 82, 82); /* Or match your link color */
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.link-button:hover {
+  text-decoration: none; /* Or match your link hover style */
+}
+.link-button:focus {
+  outline: 2px solid rgb(91, 82, 82); /* Ensure keyboard focus visibility */
+}
+
 .body-container {
   .header-container {
     flex-direction: column;
