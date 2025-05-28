@@ -8,7 +8,6 @@ import Footer from '../../components/HomeFooter';
 
 import { handleLoadVeterinarianInfoApi } from '../../services/accountServices';
 
-import { getAllCodes } from '../../utils/pakage';
 import { savePreselectInfo } from '../../store/actions';
 
 import tongquat from '../../assets/doctor-imgs/img1.png';
@@ -32,38 +31,14 @@ class HomeAppointment extends Component {
       sortValue: '1',
       currentPage: 1,
       limitItemPerQuery: 5,
-      codeWorkingStatus: [],
       disabledButtons: {
         preSelectVeterinarian: false,
       },
     };
-    this.debounceTimeout = null;
   }
   async componentDidMount() {
     await this.handleLoadVeterinarianInfo();
-    await this.handleLoadCode(['WorkingStatus']);
   }
-  componentWillUnmount() {
-    if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
-  }
-  handleLoadCode = async (codeTypes) => {
-    try {
-      const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
-      const newState = { isLoading: false };
-      codeTypes.forEach((type, index) => {
-        const response = responses[index];
-        if (!response.status || response.data.length === 0) {
-          toast.error(`Không thể tải danh sách ${type}!`);
-        }
-        newState[`code${type}`] = response.data;
-      });
-      this.setState(newState);
-    } catch (error) {
-      console.error('Error loading codes:', error);
-      toast.error('Lỗi khi tải dữ liệu!');
-      this.setState({ isLoading: false });
-    }
-  };
   handleLoadVeterinarianInfo = async () => {
     const { currentPage, limitItemPerQuery, searchValue, filterValue, sortValue } = this.state;
     try {
@@ -85,16 +60,6 @@ class HomeAppointment extends Component {
         closeOnClick: true,
       });
     }
-  };
-  handleDoctorLeftClick = () => {
-    this.setState((prevState) => ({
-      doctorIndex: Math.max(0, prevState.doctorIndex - 1),
-    }));
-  };
-  handleDoctorRightClick = () => {
-    this.setState((prevState) => ({
-      doctorIndex: Math.min(this.state.loadedVeterinarianInfo.length - 1, prevState.doctorIndex + 1),
-    }));
   };
   handlePreSelectVeterinarian = (accountID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true }, });
@@ -147,12 +112,10 @@ class HomeAppointment extends Component {
       }
     });
   };
-
   render() {
     const {
       doctorIndex,
       loadedVeterinarianInfo,
-      codeWorkingStatus,
       disabledButtons,
     } = this.state;
     return (
@@ -180,13 +143,6 @@ class HomeAppointment extends Component {
           </div>
           <div className="stra"></div>
           <div className="doctor-slide-show">
-            <button
-              className="doctor-btn-left"
-              onClick={this.handleDoctorLeftClick}
-              disabled={doctorIndex === 0}
-            >
-              {'<'}
-            </button>
             <div className="doctor-list-wrapper">
               <div
                 className="doctor-list"
@@ -196,19 +152,11 @@ class HomeAppointment extends Component {
                 }}
               >
                 {loadedVeterinarianInfo.length > 0 ? (
-                  loadedVeterinarianInfo.map((doctor, index) => (
-                    <div
-                      className={`top-doctor-item ${index === doctorIndex ? 'active' : ''}`}
-                      key={doctor.AccountID}
-                    >
+                  loadedVeterinarianInfo.map((doctor) => (
+                    <div className="top-doctor-item" key={doctor.AccountID}>
                       <img src={doctor.UserImage} alt={doctor.UserName} />
                       <p>{doctor.UserName}</p>
                       <p>Số lượt đặt lịch: {doctor.BookingCount || 0}</p>
-                      <p>
-                        Trạng thái:{' '}
-                        {codeWorkingStatus.find((filterItem) => filterItem.Code === doctor.WorkingStatus)?.CodeValueVI ||
-                          doctor.WorkingStatus}
-                      </p>
                       <button
                         onClick={() => this.handlePreSelectVeterinarian(doctor.AccountID)}
                         disabled={disabledButtons.preSelectVeterinarian}
@@ -222,13 +170,6 @@ class HomeAppointment extends Component {
                 )}
               </div>
             </div>
-            <button
-              className="doctor-btn-right"
-              onClick={this.handleDoctorRightClick}
-              disabled={doctorIndex === loadedVeterinarianInfo.length - 1}
-            >
-              {'>'}
-            </button>
           </div>
         </div>
         <div className="service container">
