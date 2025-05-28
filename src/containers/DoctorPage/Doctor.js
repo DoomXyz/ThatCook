@@ -92,9 +92,10 @@ class Doctor extends Component {
   }
   //login
   handleIsLogin = async () => {
+    this.setState({ isLoading: true });
     try {
       const { status, accountInfo } = await checkLoginStatus();
-      if (status && accountInfo) {
+      if (status && accountInfo && accountInfo.AccountType === 'V') {
         if (!this.props.userInfo) {
           this.props.userLogin(accountInfo);
         }
@@ -115,10 +116,13 @@ class Doctor extends Component {
       }
     } catch (e) {
       this.props.navigate('/login');
+    } finally {
+      this.setState({ isLoading: false });
     }
   };
   //load filter/code
   handleLoadCode = async (codeTypes) => {
+    this.setState({ isLoading: true });
     try {
       const responses = await Promise.all(codeTypes.map(type => getAllCodes(type)));
       const newState = { isLoading: false };
@@ -795,10 +799,9 @@ class Doctor extends Component {
                   {servicesList && servicesList.length > 0 ? (
                     <div className="service-list">
                       {servicesList.map((item, index) => (
-                        <div className="doctor-value-sv" key={item.ServiceID}  >
+                        <span className="doctor-value-sv" key={item.ServiceID}>
                           {item.ServiceName}
-                          {index < servicesList.length - 1 && ", "} {/* Thêm dấu phẩy và khoảng cách giữa các mục */}
-                        </div>
+                        </span>
                       ))}
                     </div>
                   ) : (
@@ -1366,7 +1369,7 @@ class Doctor extends Component {
                         >
                           Xác nhận
                         </button>
-                        {loadedAppointmentDetail.VeterinarianID !== null ? (
+                        {loadedAppointmentDetail.VeterinarianID !== null && (
                           <button
                             type="button"
                             className="action-button-cancel-button"
@@ -1375,23 +1378,23 @@ class Doctor extends Component {
                           >
                             Từ chối
                           </button>
-                        ) : ""}
+                        )}
                       </>
                     )}
                     {fromForm === 3 && (
                       <>
                         {
                           loadedAppointmentDetail.ScheduleID &&
-                            loadedAppointmentDetail.ScheduleStatus === 'PEND' &&
-                            (() => {
-                              const today = new Date();
-                              const appointmentDay = new Date(loadedAppointmentDetail.AppointmentDate);
-                              return (
-                                today.getFullYear() === appointmentDay.getFullYear() &&
-                                today.getMonth() === appointmentDay.getMonth() &&
-                                today.getDate() === appointmentDay.getDate()
-                              );
-                            })() ? (
+                          loadedAppointmentDetail.ScheduleStatus === 'PEND' &&
+                          (() => {
+                            const today = new Date();
+                            const appointmentDay = new Date(loadedAppointmentDetail.AppointmentDate);
+                            return (
+                              today.getFullYear() === appointmentDay.getFullYear() &&
+                              today.getMonth() === appointmentDay.getMonth() &&
+                              today.getDate() === appointmentDay.getDate()
+                            );
+                          })() && (
                             <button
                               type="button"
                               className="action-button-complete-button"
@@ -1400,10 +1403,10 @@ class Doctor extends Component {
                             >
                               Hoàn thành
                             </button>
-                          ) : ""
-                        }
+                          )}
 
-                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' ? (
+
+                        {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' && (
                           <button
                             type="button"
                             className="action-button-cancel-button"
@@ -1412,7 +1415,7 @@ class Doctor extends Component {
                           >
                             Hủy khám
                           </button>
-                        ) : ""}
+                        )}
                       </>
                     )}
                     {fromForm === 4 && loadedAppointmentDetail.AppointmentBill && (
@@ -1451,7 +1454,7 @@ class Doctor extends Component {
           limit={1}
         />
         {isLoading ? (
-          <Spinner />
+          <div className="loading-container"><Spinner /></div>
         ) : (
           <div className="doctor-container">
             <div className="doctor-action-form">
