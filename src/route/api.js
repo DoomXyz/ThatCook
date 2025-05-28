@@ -38,6 +38,7 @@ const protectRoute = (req, res, next) => {
 
         // '/api/load-couponinfo',
         // '/api/create-coupon',
+        // '/api/change-couponinfo',
 
         // '/api/load-invoiceinfo',
     ];
