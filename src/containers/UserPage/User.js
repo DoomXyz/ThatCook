@@ -211,15 +211,9 @@ class User extends Component {
   handleReloadData = (type) => {
     switch (type) {
       case 1:
-        this.handleLoadAccountInfo();
-        break;
-      case 2:
-        this.handleLoadPetInfo();
-        break;
-      case 3:
         this.handleLoadInvoiceInfo();
         break;
-      case 4:
+      case 2:
         this.handleLoadAppointmentInfo();
         break;
       default:
@@ -451,15 +445,21 @@ class User extends Component {
       return;
     }
     if (hasChanges) {
-      let response = await handleChangeAccountInfoApi(updateInfo);
-      if (response && response.errCode === 0) {
-        toast.success('Cập nhật thông tin thành công!');
-      } else {
-        toast.error(response.errMessage);
+      try {
+        const response = await handleChangeAccountInfoApi(updateInfo);
+        if (response && response.errCode === 0) {
+          toast.success('Cập nhật thông tin thành công!');
+        } else {
+          toast.error(response.errMessage);
+        }
+      } catch (e) {
+        console.log('Lỗi khi cập nhật thông tin người dùng!', e)
+        toast.error('Lỗi khi cập nhật thông tin người dùng!')
+      } finally {
+        await this.triggerLoadInformation();
         this.handleLoadAccountInfo(accountid);
       }
     }
-    await this.triggerLoadInformation();
     this.setState({ editField: null, originalValue: '' });
   };
   handleChangePasswordInputChange = (e) => {
@@ -1628,9 +1628,9 @@ class User extends Component {
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString('vi-VN', {
-                                style: 'currency',
-                                currency: 'VND',
-                              })
+                              style: 'currency',
+                              currency: 'VND',
+                            })
                             : 'N/A'}
                         </div>
                       </div>
@@ -1663,9 +1663,9 @@ class User extends Component {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
                     return shipping
                       ? parseFloat(shipping.ExtraValue).toLocaleString('vi-VN', {
-                          style: 'currency',
-                          currency: 'VND',
-                        })
+                        style: 'currency',
+                        currency: 'VND',
+                      })
                       : '0 ₫';
                   })()}
                 </div>
