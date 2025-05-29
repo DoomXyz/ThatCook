@@ -173,7 +173,7 @@ class User extends Component {
   handleLoadCode = async (codeTypeFilter) => {
     try {
       this.setState({ isLoading: true });
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       const hasDefault = ['Gender'];
       codeTypeFilter.forEach((type, index) => {
@@ -367,7 +367,7 @@ class User extends Component {
     }
   };
   handleRemoveImage = () => {
-    this.setState({ imageInfo: null })
+    this.setState({ imageInfo: null });
   };
   handleEditClick = (field) => {
     this.setState({
@@ -377,7 +377,7 @@ class User extends Component {
   };
   handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
-    const { editField, gender } = this.state
+    const { editField, gender } = this.state;
     if (name === 'gender' && editField !== 'gender') {
       this.setState({
         editField: 'gender',
@@ -516,7 +516,7 @@ class User extends Component {
   };
   //PetInfo Management
   handleEditPet = (index) => {
-    const { isAddingPet, isEditingPet } = this.state
+    const { isAddingPet, isEditingPet } = this.state;
     if (isAddingPet || isEditingPet !== null) {
       toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
       return;
@@ -553,7 +553,9 @@ class User extends Component {
             {
               autoClose: 2000,
               closeOnClick: false,
-              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } }); },
+              onClose: () => {
+                this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } });
+              },
             }
           );
         });
@@ -633,7 +635,9 @@ class User extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: false } });
+            },
           }
         );
       });
@@ -668,7 +672,7 @@ class User extends Component {
     });
   };
   handleSavePet = async (index) => {
-    const { accountid, loadedPetInfo, isAddingPet } = this.state
+    const { accountid, loadedPetInfo, isAddingPet } = this.state;
     const pet = loadedPetInfo[index];
     const newPetInfo = {
       petname: pet.PetName.trim(),
@@ -684,7 +688,6 @@ class User extends Component {
     }
     this.setState({ isLoading: true });
     try {
-
       let response;
       if (isAddingPet) {
         response = await handleSavePetInfoApi(accountid, newPetInfo);
@@ -736,7 +739,9 @@ class User extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } });
+            },
           }
         );
       });
@@ -778,7 +783,7 @@ class User extends Component {
         tempCurrentPage: '1',
       },
       () => {
-        this.handleReloadData(type)
+        this.handleReloadData(type);
       }
     );
   };
@@ -815,12 +820,15 @@ class User extends Component {
     } else if (page > totalPages) {
       newPage = totalPages;
     }
-    this.setState({
-      currentPage: newPage,
-      tempCurrentPage: newPage.toString(),
-    }, () => {
-      this.handleReloadData(type);
-    });
+    this.setState(
+      {
+        currentPage: newPage,
+        tempCurrentPage: newPage.toString(),
+      },
+      () => {
+        this.handleReloadData(type);
+      }
+    );
   };
   handlePrevPage = (type) => {
     this.setState(
@@ -830,7 +838,8 @@ class User extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleReloadData(type);
       }
     );
@@ -891,7 +900,9 @@ class User extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } });
+            },
           }
         );
       });
@@ -944,7 +955,9 @@ class User extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } });
+            },
           }
         );
       });
@@ -998,7 +1011,9 @@ class User extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } });
+            },
           }
         );
       });
@@ -1023,19 +1038,27 @@ class User extends Component {
   //form controller
   handleFormHoSoNguoiDung = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 1, editField: null });
+    this.setState({ actionPage: 1, editField: null }, async () => {
+      await this.handleLoadAccountInfo();
+    });
   };
   handleFormLichSuDonHang = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 2, selectedInvoiceID: null, currentPage: 1, tempCurrentPage: '1' });
+    this.setState({ actionPage: 2, selectedInvoiceID: null, currentPage: 1, tempCurrentPage: '1' }, async () => {
+      await this.handleLoadInvoiceInfo();
+    });
   };
   handleFormDatLich = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 5, currentPage: 1, tempCurrentPage: '1' });
+    this.setState({ actionPage: 5, currentPage: 1, tempCurrentPage: '1' }, async () => {
+      await this.handleLoadAppointmentInfo();
+    });
   };
   handleFormThuCung = (e) => {
     e.preventDefault();
-    this.setState({ actionPage: 7 });
+    this.setState({ actionPage: 7 }, async () => {
+      await this.handleLoadPetInfo();
+    });
   };
   handleFromThemThuCung = (e) => {
     e.preventDefault();
@@ -1133,36 +1156,37 @@ class User extends Component {
     switch (type) {
       case 1:
         generateInvoicePDF(data);
-        break
+        break;
       case 3:
         generateAppointmentBillPDF(data);
         break;
       default:
-        break
+        break;
     }
   };
   handleSendEmail = async (billid, type) => {
     const { email } = this.state;
     if (!email) {
-      toast.info('Hãy nhập Email để gửi hóa đơn!')
-      return
+      toast.info('Hãy nhập Email để gửi hóa đơn!');
+      return;
     }
     try {
-      this.setState({ isLoading: true })
+      this.setState({ isLoading: true });
       const sendInfo = {
         billid,
         email,
-      }
-      let response
+      };
+      let response;
       switch (type) {
-        case 1: response = await handleSendInvoiceEmailApi(sendInfo);
+        case 1:
+          response = await handleSendInvoiceEmailApi(sendInfo);
           break;
         default:
           break;
       }
       if (response && response.errCode === 0) {
         toast.success('Gửi email thành công!');
-        this.setState({ actionPage: 0 })
+        this.setState({ actionPage: 0 });
       } else {
         toast.error(response?.errMessage || 'Gửi email thất bại!');
       }
@@ -1170,8 +1194,8 @@ class User extends Component {
       console.log('Lỗi khi gửi email:', e);
       toast.error('Lỗi khi gửi email!');
     } finally {
-      this.handleFormChiTietDonHang(this.state.selectedInvoiceID)
-      this.setState({ isLoading: false })
+      this.handleFormChiTietDonHang(this.state.selectedInvoiceID);
+      this.setState({ isLoading: false });
     }
   };
 
@@ -1223,7 +1247,7 @@ class User extends Component {
       showNewPassword,
       showConfirmPassword,
       isAddingPet,
-      disabledButtons
+      disabledButtons,
     } = this.state;
     switch (actionPage) {
       case 1:
@@ -1285,19 +1309,9 @@ class User extends Component {
                 <div className="user-content-right-img-content">
                   <div className="user-content-img-description">Ảnh đại diện</div>
                   <div className="user-content-img-info" style={{ position: 'relative' }}>
-                    {imageInfo ? (
-                      <img src={imageInfo.Image} alt="Ảnh đại diện" />
-                    ) : userimage ? (
-                      <img src={userimage} alt="Ảnh đại diện" />
-                    ) : (
-                      <img src={defUserImage} alt="Ảnh đại diện" />
-                    )}
+                    {imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : userimage ? <img src={userimage} alt="Ảnh đại diện" /> : <img src={defUserImage} alt="Ảnh đại diện" />}
                     {imageInfo && (
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={this.handleRemoveImage}
-                      >
+                      <button type="button" className="remove-image-btn" onClick={this.handleRemoveImage}>
                         X
                       </button>
                     )}
@@ -1311,9 +1325,6 @@ class User extends Component {
           </form>
         );
       case 2:
-        const startInvoiceIndex = (currentPage - 1) * limitInvoicePerQuery;
-        const endInvoiceIndex = startInvoiceIndex + limitInvoicePerQuery;
-        const paginatedInvoiceInfo = loadedInvoiceInfo.slice(startInvoiceIndex, endInvoiceIndex);
         return (
           <form className="user-cart-form">
             <h3>
@@ -1475,18 +1486,18 @@ class User extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button type='button' className="first" onClick={() => this.handlePageChange(1, 3)} disabled={currentPage === 1}>
+                    <button type="button" className="first" onClick={() => this.handlePageChange(1, 3)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button type='button' className="prev" onClick={() => this.handlePrevPage(3)} disabled={currentPage === 1}>
+                    <button type="button" className="prev" onClick={() => this.handlePrevPage(3)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
                     <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 3)} onBlur={() => this.handlePageInputBlur(3)} />
                     <span className="total-pages">/ {totalPages}</span>
-                    <button type='button' className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalPages}>
+                    <button type="button" className="next" onClick={() => this.handleNextPage(3)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button type='button' className="last" onClick={() => this.handlePageChange(totalPages, 3)} disabled={currentPage === totalPages}>
+                    <button type="button" className="last" onClick={() => this.handlePageChange(totalPages, 3)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -1590,11 +1601,7 @@ class User extends Component {
                 paginatedProductList.map((item, index) => (
                   <div key={index} className="user-cart-form-info-list-item-row">
                     <div className="user-cart-form-info-list-item-left">
-                      <div className="img-product">
-                        {item?.ProductImage && (
-                          <img src={item.ProductImage} alt="Product" style={{ width: '100px', height: '100px' }} />
-                        )}
-                      </div>
+                      <div className="img-product">{item?.ProductImage && <img src={item.ProductImage} alt="Product" style={{ width: '100px', height: '100px' }} />}</div>
                     </div>
                     <div className="user-cart-form-info-list-item-center">
                       <div className="item-info-tab">
@@ -1618,9 +1625,9 @@ class User extends Component {
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString('vi-VN', {
-                              style: 'currency',
-                              currency: 'VND',
-                            })
+                                style: 'currency',
+                                currency: 'VND',
+                              })
                             : 'N/A'}
                         </div>
                       </div>
@@ -1634,18 +1641,18 @@ class User extends Component {
             {totalPages > 1 && (
               <div className="page-content">
                 <div className="page-content-item">
-                  <button className="first" type='button' onClick={() => this.handlePageChange(1, 0)} disabled={currentPage === 1}>
+                  <button className="first" type="button" onClick={() => this.handlePageChange(1, 0)} disabled={currentPage === 1}>
                     {'<<'}
                   </button>
-                  <button className="prev" type='button' onClick={() => this.handlePrevPage(0)} disabled={currentPage === 1}>
+                  <button className="prev" type="button" onClick={() => this.handlePrevPage(0)} disabled={currentPage === 1}>
                     {'<'}
                   </button>
                   <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 0)} onBlur={() => this.handlePageInputBlur(0)} />
                   <span className="total-pages">/ {totalPages}</span>
-                  <button className="next" type='button' onClick={() => this.handleNextPage(0)} disabled={currentPage === totalPages}>
+                  <button className="next" type="button" onClick={() => this.handleNextPage(0)} disabled={currentPage === totalPages}>
                     {'>'}
                   </button>
-                  <button className="last" type='button' onClick={() => this.handlePageChange(totalPages, 0)} disabled={currentPage === totalPages}>
+                  <button className="last" type="button" onClick={() => this.handlePageChange(totalPages, 0)} disabled={currentPage === totalPages}>
                     {'>>'}
                   </button>
                 </div>
@@ -1672,9 +1679,9 @@ class User extends Component {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
                     return shipping
                       ? parseFloat(shipping.ExtraValue).toLocaleString('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                      })
+                          style: 'currency',
+                          currency: 'VND',
+                        })
                       : '0 ₫';
                   })()}
                 </div>
@@ -1720,10 +1727,10 @@ class User extends Component {
               </div>
               <div className="price-item">
                 <div className="value">
-                  <button type='button' onClick={() => this.handleGeneratePDF(loadedInvoiceDetail, 1)} className="pdf-btn">
+                  <button type="button" onClick={() => this.handleGeneratePDF(loadedInvoiceDetail, 1)} className="pdf-btn">
                     Tải PDF
                   </button>
-                  <button type='button' onClick={() => this.handleSendEmail(selectedInvoiceID, 1)} className="email-btn">
+                  <button type="button" onClick={() => this.handleSendEmail(selectedInvoiceID, 1)} className="email-btn">
                     Gửi hóa đơn về Email
                   </button>
                 </div>
@@ -1784,10 +1791,7 @@ class User extends Component {
                       isClearable
                     />
                     {date1 && (
-                      <button type='button'
-                        onClick={() => this.resetDateFilter('date1', 4)}
-                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                      >
+                      <button type="button" onClick={() => this.resetDateFilter('date1', 4)} style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}>
                         x
                       </button>
                     )}
@@ -1809,7 +1813,7 @@ class User extends Component {
                     />
                     {date2 && (
                       <button
-                        type='button'
+                        type="button"
                         onClick={() => this.resetDateFilter('date2', 4)} // Thêm type
                         style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
                       >
@@ -1856,7 +1860,7 @@ class User extends Component {
                       <div className="appointment-list-item-bottom">
                         {appointment.AppointmentStatus === 'PEND' && (
                           <button
-                            type='button'
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               this.handleCancelAppointment(appointment.AppointmentID);
@@ -1876,18 +1880,18 @@ class User extends Component {
               {totalPages > 1 && (
                 <div className="page-content">
                   <div className="page-content-item">
-                    <button type='button' className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
+                    <button type="button" className="first" onClick={() => this.handlePageChange(1, 4)} disabled={currentPage === 1}>
                       {'<<'}
                     </button>
-                    <button type='button' className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
+                    <button type="button" className="prev" onClick={() => this.handlePrevPage(4)} disabled={currentPage === 1}>
                       {'<'}
                     </button>
                     <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 4)} onBlur={() => this.handlePageInputBlur(4)} />
                     <span className="total-pages">/ {totalPages}</span>
-                    <button type='button' className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
+                    <button type="button" className="next" onClick={() => this.handleNextPage(4)} disabled={currentPage === totalPages}>
                       {'>'}
                     </button>
-                    <button type='button' className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
+                    <button type="button" className="last" onClick={() => this.handlePageChange(totalPages, 4)} disabled={currentPage === totalPages}>
                       {'>>'}
                     </button>
                   </div>
@@ -2002,12 +2006,7 @@ class User extends Component {
                   </div>
                   {loadedAppointmentDetail.AppointmentStatus === 'PEND' && (
                     <div className="user-appointment-form-detail-bottom">
-                      <button
-                        className="cancel-app"
-                        type="button"
-                        onClick={() => this.handleCancelAppointment(loadedAppointmentDetail.AppointmentID)}
-                        disabled={disabledButtons.cancelAppointment}
-                      >
+                      <button className="cancel-app" type="button" onClick={() => this.handleCancelAppointment(loadedAppointmentDetail.AppointmentID)} disabled={disabledButtons.cancelAppointment}>
                         Hủy đặt lịch
                       </button>
                     </div>
@@ -2028,11 +2027,7 @@ class User extends Component {
                 <b>Thông tin thú cưng:</b>
               </h3>
               {loadedPetInfo.length < limitPetCount && (
-                <button
-                  type="button"
-                  onClick={this.handleAddPet}
-                  disabled={disabledButtons.addPet}
-                >
+                <button type="button" onClick={this.handleAddPet} disabled={disabledButtons.addPet}>
                   Thêm thú cưng
                 </button>
               )}
@@ -2093,20 +2088,10 @@ class User extends Component {
                       <div className="f">
                         {isEditingPet === index ? (
                           <>
-                            <button
-                              type="button"
-                              className="save-pet"
-                              onClick={() => this.handleSavePet(index)}
-                              disabled={this.state.disabledButtons.savePet}
-                            >
+                            <button type="button" className="save-pet" onClick={() => this.handleSavePet(index)} disabled={this.state.disabledButtons.savePet}>
                               Lưu
                             </button>
-                            <button
-                              type="button"
-                              className="cancel-pet"
-                              onClick={this.handleCancelPet}
-                              disabled={disabledButtons.cancelPet}
-                            >
+                            <button type="button" className="cancel-pet" onClick={this.handleCancelPet} disabled={disabledButtons.cancelPet}>
                               Hủy
                             </button>
                           </>
@@ -2115,12 +2100,7 @@ class User extends Component {
                             <button type="button" className="edit-pet" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
                               <IonIcon icon={pencil}></IonIcon>
                             </button>
-                            <button
-                              type="button"
-                              className="delete-pet"
-                              onClick={() => this.handleDeletePet(pet.PetID)}
-                              disabled={this.state.disabledButtons.deletePet}
-                            >
+                            <button type="button" className="delete-pet" onClick={() => this.handleDeletePet(pet.PetID)} disabled={this.state.disabledButtons.deletePet}>
                               <b>X</b>
                             </button>
                           </>
@@ -2142,7 +2122,9 @@ class User extends Component {
               <h3>
                 <b>Thêm thú cưng:</b>
               </h3>
-              <button type='button' onClick={this.handleFormThuCung}>Hủy</button>
+              <button type="button" onClick={this.handleFormThuCung}>
+                Hủy
+              </button>
             </div>
             <div className="user-add-pet-form-content">
               <div>
@@ -2164,11 +2146,7 @@ class User extends Component {
                   ))}
                 </select>
               </div>
-              <button
-                type='button'
-                onClick={() => this.handleSavePet(0)}
-                disabled={disabledButtons.savePet}
-              >
+              <button type="button" onClick={() => this.handleSavePet(0)} disabled={disabledButtons.savePet}>
                 Thêm
               </button>
             </div>
@@ -2261,7 +2239,7 @@ class User extends Component {
                   <div className="f">
                     <b>Tổng thanh toán:</b>
                     <p style={{ fontSize: '18px', color: '#d32f2f' }}>{parseFloat(loadedAppointmentBillDetail.AppointmentBill.TotalPayment).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
-                  </div >
+                  </div>
                   <div className="user-appointment-form-detail-bottom">
                     <button type="button" onClick={() => this.handleGeneratePDF(loadedAppointmentBillDetail, 3)} className="pdf-btn">
                       Tải PDF
@@ -2291,15 +2269,7 @@ class User extends Component {
       <div className="user-page">
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} triggerLoadInformation={this.state.triggerLoadInformation} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -2308,7 +2278,7 @@ class User extends Component {
               <div className={`user-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
                 Hồ sơ người dùng
               </div>
-              {accountInfo?.AccountType !== "V" && (
+              {accountInfo?.AccountType !== 'V' && (
                 <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}  `} onClick={this.handleFormThuCung}>
                   Thông tin thú cưng
                 </div>
@@ -2316,7 +2286,7 @@ class User extends Component {
               <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
                 Lịch sử đơn hàng
               </div>
-              {accountInfo?.AccountType !== "V" && (
+              {accountInfo?.AccountType !== 'V' && (
                 <div className={`user-action-apointment ${actionPage === 5 ? 'active' : ''}${actionPage === 9 ? 'active' : ''}${actionPage === 6 ? 'active' : ''}`} onClick={this.handleFormDatLich}>
                   Lịch Khám
                 </div>
