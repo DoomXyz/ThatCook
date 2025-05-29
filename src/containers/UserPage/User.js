@@ -14,7 +14,7 @@ import CancelInvoiceModal from '../../components/CancelInvoiceModal';
 
 import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from '../../services/accountServices';
 import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices';
-import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi } from '../../services/appointmentServices';
+import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi, handleSendAppointmentBillEmailApi } from '../../services/appointmentServices';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
 
@@ -1178,15 +1178,22 @@ class User extends Component {
       };
       let response;
       switch (type) {
-        case 1:
+        case 1: {
           response = await handleSendInvoiceEmailApi(sendInfo);
+          await this.handleFormChiTietDonHang(this.state.selectedInvoiceID);
           break;
+        }
+        case 3: {
+          response = await handleSendAppointmentBillEmailApi(sendInfo);
+          await this.handleFormChiTietLichKham(this.state.selectedAppointmentID);
+          break;
+        }
         default:
           break;
       }
+      console.log(response);
       if (response && response.errCode === 0) {
         toast.success('Gửi email thành công!');
-        this.setState({ actionPage: 0 });
       } else {
         toast.error(response?.errMessage || 'Gửi email thất bại!');
       }
@@ -1194,7 +1201,6 @@ class User extends Component {
       console.log('Lỗi khi gửi email:', e);
       toast.error('Lỗi khi gửi email!');
     } finally {
-      this.handleFormChiTietDonHang(this.state.selectedInvoiceID);
       this.setState({ isLoading: false });
     }
   };
@@ -1535,9 +1541,6 @@ class User extends Component {
           </form>
         );
       case 4:
-        const startProductIndex = (currentPage - 1) * limitProductPerQuery;
-        const endProductIndex = startProductIndex + limitProductPerQuery;
-        const paginatedProductList = loadedInvoiceDetail?.ProductList?.slice(startProductIndex, endProductIndex) || [];
         if (!loadedInvoiceDetail) {
           return (
             <div>
@@ -1598,7 +1601,7 @@ class User extends Component {
             </div>
             <div className="user-cart-form-info-list-item">
               {loadedInvoiceDetail?.ProductList?.length > 0 ? (
-                paginatedProductList.map((item, index) => (
+                loadedInvoiceDetail.ProductList.map((item, index) => (
                   <div key={index} className="user-cart-form-info-list-item-row">
                     <div className="user-cart-form-info-list-item-left">
                       <div className="img-product">{item?.ProductImage && <img src={item.ProductImage} alt="Product" style={{ width: '100px', height: '100px' }} />}</div>
@@ -1638,26 +1641,7 @@ class User extends Component {
                 <p>Không có sản phẩm trong đơn hàng.</p>
               )}
             </div>
-            {totalPages > 1 && (
-              <div className="page-content">
-                <div className="page-content-item">
-                  <button className="first" type="button" onClick={() => this.handlePageChange(1, 0)} disabled={currentPage === 1}>
-                    {'<<'}
-                  </button>
-                  <button className="prev" type="button" onClick={() => this.handlePrevPage(0)} disabled={currentPage === 1}>
-                    {'<'}
-                  </button>
-                  <input type="text" value={tempCurrentPage} onChange={(event) => this.handlePageInputChange(event)} onKeyDown={(event) => this.handlePageKeyDown(event, 0)} onBlur={() => this.handlePageInputBlur(0)} />
-                  <span className="total-pages">/ {totalPages}</span>
-                  <button className="next" type="button" onClick={() => this.handleNextPage(0)} disabled={currentPage === totalPages}>
-                    {'>'}
-                  </button>
-                  <button className="last" type="button" onClick={() => this.handlePageChange(totalPages, 0)} disabled={currentPage === totalPages}>
-                    {'>>'}
-                  </button>
-                </div>
-              </div>
-            )}
+
             <div className="user-cart-form-info-table-price">
               <div className="price-item">
                 <div className="label">Tổng sản phẩm</div>
