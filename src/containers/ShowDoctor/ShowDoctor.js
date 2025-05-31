@@ -28,7 +28,7 @@ class ShowDoctor extends Component {
       tempCurrentPage: '1',
       limitItemPerQuery: 9,
       totalPages: 1,
-      loadedServiceFilterValue: [],
+      loadedServiceInfo: [],
       codeWorkingStatus: [],
       disabledButtons: {
         preSelectVeterinarian: false,
@@ -195,6 +195,19 @@ class ShowDoctor extends Component {
       this.handlePageChange(page);
     }
   };
+  handleResetFilter = () => {
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+      }, () => {
+        this.handleLoadVeterinarianInfo();
+      }
+    );
+  };
   handlePreSelectVeterinarian = (accountID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true } });
     const confirmAction = () =>
@@ -242,7 +255,7 @@ class ShowDoctor extends Component {
     });
   };
   render() {
-    const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceFilterValue, codeWorkingStatus, disabledButtons } = this.state;
+    const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceInfo, codeWorkingStatus, disabledButtons } = this.state;
     return (
       <div className="showdoctor-body">
         <ToastContainer
@@ -275,16 +288,21 @@ class ShowDoctor extends Component {
               <p>Lọc: </p>
               <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                 <option value="ALL">Tất cả</option>
-                {loadedServiceFilterValue && loadedServiceFilterValue.length > 0 && (
-                  <optgroup label="Dịch vụ khám">
-                    {loadedServiceFilterValue.map((service) => (
-                      <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
-                        {service.ServiceName}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
+                {loadedServiceInfo &&
+                  loadedServiceInfo.length > 0 &&
+                  ((
+                    <optgroup label="Dịch vụ khám">
+                      {loadedServiceInfo.map((service) => (
+                        <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                          {service.ServiceName}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
               </select>
+            </div>
+            <div className="showdoctor-content-top-filter f">
+              <button onClick={() => this.handleResetFilter()}>Làm mới</button>
             </div>
           </div>
           <div className="showdoctor-content-mid showdoctor-con">
@@ -300,13 +318,13 @@ class ShowDoctor extends Component {
                             Bác sĩ: <b>{item.UserName}</b>
                           </p>
                           <p>
-                            <b>Chuyên ngành:</b> {item.Specialization}
+                            <b>Chuyên khoa:</b> {item.Specialization}
                           </p>
                           <p>
                             <b>Số lượt đặt lịch:</b> {item.BookingCount || 0}
                           </p>
                           <p>
-                            <b>Trạng thái:</b> {codeWorkingStatus.find((filterItem) => filterItem.Code === item.WorkingStatus)?.CodeValueVI || item.WorkingStatus}
+                            {codeWorkingStatus.find((filterItem) => filterItem.Code === item.WorkingStatus)?.CodeValueVI || item.WorkingStatus}
                           </p>
                         </div>
                         <div>

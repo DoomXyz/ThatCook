@@ -214,7 +214,7 @@ class HomeAppointment extends Component {
           </div>
         </div>
         <div className="service container">
-          <h1>CÁC DỊCH VỤ CỦA CHÚNG TÔI</h1>
+          <h1>DỊCH VỤ NỔI BẬT CỦA CHÚNG TÔI</h1>
           <div className="stra"></div>
           <div className="f">
             <div className="service-item" onClick={() => this.props.navigate('/service/genhealthcheck')}>
@@ -225,28 +225,24 @@ class HomeAppointment extends Component {
               <img src={tiemphong} alt="" />
               <p>Tiêm Phòng</p>
             </div>
-            <div className="service-item" onClick={() => this.props.navigate('/service/surgery')}>
+            <div className="service-item" >
               <img src={phauthuat} alt="" />
               <p>Phẫu thuật cơ bản</p>
             </div>
           </div>
           <div className="f">
-            <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
+            <div className="service-item" >
               <img src={xetnghiem} alt="" />
               <p>Xét Nghiệm Và Chẩn Đoán</p>
             </div>
-            <div className="service-item" onClick={() => this.props.navigate('/service/test')}>
+            <div className="service-item" >
               <img src={chamsocrangmieng} alt="" />
               <p>Chăm sóc răng miệng</p>
             </div>
-            <div className="service-item xquang" onClick={() => this.props.navigate('/service/test')}>
+            <div className="service-item xquang">
               <img src={xquang} alt="" />
               <p>X-quang</p>
             </div>
-          </div>
-          <div className="service-item last" onClick={() => this.props.navigate('/service/test')}>
-            <img src={dieutrikysinhtrung} alt="" />
-            <p>Điều trị ký sinh trùng</p>
           </div>
         </div>
         <div className="bottom">

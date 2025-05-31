@@ -222,7 +222,7 @@ class User extends Component {
   };
   handleLoadAccountInfo = async () => {
     try {
-      const { accountid } = this.state;
+      const { accountid } = this.state
       const response = await handleGetAccountInfoApi(accountid);
       if (response && response.errCode === 0) {
         const accountInfo = response.data;
@@ -367,7 +367,7 @@ class User extends Component {
     this.setState({
       editField: field,
       originalValue: this.state[field], // Lưu giá trị ban đầu của trường
-    });
+    })
   };
   handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
@@ -382,17 +382,23 @@ class User extends Component {
       [name]: value,
     });
   };
+  handleCancelChangeAccountInfo = async () => {
+    this.setState({
+      editField: null
+    })
+    await this.handleLoadAccountInfo()
+  }
   handleChangeAccountInfo = async (e) => {
     e.preventDefault();
     const { imageInfo, isUploading, editField, originalValue, accountid, accountname, username, phone, address, gender, email } = this.state;
     let updateInfo = {
-      accountid: accountid,
-      accountname: accountname,
-      username: username,
-      phone: phone,
-      address: address,
-      gender: gender,
-      email: email,
+      accountid,
+      accountname,
+      username,
+      phone,
+      address,
+      gender,
+      email,
     };
     let hasChanges = false;
     if (imageInfo) {
@@ -434,14 +440,14 @@ class User extends Component {
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     if (!accountNameRegex.test(accountName)) {
       toast.error('Tên tài khoản không hợp lệ!');
-      this.handleLoadAccountInfo(accountid);
+      this.handleLoadAccountInfo();
       return;
     }
     const phoneNumber = updateInfo.phone.trim();
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(phoneNumber)) {
       toast.error('Số điện thoại không hợp lệ!');
-      this.handleLoadAccountInfo(accountid);
+      this.handleLoadAccountInfo();
       return;
     }
     if (hasChanges) {
@@ -457,7 +463,7 @@ class User extends Component {
         toast.error('Lỗi khi cập nhật thông tin người dùng!')
       } finally {
         await this.triggerLoadInformation();
-        this.handleLoadAccountInfo(accountid);
+        this.handleLoadAccountInfo();
       }
     }
     this.setState({ editField: null, originalValue: '' });
@@ -1310,6 +1316,12 @@ class User extends Component {
                 <div className="change-info-button" onSubmit={this.handleChangeAccountInfo}>
                   <button> Cập nhật </button>
                 </div>
+                {this.state.editField !== null && (
+                  <div className="change-info-button" >
+                    <button type='button' onClick={this.handleCancelChangeAccountInfo}> Hủy </button>
+                  </div>
+                )}
+
               </div>
               <div className="user-content-right">
                 <div className="user-content-right-img-content">

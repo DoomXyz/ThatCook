@@ -280,6 +280,12 @@ class Doctor extends Component {
       [name]: value,
     });
   };
+  handleCancelVeterinarianInfoChange = async () => {
+    this.setState({
+      editField: null
+    })
+    await this.handleLoadVeterinarianInfo()
+  }
   handleChangeVeterinarianInfo = async (e) => {
     e.preventDefault();
     const { editField, originalValue, veterinarianid, bio, specialization, workingstatus, servicesList } = this.state;
@@ -827,6 +833,11 @@ class Doctor extends Component {
               <div className="change-info-button" onSubmit={this.handleChangeVeterinarianInfo}>
                 <button> Cập nhật </button>
               </div>
+              {this.state.editField !== null && (
+                <div className="change-info-button" >
+                  <button type='button' onClick={this.handleCancelVeterinarianInfoChange}> Hủy </button>
+                </div>
+              )}
             </div>
 
           </form>

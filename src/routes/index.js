@@ -37,23 +37,21 @@ const AppRoutes = () => {
     //phải đổi từ this.props.navigate('/...') sang this.props.nav('/...')
     <Routes>
       <Route path="/" element={<MainPage navigate={navigate} />} />
-      <Route path="/login" element={<Login navigate={navigate} />} />
       <Route path="/register" element={<Register navigate={navigate} />} />
+      <Route path="/login" element={<Login navigate={navigate} />} />
+      <Route path="/forgotpassword" element={<ForgotPassword navigate={navigate} />} />
       <Route path="/home" element={<Home navigate={navigate} />} />
-
       <Route path="/user/admin" element={<AdminPage navigate={navigate} />} />
-
       <Route path="/cart" element={<Cart navigate={navigate} />} />
       <Route path="/checkout" element={<CheckOut navigate={navigate} />} />
       <Route path="/track" element={<Bill navigate={navigate} />} />
-      <Route path="/user/veterinarian" element={<DoctorPage navigate={navigate} />} />
-      <Route path="/forgotpassword" element={<ForgotPassword navigate={navigate} />} />
       <Route path="/user/customer" element={<UserPage navigate={navigate} />} />
-      <Route path="/user/owner" element={<OwnerPage navigate={navigate} />} />
       <Route path="/homeappointment" element={<HomeAppointment navigate={navigate} />} />
-      <Route path="/makeappointment" element={<MakeAppointment navigate={navigate} />} />
       <Route path="/showdoctor" element={<ShowDoctor navigate={navigate} />} />
       <Route path="/showservice" element={<ShowService navigate={navigate} />} />
+      <Route path="/makeappointment" element={<MakeAppointment navigate={navigate} />} />
+      <Route path="/user/owner" element={<OwnerPage navigate={navigate} />} />
+      <Route path="/user/veterinarian" element={<DoctorPage navigate={navigate} />} />
       <Route path="/appointmentcheckout" element={<AppointmentCheckOut navigate={navigate} />} />
     </Routes>
   );

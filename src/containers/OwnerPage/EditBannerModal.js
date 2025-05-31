@@ -338,7 +338,6 @@ class EditBannerModal extends Component {
                 dateFormat="dd/MM/yyyy"
                 placeholderText="dd/mm/yyyy"
                 className="date-picker"
-                isClearable
               />
             </div>
             <div className="modal-content-add-status">

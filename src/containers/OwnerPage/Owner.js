@@ -645,7 +645,7 @@ class Owner extends Component {
   toggleCreateCouponModal = () => {
     this.setState({
       isShowCreateCouponModal: !this.state.isShowCreateCouponModal,
-      isEditingCoupon: false,
+      isEditingCoupon: null,
     });
   };
   //modal input
@@ -1401,19 +1401,19 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'Vô thời hạn'}
                           </td>
                           <td onClick={(e) => e.stopPropagation()}>
@@ -1456,7 +1456,7 @@ class Owner extends Component {
         case 4:
           return (
             <div>
-              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-coupon">
+              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-coupon" >
                 THÊM COUPON <IonIcon icon={add}></IonIcon>
               </button>
               <div>

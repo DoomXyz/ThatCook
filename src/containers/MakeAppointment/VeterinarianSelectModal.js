@@ -202,6 +202,19 @@ class VeterinarianSelectModal extends Component {
       this.handlePageChange(page);
     }
   };
+  handleResetFilter = () => {
+    this.setState(
+      {
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+      }, () => {
+        this.handleLoadVeterinarianInfo();
+      }
+    );
+  };
   handleSelectVeterinarianFromModal = (veterinarianInfo) => {
     this.props.handleSelectVeterinarianFromModal(veterinarianInfo);
     this.props.toggleFromModal();
@@ -252,6 +265,9 @@ class VeterinarianSelectModal extends Component {
                           </optgroup>
                         ))}
                   </select>
+                </div>
+                <div className="showdoctor-content-top-filter f">
+                  <button onClick={() => this.handleResetFilter()}>Làm mới</button>
                 </div>
               </div>
               <div className="showdoctor-content-mid showdoctor-con">

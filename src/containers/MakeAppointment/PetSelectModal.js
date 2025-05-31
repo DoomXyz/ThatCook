@@ -28,6 +28,9 @@ class PetSelectModal extends Component {
       },
     };
   }
+  async componentDidMount() {
+    await this.resetState();
+  }
   async componentDidUpdate(prevProps) {
     if (this.props.isOpen && !prevProps.isOpen) {
       await this.handleLoadPetInfo();
