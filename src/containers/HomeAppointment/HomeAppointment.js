@@ -176,7 +176,9 @@ class HomeAppointment extends Component {
         <div className="top-doctor">
           <div className="f">
             <h1>CÁC BÁC SĨ NỔI BẬT</h1>
-            <p onClick={() => this.props.navigate('/showdoctor')}>Xem tất cả bác sĩ</p>
+            <p onClick={() => this.props.navigate('/showdoctor')}>
+              <u>Xem tất cả bác sĩ</u>
+            </p>
           </div>
           <div className="stra"></div>
           <div className="doctor-slide-show">
@@ -225,17 +227,17 @@ class HomeAppointment extends Component {
               <img src={tiemphong} alt="" />
               <p>Tiêm Phòng</p>
             </div>
-            <div className="service-item" >
+            <div className="service-item">
               <img src={phauthuat} alt="" />
               <p>Phẫu thuật cơ bản</p>
             </div>
           </div>
           <div className="f">
-            <div className="service-item" >
+            <div className="service-item">
               <img src={xetnghiem} alt="" />
               <p>Xét Nghiệm Và Chẩn Đoán</p>
             </div>
-            <div className="service-item" >
+            <div className="service-item">
               <img src={chamsocrangmieng} alt="" />
               <p>Chăm sóc răng miệng</p>
             </div>

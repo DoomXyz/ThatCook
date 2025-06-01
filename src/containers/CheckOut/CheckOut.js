@@ -500,7 +500,7 @@ class CheckOut extends Component {
                       {codeShippingMethod.length > 0 ? (
                         codeShippingMethod.map((method, index) => (
                           <div key={index} className="pay-content-left-method-delivery-item">
-                            <input type="radio" value={method.Code} checked={shippingmethod === method.Code} onChange={(event) => this.handleOnChangeInput(event, 'shippingmethod')} />
+                            <input type="radio" id={method.Code} value={method.Code} checked={shippingmethod === method.Code} onChange={(event) => this.handleOnChangeInput(event, 'shippingmethod')} />
                             <label htmlFor={method.Code}>
                               {method.CodeValueVI} ({method.Code === 'FAST' ? '3-7 ngày' : method.Code === 'ECO' ? '7-14 ngày' : '~1 ngày'})
                             </label>
@@ -523,7 +523,7 @@ class CheckOut extends Component {
                       {codePaymentType.length > 0 ? (
                         codePaymentType.map((type, index) => (
                           <div key={index} className="pay-content-left-method-payment-item">
-                            <input type="radio" name="paymentType" value={type.Code} checked={paymenttype === type.Code} onChange={(event) => this.handleOnChangeInput(event, 'paymenttype')} />
+                            <input type="radio" id={type.Code} name="paymentType" value={type.Code} checked={paymenttype === type.Code} onChange={(event) => this.handleOnChangeInput(event, 'paymenttype')} />
                             <label htmlFor={type.Code}>{type.CodeValueVI}</label>
                           </div>
                         ))

@@ -43,7 +43,7 @@ class ShowDoctor extends Component {
   }
   handleLoadCode = async (codeTypeFilter) => {
     try {
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
@@ -62,7 +62,7 @@ class ShowDoctor extends Component {
   handleGetServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
+      const response = responseApi.data;
       if (response.errCode === 0 && response.data && response.data.length > 0) {
         this.setState({
           loadedServiceInfo: response.data,
@@ -203,7 +203,8 @@ class ShowDoctor extends Component {
         searchValue: '',
         filterValue: 'ALL',
         sortValue: '0',
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -237,7 +238,9 @@ class ShowDoctor extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: false } });
+            },
           }
         );
       });
@@ -258,15 +261,7 @@ class ShowDoctor extends Component {
     const { loadedVeterinarianInfo, searchValue, sortValue, filterValue, currentPage, tempCurrentPage, totalPages, loadedServiceInfo, codeWorkingStatus, disabledButtons } = this.state;
     return (
       <div className="showdoctor-body">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         <div className="showdoctor-content">
           <h1>Danh sách bác sĩ</h1>
@@ -288,20 +283,18 @@ class ShowDoctor extends Component {
               <p>Lọc: </p>
               <select value={filterValue} onChange={(event) => this.handleFilter(event.target.value, 1)}>
                 <option value="ALL">Tất cả</option>
-                {loadedServiceInfo &&
-                  loadedServiceInfo.length > 0 &&
-                  ((
-                    <optgroup label="Dịch vụ khám">
-                      {loadedServiceInfo.map((service) => (
-                        <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
-                          {service.ServiceName}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                {loadedServiceInfo && loadedServiceInfo.length > 0 && (
+                  <optgroup label="Dịch vụ khám">
+                    {loadedServiceInfo.map((service) => (
+                      <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                        {service.ServiceName}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
-            <div className="showdoctor-content-top-filter f">
+            <div className="showdoctor-content-top-reset">
               <button onClick={() => this.handleResetFilter()}>Làm mới</button>
             </div>
           </div>
@@ -323,9 +316,7 @@ class ShowDoctor extends Component {
                           <p>
                             <b>Số lượt đặt lịch:</b> {item.BookingCount || 0}
                           </p>
-                          <p>
-                            {codeWorkingStatus.find((filterItem) => filterItem.Code === item.WorkingStatus)?.CodeValueVI || item.WorkingStatus}
-                          </p>
+                          <p>{codeWorkingStatus.find((filterItem) => filterItem.Code === item.WorkingStatus)?.CodeValueVI || item.WorkingStatus}</p>
                         </div>
                         <div>
                           <button className="btn btn-primary btn-sm" onClick={() => this.handlePreSelectVeterinarian(item.AccountID)} disabled={disabledButtons.preSelectVeterinarian}>

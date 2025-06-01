@@ -21,8 +21,9 @@
       margin-bottom: 3rem;
     }
     .showdoctor-content-top {
+      display: flex;
+      justify-content: center;
       .showdoctor-content-top-search {
-        margin-left: 12rem;
         margin-right: 2rem;
         input {
           width: 30rem;
@@ -36,9 +37,10 @@
         ion-icon {
           opacity: 50%;
           font-size: 1.2rem;
+
           position: absolute;
           margin-top: 1rem;
-          left: 12.5rem;
+          left: 11rem;
         }
       }
       .showdoctor-content-top-sort {
@@ -60,6 +62,7 @@
         }
       }
       .showdoctor-content-top-filter {
+        margin-right: 2rem;
         p {
           margin-top: 0.65rem;
           font-size: 1.2rem;
@@ -74,6 +77,17 @@
           padding: 0.5rem;
           color: #11a2f3;
           font-weight: bold;
+        }
+      }
+      .showdoctor-content-top-reset {
+        button {
+          font-weight: bold;
+          border: none;
+          background-color: #12a0f2;
+          color: white;
+          border-radius: 0.7rem;
+          padding: 0.5rem 0.7rem;
+          height: 3.2rem;
         }
       }
     }

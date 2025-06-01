@@ -117,7 +117,7 @@ class Cart extends Component {
             return;
           }
         } else {
-          cartItems = this.props.cartItems
+          cartItems = this.props.cartItems;
         }
         const responseDetail = await handleGetCartDetailApi(JSON.stringify(cartItems));
         if (responseDetail && responseDetail.errCode === 0) {
@@ -161,7 +161,8 @@ class Cart extends Component {
           this.setState(
             {
               loadedCartDetailList: responseList.data,
-            }, () => resolve()
+            },
+            () => resolve()
           );
         } else {
           toast.error('Tải danh sách chi tiết thất bại!');
@@ -292,7 +293,9 @@ class Cart extends Component {
             {
               autoClose: 2000,
               closeOnClick: false,
-              onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, removeFromCart: false } }); },
+              onClose: () => {
+                this.setState({ disabledButtons: { ...this.state.disabledButtons, removeFromCart: false } });
+              },
             }
           );
         });
@@ -301,7 +304,7 @@ class Cart extends Component {
       isConfirmed = true;
     }
     if (isConfirmed) {
-      this.setState({ isLoading: true })
+      this.setState({ isLoading: true });
       const { isLoggedIn, accountInfo } = this.state;
       try {
         if (isLoggedIn) {
@@ -321,7 +324,6 @@ class Cart extends Component {
         toast.error('Lỗi khi xóa sản phẩm!');
       }
     } else {
-
     }
     this.setState({ isLoading: false });
   };
@@ -380,7 +382,9 @@ class Cart extends Component {
               {
                 autoClose: 2000,
                 closeOnClick: false,
-                onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, mergeCart: false } }); },
+                onClose: () => {
+                  this.setState({ disabledButtons: { ...this.state.disabledButtons, mergeCart: false } });
+                },
               }
             );
           });
@@ -488,15 +492,7 @@ class Cart extends Component {
     const paginatedCartDetailInfo = loadedCartDetailInfo.slice(startIndex, endIndex);
     return (
       <div>
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -509,20 +505,11 @@ class Cart extends Component {
                   <p>Cài đặt giỏ hàng: </p>
                 </div>
                 <div className="check-btn f">
-                  <input
-                    type="checkbox"
-                    className="turn-off-save-delete"
-                    checked={this.state.isSaveDelete}
-                    onChange={(e) => this.setState({ isSaveDelete: e.target.checked })}
-                  />
-                  <p>Thông báo xóa</p>
-                  <input
-                    type="checkbox"
-                    className="turn-off-save-merge"
-                    checked={this.state.isSaveMerge}
-                    onChange={(e) => this.setState({ isSaveMerge: e.target.checked })}
-                  />
-                  <p>Thông báo gộp sản phẩm</p>
+                  <input type="checkbox" className="turn-off-save-delete" id="saveDelete" checked={this.state.isSaveDelete} onChange={(e) => this.setState({ isSaveDelete: e.target.checked })} />
+                  <label htmlFor="saveDelete">Thông báo xóa</label>
+
+                  <input type="checkbox" className="turn-off-save-merge" id="saveMerge" checked={this.state.isSaveMerge} onChange={(e) => this.setState({ isSaveMerge: e.target.checked })} />
+                  <label htmlFor="saveMerge">Thông báo gộp sản phẩm</label>
                 </div>
               </div>
               <div className="cart-top-warp">
@@ -647,8 +634,12 @@ class Cart extends Component {
                     </thead>
                     <tbody>
                       <tr>
-                        <td>TỔNG SẢN PHẨM:</td>
-                        <td>{loadedCartDetailInfo.length > 0 ? `${loadedCartDetailInfo.length} sản phẩm` : ''}</td>
+                        <td>
+                          <b>TỔNG SẢN PHẨM:</b>
+                        </td>
+                        <td>
+                          <b>{loadedCartDetailInfo.length > 0 ? `${loadedCartDetailInfo.length} sản phẩm` : ''}</b>
+                        </td>
                       </tr>
                       <tr>
                         <td>TẠM TÍNH</td>

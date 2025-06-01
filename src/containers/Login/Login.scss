@@ -154,14 +154,17 @@
         display: flex;
         justify-content: flex-end;
         margin-right: 18px;
-        .remember-me{
+        .remember-me {
           margin-top: -0.3rem;
           margin-right: 8.2rem;
           color: #565151;
           font-weight: 600;
-          input{
-            
+          input {
+            cursor: pointer;
             margin-right: 0.5rem;
+          }
+          label {
+            cursor: pointer;
           }
         }
         .forgot-password {

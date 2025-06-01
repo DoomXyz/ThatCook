@@ -117,15 +117,7 @@ class Login extends Component {
     const { accountname, password, rememberMe, isLoading } = this.state;
     return (
       <div className="login-background">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -175,7 +167,7 @@ class Login extends Component {
                 </div>
                 <div className="password-util">
                   <div className="remember-me">
-                    <input type="checkbox" checked={rememberMe} onChange={(event) => this.setState({ rememberMe: event.target.checked })} />
+                    <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(event) => this.setState({ rememberMe: event.target.checked })} />
                     <label htmlFor="rememberMe">Ghi nhớ đăng nhập</label>
                   </div>
                   <a href="/forgotpassword" className="forgot-password">
