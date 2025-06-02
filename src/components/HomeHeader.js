@@ -359,7 +359,7 @@ class HomeHeader extends Component {
                     <p>{userName}</p>
                     <ul className="sub-menu">
                       <li>
-                        <div className="f" onClick={() => this.props.navigate('/user/customer')}>
+                        <div className="f" >
                           <IonIcon icon={informationCircleOutline}></IonIcon>
                           <button
                             type="button"
@@ -371,7 +371,7 @@ class HomeHeader extends Component {
                         </div>
                       </li>
                       <li>
-                        <div className="f" onClick={this.handleLogout}>
+                        <div className="f">
                           <IonIcon icon={logOutOutline}></IonIcon>
                           <button
                             type="button"
@@ -396,7 +396,7 @@ class HomeHeader extends Component {
                       >
                         Đăng nhập
                       </button>
-                      <p>|</p>
+                      <p> | </p>
                       <button
                         type="button"
                         className="link-button"
