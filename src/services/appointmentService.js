@@ -512,7 +512,7 @@ let cancelExpiredAppointments = () => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      const currentDateFime = new Date();
+      const currentDateTime = new Date();
       const pendingAppointments = await db.Appointment.findAll({
         where: {
           AppointmentStatus: 'PEND'
@@ -1630,14 +1630,14 @@ let createAppointmentBill = (veterinarianid, appointmentid, serviceprice, medica
         resolve({
           errCode: 0,
           errMessage: 'Tạo hóa đơn lịch hẹn thành công, nhưng gửi email thất bại!',
-          data: { AppointmentBillID: appointmentBillID },
+          data: { AppointmentID: appointmentid },
         });
         return;
       }
       resolve({
         errCode: 0,
         errMessage: 'Tạo hóa đơn lịch hẹn thành công!',
-        data: { AppointmentBillID: appointmentBillID },
+        data: { AppointmentID: appointmentid },
       });
     } catch (e) {
       await transaction.rollback();
