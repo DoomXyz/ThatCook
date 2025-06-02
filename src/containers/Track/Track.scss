@@ -1,10 +1,8 @@
 .f {
   display: flex;
 }
-.sb {
-  display: flex;
-  justify-content: space-between;
-}
+
+
 
 .bot {
   border-bottom: 1px solid rgba(0, 0, 0, 0.5);
@@ -13,6 +11,7 @@
 .cen {
   text-align: center;
 }
+
 .view-invoice {
   .header-container {
     background-color: rgb(255, 255, 255) !important;
@@ -20,6 +19,7 @@
     height: 5rem;
   }
 }
+
 .view-invoice-background {
   background-image: url('../../assets/images/login_bg.jpg');
   background-size: cover;
@@ -75,25 +75,44 @@
       display: flex;
       align-items: center;
 
-      input {
-        flex: 1;
-        padding: 10px;
-        border: 1px solid rgb(91, 82, 82);
-        border-radius: 5px 0 0 5px;
-        font-size: 14px;
-      }
+      .inputbox {
+        width: 500px;
+        display: flex;
+        align-items: center;
+        border: 1px solid #dfe1e5;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        background-color: #fff;
 
-      .clear-btn {
-        padding: 10px;
-        border: 1px solid rgb(91, 82, 82);
-        border-left: none;
-        background: #f8f8f8;
-        cursor: pointer;
-        font-size: 14px;
+        input {
+          flex: 1;
+          padding: 10px;
+          border: 1px solid rgb(91, 82, 82);
+          border-radius: 5px 0 0 5px;
+          font-size: 14px;
+          border-right: none;
+
+        }
+
+        .clear-btn {
+          justify-items: right;
+          position: static;
+          padding: 10px;
+          border: black 1px solid;
+          border-left: none;
+          background: #f8f8f8;
+
+          cursor: pointer;
+          font-size: 14px;
+
+          &:hover {
+            background-color: #fd7b88;
+          }
+        }
       }
 
       .search-btn {
-        padding: 10px 20px;
+        padding: 11px 20px;
         border: none;
         background: #007bff;
         color: #fff;
@@ -219,64 +238,81 @@
       .bill-actions-invoice {
         margin-top: 20px;
         min-width: 35rem;
-        button {
-          padding: 5px 15px;
-          border-radius: 5px;
-          margin: 5px;
-          font-size: 14px;
-          cursor: pointer;
-          border: none;
-        }
 
-        .pdf-btn {
-          background-color: #0000ff;
-          color: white;
-          font-weight: bold;
-        }
+        .sb {
+          display: flex;
+          justify-content: space-between;
+          padding-left: 5px;
+          margin-bottom: 5px;
 
-        .email-btn {
-          background-color: #28a745;
-          color: white;
-          font-weight: bold;
-        }
-
-        .back-btn {
-          ion-icon {
-            margin-bottom: -0.15rem;
-          }
-          background-color: #6c757d;
-          color: white;
-          font-weight: bold;
-        }
-
-        .cancel-order-btn {
-          ion-icon {
-            margin-bottom: -0.1rem;
+          input {
+            width: 420px;
           }
 
-          background-color: #dc3545;
-          color: white;
-          font-weight: bold;
-        }
-
-        .received-order-btn {
-          ion-icon {
-            margin-bottom: -0.1rem;
-          }
-          background-color: #01bb01;
-          color: white;
-          font-weight: bold;
-        }
-
-        .continue-order-btn {
-          ion-icon {
-            margin-bottom: -0.1rem;
+          button {
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
           }
 
-          background-color: #007bff;
-          color: white;
-          font-weight: bold;
+          .pdf-btn {
+            background-color: orange;
+            color: white;
+            font-weight: bold;
+          }
+
+          .email-btn {
+            background-color: rgb(59, 131, 255);
+            color: white;
+            font-weight: bold;
+          }
+
+          .back-btn {
+            ion-icon {
+              margin-bottom: -0.15rem;
+            }
+
+            background-color: #007ce9;
+            color: white;
+            font-weight: bold;
+          }
+
+          .cancel-order-btn {
+            ion-icon {
+              margin-bottom: -0.1rem;
+            }
+
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+          }
+
+          .received-order-btn {
+            ion-icon {
+              margin-bottom: -0.1rem;
+            }
+
+            background-color: #01bb01;
+            color: white;
+            font-weight: bold;
+          }
+
+          .continue-order-btn {
+            ion-icon {
+              margin-bottom: -0.1rem;
+            }
+
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+          }
         }
+
+
+
         input {
           border-radius: 0.3rem;
           margin-top: 0.25rem;
@@ -285,6 +321,7 @@
           width: 27rem;
         }
       }
+
       .bill-actions {
         display: flex;
         justify-content: flex-end;
@@ -316,7 +353,8 @@
           ion-icon {
             margin-bottom: -0.15rem;
           }
-          background-color: #6c757d;
+
+          background-color: #007ce9;
           color: white;
           font-weight: bold;
         }
@@ -338,6 +376,7 @@
           color: white;
           font-weight: bold;
         }
+
         input {
           border-radius: 0.3rem;
           margin-top: 0.25rem;
@@ -356,6 +395,7 @@
     }
   }
 }
+
 .view-invoice-background-appointment {
   background-image: url('../../assets/images/login_bg.jpg');
   background-size: cover;
@@ -402,6 +442,7 @@
 
         .view-invoice-modal-content-top-logo-appointment {
           margin: 0 2.5rem;
+
           img {
             max-width: 300px;
             height: auto;
@@ -419,9 +460,11 @@
             }
           }
         }
+
         .time-appid {
           display: flex;
           justify-content: space-between;
+
           .view-invoice-modal-content-top-time-appointment {
             p {
               b {
@@ -429,6 +472,7 @@
               }
             }
           }
+
           .view-invoice-modal-content-top-invoiceid-appointment {
             p {
               padding-left: 0.2rem;
@@ -479,9 +523,11 @@
             tr {
               text-align: left;
               max-width: 100px;
+
               td {
                 max-width: 100px;
                 padding: 0.5rem;
+
                 p {
                   max-width: 100%; // Ensure the paragraph takes full width of td
                   word-wrap: break-word; // Break long words to prevent overflow
@@ -505,6 +551,7 @@
                   max-width: 20rem !important;
                 }
               }
+
               td:last-child {
                 img {
                   max-width: 20rem;
@@ -543,7 +590,7 @@
         }
 
         .back-btn-appointment {
-          background-color: #6c757d;
+          background-color: #007ce9;
           color: white;
           font-weight: bold;
         }
@@ -576,6 +623,7 @@
     }
   }
 }
+
 .view-invoice-background {
   background-image: url('../../assets/images/login_bg.jpg');
   background-size: cover;
@@ -597,6 +645,7 @@
 
   .view-invoice-modal-app {
     margin-top: 50px;
+
     h1 {
       margin: 1rem 0;
       margin-bottom: 1.5rem;
@@ -604,22 +653,27 @@
       font-size: 20px;
       text-decoration: underline;
     }
+
     .mid-top {
       h1 {
         margin-bottom: 0;
       }
+
       .bill-id {
         margin-top: 1.3rem;
         text-align: left;
+
         b {
           margin-right: 0.2rem;
         }
+
         p {
           width: 5.9rem;
           margin-bottom: 0;
         }
       }
     }
+
     .view-invoice-modal-content-app {
       display: flex;
       flex-direction: column;
@@ -643,6 +697,7 @@
         padding-bottom: 1rem;
         margin-bottom: 0.5rem;
         border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+
         .view-invoice-modal-content-top-logo-app {
           margin-top: 20px;
           padding-right: 1rem;
@@ -659,6 +714,7 @@
           margin-top: 2.35rem;
 
           margin-bottom: 1rem;
+
           .date {
             padding: 0.3rem;
             background-color: rgb(103, 146, 237);
@@ -673,6 +729,7 @@
           margin-top: 0.5rem;
           line-height: 1rem;
           text-align: left;
+
           b {
             margin-right: 0.2rem;
           }
@@ -728,9 +785,11 @@
             tr:nth-child(1) {
               border-bottom: 1px solid rgb(0, 0, 0, 0.5);
               max-width: 100px;
+
               td {
                 padding: 0.5rem;
                 max-width: 100px;
+
                 p {
                   max-width: 100%; // Ensure the paragraph takes full width of td
                   word-wrap: break-word; // Break long words to prevent overflow
@@ -749,19 +808,23 @@
           }
         }
       }
-      .min-width {
+
+      .sb {
         min-width: 52rem;
+
         .back-btn-app {
           margin-top: 1.5rem;
-          background-color: #6c757d;
+          background-color: #007ce9;
           color: white;
           font-weight: bold;
           padding: 0.3rem 0.5rem;
-          height: 2rem;
+          height: 40px;
+          width: 100px;
           border-radius: 0.3rem;
           border: none;
 
           cursor: pointer;
+
           ion-icon {
             margin-bottom: -0.17rem;
           }
@@ -799,6 +862,7 @@
             background-color: #dc3545;
             color: white;
             font-weight: bold;
+
             ion-icon {
               margin-bottom: -0.1rem;
             }

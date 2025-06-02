@@ -1272,7 +1272,7 @@ class User extends Component {
               <div className="user-content-left">
                 <div className="user-info-tab">
                   <div className="descreption-user">Email:</div>
-                  <div className="value-user email">{email}</div>
+                  <div className="value-user-email">{email}</div>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Tên tài khoản:</div>
@@ -1313,14 +1313,19 @@ class User extends Component {
                     ))}
                   </div>
                 </div>
-                <div className="change-info-button" onSubmit={this.handleChangeAccountInfo}>
-                  <button> Cập nhật </button>
-                </div>
-                {this.state.editField !== null && (
-                  <div className="change-info-button" >
-                    <button type='button' onClick={this.handleCancelChangeAccountInfo}> Hủy </button>
+                <div className='change-button'>
+                  {this.state.editField !== null && (
+                    <div className="change-info-button-c" >
+                      <button type='button' onClick={this.handleCancelChangeAccountInfo}> Hủy </button>
+                    </div>
+                  )}
+                  <div className='emty'></div>
+                  <div className="change-info-button" onSubmit={this.handleChangeAccountInfo}>
+                    <button> Cập nhật </button>
                   </div>
-                )}
+
+                </div>
+
 
               </div>
               <div className="user-content-right">

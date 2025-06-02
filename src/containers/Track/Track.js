@@ -461,12 +461,14 @@ class Track extends Component {
                           </button>
                         </div>
                         <div className="search-bar">
-                          <input type="text" placeholder={`Nhập mã ${selectedTab === 1 ? 'hóa đơn' : selectedTab === 2 ? 'lịch hẹn' : 'hóa đơn lịch khám'}`} value={searchValue} onChange={(e) => this.setState({ searchValue: e.target.value })} />
-                          {searchValue && (
-                            <button className="clear-btn" onClick={this.handleClearSearch}>
-                              x
-                            </button>
-                          )}
+                          <div className="inputbox">
+                            <input type="text" placeholder={`Nhập mã ${selectedTab === 1 ? 'hóa đơn' : selectedTab === 2 ? 'lịch hẹn' : 'hóa đơn lịch khám'}`} value={searchValue} onChange={(e) => this.setState({ searchValue: e.target.value })} />
+                            {searchValue && (
+                              <div className="clear-btn" onClick={this.handleClearSearch}>
+                                x
+                              </div>
+                            )}
+                          </div>
                           <button className="search-btn" onClick={this.handleSearch}>
                             Tìm kiếm
                           </button>
@@ -611,7 +613,7 @@ class Track extends Component {
                               </div>
                               <div className="bill-actions-invoice">
                                 <div className="sb">
-                                  <input type="text" value={email} placeholder="Nhập email nếu bạn muốn gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />{' '}
+                                  <input type="text" value={email} placeholder="Nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />{' '}
                                   <button onClick={() => this.handleSendEmail(billid, email, 1)} className="email-btn">
                                     Gửi qua email
                                   </button>
@@ -771,7 +773,7 @@ class Track extends Component {
                                   </tfoot>
                                 </table>
                               </div>
-                              <div className="sb min-width">
+                              <div className="sb">
                                 <button onClick={this.handleBackToSearch} className="back-btn-app">
                                   <IonIcon icon={chevronBackOutline}></IonIcon>
                                   Quay về
