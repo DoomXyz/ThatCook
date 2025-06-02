@@ -830,12 +830,15 @@ class Doctor extends Component {
                   <IonIcon icon={pencil}></IonIcon>
                 </button>
               </div>
-              <div className="change-info-button" onSubmit={this.handleChangeVeterinarianInfo}>
-                <button> Cập nhật </button>
-              </div>
+
               {this.state.editField !== null && (
-                <div className="change-info-button" >
-                  <button type='button' onClick={this.handleCancelVeterinarianInfoChange}> Hủy </button>
+                <div className='change-info'>
+                  <div className="change-info-button-update" onSubmit={this.handleChangeVeterinarianInfo}>
+                    <button> Cập nhật </button>
+                  </div>
+                  <div className="change-info-button-cancel" >
+                    <button type='button' onClick={this.handleCancelVeterinarianInfoChange}> Hủy </button>
+                  </div>
                 </div>
               )}
             </div>

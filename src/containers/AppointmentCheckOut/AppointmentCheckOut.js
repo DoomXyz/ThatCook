@@ -41,9 +41,6 @@ class AppointmentCheckOut extends Component {
         } else {
             this.props.navigate('/home');
         }
-        setTimeout(() => {
-            console.log(this.state.loadedAppointmentDetail);
-        }, 100);
     }
     componentWillUnmount() {
         if (this.state.image?.Image && this.state.image?.file) {

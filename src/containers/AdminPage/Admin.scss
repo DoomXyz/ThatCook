@@ -19,14 +19,17 @@
     justify-content: left;
 
     .btn-Home {
+      width: 100px;
+      height: 44px;
       background-color: #28a745;
       color: #ffffff;
       border: none;
       border-radius: 6px;
-      padding: 10px 20px;
+      padding: 10px 40px;
       font-weight: 500;
       transition: background-color 0.3s ease;
       margin-right: 5px;
+      cursor: pointer;
 
       &:hover {
         background-color: #218838;
@@ -125,6 +128,7 @@
 
   .admin-mid-content {
     width: 90rem;
+
     .admin-search {
       display: flex;
       justify-content: space-between;
@@ -231,6 +235,7 @@
               border-color: #007bff;
             }
           }
+
           .select-2 {
             margin-right: 4.05rem;
           }
@@ -253,6 +258,7 @@
         overflow-x: auto;
         background-color: #fff;
         border-radius: 8px;
+        border: #444;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
         .table {
@@ -468,6 +474,7 @@
     .admin-search-left,
     .admin-search-right {
       width: 100%;
+
       button {
         width: 1000px;
       }
@@ -483,6 +490,7 @@
         max-width: 100px;
         min-width: 100%;
       }
+
       button {
         margin: 0;
       }
@@ -502,6 +510,7 @@
   .users-table,
   .codes-table {
     .table {
+
       th,
       td {
         min-width: 100px;

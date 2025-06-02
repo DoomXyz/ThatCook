@@ -234,7 +234,7 @@ $transition: all 0.3s ease;
     }
 
     .edit-button {
-      height: 30px;
+      height: 27px;
       display: flex;
       justify-content: center;
       margin-left: 10px;
@@ -250,25 +250,46 @@ $transition: all 0.3s ease;
       }
     }
 
-    .change-info-button {
+    .change-info {
       display: flex;
+      flex-direction: row;
       justify-content: center;
 
-      .button-submit {
+      .change-info-button-update {
         display: flex;
-        margin-top: 20px;
+        justify-content: center;
+        padding-right: 5px;
+
+        button {
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #0056b3;
+          }
+        }
       }
 
-      button {
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+      .change-info-button-cancel {
+        display: flex;
+        justify-content: center;
+        padding-right: 5px;
 
-        &:hover {
-          background-color: #0056b3;
+        button {
+          padding: 10px 20px;
+          background-color: #ff5353;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #fd242b;
+          }
         }
       }
     }
@@ -727,6 +748,7 @@ $transition: all 0.3s ease;
   }
 
   &.public-appointment {
+
     /* Viền trái cam */
     .wait-appointment-object-head {
       background-color: #f8c659;
@@ -1245,10 +1267,10 @@ $transition: all 0.3s ease;
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #2196f3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(26px);
 }
