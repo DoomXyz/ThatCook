@@ -1661,6 +1661,24 @@ class User extends Component {
 
             <div className="user-cart-form-info-table-price">
               <div className="price-item">
+                <div className="label">Phương thức thanh toán</div>
+                <div className="value">
+                  {(() => {
+                    const payment = codePaymentType?.find((method) => method.Code === loadedInvoiceDetail?.PaymentType);
+                    return payment ? payment.CodeValueVI : 'N/A';
+                  })()}
+                </div>
+              </div>
+              <div className="price-item">
+                <div className="label">Phương thức vận chuyển</div>
+                <div className="value">
+                  {(() => {
+                    const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
+                    return shipping ? shipping.CodeValueVI : 'N/A';
+                  })()}
+                </div>
+              </div>
+              <div className="price-item">
                 <div className="label">Tổng sản phẩm</div>
                 <div className="value">{loadedInvoiceDetail?.TotalQuantity || 0}</div>
               </div>
@@ -1708,24 +1726,7 @@ class User extends Component {
                   }) || '0 ₫'}
                 </div>
               </div>
-              <div className="price-item">
-                <div className="label">Phương thức thanh toán</div>
-                <div className="value">
-                  {(() => {
-                    const payment = codePaymentType?.find((method) => method.Code === loadedInvoiceDetail?.PaymentType);
-                    return payment ? payment.CodeValueVI : 'N/A';
-                  })()}
-                </div>
-              </div>
-              <div className="price-item">
-                <div className="label">Phương thức vận chuyển</div>
-                <div className="value">
-                  {(() => {
-                    const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
-                    return shipping ? shipping.CodeValueVI : 'N/A';
-                  })()}
-                </div>
-              </div>
+
               <div className="price-item">
                 <div className="value">
                   <button type="button" onClick={() => this.handleGeneratePDF(loadedInvoiceDetail, 1)} className="pdf-btn">

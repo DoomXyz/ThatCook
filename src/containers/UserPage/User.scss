@@ -700,6 +700,7 @@
   padding: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   background-color: #fff;
+  box-shadow: 0 0 10px rgba(248, 163, 248, 0.692);
   border-top-left-radius: 10px;
   /* Bo góc trên trái */
   border-top-right-radius: 10px;
@@ -742,19 +743,18 @@
 
     .mdh {
       padding-right: 5px;
-      cursor: not-allowed;
+
     }
 
     .ctmd {
       padding-right: 10px;
       border-right: 2px solid black;
-      cursor: not-allowed;
+
     }
 
     .tt {
       padding-left: 10px;
       color: orangered;
-      cursor: not-allowed;
 
       h5 {
         color: inherit;
@@ -772,9 +772,9 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  cursor: not-allowed;
   padding: 20px;
   margin-bottom: 0px;
+  box-shadow: 0 0 10px rgba(248, 163, 248, 0.692);
   border-bottom-left-radius: 10px;
   /* Bo góc dưới trái */
   border-bottom-right-radius: 10px;
@@ -802,7 +802,7 @@
   margin-bottom: 25px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   flex-direction: column;
-  cursor: not-allowed;
+  box-shadow: 0 0 10px rgba(248, 163, 248, 0.692);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding: 20px;
   border-radius: 10px;
@@ -892,6 +892,7 @@
   background-color: #fff;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 0 10px rgba(248, 163, 248, 0.692);
   /* Các price-item xếp dọc */
   border-top-left-radius: 10px; // Bo góc trên bên trái
   border-top-right-radius: 10px; // Bo góc trên bên phải
@@ -1619,7 +1620,6 @@
         margin-bottom: 10px;
 
         .user-pet-form-content-list-item-top-1 {
-
           border-top-left-radius: 0.7rem;
           border-top-right-radius: 0.7rem;
 
@@ -1628,6 +1628,13 @@
           }
 
           .petname {
+            padding-bottom: 2px;
+            border-radius: 8px;
+            margin-top: 0.9rem;
+            margin-right: 1.5rem;
+          }
+
+          .f {
             padding-bottom: 2px;
             border-radius: 8px;
             margin-top: 0.9rem;
@@ -1705,8 +1712,8 @@
 
         button {
           padding: 0.3rem;
-          width: 3rem;
-          height: 3rem;
+          width: 50px;
+          height: 40px;
           border-radius: 0.4rem;
           margin: 0 0.3rem;
           font-size: 20px;

@@ -1327,13 +1327,12 @@ class Doctor extends Component {
                       <span>{loadedAppointmentDetail.Notes}</span>
                     </div>
                     {loadedAppointmentDetail.PrevAppointmentID && (
-                      <div className="detail-item">
+                      <div className="detail-item-fu">
                         <label>Lịch hẹn trước đó:</label>
-                        <span
-                          onClick={() => this.handleFormChiTietLichHen(loadedAppointmentDetail.PrevAppointmentID, fromForm)}
-                        >
-                          {loadedAppointmentDetail.PrevAppointmentID} Chọn để chuyển đến
+                        <span>
+                          {loadedAppointmentDetail.PrevAppointmentID}
                         </span>
+                        <div className='appointment-vw-btn' onClick={() => this.handleFormChiTietLichHen(loadedAppointmentDetail.PrevAppointmentID, fromForm)}>Chọn để chuyển đến</div>
                       </div>
                     )}
                   </div>
