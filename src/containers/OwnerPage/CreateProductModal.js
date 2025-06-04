@@ -442,6 +442,14 @@ class CreateProductModal extends Component {
                   ))}
                 </select>
               </div>
+
+              <div className="modal-content-add-main-price">
+                <p>Giá cơ bản:</p>
+                <div className="f">
+                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(productprice)) ? '' : parseFloat(productprice)} onChange={(e) => this.handleInputChange(e, 'productprice')} />
+                  <p>vnđ</p>
+                </div>
+              </div>
               <div className="modal-content-add-pettype">
                 <p>Loại thú cưng:</p>
                 <div className="pettype-checkboxes f">
@@ -451,13 +459,6 @@ class CreateProductModal extends Component {
                       <p>{type.CodeValueVI}</p>
                     </label>
                   ))}
-                </div>
-              </div>
-              <div className="modal-content-add-main-price">
-                <p>Giá cơ bản:</p>
-                <div className="f">
-                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(productprice)) ? '' : parseFloat(productprice)} onChange={(e) => this.handleInputChange(e, 'productprice')} />
-                  <p>vnđ</p>
                 </div>
               </div>
             </div>

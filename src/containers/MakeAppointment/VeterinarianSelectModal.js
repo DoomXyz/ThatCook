@@ -39,7 +39,7 @@ class VeterinarianSelectModal extends Component {
   }
   handleLoadCode = async (codeTypeFilter) => {
     try {
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
@@ -58,7 +58,7 @@ class VeterinarianSelectModal extends Component {
   handleGetServiceInfo = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
+      const response = responseApi.data;
       if (response.errCode === 0 && response.data && response.data.length > 0) {
         this.setState({
           loadedServiceInfo: response.data,
@@ -110,7 +110,8 @@ class VeterinarianSelectModal extends Component {
         searchValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         if (this.debounceTimeout) {
           clearTimeout(this.debounceTimeout);
         }
@@ -126,7 +127,8 @@ class VeterinarianSelectModal extends Component {
         filterValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -137,7 +139,8 @@ class VeterinarianSelectModal extends Component {
         sortValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -155,7 +158,8 @@ class VeterinarianSelectModal extends Component {
       {
         currentPage: newPage,
         tempCurrentPage: newPage.toString(),
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -168,7 +172,8 @@ class VeterinarianSelectModal extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -181,7 +186,8 @@ class VeterinarianSelectModal extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -210,7 +216,8 @@ class VeterinarianSelectModal extends Component {
         searchValue: '',
         filterValue: 'ALL',
         sortValue: '0',
-      }, () => {
+      },
+      () => {
         this.handleLoadVeterinarianInfo();
       }
     );
@@ -235,7 +242,7 @@ class VeterinarianSelectModal extends Component {
           <div className="showdoctor-modal-body">
             <div className="showdoctor-content">
               <div className="showdoctor-content-top f  ">
-                <div className="showdoctor-content-top-search">
+                <div className="showdoctor-content-top-search f">
                   <input type="text" placeholder="Nhập tên bác sĩ" value={searchValue} onChange={(event) => this.handleSearchChange(event)} />
                   <IonIcon icon={searchOutline}></IonIcon>
                 </div>
@@ -255,18 +262,18 @@ class VeterinarianSelectModal extends Component {
                     {loadedServiceInfo &&
                       loadedServiceInfo.length > 0 &&
                       (console.log(loadedServiceInfo),
-                        (
-                          <optgroup label="Dịch vụ khám">
-                            {loadedServiceInfo.map((service) => (
-                              <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
-                                {service.ServiceName}
-                              </option>
-                            ))}
-                          </optgroup>
-                        ))}
+                      (
+                        <optgroup label="Dịch vụ khám">
+                          {loadedServiceInfo.map((service) => (
+                            <option key={service.ServiceID} value={`service-${service.ServiceID}`}>
+                              {service.ServiceName}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                   </select>
                 </div>
-                <div className="showdoctor-content-top-filter f">
+                <div className="showdoctor-content-top-reset">
                   <button onClick={() => this.handleResetFilter()}>Làm mới</button>
                 </div>
               </div>

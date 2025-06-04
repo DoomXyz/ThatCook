@@ -140,7 +140,8 @@ input {
         }
 
         ion-icon {
-          position: absolute;
+          margin-right: 1rem;
+          margin-left: -1.5rem;
           margin-top: 10px;
           left: 32rem;
         }
@@ -161,7 +162,8 @@ input {
         }
 
         ion-icon {
-          position: absolute;
+          margin-right: 1rem;
+          margin-left: -1.5rem;
           margin-top: 12px;
           left: 31.5rem;
         }
@@ -276,6 +278,7 @@ input {
           }
 
           td {
+            cursor: pointer;
             white-space: normal;
             word-wrap: break-word;
             min-width: 80px;
@@ -341,16 +344,25 @@ input {
                 justify-content: center;
 
                 button {
-                  margin: 0;
-                  margin-top: 1rem;
+                  width: 35px;
+                  height: 35px;
+
                   border-radius: 7px;
-                  width: 40px;
-                  height: 40px;
+                  border: none;
+                  background-color: transparent;
+                  cursor: pointer;
+                  transition:
+                    background-color 0.3s,
+                    transform 0.2s;
 
                   ion-icon {
-                    padding-top: 5px;
-                    width: 25px;
-                    height: 25px;
+                    font-size: 1.4rem;
+                    color: inherit;
+                  }
+
+                  &:hover {
+                    background-color: rgba(187, 187, 187, 0.5);
+                    transform: scale(1.1);
                   }
                 }
               }
@@ -436,6 +448,7 @@ input {
           }
 
           td {
+            cursor: pointer;
             white-space: normal;
             word-wrap: break-word;
             min-width: 80px;
@@ -469,16 +482,25 @@ input {
               td:nth-child(10) {
                 justify-content: flex-end;
                 button {
-                  margin: 0;
+                  width: 35px;
+                  height: 35px;
 
                   border-radius: 7px;
-                  width: 40px;
-                  height: 40px;
+                  border: none;
+                  background-color: transparent;
+                  cursor: pointer;
+                  transition:
+                    background-color 0.3s,
+                    transform 0.2s;
 
                   ion-icon {
-                    padding-top: 5px;
-                    width: 25px;
-                    height: 25px;
+                    font-size: 1.4rem;
+                    color: inherit;
+                  }
+
+                  &:hover {
+                    background-color: rgba(187, 187, 187, 0.5);
+                    transform: scale(1.1);
                   }
                 }
                 .save-coupon {
@@ -632,6 +654,7 @@ input {
           tbody {
             .owner-mid-content-right-list-invoice-item {
               td {
+                cursor: pointer;
                 border-bottom: 1px solid black;
                 text-align: center;
                 height: 5rem;
@@ -798,7 +821,7 @@ input {
           }
 
           ion-icon {
-            position: absolute;
+            margin-left: -1.5rem;
             margin-top: 6px;
             left: 400px;
           }
@@ -844,6 +867,9 @@ input {
 
             tbody {
               .owner-mid-content-right-list-product-item {
+                td {
+                  cursor: pointer;
+                }
                 img {
                   max-width: 90px;
                 }
@@ -873,16 +899,26 @@ input {
                   height: 4.9rem;
 
                   button {
-                    margin: 0;
-                    margin-top: 1rem;
+                    margin-top: 1.5rem;
+                    width: 35px;
+                    height: 35px;
+
                     border-radius: 7px;
-                    width: 40px;
-                    height: 40px;
+                    border: none;
+                    background-color: transparent;
+                    cursor: pointer;
+                    transition:
+                      background-color 0.3s,
+                      transform 0.2s;
 
                     ion-icon {
-                      padding-top: 5px;
-                      width: 25px;
-                      height: 25px;
+                      font-size: 1.4rem;
+                      color: inherit;
+                    }
+
+                    &:hover {
+                      background-color: rgba(187, 187, 187, 0.5);
+                      transform: scale(1.1);
                     }
                   }
                 }
@@ -966,6 +1002,7 @@ input {
             }
 
             td {
+              cursor: pointer;
               white-space: normal;
               word-wrap: break-word;
               min-width: 80px;
