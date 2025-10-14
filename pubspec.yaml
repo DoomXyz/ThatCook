@@ -1,0 +1,26 @@
+name: onebyone_flutter
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.6.0 # Hoặc http nếu muốn đơn giản, nhưng dio tốt hơn cho API calls.
+  # Lý do thêm dio: Để gọi API HTTP (POST/GET), hỗ trợ headers, interceptors (tự động add token), parse JSON dễ. Tốt hơn package http mặc định vì handle error tốt hơn.
+  provider: ^6.1.2 # State management đơn giản, không cần Riverpod/Bloc cho app cơ bản.
+  # Lý do thêm provider: Quản lý state auth (token, user logged in), notify UI update khi login success. Đơn giản cho beginner, không phức tạp như Bloc.
+  shared_preferences: ^2.3.2 # Lưu token/user local (persistent storage).
+  # Lý do thêm shared_preferences: Lưu token/user vào storage device để app nhớ login sau khi restart (như rememberMe trong BE).
+  carousel_slider: ^5.0.0
+  persistent_bottom_nav_bar: ^5.0.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
