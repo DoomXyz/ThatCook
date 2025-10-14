@@ -24,4 +24,20 @@ const handleSendInvoiceEmailApi = (sendInfo) => {
   return axios.post('/api/get-invoice-email', sendInfo);
 };
 
-export { handleCreateInvoiceApi, handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi };
+// const handleLoadRevenueStatsApi = (type, startDate, endDate) => {
+//   return axios.get(`/api/load-revenue-stats?type=${type}&startDate=${startDate}&endDate=${endDate}`);
+// };
+
+const handleLoadRevenueStatsApi = (type, startDate, endDate) => {
+  return axios.get(`/api/load-revenue-stats?type=${type}&startDate=${startDate}&endDate=${endDate}`, { withCredentials: true });
+};
+
+// const handleLoadTopProductsApi = (type, startDate, endDate) => {
+//   return axios.get(`/api/load-top-products?type=${type}&startDate=${startDate}&endDate=${endDate}`);
+// };
+
+const handleLoadTopProductsApi = (type, startDate, endDate) => {
+  return axios.get(`/api/load-top-products?type=${type}&startDate=${startDate}&endDate=${endDate}`, { withCredentials: true });
+};
+
+export { handleCreateInvoiceApi, handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi, handleLoadRevenueStatsApi, handleLoadTopProductsApi };

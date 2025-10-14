@@ -1067,6 +1067,77 @@ input {
           }
         }
       }
+
+      .doanhcen {
+        p {
+          margin: 0;
+          margin-left: 1.1rem;
+        }
+        button {
+          margin-top: 1rem;
+          border-radius: 0.5rem;
+        }
+        .date-picker {
+          margin: 0 1rem;
+          border-radius: 0.5rem;
+          padding: 0.2rem;
+        }
+        .react-datepicker__close-icon {
+          top: -1rem;
+          right: 1rem;
+        }
+        .doanhcen-reset {
+          height: 3rem;
+          padding-left: 1rem;
+          padding-right: 1rem;
+          margin: 0 10px;
+          margin-top: 0.6rem;
+        }
+
+        .owner-stats-tabs {
+          margin-bottom: 20px;
+        }
+        .owner-stats-tabs button {
+          margin: 0 10px;
+          padding: 10px 20px;
+          cursor: pointer;
+          margin-top: 0.6rem;
+        }
+        .owner-stats-tabs button.active {
+          background-color: #007bff;
+          color: white;
+        }
+
+        .charts-section {
+          width: 100%;
+        }
+        .strage {
+          background-color: black;
+          width: 1px;
+          margin-top: 6.5rem;
+          height: 75%;
+          margin-right: -5rem;
+          margin-left: 5rem;
+        }
+        .pie-section {
+          margin-top: 20px;
+          margin-left: 11rem;
+          width: 400px;
+          height: 400px;
+
+          .owner-pie-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+          }
+          .owner-pie-tabs button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: -0.6rem;
+          }
+        }
+      }
     }
   }
 }

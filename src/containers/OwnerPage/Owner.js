@@ -3,6 +3,9 @@ import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
+import { Bar, Pie } from 'react-chartjs-2';
+
+import 'chart.js/auto';
 
 import { pencil, searchOutline, add, homeOutline, cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline, logOutOutline } from 'ionicons/icons';
 
@@ -19,7 +22,7 @@ import CreateCouponModal from './CreateCouponModal.js';
 import { handleLogoutApi } from '../../services/accountServices';
 import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from '../../services/productServices';
 import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
-import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi } from '../../services/invoiceServices';
+import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleLoadRevenueStatsApi, handleLoadTopProductsApi } from '../../services/invoiceServices';
 import { handleLoadCouponInfoApi, handleCreateCouponApi, handleChangeCouponInfoApi } from '../../services/couponServices';
 
 import { getAllCodes, checkLoginStatus, validateCouponInput } from '../../utils/pakage';
@@ -75,6 +78,17 @@ class Owner extends Component {
       selectedCoupon: null,
       // Coupon Management
       isEditingCoupon: null,
+      //test
+      loadedRevenueStats: [],
+      statsType: 'monthly',
+      statsStartDate: '',
+      statsEndDate: '',
+      //test 2
+      loadedTopProducts: [],
+      currentPieTab: 'daily',
+      pieStatsType: 'daily',
+      pieStartDate: '',
+      pieEndDate: '',
       // DisableButton
       disabledButtons: {
         logout: false,
@@ -212,6 +226,9 @@ class Owner extends Component {
       case 4:
         this.handleLoadCouponInfo();
         break;
+      case 5:
+        this.handleLoadRevenueStats();
+        break;
       default:
         break;
     }
@@ -275,6 +292,182 @@ class Owner extends Component {
       console.log('Error loading couponinfo:', e);
       toast.error('Lỗi khi load danh sách coupon!');
     }
+  };
+  //test
+  handleLoadRevenueStats = async () => {
+    const { statsType, statsStartDate, statsEndDate } = this.state;
+    try {
+      const response = await handleLoadRevenueStatsApi(statsType, statsStartDate, statsEndDate);
+      if (response && response.errCode === 0) {
+        this.setState({ loadedRevenueStats: response.data });
+        await this.handleLoadTopProducts();
+      } else {
+        toast.error(response?.errMessage || 'Lỗi khi load thống kê doanh thu!');
+      }
+    } catch (e) {
+      console.log('Error loading stats:', e);
+      toast.error('Lỗi khi load thống kê doanh thu!');
+    }
+  };
+
+  handleStatsTabChange = (tab) => {
+    let newType = tab;
+    let newStartDate = '';
+    let newEndDate = '';
+    const currentYear = new Date().getFullYear(); // 2025
+    const currentMonth = new Date().getMonth() + 1; // 10 for October
+
+    if (tab === 'daily') {
+      newStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+      newEndDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`; // Tháng này
+    } else if (tab === 'monthly') {
+      newStartDate = `${currentYear}-01-01`;
+      newEndDate = `${currentYear}-12-31`; // Năm này
+    } // Yearly không cần range, load all
+
+    this.setState(
+      {
+        currentStatsTab: tab,
+        statsType: newType,
+        statsStartDate: newStartDate,
+        statsEndDate: newEndDate,
+      },
+      () => this.handleLoadRevenueStats()
+    );
+  };
+
+  getChartData = (chartType) => {
+    let filteredData = this.state.loadedRevenueStats;
+    if (chartType === 'yearly') {
+      filteredData = this.aggregateYearly(filteredData);
+    }
+    return {
+      labels: filteredData.map((item) => item.period),
+      datasets: [
+        {
+          label: 'Doanh thu (VNĐ)',
+          data: filteredData.map((item) => item.revenue),
+          backgroundColor: 'rgba(75,192,192,0.6)',
+        },
+      ],
+    };
+  };
+
+  handleLoadTopProducts = async () => {
+    const { pieStatsType, pieStartDate, pieEndDate } = this.state;
+    try {
+      const response = await handleLoadTopProductsApi(pieStatsType, pieStartDate, pieEndDate);
+      if (response && response.errCode === 0) {
+        this.setState({ loadedTopProducts: response.data });
+      } else {
+        toast.error('Lỗi khi load sản phẩm bán chạy!');
+      }
+    } catch (e) {
+      toast.error('Lỗi khi load sản phẩm bán chạy!');
+    }
+  };
+
+  handlePieTabChange = (tab) => {
+    let newType = tab;
+    let newStartDate = '';
+    let newEndDate = '';
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const currentDay = new Date().getDate();
+    if (tab === 'daily') {
+      newStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}T00:00:00`;
+      newEndDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}T23:59:59`;
+    }
+    // if (tab === 'daily') {
+    //   newStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+    //   newEndDate = newStartDate; // Chỉ ngày hôm nay
+    // }
+    else if (tab === 'monthly') {
+      newStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+      newEndDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`; // Tháng này
+    } else if (tab === 'yearly') {
+      newStartDate = `${currentYear}-01-01`;
+      newEndDate = `${currentYear}-12-31`; // Năm này
+    }
+    this.setState({ currentPieTab: tab, pieStatsType: newType, pieStartDate: newStartDate, pieEndDate: newEndDate }, () => this.handleLoadTopProducts());
+  };
+
+  getPieData = () => {
+    const data = this.state.loadedTopProducts;
+    return {
+      labels: data.map((item) => item.productName),
+      datasets: [
+        {
+          label: 'Số lượng bán',
+          data: data.map((item) => item.totalSold),
+          backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'],
+        },
+      ],
+    };
+  };
+
+  aggregateYearly = (data) => {
+    const yearlyData = data.reduce((acc, item) => {
+      const year = item.period.split('-')[0];
+      acc[year] = (acc[year] || 0) + parseFloat(item.revenue);
+      return acc;
+    }, {});
+    return Object.keys(yearlyData).map((year) => ({ period: year, revenue: yearlyData[year] }));
+  };
+  handleStatsTypeChange = (value) => {
+    this.setState({ statsType: value }, () => this.handleLoadRevenueStats());
+  };
+
+  handleStatsStartDateChange = (date) => {
+    const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
+    this.setState({ statsStartDate: formattedDate }, () => this.handleLoadRevenueStats());
+  };
+
+  handleStatsEndDateChange = (date) => {
+    const formattedDate = date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0] : '';
+    this.setState({ statsEndDate: formattedDate }, () => this.handleLoadRevenueStats());
+  };
+
+  handleResetStatsFilter = () => {
+    this.setState(
+      {
+        statsType: 'monthly',
+        statsStartDate: '',
+        statsEndDate: '',
+        pieStatsType: 'daily',
+        pieStartDate: '',
+        pieEndDate: '',
+      },
+      () => {
+        this.handleLoadRevenueStats();
+        this.handlePieTabChange('daily');
+        this.handleLoadTopProducts(); // Thêm load pie sau reset
+      }
+    );
+  };
+
+  handleFormThongKe = (e) => {
+    e.preventDefault();
+    this.setState(
+      {
+        actionPage: 5,
+        currentPage: 1,
+        tempCurrentPage: '1',
+        searchValue: '',
+        filterValue: 'ALL',
+        sortValue: '0',
+        dateFilterValue: '',
+        currentStatsTab: 'daily',
+        currentPieTab: 'daily',
+        pieStatsType: 'daily',
+        pieStartDate: '', // Ban đầu rỗng
+        pieEndDate: '', // Để load default
+      },
+      async () => {
+        await this.handleLoadRevenueStats();
+        await this.handlePieTabChange('daily');
+      }
+    );
   };
   //search filter sort
   handleSearchChange = (event, type) => {
@@ -1401,19 +1594,19 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                               : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                               : 'Vô thời hạn'}
                           </td>
                           <td onClick={(e) => e.stopPropagation()}>
@@ -1456,7 +1649,7 @@ class Owner extends Component {
         case 4:
           return (
             <div>
-              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-coupon" >
+              <button style={{ display: actionPage === 4 ? 'block' : 'none' }} onClick={() => this.toggleCreateCouponModal()} className="add-coupon">
                 THÊM COUPON <IonIcon icon={add}></IonIcon>
               </button>
               <div>
@@ -1664,6 +1857,58 @@ class Owner extends Component {
               </div>
             </div>
           );
+
+        case 5:
+          let chartOptions = { scales: { y: { beginAtZero: true } } };
+          if (this.state.currentStatsTab === 'daily') {
+            chartOptions.scales.y.ticks = { stepSize: 1000000 };
+          }
+          return (
+            <div className="doanhcen f">
+              <div>
+                <div className="f">
+                  <div>
+                    <p>Từ ngày:</p>
+                    <DatePicker selected={this.state.statsStartDate ? new Date(this.state.statsStartDate + 'T00:00:00') : null} onChange={this.handleStatsStartDateChange} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                  </div>
+                  <div>
+                    <p>Đến ngày:</p>
+                    <DatePicker selected={this.state.statsEndDate ? new Date(this.state.statsEndDate + 'T00:00:00') : null} onChange={this.handleStatsEndDateChange} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                  </div>
+                  <button className="doanhcen-reset" onClick={this.handleResetStatsFilter}>
+                    Reset
+                  </button>
+                  <div className="owner-stats-tabs">
+                    <button className={this.state.currentStatsTab === 'daily' ? 'active' : ''} onClick={() => this.handleStatsTabChange('daily')}>
+                      Ngày
+                    </button>
+                    <button className={this.state.currentStatsTab === 'monthly' ? 'active' : ''} onClick={() => this.handleStatsTabChange('monthly')}>
+                      Tháng
+                    </button>
+                    <button className={this.state.currentStatsTab === 'yearly' ? 'active' : ''} onClick={() => this.handleStatsTabChange('yearly')}>
+                      Năm
+                    </button>
+                  </div>
+                </div>
+                <div className="charts-section">{this.state.loadedRevenueStats.length > 0 ? <Bar data={this.getChartData(this.state.currentStatsTab)} options={chartOptions} /> : <p>Không có dữ liệu thống kê doanh thu.</p>}</div>
+              </div>
+              <div className="strage"></div>
+              <div className="pie-section">
+                <div className="owner-pie-tabs">
+                  <button className={this.state.currentPieTab === 'daily' ? 'active' : ''} onClick={() => this.handlePieTabChange('daily')}>
+                    Ngày
+                  </button>
+                  <button className={this.state.currentPieTab === 'monthly' ? 'active' : ''} onClick={() => this.handlePieTabChange('monthly')}>
+                    Tháng
+                  </button>
+                  <button className={this.state.currentPieTab === 'yearly' ? 'active' : ''} onClick={() => this.handlePieTabChange('yearly')}>
+                    Năm
+                  </button>
+                </div>
+                {this.state.loadedTopProducts.length > 0 ? <Pie data={this.getPieData()} /> : <p>Không có sản phẩm bán chạy.</p>}
+              </div>
+            </div>
+          );
         default:
           return null;
       }
@@ -1714,6 +1959,11 @@ class Owner extends Component {
                 <li>
                   <a onClick={this.handleFormDanhSachCoupon} className={actionPage === 4 ? 'active' : ''}>
                     COUPON
+                  </a>
+                </li>
+                <li>
+                  <a onClick={this.handleFormThongKe} className={actionPage === 5 ? 'active' : ''}>
+                    THỐNG KÊ
                   </a>
                 </li>
               </div>
