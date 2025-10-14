@@ -15,20 +15,7 @@ let sendInvoiceEmail = async (invoiceid, email) => {
     });
     const invoice = await db.Invoice.findOne({
       where: { InvoiceID: invoiceid },
-      attributes: [
-        'InvoiceID',
-        'ReceiverName',
-        'ReceiverPhone',
-        'ReceiverAddress',
-        'TotalQuantity',
-        'TotalPrice',
-        'DiscountAmount',
-        'TotalPayment',
-        'CreatedAt',
-        'PaymentType',
-        'ShippingMethod',
-        'ShippingStatus',
-      ],
+      attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalQuantity', 'TotalPrice', 'DiscountAmount', 'TotalPayment', 'CreatedAt', 'PaymentType', 'ShippingMethod', 'ShippingStatus'],
       raw: true,
     });
     if (!invoice) {
@@ -117,8 +104,7 @@ let validateInvoiceInput = async (invoiceInfo) => {
       data: null,
     };
   }
-  const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
-    discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, } = invoiceInfo;
+  const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid } = invoiceInfo;
   if (!receivername?.trim()) {
     return {
       errCode: -1,
@@ -468,10 +454,7 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
       // Tìm kiếm theo ReceiverName hoặc ReceiverPhone
       if (search) {
         const searchTerm = search.trim().substring(0, 50);
-        where[Op.or] = [
-          { ReceiverName: { [Op.like]: `%${searchTerm}%` } },
-          { ReceiverPhone: { [Op.like]: `%${searchTerm}%` } },
-        ];
+        where[Op.or] = [{ ReceiverName: { [Op.like]: `%${searchTerm}%` } }, { ReceiverPhone: { [Op.like]: `%${searchTerm}%` } }];
       }
       // Lọc theo ngày (bỏ qua giờ)
       if (date) {
@@ -577,17 +560,7 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
       // Lấy danh sách hóa đơn
       const { count, rows } = await db.Invoice.findAndCountAll({
         where,
-        attributes: [
-          'InvoiceID',
-          'ReceiverName',
-          'ReceiverPhone',
-          'TotalQuantity',
-          'TotalPayment',
-          'CreatedAt',
-          'CanceledAt',
-          'PaymentStatus',
-          'ShippingStatus',
-        ],
+        attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'TotalQuantity', 'TotalPayment', 'CreatedAt', 'CanceledAt', 'PaymentStatus', 'ShippingStatus'],
         limit: parseInt(limit),
         offset,
         order,
@@ -634,22 +607,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
       }
       const invoice = await db.Invoice.findOne({
         where: { InvoiceID: invoiceid },
-        attributes: [
-          'InvoiceID',
-          'TotalQuantity',
-          'ReceiverName',
-          'ReceiverPhone',
-          'ReceiverAddress',
-          'TotalPrice',
-          'DiscountAmount',
-          'TotalPayment',
-          'CreatedAt',
-          'PaymentType',
-          'ShippingStatus',
-          'ShippingMethod',
-          'PaymentStatus',
-          'CancelReason',
-        ],
+        attributes: ['InvoiceID', 'TotalQuantity', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalPrice', 'DiscountAmount', 'TotalPayment', 'CreatedAt', 'PaymentType', 'ShippingStatus', 'ShippingMethod', 'PaymentStatus', 'CancelReason'],
         raw: true,
       });
       if (!invoice) {
@@ -733,14 +691,25 @@ let getInvoiceDetailInfo = (invoiceid) => {
   });
 };
 
-let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
-  discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow) => {
+let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
       const invoiceInfo = {
-        accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice,
-        discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid,
+        accountid,
+        receivername,
+        receiverphone,
+        receiveraddress,
+        cartItems,
+        totalquantity,
+        totalprice,
+        discountamount,
+        totalpayment,
+        paymentstatus,
+        shippingstatus,
+        paymenttype,
+        shippingmethod,
+        couponid,
       };
 
       const isValidateInput = await validateInvoiceInput(invoiceInfo);
@@ -754,7 +723,7 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         receivername: receivername.trim(),
         receiverphone: receiverphone.trim(),
         receiveraddress: receiveraddress.trim(),
-        cartItems: cartItems.map(item => ({
+        cartItems: cartItems.map((item) => ({
           productid: item.productid,
           productdetailid: item.productdetailid,
           itemprice: item.itemprice,
@@ -1013,6 +982,120 @@ const getInvoiceEmail = async (billid, email) => {
   }
 };
 
+const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
+  const paidCode = await getPaymentPaidCode(); // Hàm phụ lấy code 'PAID' từ AllCodes
+
+  let groupBy;
+  let dateFormat;
+
+  switch (type) {
+    case 'daily':
+      groupBy = [db.sequelize.fn('DATE', db.sequelize.col('Invoice.CreatedAt'))];
+      dateFormat = '%Y-%m-%d';
+      break;
+    case 'monthly':
+      groupBy = [db.sequelize.fn('DATE_FORMAT', db.sequelize.col('Invoice.CreatedAt'), '%Y-%m')];
+      dateFormat = '%Y-%m';
+      break;
+    case 'yearly':
+      groupBy = [db.sequelize.fn('YEAR', db.sequelize.col('Invoice.CreatedAt'))];
+      dateFormat = '%Y';
+      break;
+    default:
+      throw new Error('Invalid type: must be daily, monthly, or yearly');
+  }
+
+  const where = {
+    '$Invoice.PaymentStatus$': paidCode,
+    '$Invoice.CanceledAt$': null,
+  };
+
+  if (startDate) {
+    where['$Invoice.CreatedAt$'] = { [Op.gte]: new Date(startDate) };
+  }
+  if (endDate) {
+    where['$Invoice.CreatedAt$'] = { ...where['$Invoice.CreatedAt$'], [Op.lte]: new Date(endDate) };
+  }
+
+  const revenues = await db.InvoiceDetail.findAll({
+    attributes: [
+      [db.sequelize.fn('DATE_FORMAT', db.sequelize.col('Invoice.CreatedAt'), dateFormat), 'period'],
+      [db.sequelize.fn('SUM', db.sequelize.literal('ItemQuantity * ItemPrice')), 'revenue'],
+      [db.sequelize.fn('COUNT', db.sequelize.col('Invoice.InvoiceID')), 'invoiceCount'],
+    ],
+    include: [
+      {
+        model: db.Invoice,
+        attributes: [],
+        required: true,
+      },
+    ],
+    where,
+    group: groupBy,
+    order: [['period', 'DESC']],
+    raw: true,
+  });
+
+  return revenues;
+};
+
+const getTopProducts = async (type = 'monthly', startDate, endDate) => {
+  const paidCode = await getPaymentPaidCode();
+
+  const where = {
+    '$Invoice.PaymentStatus$': paidCode,
+    '$Invoice.CanceledAt$': null,
+  };
+
+  if (startDate) {
+    where['$Invoice.CreatedAt$'] = { [Op.gte]: new Date(startDate) };
+  }
+  if (endDate) {
+    where['$Invoice.CreatedAt$'] = { ...where['$Invoice.CreatedAt$'], [Op.lte]: new Date(endDate) };
+  }
+
+  const topProducts = await db.InvoiceDetail.findAll({
+    attributes: ['ProductID', [db.sequelize.fn('SUM', db.sequelize.col('ItemQuantity')), 'totalSold']],
+    include: [
+      {
+        model: db.Invoice,
+        attributes: [],
+        required: true,
+      },
+      {
+        model: db.Product,
+        attributes: ['ProductName'],
+      },
+    ],
+    where,
+    group: ['ProductID'],
+    order: [[db.sequelize.fn('SUM', db.sequelize.col('ItemQuantity')), 'DESC']],
+    limit: 5,
+    raw: true,
+  });
+
+  return topProducts.map((item) => ({
+    productID: item.ProductID,
+    productName: item['Product.ProductName'],
+    totalSold: item.totalSold,
+  }));
+};
+
+// Hàm phụ để lấy code 'PAID' động từ AllCodes
+const getPaymentPaidCode = async () => {
+  try {
+    const paidCode = await db.AllCodes.findOne({
+      where: { Type: 'PaymentStatus', CodeValueVI: 'Đã thanh toán' }, // Điều chỉnh 'Đã thanh toán' nếu tên VI khác trong DB
+      attributes: ['Code'],
+      raw: true,
+    });
+    return paidCode ? paidCode.Code : 'PAID';
+  } catch (e) {
+    console.log('Error getting PAID code:', e);
+    return 'PAID';
+  }
+};
+
 module.exports = {
   createInvoice,
   getAccountInvoiceInfo,
@@ -1020,4 +1103,6 @@ module.exports = {
   loadInvoiceInfo,
   changeInvoiceStatus,
   getInvoiceEmail,
+  getRevenueStats,
+  getTopProducts,
 };

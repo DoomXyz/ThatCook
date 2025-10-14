@@ -52,7 +52,8 @@ const clearCookie = (req, res) => {
 const checkAdminJWT = (req, res, next) => {
   let cookies = req.cookies;
   if (cookies && cookies.token) {
-    let token = cookies.token;
+    // let token = cookies.token;
+    let token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
     let decoded = verifyJWT(token);
     if (decoded) {
       if (decoded.AccountType && decoded.AccountType === 'A') {
@@ -80,7 +81,8 @@ const checkAdminJWT = (req, res, next) => {
 const checkOwnerJWT = (req, res, next) => {
   let cookies = req.cookies;
   if (cookies && cookies.token) {
-    let token = cookies.token;
+    // let token = cookies.token;
+    let token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
     let decoded = verifyJWT(token);
     if (decoded) {
       if (decoded.AccountType && decoded.AccountType === 'O') {
@@ -108,7 +110,8 @@ const checkOwnerJWT = (req, res, next) => {
 const checkVeterinarianJWT = (req, res, next) => {
   let cookies = req.cookies;
   if (cookies && cookies.token) {
-    let token = cookies.token;
+    // let token = cookies.token;
+    let token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
     let decoded = verifyJWT(token);
     if (decoded) {
       if (decoded.AccountType && decoded.AccountType === 'V') {

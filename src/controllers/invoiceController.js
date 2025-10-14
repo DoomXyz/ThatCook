@@ -1,4 +1,6 @@
 import invoiceService from '../services/invoiceService';
+const { getRevenueStats } = require('../services/invoiceService');
+const { getTopProducts } = require('../services/invoiceService');
 
 const handleError = (res, e) => {
   console.log(e);
@@ -44,8 +46,7 @@ let handleGetInvoiceDetailInfo = async (req, res) => {
 
 let handleCreateInvoice = async (req, res) => {
   try {
-    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount,
-      totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow } = req.body;
+    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow } = req.body;
     let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow);
     return res.status(200).json(response);
   } catch (e) {
@@ -74,6 +75,28 @@ let handleGetInvoiceEmail = async (req, res) => {
   }
 };
 
+let handleLoadRevenueStats = async (req, res) => {
+  try {
+    const { type, startDate, endDate } = req.query; // Lấy params từ query (daily/monthly/yearly, dates)
+    const data = await getRevenueStats(type, startDate, endDate); // Gọi service
+    return res.status(200).json({ errCode: 0, errMessage: 'OK', data });
+  } catch (e) {
+    console.log(e);
+    return res.status(200).json({ errCode: -1, errMessage: 'Error from server...' });
+  }
+};
+
+let handleLoadTopProducts = async (req, res) => {
+  try {
+    const { type, startDate, endDate } = req.query;
+    const data = await getTopProducts(type, startDate, endDate);
+    return res.status(200).json({ errCode: 0, errMessage: 'OK', data });
+  } catch (e) {
+    console.log(e);
+    return res.status(200).json({ errCode: -1, errMessage: 'Error from server...' });
+  }
+};
+
 module.exports = {
   handleGetAccountInvoiceInfo,
   handleLoadInvoiceInfo,
@@ -81,4 +104,6 @@ module.exports = {
   handleCreateInvoice,
   handleChangeInvoiceStatus,
   handleGetInvoiceEmail,
+  handleLoadRevenueStats,
+  handleLoadTopProducts,
 };

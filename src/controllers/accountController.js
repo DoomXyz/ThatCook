@@ -31,9 +31,11 @@ let handleRegister = async (req, res) => {
 
 let handleLogin = async (req, res) => {
   try {
+    console.log(req.body);
     let response = await accountService.userLogin(req.body);
     if (response.errCode === 0) {
       let jwtToken = createJWT(response.data, req.body.rememberLogin);
+      response.token = jwtToken;
       res.cookie('token', jwtToken, {
         httpOnly: true,
         maxAge: req.body.rememberLogin ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
@@ -160,7 +162,7 @@ let handleLoadVeterinarianInfo = async (req, res) => {
 
 let handleChangeWorkingStatus = async (req, res) => {
   try {
-    const { accountid, workingstatus } = req.body
+    const { accountid, workingstatus } = req.body;
     let response = await accountService.changeWorkingStatus(accountid, workingstatus);
     return res.status(200).json(response);
   } catch (e) {
