@@ -1,0 +1,384 @@
+main
+
+// lib/main.dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'bottom_nav_wrapper.dart'; // Wrapper cho bottom nav persistent
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Đảm bảo binding init cho async
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => AuthProvider()
+        ..loadUserFromStorage(), // Init provider và load user từ storage
+      // child:
+      //     const BottomNavWrapper(), // Wrap toàn app bằng bottom nav wrapper (persistent nav)
+    );
+  }
+}
+
+
+home
+
+// lib/screens/home_screen.dart
+
+import 'dart:async';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+// import '../models/banner_model.dart';
+// import '../models/code_model.dart';
+// import '../models/product_model.dart';
+import 'product_detail_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+  int _currentPage = 1;
+  int _limit = 10;
+  String _filter = 'ALL';
+  String _sort = '0';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Delay sau build phase
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      auth.loadCodes();
+      auth.loadBanners();
+      auth.loadProducts(page: _currentPage, limit: _limit);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      Provider.of<AuthProvider>(context, listen: false).loadProducts(
+        page: 1,
+        limit: _limit,
+        search: value,
+        filter: _filter,
+        sort: _sort,
+      );
+      setState(() => _currentPage = 1);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(hintText: 'Tìm kiếm...'),
+          onChanged: _onSearchChanged,
+        ),
+      ),
+      body: SafeArea(
+        child: auth.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Banner slider
+                    if (auth.banners.isNotEmpty)
+                      CarouselSlider(
+                        options: CarouselOptions(
+                          height: 200.0,
+                          autoPlay: true,
+                          autoPlayInterval: const Duration(seconds: 5),
+                          viewportFraction: 1.0,
+                          enlargeCenterPage: false,
+                        ),
+                        items: auth.banners.map((banner) {
+                          return GestureDetector(
+                            onTap: () {
+                              if (banner.productId != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailScreen(
+                                      productId: banner.productId!,
+                                      detailId: null,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Image.network(
+                              banner.bannerImage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.error),
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    else
+                      const Text('Không có banner'),
+                    const SizedBox(height: 16),
+                    // Filter và Sort dropdowns
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        DropdownButton<String>(
+                          value: _filter,
+                          items: [
+                            const DropdownMenuItem(
+                                value: 'ALL', child: Text('Tất cả')),
+                            const DropdownMenuItem(
+                                value: 'PROMOTION', child: Text('Khuyến mãi')),
+                            DropdownMenuItem(
+                              enabled: false,
+                              child: Text('Loại sản phẩm',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            ...auth.productTypes.map((type) => DropdownMenuItem(
+                                  value: 'producttype-${type.code}',
+                                  child: Text(type.codeValueVI),
+                                )),
+                            DropdownMenuItem(
+                              enabled: false,
+                              child: Text('Loại thú cưng',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            ...auth.petTypes.map((type) => DropdownMenuItem(
+                                  value: 'pettype-${type.code}',
+                                  child: Text('Cho ${type.codeValueVI}'),
+                                )),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _filter = value);
+                              setState(() => _currentPage = 1);
+                            }
+                          },
+                        ),
+                        DropdownButton<String>(
+                          value: _sort,
+                          items: const [
+                            DropdownMenuItem(
+                                value: '0', child: Text('Mặc định')),
+                            DropdownMenuItem(
+                                value: '1', child: Text('Bán chạy')),
+                            DropdownMenuItem(
+                                value: '2', child: Text('Giá tăng')),
+                            DropdownMenuItem(
+                                value: '3', child: Text('Giá giảm')),
+                            DropdownMenuItem(value: '4', child: Text('Mới về')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _sort = value);
+                              setState(() => _currentPage = 1);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // FutureBuilder cho GridView
+                    FutureBuilder<Map<String, dynamic>>(
+                      future: auth.loadProducts(
+                        page: _currentPage,
+                        limit: _limit,
+                        filter: _filter,
+                        sort: _sort,
+                        search: _searchController.text,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError ||
+                            (snapshot.data?['errCode'] != 0) ||
+                            auth.products.isEmpty) {
+                          return const Center(
+                              child: Text(
+                                  'Không tìm thấy sản phẩm hoặc lỗi load'));
+                        }
+                        return ListView.builder(
+                          // Thay GridView
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: auth.products.length,
+                          itemBuilder: (context, index) {
+                            final product = auth.products[index];
+                            return Card(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailScreen(
+                                        productId: product.productId,
+                                        detailId: product.productDetailId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 120,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(
+                                          image: NetworkImage(
+                                              product.productImage ?? ''),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(product.productName),
+                                    Text('Giá: ${product.itemPrice} VND'),
+                                    if (product.promotion > 0)
+                                      Text('(${product.promotion}%)'),
+                                    Text(
+                                        '(Mặc định: ${product.detailName ?? ''})'),
+                                    ElevatedButton(
+                                      onPressed: () {},
+                                      child: const Text('Thêm Giỏ'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Pagination
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: _currentPage > 1
+                              ? () {
+                                  setState(() => _currentPage--);
+                                }
+                              : null,
+                        ),
+                        Text('$_currentPage / ${auth.totalPages}'),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          onPressed: _currentPage < auth.totalPages
+                              ? () {
+                                  setState(() => _currentPage++);
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+
+MAIN TOI UU 
+// lib/bottom_nav_wrapper.dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import 'screens/home_screen.dart';
+import 'screens/cart_screen.dart';
+import 'screens/invoice_screen.dart';
+import 'screens/admin_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/login_screen.dart';  // For redirect if not logged
+
+class BottomNavWrapper extends StatefulWidget {
+  const BottomNavWrapper({super.key});
+
+  @override
+  _BottomNavWrapperState createState() => _BottomNavWrapperState();
+}
+
+class _BottomNavWrapperState extends State<BottomNavWrapper> {
+  int _selectedIndex = 0;  // Tab selected
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    if (auth.user == null) {
+      Future.microtask(() => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          ));
+      return const SizedBox();
+    }
+
+    final isCustomer = auth.user?.accountType == 'C';
+
+    // Screens for tabs (IndexedStack keep state persistent)
+    final List<Widget> screens = [
+      const HomeScreen(),
+      const CartScreen(),
+      isCustomer ? const InvoiceScreen() : const AdminScreen(),
+      const ProfileScreen(),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(  // Persistent screens, keep state when switch
+        index: _selectedIndex,
+        children: screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Giỏ hàng'),
+          BottomNavigationBarItem(
+            icon: Icon(isCustomer ? Icons.search : Icons.admin_panel_settings),
+            label: isCustomer ? 'Tra cứu' : 'Quản trị',
+          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Thông tin'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);  // Switch tab
+        },
+      ),
+    );
+  }
+}

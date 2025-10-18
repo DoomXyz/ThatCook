@@ -22,8 +22,8 @@ class AuthProvider with ChangeNotifier {
   List<CodeModel> _petTypes = [];
   int _totalPages = 1;
 
-  // For product detail (mới thêm: lưu detail để display)
-  Map<String, dynamic>? _productDetail; // Raw JSON detail for screen
+  // For product detail
+  Map<String, dynamic>? _productDetail;
 
   UserModel? get user => _user;
   String? get token => _token;
@@ -150,6 +150,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> loadCodes() async {
+    await Future.delayed(const Duration(milliseconds: 100)); // Delay staggered
     final productRes = await _apiService.getAllCodes('ProductType');
     if (productRes['errCode'] == 0) {
       _productTypes = (productRes['data'] as List)
@@ -166,12 +167,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> loadBanners() async {
+    await Future.delayed(const Duration(milliseconds: 200)); // Delay staggered
     final res = await _apiService.getSaleBanners();
-    print('Load banners result: ${jsonEncode(res)}'); // Added log here
+    print('Load banners result: ${jsonEncode(res)}');
     if (res['errCode'] != 0) {
-      print(
-        'Banner error: ${res['errMessage']}',
-      ); // Optional error-specific log
+      print('Banner error: ${res['errMessage']}');
     }
     if (res['errCode'] == 0) {
       _banners = (res['data'] as List)
@@ -183,7 +183,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<Map<String, dynamic>> loadProducts({
     int page = 1,
-    int limit = 20,
+    int limit = 10,
     String search = '',
     String filter = 'ALL',
     String sort = '0',
@@ -201,8 +201,7 @@ class AuthProvider with ChangeNotifier {
       _products = (res['data'] as List)
           .map((json) => ProductModel.fromJson(json))
           .toList();
-      _totalPages =
-          (res['totalItems'] as int) ~/ limit +
+      _totalPages = (res['totalItems'] as int) ~/ limit +
           ((res['totalItems'] as int) % limit > 0 ? 1 : 0);
       _safeNotifyListeners();
     }
@@ -210,7 +209,6 @@ class AuthProvider with ChangeNotifier {
     return res;
   }
 
-  // Thêm hàm getProductDetail (fix lỗi undefined)
   Future<Map<String, dynamic>> getProductDetail(
     String productId,
     int? detailId,
@@ -219,7 +217,7 @@ class AuthProvider with ChangeNotifier {
     _safeNotifyListeners();
     final result = await _apiService.getProductDetail(productId, detailId);
     if (result['errCode'] == 0) {
-      _productDetail = result['data']; // Lưu raw detail
+      _productDetail = result['data'];
       _safeNotifyListeners();
     }
     _isLoading = false;

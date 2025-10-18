@@ -4,9 +4,11 @@ publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: ^3.9.2
+  # sdk: ^3.9.2
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  # persistent_bottom_nav_bar: ^5.0.2
   flutter:
     sdk: flutter
   dio: ^5.6.0 # Hoặc http nếu muốn đơn giản, nhưng dio tốt hơn cho API calls.
@@ -16,7 +18,9 @@ dependencies:
   shared_preferences: ^2.3.2 # Lưu token/user local (persistent storage).
   # Lý do thêm shared_preferences: Lưu token/user vào storage device để app nhớ login sau khi restart (như rememberMe trong BE).
   carousel_slider: ^5.0.0
-  persistent_bottom_nav_bar: ^5.0.2
+  google_nav_bar: ^5.0.6
+  compute: ^1.0.0
+  cached_network_image: ^3.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
