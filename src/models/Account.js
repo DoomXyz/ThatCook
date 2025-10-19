@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   Account.init(
     {
       AccountID: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         primaryKey: true,
         allowNull: false,
       },

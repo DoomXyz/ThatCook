@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       ExtraValue: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         allowNull: true,
       },
       CreatedAt: {

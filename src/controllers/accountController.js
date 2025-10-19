@@ -31,7 +31,6 @@ let handleRegister = async (req, res) => {
 
 let handleLogin = async (req, res) => {
   try {
-    console.log(req.body);
     let response = await accountService.userLogin(req.body);
     if (response.errCode === 0) {
       let jwtToken = createJWT(response.data, req.body.rememberLogin);

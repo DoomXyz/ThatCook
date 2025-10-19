@@ -59,7 +59,7 @@ module.exports = (sequelize, DataTypes) => {
         // Liên kết với Code từ ALLCODES (Type = 'AppointmentStatus')
       },
       AccountID: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         allowNull: false,
       },
       VeterinarianID: {
@@ -71,7 +71,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       PetID: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         allowNull: false,
       },
       AppointmentType: {

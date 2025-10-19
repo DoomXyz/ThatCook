@@ -2,8 +2,10 @@ import db from '../models/index';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { Op } from 'sequelize';
-import { checkValidAllCode, generateID } from './utilitiesService';
+import { checkValidAllCode } from './utilitiesService';
 import { verifyJWT } from '../middleware/jwtController';
+import { ethers } from 'ethers';
+const keys = require('../../keys.json');
 //bcrypt
 let saltRounds = 10;
 let hashPassword = (userPassword) => {
@@ -484,13 +486,51 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      const accountIDResult = await generateID(userInfo.accounttype || 'C', 9, 'Account', 'AccountID');
-      if (accountIDResult.errCode !== 0) {
+
+      // Kết nối tới Ganache
+      const provider = new ethers.JsonRpcProvider('http://127.0.0.1:7545');
+
+      // Lấy danh sách tài khoản từ Ganache
+      const accounts = await provider.send('eth_accounts', []);
+      if (!accounts || accounts.length === 0) {
         await transaction.rollback();
-        resolve(accountIDResult);
+        resolve({
+          errCode: 3,
+          errMessage: 'Không thể lấy tài khoản từ Ganache!',
+          data: null,
+        });
         return;
       }
-      const accountID = accountIDResult.data;
+
+      // Tìm tài khoản chưa sử dụng
+      let selectedAccount = null;
+      let privateKey = null;
+      for (const account of accounts) {
+        const exists = await db.Account.findOne({
+          where: { AccountID: account },
+          transaction,
+        });
+        if (!exists) {
+          selectedAccount = account;
+          // Lấy private key từ Ganache (cần cấu hình ganache-cli với --account_keys_path hoặc truy vấn trực tiếp)
+          // Lưu ý: ganache-cli không cung cấp private key trực tiếp qua eth_accounts, cần lấy từ file keys.json hoặc cấu hình
+          // Giả định bạn đã chạy ganache-cli với --account_keys_path để lưu private keys
+          privateKey = keys.private_keys[selectedAccount.toLowerCase()];
+          break;
+        }
+      }
+
+      if (!selectedAccount || !privateKey) {
+        await transaction.rollback();
+        resolve({
+          errCode: 3,
+          errMessage: 'Không còn tài khoản Ganache khả dụng!',
+          data: null,
+        });
+        return;
+      }
+
+      const accountID = selectedAccount; // Sử dụng address từ Ganache
 
       const hashedPassword = hashPassword(userInfo.password);
       if (typeof hashedPassword === 'object' && hashedPassword.errCode) {
@@ -515,13 +555,14 @@ let userRegister = (userInfo) => {
         AccountStatus: 'ACT',
         AccountType: userInfo.accounttype || 'C',
       }, { transaction });
+
       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
         const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
         const veterinarianInfo = {
           bio,
           specialization,
           workingstatus
-        }
+        };
         const isValidateInput = await validateVeterinarianInput(veterinarianInfo);
         if (isValidateInput) {
           await transaction.rollback();
@@ -568,14 +609,15 @@ let userRegister = (userInfo) => {
         }
       }
       await transaction.commit();
+      console.log("Private key vừa tạo", privateKey)
       resolve({
         errCode: 0,
         errMessage: 'Đăng ký người dùng thành công!',
-        data: { AccountID: accountID },
+        data: { AccountID: accountID, privateKey }, // Trả về private key để người dùng import
       });
     } catch (e) {
       await transaction.rollback();
-      console.log(e);
+      console.log('Error in userRegister:', e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi đăng ký: ' + e.message,
@@ -584,6 +626,160 @@ let userRegister = (userInfo) => {
     }
   });
 };
+// let userRegister = (userInfo) => {
+//   return new Promise(async (resolve, reject) => {
+//     const transaction = await db.sequelize.transaction();
+//     try {
+//       if (!userInfo) {
+//         await transaction.rollback();
+//         resolve({
+//           errCode: -1,
+//           errMessage: 'Thiếu thông tin người dùng!',
+//           data: null,
+//         });
+//         return;
+//       }
+//       const isValidateInput = await validateAccountInput(userInfo);
+//       if (isValidateInput) {
+//         await transaction.rollback();
+//         resolve(isValidateInput);
+//         return;
+//       }
+//       const isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
+//       if (isAccountNameExist) {
+//         await transaction.rollback();
+//         resolve({
+//           errCode: 1,
+//           errMessage: 'Tên tài khoản đã tồn tại trong hệ thống!',
+//           data: null,
+//         });
+//         return;
+//       }
+//       const isEmailExist = await checkEmailExist(userInfo.email);
+//       if (isEmailExist) {
+//         await transaction.rollback();
+//         resolve({
+//           errCode: 1,
+//           errMessage: 'Email đã tồn tại trong hệ thống!',
+//           data: null,
+//         });
+//         return;
+//       }
+//       const isPhoneExist = await checkPhoneExist(userInfo.phone);
+//       if (isPhoneExist) {
+//         await transaction.rollback();
+//         resolve({
+//           errCode: 1,
+//           errMessage: 'Số điện thoại đã tồn tại trong hệ thống!',
+//           data: null,
+//         });
+//         return;
+//       }
+//       // const accountIDResult = await generateID(userInfo.accounttype || 'C', 9, 'Account', 'AccountID');
+//       // if (accountIDResult.errCode !== 0) {
+//       //   await transaction.rollback();
+//       //   resolve(accountIDResult);
+//       //   return;
+//       // }
+//       // const accountID = accountIDResult.data;
+
+//       const wallet = ethers.Wallet.createRandom();
+//       const accountID = wallet.address; // Địa chỉ Ethereum (0x...)
+//       const privateKey = wallet.privateKey; // Lưu private key
+
+//       const hashedPassword = hashPassword(userInfo.password);
+//       if (typeof hashedPassword === 'object' && hashedPassword.errCode) {
+//         await transaction.rollback();
+//         resolve(hashedPassword);
+//         return;
+//       }
+//       const createdAt = new Date();
+//       await db.Account.create({
+//         AccountID: accountID,
+//         AccountName: userInfo.accountname,
+//         Email: userInfo.email,
+//         Password: hashedPassword,
+//         UserName: userInfo.username,
+//         UserImage: "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg",
+//         Phone: userInfo.phone,
+//         Address: userInfo.address,
+//         Gender: userInfo.gender,
+//         LoginAttempt: 0,
+//         LockUntil: null,
+//         CreatedAt: createdAt,
+//         AccountStatus: 'ACT',
+//         AccountType: userInfo.accounttype || 'C',
+//       }, { transaction });
+//       if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
+//         const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
+//         const veterinarianInfo = {
+//           bio,
+//           specialization,
+//           workingstatus
+//         }
+//         const isValidateInput = await validateVeterinarianInput(veterinarianInfo);
+//         if (isValidateInput) {
+//           await transaction.rollback();
+//           resolve(isValidateInput);
+//           return;
+//         }
+//         if (!selectedServicesList || !Array.isArray(selectedServicesList) || selectedServicesList.length === 0) {
+//           await transaction.rollback();
+//           resolve({
+//             errCode: 1,
+//             errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!',
+//             data: null,
+//           });
+//           return;
+//         }
+//         const validServices = await db.Service.findAll({
+//           where: {
+//             ServiceID: selectedServicesList,
+//             ServiceStatus: 'VALID'
+//           },
+//           attributes: ['ServiceID'],
+//           transaction,
+//         });
+//         if (validServices.length !== selectedServicesList.length) {
+//           await transaction.rollback();
+//           resolve({
+//             errCode: 1,
+//             errMessage: 'Một hoặc nhiều dịch vụ không hợp lệ!',
+//             data: null,
+//           });
+//           return;
+//         }
+//         await db.VeterinarianInfo.create({
+//           AccountID: accountID,
+//           Bio: bio || null,
+//           Specialization: specialization || null,
+//           WorkingStatus: workingstatus,
+//         }, { transaction });
+//         for (const serviceid of selectedServicesList) {
+//           await db.VeterinarianService.create({
+//             VeterinarianID: accountID,
+//             ServiceID: serviceid,
+//           }, { transaction });
+//         }
+//       }
+//       await transaction.commit();
+//       console.log("Private test:", privateKey)
+//       resolve({
+//         errCode: 0,
+//         errMessage: 'Đăng ký người dùng thành công!',
+//         data: { AccountID: accountID },
+//       });
+//     } catch (e) {
+//       await transaction.rollback();
+//       console.log(e);
+//       resolve({
+//         errCode: 3,
+//         errMessage: 'Lỗi khi đăng ký: ' + e.message,
+//         data: null,
+//       });
+//     }
+//   });
+// };
 //đăng nhập
 let userLogin = (userInfo) => {
   return new Promise(async (resolve, reject) => {

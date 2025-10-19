@@ -983,8 +983,6 @@ const getInvoiceEmail = async (billid, email) => {
 };
 
 const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
-  const paidCode = await getPaymentPaidCode(); // Hàm phụ lấy code 'PAID' từ AllCodes
-
   let groupBy;
   let dateFormat;
 
@@ -1006,7 +1004,7 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
   }
 
   const where = {
-    '$Invoice.PaymentStatus$': paidCode,
+    '$Invoice.PaymentStatus$': "PAID",
     '$Invoice.CanceledAt$': null,
   };
 
@@ -1040,10 +1038,8 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
 };
 
 const getTopProducts = async (type = 'monthly', startDate, endDate) => {
-  const paidCode = await getPaymentPaidCode();
-
   const where = {
-    '$Invoice.PaymentStatus$': paidCode,
+    '$Invoice.PaymentStatus$': "PAID",
     '$Invoice.CanceledAt$': null,
   };
 
@@ -1079,21 +1075,6 @@ const getTopProducts = async (type = 'monthly', startDate, endDate) => {
     productName: item['Product.ProductName'],
     totalSold: item.totalSold,
   }));
-};
-
-// Hàm phụ để lấy code 'PAID' động từ AllCodes
-const getPaymentPaidCode = async () => {
-  try {
-    const paidCode = await db.AllCodes.findOne({
-      where: { Type: 'PaymentStatus', CodeValueVI: 'Đã thanh toán' }, // Điều chỉnh 'Đã thanh toán' nếu tên VI khác trong DB
-      attributes: ['Code'],
-      raw: true,
-    });
-    return paidCode ? paidCode.Code : 'PAID';
-  } catch (e) {
-    console.log('Error getting PAID code:', e);
-    return 'PAID';
-  }
 };
 
 module.exports = {

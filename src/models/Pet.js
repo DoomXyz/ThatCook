@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
   Pet.init(
     {
       PetID: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         primaryKey: true,
         allowNull: false,
       },
@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       AccountID: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         allowNull: false,
       },
       PetType: {

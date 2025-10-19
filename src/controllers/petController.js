@@ -11,7 +11,8 @@ const handleError = (res, e) => {
 
 let handleGetAccountPetInfo = async (req, res) => {
     try {
-        let response = await petService.getAccountPetInfo(req.query.accountid);
+        const { accountid } = req.query;
+        let response = await petService.getAccountPetInfo(accountid);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);
@@ -20,7 +21,8 @@ let handleGetAccountPetInfo = async (req, res) => {
 
 let handleGetPetInfo = async (req, res) => {
     try {
-        let response = await petService.getPetInfo(req.query.petid);
+        const { petid } = req.query;
+        let response = await petService.getPetInfo(petid);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);
@@ -29,7 +31,8 @@ let handleGetPetInfo = async (req, res) => {
 
 let handleSavePetInfo = async (req, res) => {
     try {
-        const { accountid, petInfo } = req.body
+        const { accountid, petInfo } = req.body;
+        console.log(petInfo)
         let response = await petService.savePetInfo(accountid, petInfo);
         return res.status(200).json(response);
     } catch (e) {
@@ -39,7 +42,7 @@ let handleSavePetInfo = async (req, res) => {
 
 let handleChangePetInfo = async (req, res) => {
     try {
-        const { petid, petInfo } = req.body
+        const { petid, petInfo } = req.body;
         let response = await petService.changePetInfo(petid, petInfo);
         return res.status(200).json(response);
     } catch (e) {
@@ -49,7 +52,8 @@ let handleChangePetInfo = async (req, res) => {
 
 let handleRemovePet = async (req, res) => {
     try {
-        let response = await petService.removePet(req.body.petid);
+        const { petid } = req.body;
+        let response = await petService.removePet(petid);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);

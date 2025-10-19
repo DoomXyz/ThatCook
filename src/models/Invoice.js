@@ -83,7 +83,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       AccountID: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(42),
         allowNull: true,
       },
     },
