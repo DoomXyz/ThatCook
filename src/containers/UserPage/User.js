@@ -5,6 +5,7 @@ import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 
 import { eyeOutline, eyeOffOutline, chevronBackOutline, pencil } from 'ionicons/icons';
+import { ethers } from 'ethers';
 
 import './User.scss';
 import Spinner from '../../components/Spinner';
@@ -109,6 +110,7 @@ class User extends Component {
     await this.handleIsLogin();
     await this.handleLoadCode(['Gender', 'PaymentType', 'ShippingMethod', 'PaymentStatus', 'ShippingStatus', 'PetType', 'PetGender', 'AppointmentStatus', 'AppointmentType']);
     await this.handleGetServiceInfo();
+    await this.connectMetaMask();
     setTimeout(() => {
       this.handleLoadAccountInfo();
       this.handleLoadInvoiceInfo();
@@ -117,9 +119,11 @@ class User extends Component {
       this.setState({ isLoading: false });
     }, 10);
   }
+
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
+      await this.connectMetaMask();
       setTimeout(() => {
         this.handleLoadAccountInfo();
         this.handleLoadInvoiceInfo();
@@ -220,6 +224,30 @@ class User extends Component {
         break;
     }
   };
+  connectMetaMask = async () => {
+    if (window.ethereum) {
+      try {
+        // Yêu cầu kết nối MetaMask
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const provider = new ethers.BrowserProvider(window.ethereum); // ethers v6
+        const signer = await provider.getSigner();
+        const account = await signer.getAddress();
+
+        toast.success('Kết nối MetaMask thành công!');
+        this.setState((prevState) => ({
+          accountid: prevState.accountid || account, // Giữ accountid cũ nếu đã có
+        }));
+        return signer; // Trả về signer để dùng trong các hàm khác
+      } catch (e) {
+        console.error('Lỗi kết nối MetaMask:', e);
+        toast.error('Vui lòng kết nối MetaMask!');
+        return null;
+      }
+    } else {
+      toast.error('MetaMask không được cài đặt!');
+      return null;
+    }
+  };
   handleLoadAccountInfo = async () => {
     try {
       const { accountid } = this.state
@@ -245,6 +273,7 @@ class User extends Component {
     try {
       const { accountid } = this.state;
       const response = await handleGetAccountPetInfoApi(accountid);
+      console.log("petuia:", response.data)
       if (response && response.errCode === 0) {
         this.setState({
           loadedPetInfo: response.data || [],
@@ -676,7 +705,7 @@ class User extends Component {
       newPets[index] = { ...newPets[index], [field]: value };
       return { loadedPetInfo: newPets };
     });
-  };
+  }
   handleSavePet = async (index) => {
     const { accountid, loadedPetInfo, isAddingPet } = this.state;
     const pet = loadedPetInfo[index];
@@ -688,27 +717,29 @@ class User extends Component {
       age: parseInt(pet.Age),
     };
     const isValidatePetInput = await validatePetInput(newPetInfo);
-    if (!isValidatePetInput.valid) {
+    if (!isValidatePetInput) {
       toast.error(`${isValidatePetInput.errMessage} tại dòng ${index + 1}`);
       return;
     }
     this.setState({ isLoading: true });
     try {
-      let response;
-      if (isAddingPet) {
-        response = await handleSavePetInfoApi(accountid, newPetInfo);
+      const signer = await this.connectMetaMask();
+      if (signer) {
+        let response;
+        if (isAddingPet) {
+          response = await handleSavePetInfoApi(accountid, newPetInfo, signer);
+        } else {
+          response = await handleChangePetInfoApi(pet.PetID, newPetInfo, signer);
+        }
+        if (response.data && response.data.errCode === 0) {
+          toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
+          await this.handleLoadPetInfo(accountid);
+          this.setState({ isEditingPet: null, isAddingPet: false });
+        } else {
+          toast.error(response.data?.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
+        }
       } else {
-        response = await handleChangePetInfoApi(pet.PetID, newPetInfo);
-      }
-      if (response && response.errCode === 0) {
-        toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
-        await this.handleLoadPetInfo(accountid);
-        this.setState({
-          isEditingPet: null,
-          isAddingPet: false,
-        });
-      } else {
-        toast.error(response?.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
+        toast.error('Không thể kết nối MetaMask!');
       }
     } catch (e) {
       console.error(isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
@@ -723,43 +754,31 @@ class User extends Component {
         toast(
           <div>
             <p>Bạn có chắc muốn xóa thú cưng này?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
+            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>Có</button>
+            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>Không</button>
           </div>,
-          {
-            autoClose: 2000,
-            closeOnClick: false,
-            onClose: () => {
-              this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } });
-            },
-          }
+          { autoClose: 2000, closeOnClick: false, onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }) }
         );
       });
     const isConfirmed = await confirmDelete();
     if (isConfirmed) {
       this.setState({ isLoading: true });
-      const response = await handleRemovePetApi(petid);
-      if (response && response.errCode === 0) {
-        toast.success('Xóa thú cưng thành công!');
-        await this.handleLoadPetInfo(this.state.accountid);
-      } else {
-        toast.error('Xóa thú cưng thất bại!');
+      try {
+        const signer = await this.connectMetaMask();
+        if (signer) {
+          const response = await handleRemovePetApi(petid, signer);
+          if (response.data && response.data.errCode === 0) {
+            toast.success('Xóa thú cưng thành công!');
+            await this.handleLoadPetInfo(this.state.accountid);
+          } else {
+            toast.error(response.data?.errMessage || 'Xóa thú cưng thất bại!');
+          }
+        } else {
+          toast.error('Không thể kết nối MetaMask!');
+        }
+      } catch (e) {
+        console.error('Delete Pet:', e);
+        toast.error('Lỗi khi xóa thú cưng, vui lòng thử lại!');
       }
     }
     this.setState({ isLoading: false });
