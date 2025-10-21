@@ -6,6 +6,7 @@ import cartReducer from '../reducers/cartReducer';
 import appointmentReducer from '../reducers/appointmentReducer';
 import trackReducer from '../reducers/trackReducer';
 import preselectReducer from '../reducers/preselectReducer'
+import pagenotificationReducer from '../reducers/pagenotificationReducer';
 
 // Cấu hình persist
 const persistConfig = {
@@ -20,7 +21,8 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   appointment: appointmentReducer,
   track: trackReducer,
-  preselect: preselectReducer
+  preselect: preselectReducer,
+  pagenotification: pagenotificationReducer,
 });
 // Tạo persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -39,3 +41,4 @@ export * from './cartActions';
 export * from './appointmentActions'
 export * from './trackActions'
 export * from './preselectActions'
+export * from './pagenotificationActions'

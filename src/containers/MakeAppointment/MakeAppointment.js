@@ -20,7 +20,7 @@ import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountPetInfoApi, handleGetPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi } from '../../services/petServices';
 
 import { checkLoginStatus, getAllCodes, uploadImages, validatePetInput, validateAppointmentInput } from '../../utils/pakage';
-import { clearFuAppointmentInfo, saveTrackInfo, userLogin, userLogout, clearPreselectInfo } from '../../store/actions';
+import { clearFuAppointmentInfo, saveTrackInfo, userLogin, userLogout, clearPreselectInfo, addNotification, clearNotification } from '../../store/actions';
 
 const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
 
@@ -98,11 +98,10 @@ class MakeAppointment extends Component {
       } else {
         await handleLogoutApi();
         this.props.userLogout();
-        this.setState({
-          accountInfo: null,
-          isLoggedIn: false,
-          guestID: '',
-        });
+        this.props.addNotification('Hãy đăng nhập hoặc đăng ký để sử dụng dịch vụ!');
+        setTimeout(() => {
+          this.props.navigate('/login');
+        }, 100);
       }
     } catch (e) {
       this.props.navigate('/home');
@@ -854,5 +853,7 @@ const mapDispatchToProps = (dispatch) => ({
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
   clearPreselectInfo: () => dispatch(clearPreselectInfo()),
+  addNotification: (message) => dispatch(addNotification(message)),
+  clearNotification: () => dispatch(clearNotification()),
 });
 export default connect(mapStateToProps, mapDispatchToProps)(MakeAppointment);

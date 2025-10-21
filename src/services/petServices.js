@@ -1,7 +1,7 @@
 import axios from '../axios';
 import { ethers } from 'ethers';
 
-const contractAddress = process.env.CONTRACT_ADDRESS;
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 const abi = [
   {
     "type": "event",
@@ -85,20 +85,18 @@ const abi = [
     "stateMutability": "nonpayable"
   }
 ];
-
 const handleGetAccountPetInfoApi = (accountid) => {
   return axios.get(`/api/get-account-petinfo?accountid=${accountid}`);
 };
 
-const handleGetPetInfoApi = (petid) => {
-  return axios.get(`/api/get-petinfo?petid=${petid}`);
+const handleGetPetInfoApi = (accountid, petid) => {
+  return axios.get(`/api/get-petinfo?accountid=${accountid}&petid=${petid}`);
 };
 
-const handleSavePetInfoApi = async (accountid, petInfo, signer) => {
+const handleSavePetInfoApi = async (petInfo, signer) => {
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
     const contract = new ethers.Contract(contractAddress, abi, signer);
-    const petId = `P${Date.now()}`;
+    const petId = `P${Date.now().toString().slice(-9).padStart(9, '0')}`;
     const tx = await contract.addPet(
       petId,
       petInfo.petname,
@@ -112,16 +110,13 @@ const handleSavePetInfoApi = async (accountid, petInfo, signer) => {
     return { data: { errCode: 0, errMessage: 'Lưu thông tin thú cưng thành công!', data: { PetID: petId } } };
   } catch (e) {
     console.error('Error in handleSavePetInfoApi:', e);
-    return { data: { errCode: 3, errMessage: `Lỗi khi lưu thú cưng: ${e.message}`, data: null } };
+    return { data: { errCode: 3, errMessage: `Lỗi khi lưu thú cưng`, data: null } };
   }
 };
 
 const handleChangePetInfoApi = async (petid, petInfo, signer) => {
   try {
-    console.log('handleChangePetInfoApi - petid:', petid, 'petInfo:', petInfo); // Debug
-    const provider = new ethers.BrowserProvider(window.ethereum);
     const contract = new ethers.Contract(contractAddress, abi, signer);
-    console.log('Calling updatePet with:', { petid, ...petInfo }); // Debug
     const tx = await contract.updatePet(
       petid,
       petInfo.petname,
@@ -131,19 +126,21 @@ const handleChangePetInfoApi = async (petid, petInfo, signer) => {
       petInfo.age,
       petInfo.petStatus || 'VALID'
     );
-    console.log('Transaction sent:', tx.hash); // Debug
     await tx.wait();
-    console.log('Transaction confirmed:', tx.hash); // Debug
     return { data: { errCode: 0, errMessage: 'Cập nhật thông tin thú cưng thành công!', data: null } };
   } catch (e) {
-    console.error('Error in handleChangePetInfoApi:', e);
-    return { data: { errCode: 3, errMessage: `Lỗi khi cập nhật thông tin: ${e.message}`, data: null } };
+    return {
+      data: {
+        errCode: 3,
+        errMessage: `Lỗi khi cập nhật thông tin`,
+        data: null
+      }
+    };
   }
 };
 
 const handleRemovePetApi = async (petid, signer) => {
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
     const contract = new ethers.Contract(contractAddress, abi, signer);
     const tx = await contract.removePet(petid);
     await tx.wait();

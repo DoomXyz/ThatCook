@@ -119,7 +119,6 @@ class User extends Component {
       this.setState({ isLoading: false });
     }, 10);
   }
-
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
@@ -224,27 +223,25 @@ class User extends Component {
         break;
     }
   };
+  //connect metamask
   connectMetaMask = async () => {
     if (window.ethereum) {
       try {
-        // Yêu cầu kết nối MetaMask
         await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const provider = new ethers.BrowserProvider(window.ethereum); // ethers v6
+        const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const account = await signer.getAddress();
-
         toast.success('Kết nối MetaMask thành công!');
         this.setState((prevState) => ({
-          accountid: prevState.accountid || account, // Giữ accountid cũ nếu đã có
+          accountid: prevState.accountid || account,
         }));
-        return signer; // Trả về signer để dùng trong các hàm khác
+        return signer;
       } catch (e) {
-        console.error('Lỗi kết nối MetaMask:', e);
-        toast.error('Vui lòng kết nối MetaMask!');
+        toast.error('Vui lòng kết nối với MetaMask!');
         return null;
       }
     } else {
-      toast.error('MetaMask không được cài đặt!');
+      toast.error('MetaMask chưa được cài đặt!');
       return null;
     }
   };
@@ -273,7 +270,6 @@ class User extends Component {
     try {
       const { accountid } = this.state;
       const response = await handleGetAccountPetInfoApi(accountid);
-      console.log("petuia:", response.data)
       if (response && response.errCode === 0) {
         this.setState({
           loadedPetInfo: response.data || [],
@@ -727,7 +723,7 @@ class User extends Component {
       if (signer) {
         let response;
         if (isAddingPet) {
-          response = await handleSavePetInfoApi(accountid, newPetInfo, signer);
+          response = await handleSavePetInfoApi(newPetInfo, signer);
         } else {
           response = await handleChangePetInfoApi(pet.PetID, newPetInfo, signer);
         }

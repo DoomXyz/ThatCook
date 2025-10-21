@@ -12,7 +12,8 @@ import { handleLoginApi, handleLogoutApi } from '../../services/accountServices'
 import { handleAddToCartApi } from '../../services/cartServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
-import { userLogin, userLogout, clearCart, clearCheckOutCart } from '../../store/actions';
+import { userLogin, userLogout, clearCart, clearCheckOutCart, clearNotification } from '../../store/actions';
+import { set } from 'lodash';
 
 class Login extends Component {
   constructor(props) {
@@ -26,6 +27,13 @@ class Login extends Component {
     };
   }
   async componentDidMount() {
+    const message = this.props.pageNotification;
+    setTimeout(() => {
+      if (message) {
+        toast.info(message);
+      }
+      this.props.clearNotification();
+    }, 100);
     await this.handleIsLogin();
   }
   handleOnChangeInput = (event, type) => {
@@ -196,6 +204,7 @@ class Login extends Component {
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
   cartItems: state.cart.cartItems,
+  pageNotification: state.pagenotification.notification,
 });
 
 // Map dispatch để gửi action lên store
@@ -204,6 +213,7 @@ const mapDispatchToProps = (dispatch) => ({
   userLogout: () => dispatch(userLogout()),
   clearCart: () => dispatch(clearCart()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
+  clearNotification: () => dispatch(clearNotification()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
