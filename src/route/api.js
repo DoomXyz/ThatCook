@@ -95,9 +95,9 @@ let initAPIRoutes = (app) => {
 
   router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
   router.get('/api/get-petinfo', petController.handleGetPetInfo);
-  router.post('/api/save-petinfo', petController.handleSavePetInfo);
-  router.put('/api/change-petinfo', petController.handleChangePetInfo);
-  router.put('/api/remove-pet', petController.handleRemovePet);
+  // router.post('/api/save-petinfo', petController.handleSavePetInfo);
+  // router.put('/api/change-petinfo', petController.handleChangePetInfo);
+  // router.put('/api/remove-pet', petController.handleRemovePet);
 
   router.get('/api/get-veterinarianservice', serviceController.handleGetVeterinarianService);
   router.get('/api/get-serviceinfo', serviceController.handleGetServiceInfo);

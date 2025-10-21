@@ -71,7 +71,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       PetID: {
-        type: DataTypes.STRING(42),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       AppointmentType: {
