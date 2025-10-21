@@ -3,4 +3,4 @@
 .idea/
 .env
 .vscode
-be/keys.json
+/keys.json
