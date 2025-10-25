@@ -64,3 +64,29 @@ SET Image = ELT(
     'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558125/ls9e3xebscd1bmaneny8.jpg',
     'https://res.cloudinary.com/dqblg6ont/image/upload/v1744558126/fsbxdr20pi2pjxebxrht.jpg'
 );
+-------------Hướng dẫn setup blockchain-------------
+*tải hạ version nodejs 18.20.8 nếu lỗi
+-chạy 2 lệnh ở mysql để cập nhật database, đổi độ dài VeterinarianID ở bảng appointment thành 42
+-chạy lần lượt các lệnh: 
++npm install
++npm install -g truffle
++npm install -g ganache
++npm install ganache-cli
+-cd vào truffle_project chạy truffle compile
+-tách 2 console ở be
++console ở be chạy lệnh ganache-cli --port 7545 --accounts 10 --account_keys_path keys.json --deterministic --db ./ganache-data
++console đang cd truffle_project chạy truffle migrate --network development
+-copy contract address vào:
++thêm dòng CONTRACT_ADDRESS ở .env của be rồi copy contract address vào
++thêm dòng REACT_APP_CONTRACT_ADDRESS ở .env của fe rồi copy contract address vào
+-cd .. ở console chạy lệnh truffle migrate
+-chạy npm start
+-tải extension metamask ở trình duyệt
+-đăng nhập như 1 con người
+-thêm netword:
++NETWORK: Ganache Local
++URL RPC: http://127.0.0.1:7545
++CHAIN ID: 1337
+-tạo 1 tài khoản mới ở web
+-lưu private key
+-nhập private vào metamask
