@@ -5,3 +5,4 @@
 .vscode
 /keys.json
 /ganache-data
+/truffle_project/build
