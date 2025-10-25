@@ -11,7 +11,7 @@ module.exports = {
 
         // Tạo 10 tài khoản bác sĩ
         const accounts = Array.from({ length: 10 }, (_, index) => ({
-            AccountID: `V${String(index + 1).padStart(8, '0')}`,
+            AccountID: `V${String(index + 1).padStart(40, '0')}`,
             AccountName: `vet${index + 1}`,
             Email: `vet${index + 1}@clinic.com`,
             Password: defaultPassword,

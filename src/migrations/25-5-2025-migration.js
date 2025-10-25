@@ -43,7 +43,7 @@ module.exports = {
       'Account',
       {
         AccountID: {
-          type: Sequelize.STRING(10),
+          type: Sequelize.STRING(42),
           primaryKey: true,
           allowNull: false,
         },
@@ -122,7 +122,7 @@ module.exports = {
         allowNull: false,
       },
       AccountID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: false,
       },
       PetType: {
@@ -225,11 +225,11 @@ module.exports = {
         allowNull: false,
       },
       AccountID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: false,
       },
       VeterinarianID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: true,
         references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
@@ -318,7 +318,7 @@ module.exports = {
         allowNull: false,
       },
       VeterinarianID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: false,
         references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
@@ -356,7 +356,7 @@ module.exports = {
     // Tạo bảng VeterinarianInfo
     await queryInterface.createTable('VeterinarianInfo', {
       AccountID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         primaryKey: true,
         allowNull: false,
         references: { model: 'Account', key: 'AccountID' },
@@ -678,7 +678,7 @@ module.exports = {
         onDelete: 'SET NULL',
       },
       AccountID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: true,
       },
     },
@@ -749,7 +749,7 @@ module.exports = {
         allowNull: false,
       },
       AccountID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: false,
         references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
@@ -784,7 +784,7 @@ module.exports = {
         allowNull: false,
       },
       VeterinarianID: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(42),
         allowNull: false,
         references: { model: 'Account', key: 'AccountID' },
         onDelete: 'CASCADE',
