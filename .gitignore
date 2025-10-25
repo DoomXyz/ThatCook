@@ -4,3 +4,4 @@
 .env
 .vscode
 /keys.json
+/ganache-data
