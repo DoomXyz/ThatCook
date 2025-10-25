@@ -66,7 +66,8 @@ SET Image = ELT(
 );
 -------------Hướng dẫn setup blockchain-------------
 *tải hạ version nodejs 18.20.8 nếu lỗi
--chạy 2 lệnh ở mysql để cập nhật database, đổi độ dài VeterinarianID ở bảng appointment thành 42
+-chạy lệnh ở dưới mysql để cập nhật database
+-đổi độ dài VeterinarianID ở bảng appointment thành 42
 -chạy lần lượt các lệnh: 
 +npm install
 +npm install -g truffle
@@ -90,3 +91,52 @@ SET Image = ELT(
 -tạo 1 tài khoản mới ở web
 -lưu private key
 -nhập private vào metamask
+-------------Lệnh sửa db ở mysql-------------
+***Lệnh có thể sai nếu tên fk khác***
+ALTER TABLE thatcookdb.appointment
+DROP FOREIGN KEY appointment_ibfk_1;
+ALTER TABLE thatcookdb.cartitem
+DROP FOREIGN KEY cartitem_ibfk_1;
+ALTER TABLE thatcookdb.schedule
+DROP FOREIGN KEY schedule_ibfk_1;
+ALTER TABLE thatcookdb.veterinarianinfo
+DROP FOREIGN KEY veterinarianinfo_ibfk_1;
+ALTER TABLE thatcookdb.veterinarianservice
+DROP FOREIGN KEY veterinarianservice_ibfk_1;
+ALTER TABLE thatcookdb.account
+MODIFY COLUMN AccountID VARCHAR(42) NOT NULL;
+ALTER TABLE thatcookdb.appointment
+MODIFY COLUMN AccountID VARCHAR(42) NOT NULL;
+ALTER TABLE thatcookdb.cartitem
+MODIFY COLUMN AccountID VARCHAR(42) NOT NULL;
+ALTER TABLE thatcookdb.schedule
+MODIFY COLUMN VeterinarianID VARCHAR(42) NOT NULL;
+ALTER TABLE thatcookdb.veterinarianinfo
+MODIFY COLUMN AccountID VARCHAR(42) NOT NULL;
+ALTER TABLE thatcookdb.veterinarianservice
+MODIFY COLUMN VeterinarianID VARCHAR(42) NOT NULL;
+ALTER TABLE thatcookdb.appointment
+ADD CONSTRAINT appointment_ibfk_1
+FOREIGN KEY (AccountID)
+REFERENCES thatcookdb.account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE thatcookdb.cartitem
+ADD CONSTRAINT cartitem_ibfk_1
+FOREIGN KEY (AccountID)
+REFERENCES thatcookdb.account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE thatcookdb.schedule
+ADD CONSTRAINT schedule_ibfk_1
+FOREIGN KEY (VeterinarianID)
+REFERENCES thatcookdb.account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE thatcookdb.veterinarianinfo
+ADD CONSTRAINT veterinarianinfo_ibfk_1
+FOREIGN KEY (AccountID)
+REFERENCES thatcookdb.account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE thatcookdb.veterinarianservice
+ADD CONSTRAINT veterinarianservice_ibfk_1
+FOREIGN KEY (VeterinarianID)
+REFERENCES thatcookdb.account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
