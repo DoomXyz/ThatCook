@@ -45,12 +45,14 @@ class CheckOut extends Component {
     isBuyNow: false,
     isPlaced: false,
     invoiceID: null,
+    vnpayUrl: null, // State mới để lưu URL redirect VNPay
     currentPage: 1,
     tempCurrentPage: '1',
     limitProductPerQuery: 5,
     totalPages: 1,
     triggerCountCartItem: false,
   };
+
   async componentDidMount() {
     await this.handleLoadCode(['PaymentType', 'ShippingMethod']);
     await this.handleIsLogin();
@@ -60,6 +62,7 @@ class CheckOut extends Component {
       this.loadCheckOutCartInfo();
     }, 10);
   }
+
   async componentDidUpdate(prevProps, prevState) {
     if (prevProps.userInfo !== this.props.userInfo) {
       await this.handleIsLogin();
@@ -74,6 +77,7 @@ class CheckOut extends Component {
       }, 10);
     }
   }
+
   handleLoadCode = async (codeTypeFilter) => {
     try {
       const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
@@ -93,6 +97,7 @@ class CheckOut extends Component {
       this.setState({ isLoading: false });
     }
   };
+
   handleIsLogin = async () => {
     try {
       const { status, accountInfo } = await checkLoginStatus();
@@ -119,11 +124,13 @@ class CheckOut extends Component {
       isLoading: false,
     });
   };
+
   triggerCountCartItem = () => {
     this.setState((prevState) => ({
       triggerCountCartItem: !prevState.triggerCountCartItem,
     }));
   };
+
   loadReceiverInfo = async () => {
     const { isLoggedIn, accountInfo } = this.state;
     if (isLoggedIn) {
@@ -145,6 +152,7 @@ class CheckOut extends Component {
       }
     }
   };
+
   loadCheckOutCart = async () => {
     const { checkOutCarts } = this.props;
     if (!checkOutCarts || checkOutCarts.length === 0) {
@@ -180,6 +188,7 @@ class CheckOut extends Component {
       }
     }
   };
+
   loadCheckOutCartInfo = async () => {
     try {
       const { checkOutCart, limitProductPerQuery } = this.state;
@@ -220,6 +229,7 @@ class CheckOut extends Component {
       console.log('Lỗi khi tải chi tiết giỏ hàng!');
     }
   };
+
   handleApplyCouponCode = async () => {
     const { tempCouponCode, couponCode, totalPriceAfterPromo, shippingmethod, codeShippingMethod } = this.state;
     const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === shippingmethod).ExtraValue);
@@ -245,6 +255,7 @@ class CheckOut extends Component {
       this.handleCalculateTotalPayment();
     }, 10);
   };
+
   handleCalculateTotalPayment = async () => {
     const { totalPriceAfterPromo, couponCode, shippingmethod, codeShippingMethod } = this.state;
     const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === shippingmethod).ExtraValue);
@@ -252,8 +263,10 @@ class CheckOut extends Component {
     let discount = 0;
     if (couponCode) {
       try {
+        console.log(couponCode, finalPrice);
         const responseApi = await handleCheckCouponApi(couponCode, finalPrice);
         const response = responseApi.data;
+        console.log(response.data);
         if (response && response.errCode === 0) {
           discount = response.data;
           this.setState({ discountAmout: discount });
@@ -270,6 +283,7 @@ class CheckOut extends Component {
       totalPayment,
     });
   };
+
   handleOnChangeInput = (event, type) => {
     if (type === 'tempCouponCode') {
       this.setState({ couponCode: '' });
@@ -285,31 +299,37 @@ class CheckOut extends Component {
       }, 10);
     }
   };
+
   handleFirstPage = () => {
     this.setState({ currentPage: 1, tempCurrentPage: 1 });
   };
+
   handlePrevPage = () => {
     this.setState((prevState) => ({
       currentPage: Math.max(1, prevState.currentPage - 1),
       tempCurrentPage: Math.max(1, prevState.currentPage - 1),
     }));
   };
+
   handleNextPage = () => {
     this.setState((prevState) => ({
       currentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
       tempCurrentPage: Math.min(prevState.totalPages, prevState.currentPage + 1),
     }));
   };
+
   handleLastPage = () => {
     this.setState((prevState) => ({
       currentPage: prevState.totalPages,
       tempCurrentPage: prevState.totalPages,
     }));
   };
+
   handlePageInputChange = (e) => {
     const value = e.target.value;
     this.setState({ tempCurrentPage: value });
   };
+
   handlePageKeyDown = (e) => {
     if (e.key === 'Enter') {
       const pageNumber = parseInt(this.state.tempCurrentPage, 10);
@@ -320,6 +340,7 @@ class CheckOut extends Component {
       }
     }
   };
+
   handlePageInputBlur = () => {
     const { tempCurrentPage, totalPages } = this.state;
     const pageNumber = parseInt(tempCurrentPage, 10);
@@ -329,8 +350,10 @@ class CheckOut extends Component {
       this.setState({ currentPage: 1, tempCurrentPage: 1 });
     }
   };
+
   handleCompleteOrder = async () => {
     const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment, isBuyNow } = this.state;
+
     await this.loadCheckOutCart();
     let couponID = null;
     try {
@@ -349,22 +372,8 @@ class CheckOut extends Component {
       toast.info('Vui lòng nhập đầy đủ thông tin giao hàng!');
       return;
     }
-    if (paymenttype === 'CARD') {
-      const cardNumber = document.querySelector('input[name="card-number"]').value;
-      const cardholderName = document.querySelector('input[name="cardholder-name"]').value;
-      const expiryDate = document.querySelector('input[name="expiry-date"]').value;
-      const cvv = document.querySelector('input[name="cvv"]').value;
-      if (!cardNumber || !cardholderName || !expiryDate || !cvv) {
-        toast.info('Vui lòng nhập đầy đủ thông tin thẻ!');
-        return;
-      }
-      cardInfo = {
-        cardNumber,
-        cardholderName,
-        expiryDate,
-        cvv,
-      };
-      paymentStatus = 'PAID';
+    if (paymenttype === 'CARD' || paymenttype === 'QR') {
+      paymentStatus = 'PEND'; // Pending cho VNPay redirect
     } else if (paymenttype === 'CASH') {
       paymentStatus = 'PEND';
     }
@@ -406,14 +415,21 @@ class CheckOut extends Component {
         this.props.clearCheckOutCart();
         this.props.clearCart();
         this.setState({
-          invoiceID: response.data,
+          invoiceID: response.data.InvoiceID,
           isPlaced: true,
           checkOutCart: [],
           loadedCheckOutCartDetailInfo: [],
+          vnpayUrl: response.data.vnpayUrl || null,
         });
+        console.log('response.data.vnpayUrl', response.data.vnpayUrl);
         toast.success('Đặt hàng thành công!');
         this.props.saveTrackInfo({ billid: response.data.InvoiceID, billtype: 1 });
-        this.props.navigate('/track');
+        if ((paymenttype === 'CARD' || paymenttype === 'QR') && response.data.vnpayUrl) {
+          // Redirect đến trang VNPay
+          window.location.href = response.data.vnpayUrl;
+        } else {
+          this.props.navigate('/track');
+        }
       } else {
         toast.error(response.errMessage);
       }
@@ -533,19 +549,15 @@ class CheckOut extends Component {
                           <label>Thanh toán bằng tiền mặt</label>
                         </div>
                       )}
+                      <div className="pay-content-left-method-payment-item">
+                        <input type="radio" id="QR" name="paymentType" value="QR" checked={paymenttype === 'QR'} onChange={(event) => this.handleOnChangeInput(event, 'paymenttype')} />
+                        <label htmlFor="QR">Quét QR (VNPay)</label>
+                      </div>
                       <div className="pay-content-left-method-payment-item-img">
                         <img src={visa} alt="Visa" />
                         <img src={mastercard} alt="MasterCard" />
                       </div>
-                      {paymenttype === 'CARD' && (
-                        <div className="pay-content-left-method-payment-item-input block">
-                          <p style={{ fontWeight: 'bold' }}>Nhập thông tin thẻ</p>
-                          <input type="text" name="card-number" maxLength="16" pattern="[0-9]{13,16}" placeholder="Số thẻ (13-16 chữ số)" />
-                          <input type="text" name="cardholder-name" placeholder="Tên trên thẻ" />
-                          <input type="text" name="expiry-date" pattern="(0[1-9]|1[0-2])/[0-9]{2}" placeholder="MM/YY" />
-                          <input type="text" name="cvv" maxLength="3" pattern="[0-9]{3}" placeholder="CVV" />
-                        </div>
-                      )}
+                      {/* Xóa phần input card info, vì giờ redirect VNPay */}
                     </div>
                   </div>
 

@@ -1,3608 +1,960 @@
-*Note component:
-import React, { Component } from "react";
-import debounce from "lodash/debounce";
-import { ToastContainer, toast } from "react-toastify";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react";
-import { bagAdd, searchOutline } from "ionicons/icons";
+track.js fix xong lỗi xem hd
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { Slide, ToastContainer, toast } from 'react-toastify';
+import { IonIcon } from '@ionic/react';
 
-import { userLogout, addToCart, clearCart } from "../../store/actions";
-import { handleGetAllCodesApi } from "../../services/utilitiesServices";
-import { handleVerifyTokenApi, handleLogoutApi } from "../../services/accountServices";
-import { handleGetSaleProductInfoApi, getChiTietSanPham } from "../../services/productServices";
-import { handleAddToCartApi } from "../../services/cartServices"
+import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBackOutline } from 'ionicons/icons';
+import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
-import "./Home.scss";
-import Header from "../../components/HomeHeader";
-import Footer from "../../components/HomeFooter";
-import HomeProductModal from "./HomeProductModal";
+import './Track.scss';
+import Spinner from '../../components/Spinner.js';
+import Header from '../../components/HomeHeader.js';
 
-import bannerimg1 from "../../assets/bannerimgs/1.webp";
-import bannerimg2 from "../../assets/bannerimgs/2.webp";
-import bannerimg3 from "../../assets/bannerimgs/3.webp";
-import df from "../../assets/icons/dog-food.png";
-import dc from "../../assets/icons/dog-collar.png";
-import pb from "../../assets/icons/pet-bowl.png";
-import c from "../../assets/icons/collar.png";
-import ad1 from "../../assets/ad-imgs/1.png";
-import ad2 from "../../assets/ad-imgs/2.png";
+import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
+import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi, handleSendAppointmentBillEmailApi } from '../../services/appointmentServices.js';
 
-class Home extends Component {
+import { getAllCodes, generateInvoicePDF, generateAppointmentBillPDF } from '../../utils/pakage';
+import { clearTrackInfo } from '../../store/actions/index.js';
+
+import logo from '../../assets/images/logo1.png';
+const tem = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1748022960/moc-removebg-preview_l9hbp8.png';
+
+class Track extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      arrSanPham: [],
-      currentIndex: 0,
-      activeMenuIndex: null,
-      currentAdSlide: 0,
-      isShowHomeProductModal: false,
-      searchQuery: "",
-      tempSearchQuery: "",
-      sortOrder: "0",
-      currentPage: 1,
-      itemsPerPage: 16,
-      totalItems: 0,
-      pageInputError: "",
-      isLoggedIn: this.props.userInfo ? true : false,
-      filterValue: [],
-      filters: { selectedFilter: "ALL" },
-      productDetail: {},
+      isLoading: true,
+      actionPage: 0, // 0: tìm kiếm, 1: Product, 2: Appointment, 3: Appointment Bill
+      selectedTab: 1, // 1: Product, 2: Appointment, 3: Appointment Bill
+      searchValue: '',
+      billid: '',
+      billtype: 0,
+      loadedInvoiceDetails: null,
+      loadedAppointmentDetails: null,
+      loadedAppointmentBillDetails: null,
+      codePaymentType: [],
+      codeShippingMethod: [],
+      codeShippingStatus: [],
+      codeAppointmentType: [],
+      codeAppointmentStatus: [],
+      codePetType: [],
+      codePetGender: [],
+      isShowCancelInvoiceModal: false,
+      selectedCancelInvoice: null,
+      email: '',
+      disabledButtons: {
+        confirmReceived: false,
+        continueInvoice: false,
+        cancelAppointment: false,
+      },
     };
-    this.images = [bannerimg1, bannerimg2, bannerimg3];
-    this.adImages = [ad1, ad2];
-    this.bannerIntervalId = null;
-    this.adIntervalId = null;
-    this.handleSearchDebounced = debounce(this.performSearch, 500);
   }
 
   async componentDidMount() {
-    console.log("is user logged in: ", this.props.userInfo);
-    await this.loadAllSanPham();
-    this.handleLoadFilterValue();
-    this.bannerIntervalId = setInterval(this.changeSlide, 4000);
-    this.adIntervalId = setInterval(this.changeAdSlide, 3000);
-  }
-
-  handleIsLogin = async () => {
-    if (this.props.userInfo) {
-      try {
-        const result = await handleVerifyTokenApi();
-        if (result && result.errCode === 0) {
-          this.setState({ isLoggedIn: true });
-          return;
+    try {
+      await this.handleLoadCode(['PaymentType', 'ShippingMethod', 'ShippingStatus', 'AppointmentType', 'AppointmentStatus', 'PetType', 'PetGender']);
+      if (this.props.trackInfo) {
+        const { billid, billtype } = this.props.trackInfo;
+        this.setState({ billid, billtype, actionPage: billtype });
+        const success = await this.handleLoadBillDetails(billid, billtype);
+        if (success) {
+          this.props.clearTrackInfo();
         }
-        this.setState({ isLoggedIn: false });
-        await handleLogoutApi();
-        this.props.userLogout();
-        this.props.navigate("/home");
-      } catch (e) {
-        console.log(e);
       }
-    }
-  };
-
-  handleLoadFilterValue = async () => {
-    try {
-      let filterMap = await handleGetAllCodesApi("ProductType");
-      const allOption = { Code: "ALL", Value: "Tất cả" };
-      const updatedFilterMap = [allOption, ...filterMap];
-      this.setState({ filterValue: updatedFilterMap });
-    } catch (e) {
-      console.log("Lỗi load filter:", e);
-    }
-  };
-
-  handleFilterProduct = (filterValue) => {
-    this.setState(
-      {
-        filters: {
-          selectedFilter: filterValue,
-          hasPromotion: filterValue === "PROMOTION",
-        },
-        currentPage: 1
-      },
-      () => {
-        console.log("Filters after setState:", this.state.filters)
-        this.loadAllSanPham()
-      }
-    );
-  };
-
-  handleSortProduct = (sortValue) => {
-    this.setState({ sortOrder: sortValue, currentPage: 1 }, () => {
-      this.loadAllSanPham();
-    });
-  };
-
-  toggleHomeProductModal = (product) => {
-    this.setState({
-      isShowHomeProductModal: !this.state.isShowHomeProductModal,
-    });
-  };
-
-  showProductDetail = (item) => {
-    this.setState({
-      productDetail: item,
-      isShowHomeProductModal: true,
-    });
-  };
-
-  loadAllSanPham = async () => {
-    const { currentPage, itemsPerPage, searchQuery, filters, sortOrder } = this.state;
-    try {
-      let response = await handleGetSaleProductInfoApi({
-        page: currentPage,
-        limit: itemsPerPage,
-        search: searchQuery,
-        filter: filters.selectedFilter,
-        sort: sortOrder,
-        hasPromotion: filters.hasPromotion,
-      });
-      if (response && response.errCode === 0) {
-        // Gọi getChiTietSanPham cho từng sản phẩm và gắn MACTSP
-        const sanPhamWithDetails = await Promise.all(
-          response.data.map(async (item) => {
-            const chiTietResponse = await getChiTietSanPham(item.MASANPHAM);
-            const chiTiet = chiTietResponse.errCode === 0 && chiTietResponse.data.length > 0
-              ? chiTietResponse.data[0] // Lấy ChiTietSanPham đầu tiên
-              : null;
-            const basePrice = parseFloat(item.GiaBan);
-            const discount = item.KhuyenMai ? parseFloat(item.KhuyenMai) / 100 : 0;
-            const finalPrice = basePrice * (1 - discount);
-            const formattedPrice = finalPrice.toLocaleString('vi-VN');
-            return {
-              ...item,
-              MACTSP: chiTiet ? chiTiet.MACTSP : null, // Gắn MACTSP đầu tiên
-              formattedPrice,
-            };
-          })
-        );
-        console.log("sản phẩm được load:", sanPhamWithDetails);
-        this.setState({
-          arrSanPham: sanPhamWithDetails,
-          totalItems: response.totalItems,
-        });
-      } else {
-        console.log("Load sản phẩm bất thường: ", response ? response.errMessage : "Không có phản hồi từ server");
+      // Parse query params from VNPay return
+      const query = new URLSearchParams(window.location.search);
+      const success = query.get('success');
+      const invoiceId = query.get('invoiceId');
+      if (success === 'true' && invoiceId) {
+        toast.success('Thanh toán thành công!');
+        this.setState({ billid: invoiceId, billtype: 1, actionPage: 1 });
+        await this.handleLoadBillDetails(invoiceId, 1);
       }
     } catch (e) {
-      console.log("Lỗi khi load sản phẩm:", e);
+      console.error('Error in componentDidMount:', e);
+      toast.error('Lỗi khi tải dữ liệu từ trang trước!');
+    } finally {
+      this.setState({ isLoading: false });
     }
-  };
-
-  performSearch = () => {
-
-    this.setState(
-      (prevState) => ({ searchQuery: prevState.tempSearchQuery, currentPage: 1 }),
-      () => this.loadAllSanPham()
-    );
-  };
-
-  handleSearchChange = (e) => {
-    const query = e.target.value;
-    this.setState({ tempSearchQuery: query }, () => {
-      this.handleSearchDebounced();
-    });
-  };
-
-  componentWillUnmount() {
-    if (this.bannerIntervalId) clearInterval(this.bannerIntervalId);
-    if (this.adIntervalId) clearInterval(this.adIntervalId);
   }
-
-  changeSlide = () => {
-    this.setState((prevState) => ({
-      currentIndex: (prevState.currentIndex + 1) % this.images.length,
-    }));
+  handleLoadCode = async (codeTypeFilter) => {
+    try {
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
+      const newState = { isLoading: false };
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+      });
+      this.setState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      this.setState({ isLoading: false });
+    }
   };
-
-  changeAdSlide = () => {
-    this.setState((prevState) => ({
-      currentAdSlide: (prevState.currentAdSlide + 1) % this.adImages.length,
-    }));
+  loadtrackData = async (id, type) => {
+    try {
+      switch (type) {
+        case 1: // Product
+          const invoiceResponse = await handleGetInvoiceDetailInfoApi(id);
+          if (invoiceResponse && invoiceResponse.errCode === 0) {
+            return { success: true, data: invoiceResponse.data, stateKey: 'loadedInvoiceDetails' };
+          }
+          toast.error(invoiceResponse?.errMessage || 'Không tìm thấy hóa đơn!');
+          return { success: false };
+        case 2: // Appointment
+          const appointmentResponse = await handleLoadAppointmentDetailsApi(id);
+          console.log('loaded appointment detail: ', appointmentResponse);
+          if (appointmentResponse && appointmentResponse.errCode === 0) {
+            return { success: true, data: appointmentResponse.data, stateKey: 'loadedAppointmentDetails' };
+          }
+          toast.error(appointmentResponse?.errMessage || 'Không tìm thấy lịch hẹn!');
+          return { success: false };
+        case 3: // Hóa đơn Appointment
+          const appointmentBillResponse = await handleGetAppointmentBillDetailApi(id);
+          console.log('loaded appointmentbill detail: ', appointmentBillResponse);
+          if (appointmentBillResponse && appointmentBillResponse.errCode === 0) {
+            if (appointmentBillResponse.data.AppointmentBill) {
+              return { success: true, data: appointmentBillResponse.data, stateKey: 'loadedAppointmentBillDetails' };
+            }
+            toast.error('Không tìm thấy hóa đơn lịch hẹn!');
+            return { success: false };
+          }
+          toast.error(appointmentBillResponse?.errMessage || 'Không tìm thấy hóa đơn lịch hẹn!');
+          return { success: false };
+        default:
+          toast.error('Loại hóa đơn không hợp lệ!');
+          return { success: false };
+      }
+    } catch (e) {
+      console.error('Error loading bill data:', e);
+      toast.error('Lỗi khi tải thông tin!');
+      return { success: false };
+    }
   };
-
-  handleRightClick = () => {
-    clearInterval(this.bannerIntervalId);
-    this.changeSlide();
-    this.bannerIntervalId = setInterval(this.changeSlide, 4000);
+  handleLoadBillDetails = async (billid, billtype) => {
+    if (!billid || !billtype) {
+      toast.error('Mã hóa đơn hoặc loại hóa đơn không hợp lệ!');
+      return false;
+    }
+    this.setState({ isLoading: true });
+    const result = await this.loadtrackData(billid, billtype);
+    this.setState({ isLoading: false });
+    if (result.success) {
+      this.setState({ [result.stateKey]: result.data });
+      return true;
+    }
+    return false;
   };
-
-  handleLeftClick = () => {
-    clearInterval(this.bannerIntervalId);
-    this.setState((prevState) => ({
-      currentIndex:
-        prevState.currentIndex === 0
-          ? this.images.length - 1
-          : prevState.currentIndex - 1,
-    }));
-    this.bannerIntervalId = setInterval(this.changeSlide, 4000);
-  };
-
-  handleMenuClick = (index, e) => {
-    e.preventDefault();
-    this.setState((prevState) => ({
-      activeMenuIndex: prevState.activeMenuIndex === index ? null : index,
-    }));
-  };
-
-  handleFirstPage = () => {
-    this.setState({ currentPage: 1 }, () => this.loadAllSanPham());
-  };
-
-  handlePrevPage = () => {
-    this.setState(
-      (prevState) => ({ currentPage: Math.max(1, prevState.currentPage - 1) }),
-      () => this.loadAllSanPham()
-    );
-  };
-
-  handleNextPage = () => {
-    const { totalItems, itemsPerPage } = this.state;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    this.setState(
-      (prevState) => ({ currentPage: Math.min(totalPages, prevState.currentPage + 1) }),
-      () => this.loadAllSanPham()
-    );
-  };
-
-  handleLastPage = () => {
-    const { totalItems, itemsPerPage } = this.state;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    this.setState({ currentPage: totalPages }, () => this.loadAllSanPham());
-  };
-
-  handlePageInputChange = (e) => {
-    const { totalItems, itemsPerPage } = this.state;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const value = e.target.value;
-
-    if (value === "") {
-      this.setState({ pageInputError: "" });
+  handleSearch = async () => {
+    const { searchValue, selectedTab } = this.state;
+    if (!searchValue.trim()) {
+      toast.info('Vui lòng nhập mã tương ứng để tìm kiếm!');
       return;
     }
-
-    const pageNumber = parseInt(value, 10);
-    if (isNaN(pageNumber)) {
-      this.setState({ pageInputError: "Vui lòng nhập một số hợp lệ." });
-    } else if (pageNumber < 1 || pageNumber > totalPages) {
-      this.setState({ pageInputError: `Trang phải từ 1 đến ${totalPages}.` });
-    } else {
-      this.setState({ currentPage: pageNumber }, () => this.loadAllSanPham());
-    }
-  };
-
-  async componentDidUpdate(prevProps) {
-    if (prevProps.userInfo !== this.props.userInfo) {
-      await this.handleIsLogin();
+    this.setState({ isLoading: true });
+    const result = await this.loadtrackData(searchValue, selectedTab);
+    this.setState({ isLoading: false });
+    if (result.success) {
       this.setState({
-        isLoggedIn: this.props.userInfo ? true : false,
+        actionPage: selectedTab,
+        [result.stateKey]: result.data,
+        billid: searchValue,
+        billtype: selectedTab,
       });
     }
-    if (prevProps.cartItems !== this.props.cartItems) {
-      console.log("Giỏ hàng đã cập nhật:", this.props.cartItems);
-    }
-  }
-
-
-
-  handleAddToCartApi = async (product) => {
-    const cartAdd = {
-      masanpham: product.MASANPHAM,
-      soluong: product.soluong ? product.soluong : 1,
-      mactsp: product.MACTSP,
-    };
-    let message = "Thêm vào giỏ hàng thành công"
-    if (!this.state.isLoggedIn) {
-      console.log("thêm vào redux")
-      this.props.addToCart(cartAdd, cartAdd.soluong);
-    } else {
-      this.props.addToCart(cartAdd, cartAdd.soluong);
-      this.props.clearCart()
-      let response = await handleAddToCartApi(this.props.userInfo.mataikhoan, [cartAdd]);
-      console.log("thêm vào tk")
-      if (response) {
-        message = response.errMessage
-      }
-    }
-    toast.info(message, {
-      position: "top-right",
-      autoClose: 500,
+  };
+  handleClearSearch = () => {
+    this.setState({ searchValue: '' });
+  };
+  handleTabChange = (tab) => {
+    this.setState({ selectedTab: tab });
+  };
+  handleBackToSearch = () => {
+    this.setState({
+      actionPage: 0,
+      selectedTab: 1,
+      billid: '',
+      billtype: 0,
     });
   };
-  handleAddToCartApiFromModal = (masanpham, soluong, mactsp) => {
-    this.handleAddToCartApi({
-      MASANPHAM: masanpham,
-      soluong: soluong,
-      MACTSP: mactsp
-    })
-  }
-  handleBuyNowFromModal = (masanpham, soluong, mactsp) => {
-    console.log("Mua ngay từ modal:", { masanpham, soluong, mactsp });
+  getShippingFee = (shippingMethod) => {
+    const method = this.state.codeShippingMethod.find((item) => item.Code === shippingMethod);
+    return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
-  render() {
-    const {
-      arrSanPham,
-      currentPage,
-      itemsPerPage,
-      totalItems,
-      pageInputError,
-      tempSearchQuery,
-      currentIndex,
-      activeMenuIndex,
-      currentAdSlide,
-      filters,
-      sortOrder,
-      isShowHomeProductModal,
-      productDetail
-    } = this.state;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    return (
-
-      < div className="home-body" >
-        <HomeProductModal
-          isOpen={isShowHomeProductModal}
-          toggleFromModal={this.toggleHomeProductModal}
-          currentProduct={productDetail.MASANPHAM}
-          handleBuyNowFromModal={this.handleBuyNowFromModal}
-          handleAddToCartApiFromModal={this.handleAddToCartApiFromModal}
-        />
-        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} />
-        <div className="home-banner">
-          <div className="home-slide-show">
-            <div
-              className="list-img"
-              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+  //Tải pdf và gửi email
+  handleGeneratePDF = (data, type) => {
+    if (!data) {
+      toast.error('Không có dữ liệu hóa đơn để tạo PDF!');
+      return;
+    }
+    switch (type) {
+      case 1:
+        generateInvoicePDF(data);
+        break;
+      case 3:
+        generateAppointmentBillPDF(data);
+        break;
+      default:
+        break;
+    }
+  };
+  handleSendEmail = async (billid, email, type) => {
+    if (!email) {
+      toast.info('Không tìm thấy Email để gửi hóa đơn!');
+      return;
+    }
+    try {
+      this.setState({ isLoading: true });
+      const sendInfo = {
+        billid,
+        email,
+      };
+      let response;
+      switch (type) {
+        case 1:
+          response = await handleSendInvoiceEmailApi(sendInfo);
+          break;
+        case 3:
+          response = await handleSendAppointmentBillEmailApi(sendInfo);
+          break;
+        default:
+          break;
+      }
+      if (response && response.errCode === 0) {
+        toast.success('Gửi email thành công!');
+        this.setState({ actionPage: 0 });
+      } else {
+        toast.error(response?.errMessage || 'Gửi email thất bại!');
+      }
+    } catch (e) {
+      console.log('Lỗi khi gửi email:', e);
+      toast.error('Lỗi khi gửi email!');
+    }
+    this.setState({ isLoading: false });
+  };
+  //Hàm thao tác của Product
+  handleConfirmReceived = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } });
+    const confirmReceived = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận đã nhận hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
             >
-              <img src={bannerimg1} alt="Banner 1" />
-              <img src={bannerimg2} alt="Banner 2" />
-              <img src={bannerimg3} alt="Banner 3" />
-            </div>
-            <div className="btns">
-              <button className="btn-right" onClick={this.handleRightClick}>
-                {">"}
-              </button>
-              <button className="btn-left" onClick={this.handleLeftClick}>
-                {"<"}
-              </button>
-            </div>
-            <div className="index-img">
-              {this.images.map((_, index) => (
-                <div
-                  key={index}
-                  className={`index-item index-item-${index} ${currentIndex === index ? "active" : ""}`}
-                ></div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <section className="cartegory f">
-          <div className="row">
-            <div className="cartegory-left">
-              <ul>
-                {[
-                  { title: "THỨC ĂN CHO CHÓ", icon: df, subItems: ["THỨC ĂN HẠT", "PATE", "ĂN VẶT"] },
-                  { title: "PHỤ KIỆN CHO CHÓ", icon: dc, subItems: ["QUẦN ÁO", "VÒNG CỔ", "ĐỒ CHƠI", "BALO & TÚI ĐỰNG"] },
-                  { title: "THỨC ĂN CHO MÈO", icon: pb, subItems: ["THỨC ĂN HẠT", "PATE", "ĂN VẶT"] },
-                  { title: "PHỤ KIỆN CHO MÈO", icon: c, subItems: ["QUẦN ÁO", "VÒNG CỔ", "ĐỒ CHƠI", "BALO & TÚI ĐỰNG"] },
-                ].map((item, index) => (
-                  <li
-                    key={index}
-                    className={`cartegory-left-li ${activeMenuIndex === index ? "block" : ""}`}
-                    onClick={(e) => this.handleMenuClick(index, e)}
-                  >
-                    <a href="#" onClick={(e) => e.preventDefault()}>
-                      {item.title} <img src={item.icon} alt={item.title} />
-                    </a>
-                    <ul>
-                      {item.subItems.map((subItem, subIndex) => (
-                        <li key={subIndex}>
-                          <a href="#" onClick={(e) => e.preventDefault()}>
-                            {subItem}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-              <div className="auto-slide-footer">
-                {this.adImages.map((ad, index) => (
-                  <div
-                    key={index}
-                    className={`slide ${currentAdSlide === index ? "active" : ""}`}
-                  >
-                    <i>advertiserment</i>
-                    <img src={ad} alt={`Ad ${index + 1}`} />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="cartegory-right">
-              <div className="f">
-                <div className="cartegory-right-top-item">
-                  <p>SẢN PHẨM</p>
-                </div>
-                <div className="cartegory-right-top-item">
-                  <div className="searchs">
-                    <input
-                      placeholder="Tìm kiếm tên sản phẩm..."
-                      type="text"
-                      className="search"
-                      value={tempSearchQuery}
-                      onChange={this.handleSearchChange}
-                    />
-                    <IonIcon icon={searchOutline}></IonIcon>
-                  </div>
-                </div>
-                <div className="cartegory-right-top-item">
-                  <div>
-                    <label>Lọc sản phẩm:</label>
-                    <select
-                      value={filters.selectedFilter}
-                      onChange={(event) => this.handleFilterProduct(event.target.value)}
-                    >
-                      <option value="ALL">Tất cả</option>
-                      <option value="PROMOTION">Khuyến mãi</option>
-                      {this.state.filterValue
-                        .filter((item) => item.Type === "ProductType")
-                        .map((item) => (
-                          <option key={item.Code} value={item.Code}>
-                            {item.Value}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="cartegory-right-top-item">
-                  <div>
-                    <label>Sắp Xếp:</label>
-                    <select
-                      value={sortOrder}
-                      onChange={(event) => this.handleSortProduct(event.target.value)}
-                    >
-                      <option value="0">Mặc định</option>
-                      <option value="1">Bán chạy</option>
-                      <option value="2">Giá bán tăng dần</option>
-                      <option value="3">Giá bán giảm dần</option>
-                      <option value="4">Hàng mới về</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="cartegory-right-content">
-                {arrSanPham.length > 0 ? (
-                  arrSanPham.map((item, index) => (
-                    <div className="cartegory-right-content-item" key={item.MASANPHAM}>
-                      <img
-                        src={item.HinhAnh}
-                        alt=""
-                        onClick={() => this.showProductDetail(item)}
-                      />
-                      <h1
-                        style={{ color: "rgb(91, 85, 85)" }}
-                        onClick={() => this.showProductDetail(item)}
-                      >
-                        {item.TenSanPham}
-                      </h1>
-                      <p>
-                        {item.formattedPrice} <sup>đ</sup>
-                        {item.KhuyenMai ? ` (${item.KhuyenMai}%)` : ""}
-                      </p>
-                      <div className="f">
-                        <button onClick={() => this.handleAddToCartApi(item)}>
-                          Thêm vào giỏ
-                          <IonIcon icon={bagAdd}></IonIcon>
-                        </button>
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } });
+            },
+          }
+        );
+      });
+
+    const isConfirmed = await confirmReceived();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
+      if (response && response.errCode === 0) {
+        toast.success('Xác nhận nhận hàng thành công!');
+        await this.handleLoadBillDetails(invoiceid, this.state.billtype);
+      } else {
+        toast.error(response?.errMessage || 'Xác nhận nhận hàng thất bại!');
+      }
+    } catch (e) {
+      console.error('Error confirming received:', e);
+      toast.error('Xảy ra lỗi khi xác nhận nhận hàng, vui lòng thử lại!');
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
+  handleContinueInvoice = async (invoiceid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } });
+    const confirmContinue = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận tiếp tục đơn hàng?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } });
+            },
+          }
+        );
+      });
+
+    const isConfirmed = await confirmContinue();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
+      if (response && response.errCode === 0) {
+        toast.success('Tiếp tục đơn hàng thành công!');
+        await this.handleLoadBillDetails(invoiceid, this.state.billtype);
+      } else {
+        toast.error(response?.errMessage || 'Tiếp tục đơn hàng thất bại!');
+      }
+    } catch (e) {
+      console.error('Error continuing invoice:', e);
+      toast.error('Xảy ra lỗi khi tiếp tục đơn hàng, vui lòng thử lại!');
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
+  handleSelectedCancelInvoice = (invoiceid) => {
+    this.setState({
+      selectedCancelInvoice: invoiceid,
+      isShowCancelInvoiceModal: true,
+    });
+  };
+  toggleCancelInvoiceModal = () => {
+    this.setState({
+      isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
+    });
+  };
+  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND_CANCEL', cancelreason);
+      if (response && response.errCode === 0) {
+        toast.success('Gửi yêu cầu hủy đơn hàng thành công!');
+        await this.handleLoadBillDetails(invoiceid, this.state.billtype);
+        this.setState({
+          isShowCancelInvoiceModal: false,
+          selectedCancelInvoice: null,
+        });
+      } else {
+        toast.error(response?.errMessage || 'Gửi yêu cầu hủy đơn hàng thất bại!');
+      }
+    } catch (e) {
+      console.error('Error canceling invoice:', e);
+      toast.error('Xảy ra lỗi khi gửi yêu cầu hủy đơn hàng, vui lòng thử lại!');
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
+  //Hàm thao tác của Appointment
+  handleCancelAppointment = async (appointmentid) => {
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } });
+    const confirmCancel = () =>
+      new Promise((resolve) => {
+        toast(
+          <div>
+            <p>Xác nhận hủy lịch hẹn?</p>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
+          </div>,
+          {
+            autoClose: 2000,
+            closeOnClick: false,
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } });
+            },
+          }
+        );
+      });
+
+    const isConfirmed = await confirmCancel();
+    if (!isConfirmed) return;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', this.state.loadedAppointmentDetails?.AccountID || '');
+      if (response && response.errCode === 0) {
+        toast.success('Hủy lịch hẹn thành công!');
+        await this.handleLoadBillDetails(appointmentid, this.state.billtype);
+      } else {
+        toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
+      }
+    } catch (e) {
+      console.error('Error canceling appointment:', e);
+      toast.error('Xảy ra lỗi khi hủy lịch hẹn, vui lòng thử lại!');
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
+
+  getCodeValue = (code, codeType) => {
+    const codeList = this.state[`code${codeType}`] || [];
+    const item = codeList.find((item) => item.Code === code);
+    return item ? item.CodeValueVI : code || 'N/A';
+  };
+
+  render() {
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid, email, disabledButtons } = this.state;
+    return (
+      <div className="view-invoice">
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
+        <Header navigate={this.props.navigate} userInfo={this.props.userInfo} />
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <div>
+            {(() => {
+              switch (actionPage) {
+                case 0: // Tìm kiếm
+                  return (
+                    <div className="view-invoice-background">
+                      <div className="search-bill-container">
+                        <div className="search-tabs">
+                          <button className={selectedTab === 1 ? 'active' : ''} onClick={() => this.handleTabChange(1)}>
+                            Hóa đơn sản phẩm
+                          </button>
+                          <button className={selectedTab === 2 ? 'active' : ''} onClick={() => this.handleTabChange(2)}>
+                            Lịch khám
+                          </button>
+                          <button className={selectedTab === 3 ? 'active' : ''} onClick={() => this.handleTabChange(3)}>
+                            Hóa đơn lịch khám
+                          </button>
+                        </div>
+                        <div className="search-bar">
+                          <div className="inputbox">
+                            <input type="text" placeholder={`Nhập mã ${selectedTab === 1 ? 'hóa đơn' : selectedTab === 2 ? 'lịch hẹn' : 'hóa đơn lịch khám'}`} value={searchValue} onChange={(e) => this.setState({ searchValue: e.target.value })} />
+                            {searchValue && (
+                              <div className="clear-btn" onClick={this.handleClearSearch}>
+                                x
+                              </div>
+                            )}
+                          </div>
+                          <button className="search-btn" onClick={this.handleSearch}>
+                            Tìm kiếm
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p>Không tìm thấy sản phẩm nào phù hợp.</p>
-                )}
-              </div>
-              <div className="cartegory-right-bottom row">
-                <div className="cartegory-right-bottom-item">
-                  <button className="first" onClick={this.handleFirstPage}>
-                    {"<<"}
-                  </button>
-                  <button className="prev" onClick={this.handlePrevPage}>
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={currentPage}
-                    onChange={this.handlePageInputChange}
-                    className={pageInputError ? "error" : ""}
-                  />
-                  <span className="total-pages">/ {totalPages}</span>
-                  <button className="next" onClick={this.handleNextPage}>
-                    {">"}
-                  </button>
-                  <button className="last" onClick={this.handleLastPage}>
-                    {">>"}
-                  </button>
-                  {pageInputError && (
-                    <span className="page-error">{pageInputError}</span>
-                  )}
-                </div>
-              </div>
-            </div>
+                  );
+                case 1: // Hóa đơn Product
+                  return (
+                    <div className="view-invoice-background">
+                      <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
+                      <div className="view-invoice-modal">
+                        <div className="view-invoice-modal-content">
+                          {loadedInvoiceDetails ? (
+                            <>
+                              <div className="view-invoice-modal-content-top">
+                                <div className="view-invoice-modal-content-top-logo">
+                                  <img src={logo} alt="Logo" />
+                                </div>
+                                <div className="view-invoice-modal-content-top-address">
+                                  <p>136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
+                                </div>
+                                <div className="sb">
+                                  <div className="view-invoice-modal-content-top-time">
+                                    <p>
+                                      Thời gian:{' '}
+                                      {loadedInvoiceDetails.CreatedAt
+                                        ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                          })
+                                        : 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div className="view-invoice-modal-content-top-invoiceid">
+                                    <p>Mã hóa đơn: {billid}</p>
+                                  </div>
+                                </div>
+                                <div className="view-invoice-modal-content-top-cusname-1">
+                                  <p>Khách hàng: {loadedInvoiceDetails.ReceiverName || 'N/A'}</p>
+                                  <p>SĐT: {loadedInvoiceDetails.ReceiverPhone || 'N/A'}</p>
+                                  <p>Địa chỉ: {loadedInvoiceDetails.ReceiverAddress || 'N/A'}</p>
+                                </div>
+                                <div className="view-invoice-modal-content-top-status">
+                                  <p>Phương thức thanh toán: {codePaymentType.find((item) => item.Code === loadedInvoiceDetails.PaymentType)?.CodeValueVI || loadedInvoiceDetails.PaymentType || 'N/A'}</p>
+                                  <p>Phương thức giao hàng: {codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod || 'N/A'}</p>
+                                  <p>Trạng thái giao hàng: {codeShippingStatus.find((item) => item.Code === loadedInvoiceDetails.ShippingStatus)?.CodeValueVI || loadedInvoiceDetails.ShippingStatus || 'N/A'}</p>
+                                </div>
+                              </div>
+                              <div className="view-invoice-modal-content-mid">
+                                <table>
+                                  <thead>
+                                    <tr>
+                                      <th>Hình ảnh</th>
+                                      <th>Tên sản phẩm</th>
+                                      <th>Loại</th>
+                                      <th>Giá</th>
+                                      <th>Số lượng</th>
+                                      <th>Thành tiền</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(loadedInvoiceDetails.ProductList || []).length > 0 ? (
+                                      loadedInvoiceDetails.ProductList.map((item, index) => (
+                                        <tr key={index} className="view-invoice-modal-content-mid-item">
+                                          <td>
+                                            <img src={item.ProductImage || ''} alt={item.ProductName || 'Sản phẩm'} style={{ width: '50px', height: '50px' }} />
+                                          </td>
+                                          <td>{item.ProductName || 'N/A'}</td>
+                                          <td>{item.DetailName || 'N/A'}</td>
+                                          <td>
+                                            {parseFloat(item.ItemPrice || 0).toLocaleString('vi-VN')}
+                                            <sup>đ</sup>
+                                          </td>
+                                          <td>{item.ItemQuantity || 0}</td>
+                                          <td>
+                                            {(parseFloat(item.ItemPrice || 0) * (item.ItemQuantity || 0)).toLocaleString('vi-VN')}
+                                            <sup>đ</sup>
+                                          </td>
+                                        </tr>
+                                      ))
+                                    ) : (
+                                      <tr>
+                                        <td colSpan="6">Không có sản phẩm nào.</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                  <tfoot>
+                                    <tr>
+                                      <td colSpan="5">Tổng sản phẩm:</td>
+                                      <td className="cen">{loadedInvoiceDetails.TotalQuantity || 0}</td>
+                                    </tr>
+                                    <tr>
+                                      <td colSpan="5">Tổng tiền hàng:</td>
+                                      <td className="cen">
+                                        {parseFloat(loadedInvoiceDetails.TotalPrice || 0).toLocaleString('vi-VN')}
+                                        <sup>đ</sup>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td colSpan="5">Phí vận chuyển ({codeShippingMethod.find((item) => item.Code === loadedInvoiceDetails.ShippingMethod)?.CodeValueVI || loadedInvoiceDetails.ShippingMethod || 'N/A'}):</td>
+                                      <td className="cen">
+                                        {this.getShippingFee(loadedInvoiceDetails.ShippingMethod).toLocaleString('vi-VN')}
+                                        <sup>đ</sup>
+                                      </td>
+                                    </tr>
+                                    {loadedInvoiceDetails.DiscountAmount > 0 ? (
+                                      <tr>
+                                        <td colSpan="5">Giảm giá:</td>
+                                        <td className="cen">
+                                          -{parseFloat(loadedInvoiceDetails.DiscountAmount || 0).toLocaleString('vi-VN')}
+                                          <sup>đ</sup>
+                                        </td>
+                                      </tr>
+                                    ) : null}
+                                    <tr>
+                                      <td colSpan="5">
+                                        <b>Tổng thanh toán:</b>
+                                      </td>
+                                      <td className="cen">
+                                        <b>
+                                          {parseFloat(loadedInvoiceDetails.TotalPayment || 0).toLocaleString('vi-VN')}
+                                          <sup>đ</sup>
+                                        </b>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td colSpan="6">
+                                        <p>
+                                          <u>*Lưu ý:</u> Giá thành tiền của sản phẩm đã bao gồm khuyến mãi (nếu có).
+                                          <br />
+                                          Mọi thắc mắc xin liên hệ với bộ phận chăm sóc khách hàng <b>(0901131141)</b>.
+                                        </p>
+                                      </td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                              </div>
+                              <div className="bill-actions-invoice">
+                                <div className="sb">
+                                  <input type="text" value={email} placeholder="Nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />{' '}
+                                  <button onClick={() => this.handleSendEmail(billid, email, 1)} className="email-btn">
+                                    Gửi qua email
+                                  </button>
+                                </div>
+                                <div className="sb">
+                                  <button onClick={this.handleBackToSearch} className="back-btn">
+                                    <IonIcon icon={chevronBackOutline}></IonIcon> Quay về
+                                  </button>
+                                  {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                                    <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng">
+                                      <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
+                                    </button>
+                                  )}
+                                  {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                                    <button className="received-order-btn" onClick={() => this.handleConfirmReceived(billid)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmReceived}>
+                                      <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
+                                    </button>
+                                  )}
+                                  {(loadedInvoiceDetails.PaymentStatus === 'PEND' || loadedInvoiceDetails.PaymentStatus === 'PAID') && loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
+                                    <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(billid)} title="Tiếp tục đơn hàng" disabled={disabledButtons.continueInvoice}>
+                                      <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
+                                    </button>
+                                  )}
+                                  <button onClick={() => this.handleGeneratePDF(loadedInvoiceDetails, 1)} className="pdf-btn">
+                                    Tải PDF
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="error">Không tìm thấy thông tin hóa đơn.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                case 2: // Chi tiết lịch khám
+                  return (
+                    <div className="view-invoice-background">
+                      <div className="view-invoice-modal-app">
+                        <div className="view-invoice-modal-content-app">
+                          {loadedAppointmentDetails ? (
+                            <>
+                              <div className="view-invoice-modal-content-top-app">
+                                <div className="sb bot">
+                                  <div className="view-invoice-modal-content-top-logo-app">
+                                    <img src={logo} alt="Logo" />
+                                    <br />
+                                    <b>Website Thương mại & Dịch vụ Dành cho thú cưng</b>
+                                  </div>
+                                  <div className="view-invoice-modal-content-top-address-app">
+                                    <div className="date">
+                                      <b>Ngày khám: </b>
+                                      {loadedAppointmentDetails.AppointmentDate ? `${new Date(loadedAppointmentDetails.AppointmentDate).toLocaleDateString('vi-VN')} ${loadedAppointmentDetails.StartTime} - ${loadedAppointmentDetails.EndTime}` : 'N/A'}
+                                    </div>
+                                    <div>
+                                      <p>
+                                        <b>Địa chỉ: </b>136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="sb mid-top">
+                                  <h1>
+                                    <b>*Thông tin đặt lịch:</b>
+                                  </h1>
+                                  <div className="bill-id f">
+                                    <b>Mã lịch hẹn: </b>
+                                    <p> {billid}</p>
+                                  </div>
+                                </div>
+                                <div className="sb">
+                                  <div className="view-invoice-modal-content-top-time-app">
+                                    <p>
+                                      <b>Thời gian đặt lịch:</b>
+                                      {loadedAppointmentDetails.CreatedAt
+                                        ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
+                                        : 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Khách hàng:</b>
+                                      {loadedAppointmentDetails.CustomerName || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Email:</b> {loadedAppointmentDetails.CustomerEmail || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>SĐT:</b> {loadedAppointmentDetails.CustomerPhone || 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div className="view-invoice-modal-content-top-invoiceid-app">
+                                    <p>
+                                      <b>Trạng thái:</b> {codeAppointmentStatus.find((item) => item.Code === loadedAppointmentDetails.AppointmentStatus)?.CodeValueVI || loadedAppointmentDetails.AppointmentStatus || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Dịch vụ:</b> {loadedAppointmentDetails.Service?.ServiceName || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Loại lịch hẹn:</b> {codeAppointmentType.find((item) => item.Code === loadedAppointmentDetails.AppointmentType)?.CodeValueVI || loadedAppointmentDetails.AppointmentType || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Bác sĩ:</b> {loadedAppointmentDetails.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="view-invoice-modal-content-mid-app">
+                                <h1>
+                                  <b>*Thông tin thú cưng:</b>
+                                </h1>
+                                <table>
+                                  <thead>
+                                    <tr>
+                                      <th>Thú cưng</th>
+                                      <th>Loại</th>
+                                      <th>Cân nặng</th>
+                                      <th>Tuổi</th>
+                                      <th>Giới tính</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr className="view-invoice-modal-content-mid-item-app">
+                                      <td>{loadedAppointmentDetails.Pet?.PetName || 'N/A'}</td>
+                                      <td>{codePetType.find((item) => item.Code === loadedAppointmentDetails.Pet?.PetType)?.CodeValueVI || loadedAppointmentDetails.Pet?.PetType || 'N/A'}</td>
+                                      <td>{loadedAppointmentDetails.Pet?.PetWeight ? `${loadedAppointmentDetails.Pet.PetWeight} kg` : 'N/A'}</td>
+                                      <td>{loadedAppointmentDetails.Pet?.Age ? `${loadedAppointmentDetails.Pet.Age} tuổi` : 'N/A'}</td>
+                                      <td>{this.getCodeValue(loadedAppointmentDetails.Pet.PetGender, 'PetGender')}</td>
+                                    </tr>
+                                  </tbody>
+                                  <tfoot>
+                                    <tr>
+                                      <td colSpan="6">
+                                        <b>Ghi chú:</b> <p>{loadedAppointmentDetails.Notes || 'Không có ghi chú'}</p>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td colSpan="6">
+                                        <b>Hình ảnh:</b>
+                                        <br />
+                                        {loadedAppointmentDetails.Images && loadedAppointmentDetails.Images.length > 0 ? (
+                                          <div className="appointment-images">
+                                            {loadedAppointmentDetails.Images.map((image) => (
+                                              <img key={image.ImageID} src={image.Image} alt={`Hình ảnh lịch hẹn ${image.ImageID}`} style={{ maxWidth: '200px', margin: '5px' }} />
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          <span>Không có hình ảnh</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                              </div>
+                              <div className="sb">
+                                <button onClick={this.handleBackToSearch} className="back-btn-app">
+                                  <IonIcon icon={chevronBackOutline}></IonIcon>
+                                  Quay về
+                                </button>
+
+                                <div className="bill-actions-app">
+                                  {loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
+                                    <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn" disabled={disabledButtons.cancelAppointment}>
+                                      <IonIcon icon={closeCircleOutline}></IonIcon> Hủy lịch hẹn
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="error">Không tìm thấy thông tin lịch hẹn.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                case 3: // Hóa đơn Appointment
+                  return (
+                    <div className="view-invoice-background-appointment">
+                      <div className="view-invoice-modal-appointment">
+                        <div className="view-invoice-modal-content-appointment">
+                          {loadedAppointmentBillDetails && loadedAppointmentBillDetails.AppointmentBill ? (
+                            <div>
+                              <div className="view-invoice-modal-content-top-appointment">
+                                <div className="f">
+                                  <div className="view-invoice-modal-content-top-logo-appointment">
+                                    <img src={logo} alt="Logo" />
+                                  </div>
+                                  <div className="view-invoice-modal-content-top-address-appointment">
+                                    <b>Website Thương mại & Dịch vụ Dành cho thú cưng</b>
+                                    <p>
+                                      <b>Địa chỉ:</b>136 Huỳnh Văn Bánh, P. 11, Q. Phú Nhuận, Tp.HCM
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="time-appid f">
+                                  <div className="view-invoice-modal-content-top-time-appointment">
+                                    <p>
+                                      <b>Thời gian:</b>
+                                      {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
+                                        ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
+                                        : 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div className="view-invoice-modal-content-top-invoiceid-appointment">
+                                    <div className="f">
+                                      <b>Mã hóa đơn:</b> <p>{loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="sb">
+                                  <div className="view-invoice-modal-content-top-cusname-1-appointment">
+                                    <p>
+                                      <b>Khách hàng:</b> {loadedAppointmentBillDetails.CustomerName || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Tên thú cưng:</b> {loadedAppointmentBillDetails.Pet?.PetName || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Loại thú cưng:</b> {loadedAppointmentBillDetails.Pet?.PetType || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Giới tính:</b> {loadedAppointmentBillDetails.Pet?.PetGender || 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div className="view-invoice-modal-content-top-status-appointment">
+                                    <p>
+                                      <b>Trạng thái:</b> {codeAppointmentStatus.find((item) => item.Code === loadedAppointmentBillDetails.AppointmentStatus)?.CodeValueVI || loadedAppointmentBillDetails.AppointmentStatus || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Dịch vụ:</b> {loadedAppointmentBillDetails.Service?.ServiceName || 'N/A'}
+                                    </p>
+                                    <p>
+                                      <b>Bác sĩ:</b> {loadedAppointmentBillDetails.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="view-invoice-modal-content-mid-appointment">
+                                <table>
+                                  <thead>
+                                    <tr>
+                                      <th>Ngày khám</th>
+                                      <th>Phí dịch vụ</th>
+                                      <th>Phí dược phẩm</th>
+                                      <th>Tổng thanh toán</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr className="view-invoice-modal-content-mid-item-appointment">
+                                      <td>{loadedAppointmentBillDetails.AppointmentDate ? `${new Date(loadedAppointmentBillDetails.AppointmentDate).toLocaleDateString('vi-VN')} ${loadedAppointmentBillDetails.StartTime} - ${loadedAppointmentBillDetails.EndTime}` : 'N/A'}</td>
+                                      <td>{loadedAppointmentBillDetails.AppointmentBill?.ServicePrice ? parseFloat(loadedAppointmentBillDetails.AppointmentBill.ServicePrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A'}</td>
+                                      <td>{loadedAppointmentBillDetails.AppointmentBill?.MedicalPrice ? parseFloat(loadedAppointmentBillDetails.AppointmentBill.MedicalPrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A'}</td>
+                                      <td>{loadedAppointmentBillDetails.AppointmentBill?.TotalPayment ? parseFloat(loadedAppointmentBillDetails.AppointmentBill.TotalPayment).toLocaleString('vi-VN') + ' vnđ' : 'N/A'}</td>
+                                    </tr>
+                                  </tbody>
+                                  <tfoot>
+                                    <tr>
+                                      <td colSpan="4">
+                                        <b>Ghi chú của bác sĩ:</b> <p>{loadedAppointmentBillDetails.AppointmentBill?.MedicalNotes || 'Không có ghi chú'}</p>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td colSpan="2">
+                                        <b>Đơn thuốc:</b>
+                                        <br />
+                                        {loadedAppointmentBillDetails.AppointmentBill?.MedicalImage ? <img src={loadedAppointmentBillDetails.AppointmentBill.MedicalImage} alt="Hình ảnh hóa đơn" style={{ maxWidth: '200px', margin: '5px' }} /> : <span>Không có hình ảnh</span>}
+                                      </td>
+                                      <td colSpan="2">
+                                        <img src={tem} />
+                                      </td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                              </div>
+                              <div className="bill-actions-appointment">
+                                <button onClick={this.handleBackToSearch} className="back-btn-appointment">
+                                  <IonIcon icon={checkmarkCircleOutline}></IonIcon> Quay về
+                                </button>
+                                {console.log(loadedAppointmentBillDetails)}
+                                <div>
+                                  <button onClick={() => this.handleSendEmail(loadedAppointmentBillDetails.AppointmentBill.AppointmentBillID, loadedAppointmentBillDetails.CustomerEmail, 3)} className="email-btn-appointment">
+                                    Gửi qua email
+                                  </button>
+                                  <button onClick={() => this.handleGeneratePDF(loadedAppointmentBillDetails, 3)} className="pdf-btn-appointment">
+                                    Tải PDF
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="error">Không tìm thấy thông tin hóa đơn.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            })()}
           </div>
-        </section>
-        <Footer />
-      </div >
+        )}
+      </div>
     );
   }
 }
 
 const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
-  cartItems: state.cart.cartItems,
+  trackInfo: state.track.trackInfo,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  addToCart: (sanpham, soluong) => dispatch(addToCart(sanpham, soluong)),
-  clearCart: () => dispatch(clearCart()),
-  userLogout: () => dispatch(userLogout()),
+  clearTrackInfo: () => dispatch(clearTrackInfo()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Track);
 
-------------------scss---------------------
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Quicksand", sans-serif !important;
-}
 
-.row {
-  display: flex;
-  flex-wrap: wrap;
-}
 
-.i {
-  display: inline;
-}
 
-.f {
-  display: flex;
-}
-
-.containers {
-  max-width: 1400px;
-}
-
-.container {
-  max-width: 1200px;
-  margin: auto;
-}
-
-li {
-  list-style: none;
-}
-
-a {
-  text-decoration: none !important;
-}
-
-.home-body {
-  // -------------------BANNER-------------------
-  overflow-x: hidden;
-  .home-banner {
-    z-index: 1;
-    margin-top: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .home-slide-show {
-      position: relative;
-      max-width: 1500px;
-      overflow: hidden;
-
-      .list-img {
-        margin-top: 70px;
-        display: flex;
-        transition: 0.5s;
-        img {
-          max-width: 1500px;
-        }
-      }
-
-      .btns {
-        button {
-          cursor: pointer;
-          opacity: 40%;
-          transition: 0.5s;
-          width: 50px;
-          height: 50px;
-          border-radius: 100px;
-          border: 1px solid rgb(0, 0, 0);
-          background-color: rgb(255, 255, 255);
-          position: absolute;
-          top: 50%;
-        }
-        button:hover {
-          background-color: rgb(88, 76, 76);
-          color: white;
-          opacity: 100%;
-          border: 1px solid white;
-        }
-        .btn-left {
-          left: 0;
-          margin-left: 40px;
-        }
-        .btn-right {
-          right: 0;
-          margin-right: 40px;
-        }
-        .btn-left,
-        .btn-right {
-          font-size: 20px;
-        }
-      }
-
-      .index-img {
-        position: absolute;
-        bottom: 7px;
-        display: flex;
-        left: 50%;
-        transform: translateX(-50%);
-        .index-item {
-          background-color: rgb(173, 172, 172);
-          padding: 4px;
-          margin: 3px;
-          border-radius: 50%;
-        }
-        .active {
-          background-color: rgb(88, 76, 76);
-        }
-      }
-    }
-  }
-
-  // -------------------CARTEGORY-------------------
-  .cartegory {
-    min-height: 1270px;
-    position: relative;
-    padding: 30px 0;
-    width: 1500px;
-
-    .row {
-      display: flex;
-      .cartegory-left {
-        position: relative;
-        margin-top: 65px;
-        width: 20%;
-
-        ul:first-child {
-          border: 3px solid rgb(91, 82, 82);
-          border-left: 5px solid rgb(91, 82, 82);
-          width: fit-content;
-          margin: 0;
-          padding: 0;
-          transform: translateX(65px);
-          height: auto;
-        }
-
-        ul {
-          li {
-            font-size: 18px;
-          }
-
-          .cartegory-left-li {
-            position: relative;
-            padding: 5px 0px;
-            box-sizing: border-box;
-            width: fit-content;
-            border-bottom: 3px solid rgb(91, 82, 82);
-            font-size: 24px;
-
-            ul {
-              top: 100%;
-              margin-left: 30px;
-              display: none; // Ẩn mặc định
-            }
-
-            &.block {
-              ul {
-                display: block; // Hiển thị khi có class block
-              }
-            }
-
-            a {
-              font-weight: bold;
-              color: black;
-              padding: 3px;
-              align-items: center;
-              gap: 10px;
-
-              img {
-                height: 32px;
-                width: 32px;
-                vertical-align: middle;
-              }
-            }
-
-            li {
-              list-style: circle;
-              margin-top: 7px;
-              margin-bottom: 11px;
-
-              a {
-                font-weight: bold;
-                color: rgb(80, 69, 69);
-                padding-bottom: 0px;
-              }
-              a:hover {
-                border-bottom: 2px solid rgb(0, 0, 0);
-              }
-            }
-          }
-        }
-
-        .auto-slide-footer {
-          top: 640px;
-          margin-left: 60px;
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 300px;
-          height: 400px;
-          overflow: hidden;
-
-          .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-
-            &.active {
-              display: block;
-            }
-
-            img {
-              width: 100%;
-              height: 100%;
-              object-fit: cover;
-            }
-          }
-        }
-      }
-
-      .cartegory-right {
-        width: 80%;
-        padding-left: 100px;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-
-        .cartegory-right-top-item {
-          margin-bottom: 10px !important;
-
-          &:first-child {
-            margin-top: 0;
-            flex: 2;
-            font-size: 16px;
-            font-family: "Quicksand", sans-serif;
-            font-weight: bold;
-            p {
-              font-size: 24px;
-              padding-top: 5px;
-              margin: 0;
-            }
-          }
-
-          &:nth-child(2) {
-            margin-top: 0;
-            .searchs {
-              input {
-                border: 1px solid rgba(91, 82, 82, 0.3);
-                width: 570px;
-                height: 45px;
-                padding: 10px;
-                border-radius: 5px;
-                margin: 0;
-              }
-              ion-icon {
-                position: absolute;
-                opacity: 30%;
-                margin-top: 12px;
-                margin-left: -32px;
-                width: 20px;
-                height: 20px;
-              }
-            }
-          }
-
-          &:nth-child(3) {
-            margin-top: 0;
-            max-width: 164px;
-          }
-
-          &:nth-child(4) {
-            margin-top: 0;
-          }
-
-          flex: 1;
-        }
-
-        .cartegory-right-top-item:nth-child(1) {
-          text-align: left;
-
-          max-width: 170px;
-          margin-left: 20px;
-          p {
-            width: 100%;
-          }
-        }
-        .cartegory-right-top-item:nth-child(3) {
-          margin-top: -5px;
-          margin-left: 10px;
-          select {
-            border: 2px solid rgba(91, 82, 82, 0.3);
-            height: 26px;
-            border-radius: 5px;
-          }
-        }
-        .cartegory-right-top-item:nth-child(4) {
-          margin-top: -5px;
-          margin-left: 10px;
-          select {
-            border: 2px solid rgba(91, 82, 82, 0.3);
-            height: 26px;
-            border-radius: 5px;
-          }
-        }
-
-        .cartegory-right-content {
-          display: flex;
-          flex-wrap: wrap;
-          width: 100%;
-          gap: 10px;
-          margin-top: 10px;
-
-          .cartegory-right-content-item {
-            flex: 0 0 calc(25% - 10px);
-            margin: 7px 0;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-
-            button {
-              width: 140px;
-              background-color: transparent;
-              border: 3px solid rgb(91, 85, 85);
-              border-radius: 5px;
-              color: rgb(91, 85, 85);
-              transition: 0.3s;
-              padding: 5px;
-              ion-icon {
-                margin-bottom: -2px;
-                margin-left: 5px;
-              }
-            }
-
-            button:hover {
-              background-color: rgb(91, 85, 85);
-              color: white;
-            }
-
-            img {
-              width: 100%;
-              max-width: 200px;
-            }
-
-            h1,
-            p {
-              margin: 7px 0;
-              font-weight: normal;
-              font-size: 20px;
-            }
-
-            p {
-              margin-top: -6px;
-            }
-
-            p,
-            sub {
-              color: red;
-              font-weight: bold;
-            }
-          }
-
-          p {
-            width: 100%;
-            text-align: center;
-            color: rgb(91, 85, 85);
-            font-size: 18px;
-            margin-top: 20px;
-          }
-        }
-
-        .cartegory-right-bottom {
-          margin: 30px 0;
-          margin-left: 280px;
-          font-size: 18px;
-
-          .cartegory-right-bottom-item {
-            display: flex;
-            align-items: center;
-            position: relative;
-
-            input {
-              width: 30px;
-              text-align: center;
-              margin-left: 5px;
-              border-radius: 5px;
-              border: none;
-              background-color: white;
-              color: rgb(91, 85, 85);
-              font-weight: bold;
-              padding: 2px;
-
-              &.error {
-                border-color: red;
-                background-color: rgba(255, 0, 0, 0.1);
-              }
-            }
-
-            .total-pages {
-              margin-left: 5px;
-              color: rgb(91, 85, 85);
-              font-weight: bold;
-            }
-
-            button {
-              width: 30px;
-              height: 30px;
-              margin-left: 5px;
-              border-radius: 5px;
-              background-color: rgb(104, 90, 90);
-              color: white;
-              border: none;
-              cursor: pointer;
-              transition: background-color 0.3s;
-            }
-
-            button:active,
-            button:hover {
-              background-color: rgb(62, 54, 54);
-            }
-
-            .page-error {
-              position: absolute;
-              top: 100%;
-              left: 11%;
-              transform: translateX(-50%);
-              margin-top: 5px;
-              color: red;
-              font-size: 12px;
-              white-space: nowrap;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-header scss
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Quicksand", sans-serif !important;
-}
-
-.f {
-  display: flex;
-}
-.row {
-  display: flex;
-  flex-wrap: wrap;
-}
-.containers {
-  max-width: 1400px;
-}
-.container {
-  max-width: 1500px;
-  margin: auto;
-}
-li {
-  list-style: none;
-}
-a {
-  text-decoration: none;
-}
-
-.body-container {
-  .header-container {
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 7px 20px;
-    height: 80px;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgb(255, 255, 255);
-    z-index: 1;
-    border-bottom: 1px solid rgba(103, 98, 98, 0.3);
-    li {
-      list-style: none;
-      text-decoration: none;
-    }
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .logo {
-        flex: 1.2;
-        background-image: url("../assets/images/logo.png");
-        height: 65px;
-        background-size: contain;
-        background-repeat: no-repeat;
-      }
-
-      .menu {
-        flex: 3.5;
-        display: flex;
-        font-weight: bold;
-
-        a {
-          text-decoration: none;
-          color: black;
-          font-size: 19px;
-          font-family: "Quicksand", sans-serif;
-        }
-        li:hover .sub-menu {
-          z-index: 10;
-          display: block;
-          visibility: visible;
-          top: 70px;
-        }
-        li {
-          text-align: center;
-          border-right: 2px solid black;
-          width: 180px;
-          .sub-menu {
-            z-index: 10;
-            top: 90px;
-            position: relative;
-            visibility: hidden;
-            width: 170px;
-
-            border-radius: 10px;
-            position: absolute;
-            transition: 0.1s;
-            background-color: rgb(91, 82, 82);
-            padding: 15px 10px;
-
-            margin-left: 45px;
-            padding-left: 5px;
-            li {
-              border-bottom: 2px solid white;
-              max-width: 155px;
-              text-align: center;
-              border-right: none;
-              margin-top: 15px;
-              cursor: default;
-
-              a {
-                line-height: 25px;
-                font-weight: normal;
-                color: white;
-              }
-            }
-            li:first-of-type {
-              margin-top: 0;
-            }
-          }
-        }
-      }
-
-      .others {
-        display: flex;
-        flex: 2.1;
-        position: relative;
-        p:hover {
-          border-bottom: 2px solid rgb(91, 82, 82);
-        }
-
-        li:hover .sub-menu {
-          z-index: 10;
-          display: block;
-          visibility: visible;
-          top: 50px;
-        }
-
-        .sub-menu {
-          top: 70px;
-          visibility: hidden;
-          width: 270px;
-          border-radius: 10px;
-          position: absolute;
-          transition: 0.1s;
-          background-color: rgb(250, 250, 250);
-          border: 2px solid rgb(91, 82, 82);
-          padding: 5px 0;
-          padding-bottom: 15px;
-
-          margin-left: -40px;
-          li {
-            width: 245px;
-            cursor: pointer;
-            border-right: none;
-            margin-top: 15px;
-            height: 30px;
-
-            a {
-              margin-top: 10px;
-              line-height: 25px;
-              font-weight: normal;
-              color: rgb(91, 82, 82);
-            }
-            a:hover {
-              border-bottom: 2px solid rgb(91, 82, 82);
-            }
-            ion-icon {
-              color: rgb(91, 82, 82);
-              width: 50px;
-              margin-right: 5px;
-            }
-          }
-
-          li:first-of-type {
-            margin-top: 0;
-          }
-          li:last-of-type {
-            margin-bottom: 10px;
-          }
-        }
-        ion-icon {
-          margin-top: 10px;
-          font-size: 30px;
-          color: rgb(91, 82, 82);
-        }
-        input {
-          border: none;
-          border-bottom: 1px solid black;
-        }
-        li:first-child {
-          border-right: 1px solid black;
-          padding-right: 30px;
-        }
-        li {
-          margin-left: 25px;
-          a {
-            display: flex;
-            p {
-              color: black;
-              margin-left: 5px;
-              margin-top: 14px;
-            }
-          }
-          .user {
-            img {
-              width: 45px;
-              height: 45px;
-              border-radius: 25px;
-            }
-            p {
-              cursor: pointer;
-              margin-top: 8px;
-              font-size: 18px;
-              margin-left: 10px;
-              width: 100%;
-            }
-          }
-          .user-none {
-            p {
-              margin-top: 15px;
-              margin-left: 10px;
-              cursor: pointer;
-            }
-          }
-        }
-
-        .shopping-bag {
-          position: relative;
-
-          .cart-bubble {
-            position: absolute;
-            top: 0;
-            right: -10px;
-            background-color: red;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
-
-
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Quicksand", sans-serif !important;
-}
-
-.f {
-  display: flex;
-}
-.row {
-  display: flex;
-  flex-wrap: wrap;
-}
-.containers {
-  max-width: 1400px;
-}
-.container {
-  max-width: 1500px;
-  margin: auto;
-}
-li {
-  list-style: none;
-}
-a {
-  text-decoration: none;
-}
-
-.body-container {
-  .header-container {
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 7px 20px;
-    height: 80px;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgb(245, 245, 245);
-    z-index: 1;
-    border-bottom: 1px solid rgba(103, 98, 98, 0.3);
-    border-radius: 5px;
-    li {
-      list-style: none;
-      text-decoration: none;
-    }
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .logo {
-        flex: 1.2;
-        background-image: url("../assets/images/logo.png");
-        height: 65px;
-        background-size: contain;
-        background-repeat: no-repeat;
-      }
-
-      .menu {
-        flex: 3.5;
-        display: flex;
-        font-weight: bold;
-
-        a {
-          text-decoration: none;
-          color: rgb(255, 255, 255);
-          font-size: 19px;
-          font-family: "Quicksand", sans-serif;
-        }
-        li:hover .sub-menu {
-          z-index: 10;
-          display: block;
-          visibility: visible;
-          top: 70px;
-        }
-        li {
-          text-align: center;
-          border-right: 2px solid rgb(255, 255, 255);
-          width: 180px;
-          .sub-menu {
-            z-index: 10;
-            top: 90px;
-            position: relative;
-            visibility: hidden;
-            width: 170px;
-
-            border-radius: 10px;
-            position: absolute;
-            transition: 0.1s;
-            background-color: rgb(91, 82, 82);
-            padding: 15px 10px;
-
-            margin-left: 45px;
-            padding-left: 5px;
-            li {
-              border-bottom: 2px solid white;
-              max-width: 155px;
-              text-align: center;
-              border-right: none;
-              margin-top: 15px;
-              cursor: default;
-
-              a {
-                line-height: 25px;
-                font-weight: normal;
-                color: white;
-              }
-            }
-            li:first-of-type {
-              margin-top: 0;
-            }
-          }
-        }
-      }
-
-      .others {
-        display: flex;
-        flex: 2.1;
-        position: relative;
-        p:hover {
-          border-bottom: 2px solid rgb(255, 255, 255);
-        }
-        p {
-          color: rgb(255, 255, 255);
-        }
-
-        li:hover .sub-menu {
-          z-index: 10;
-          display: block;
-          visibility: visible;
-          top: 50px;
-        }
-
-        .sub-menu {
-          top: 70px;
-          visibility: hidden;
-          width: 270px;
-          border-radius: 10px;
-          position: absolute;
-          transition: 0.1s;
-          background-color: rgb(250, 250, 250);
-          border: 2px solid rgb(91, 82, 82);
-          padding: 5px 0;
-          padding-bottom: 15px;
-
-          margin-left: -40px;
-          li {
-            width: 245px;
-            cursor: pointer;
-            border-right: none;
-            margin-top: 15px;
-            height: 30px;
-
-            a {
-              margin-top: 10px;
-              line-height: 25px;
-              font-weight: normal;
-              color: rgb(91, 82, 82);
-            }
-            a:hover {
-              border-bottom: 2px solid rgb(91, 82, 82);
-            }
-            ion-icon {
-              color: rgb(91, 82, 82);
-              width: 50px;
-              margin-right: 5px;
-            }
-          }
-
-          li:first-of-type {
-            margin-top: 0;
-          }
-          li:last-of-type {
-            margin-bottom: 10px;
-          }
-        }
-        ion-icon {
-          margin-top: 10px;
-          font-size: 30px;
-          color: rgb(255, 255, 255);
-        }
-        input {
-          border: none;
-          border-bottom: 1px solid black;
-        }
-        li:first-child {
-          border-right: 1px solid black;
-          padding-right: 30px;
-        }
-        li {
-          margin-left: 25px;
-          a {
-            display: flex;
-            p {
-              color: rgb(255, 255, 255);
-              margin-left: 5px;
-              margin-top: 14px;
-            }
-          }
-          .user {
-            img {
-              width: 45px;
-              height: 45px;
-              border-radius: 25px;
-            }
-            p {
-              cursor: pointer;
-              margin-top: 8px;
-              font-size: 18px;
-              margin-left: 10px;
-              width: 100%;
-            }
-          }
-          .user-none {
-            p {
-              margin-top: 15px;
-              margin-left: 10px;
-              cursor: pointer;
-            }
-          }
-        }
-
-        .shopping-bag {
-          position: relative;
-
-          .cart-bubble {
-            position: absolute;
-            top: 0;
-            right: -10px;
-            background-color: red;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react"; // Import thư viện icon
-import {
-  buildOutline,
-  closeCircleOutline,
-  searchOutline,
-  add,
-  trashOutline,
-  closeOutline,
-  checkmarkOutline,
-} from "ionicons/icons"; // Chỉ import các icon cần dùng
-import "./Owner.scss"; // Import SCSS
-import OwnerCreateProductModal from "./OwnerCreateProductModal";
-
-import hinhtest from "../../assets/productha/hinhtest.jpg";
-import bannertest from "../../assets/bannerimgs/1.webp";
-import adtest from "../../assets/ad-imgs/1.png";
-
-class Owner extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isShowCreateProductModal: false,
-      activeSection: "products", // Default to showing the "SẢN PHẨM" section
-      productPage: 1, // Current page for products
-      invoicePage: 1, // Current page for invoices
-      invoiceDate: "", // State to store the selected date for filtering invoices
-      imageItems: [
-        // State to track active/unactive status for each row in the "Hình ảnh" table
-        { id: 1, isActive: true }, // Initially, the "active" button is shown
-      ],
-    };
-
-    // Number of static items (you can update this as you add more <tr> elements)
-    this.totalProductItems = 1; // Currently 1 static product item
-    this.totalInvoiceItems = 1; // Currently 1 static invoice item
-    this.totalImageItems = 1; // Currently 1 static image item
-
-    // Pagination settings
-    this.itemsPerPageProducts = 7; // Max 7 items per page for products
-    this.itemsPerPageInvoices = 10; // Max 10 items per page for invoices
-    this.itemsPerPageImages = 10; // Max 10 items per page for images
-  }
-
-  componentDidMount() {}
-
-  // Handler to update the active section
-  handleSectionChange = (section) => {
-    this.setState({ activeSection: section });
-  };
-
-  // Handler for date input change
-  handleDateChange = (e) => {
-    this.setState({ invoiceDate: e.target.value });
-    // You can add filtering logic here later based on the selected date
-  };
-
-  // Pagination handlers for products
-  handleProductPageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.totalProductItems / this.itemsPerPageProducts
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ productPage: page });
-    }
-  };
-
-  // Pagination handlers for invoices
-  handleInvoicePageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.totalInvoiceItems / this.itemsPerPageInvoices
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ invoicePage: page });
-    }
-  };
-
-  // Pagination handlers for images
-  handleImagePageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.totalImageItems / this.itemsPerPageImages
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ imagePage: page });
-    }
-  };
-
-  // Handle input change for direct page navigation
-  handlePageInput = (e, type) => {
-    const page = parseInt(e.target.value, 10);
-    if (type === "products") {
-      this.handleProductPageChange(page || 1);
-    } else if (type === "invoices") {
-      this.handleInvoicePageChange(page || 1);
-    } else if (type === "images") {
-      this.handleImagePageChange(page || 1);
-    }
-  };
-
-  // Handler to toggle active/unactive status for a specific image item
-  toggleImageStatus = (id) => {
-    this.setState((prevState) => ({
-      imageItems: prevState.imageItems.map((item) =>
-        item.id === id ? { ...item, isActive: !item.isActive } : item
-      ),
-    }));
-  };
-
-  toggleCreateProductModal = () => {
-    this.setState({
-      isShowCreateProductModal: !this.state.isShowCreateProductModal,
-    });
-  };
-
-  render() {
-    const { activeSection, productPage, invoicePage, invoiceDate, imageItems } =
-      this.state;
-
-    // Calculate the range of items to display for the current page
-    const startIndexProducts = (productPage - 1) * this.itemsPerPageProducts;
-    const endIndexProducts = startIndexProducts + this.itemsPerPageProducts;
-    const totalProductPages = Math.ceil(
-      this.totalProductItems / this.itemsPerPageProducts
-    );
-
-    const startIndexInvoices = (invoicePage - 1) * this.itemsPerPageInvoices;
-    const endIndexInvoices = startIndexInvoices + this.itemsPerPageInvoices;
-    const totalInvoicePages = Math.ceil(
-      this.totalInvoiceItems / this.itemsPerPageInvoices
-    );
-
-    const startIndexImages =
-      (this.state.imagePage || 1 - 1) * this.itemsPerPageImages;
-    const endIndexImages = startIndexImages + this.itemsPerPageImages;
-    const totalImagePages = Math.ceil(
-      this.totalImageItems / this.itemsPerPageImages
-    );
-
-    return (
-      <div className="owner-body">
-        <OwnerCreateProductModal
-          isOpen={this.state.isShowCreateProductModal}
-          toggleFromModal={this.toggleCreateProductModal}
-        />
-        <div className="container">
-          <h1>Trang chủ cửa hàng</h1>
-          <div className="owner-top-content">
-            <div className="owner-top-content-menu f">
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("products")}
-                  className={activeSection === "products" ? "active" : ""}
-                >
-                  SẢN PHẨM
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("invoices")}
-                  className={activeSection === "invoices" ? "active" : ""}
-                >
-                  HÓA ĐƠN
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("images")}
-                  className={activeSection === "images" ? "active" : ""}
-                >
-                  HÌNH ẢNH
-                </a>
-              </li>
-              <li>
-                <button
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  onClick={() => this.toggleCreateProductModal()}
-                >
-                  THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
-                </button>
-                <button
-                  style={{
-                    display: activeSection === "images" ? "block" : "none",
-                  }}
-                >
-                  THÊM HÌNH ẢNH <IonIcon icon={add}></IonIcon>
-                </button>
-              </li>
-            </div>
-          </div>
-          <div className="owner-mid-content f">
-            <div className="owner-mid-content-left">
-              <div
-                className="owner-mid-content-left-search-product "
-                style={{
-                  display: activeSection === "products" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input type="text" placeholder="Search..."></input>
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-              <div
-                className="owner-mid-content-left-search-invoice "
-                style={{
-                  display: activeSection === "invoices" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input type="text" placeholder="Search..."></input>
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-              <div
-                className="owner-mid-content-left-search-banner "
-                style={{
-                  display: activeSection === "images" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input
-                  type="text"
-                  placeholder="Hãy nhập tên sản phẩm..."
-                ></input>
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-              <div className="f">
-                <div
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-product-filter"
-                >
-                  <label>Lọc sản phẩm</label>
-                  <br />
-                  <select>
-                    <option value="0">abc</option>
-                    <option value="1">abc</option>
-                    <option value="2">abc</option>
-                    <option value="3">abc</option>
-                    <option value="4">abc</option>
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-product-sort"
-                >
-                  <label>Sắp Xếp:</label>
-                  <br />
-                  <select>
-                    <option value="0">Mặc định</option>
-                    <option value="1">Bán chạy</option>
-                    <option value="4">Hàng mới về</option>
-                    <option value="2">Giá bán tăng dần</option>
-                    <option value="3">Giá bán giảm dần</option>
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "invoices" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-invoice-date"
-                >
-                  <label>Ngày hóa đơn:</label>
-                  <input
-                    type="date"
-                    value={invoiceDate}
-                    onChange={this.handleDateChange}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "invoices" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-invoice-sort"
-                >
-                  <label>Sắp Xếp:</label>
-                  <br />
-                  <select>
-                    <option value="0">Mặc định</option>
-                    <option value="1">Mới nhất</option>
-                    <option value="2">Cũ nhất</option>
-                    <option value="3">Tổng giá trị tăng dần</option>
-                    <option value="4">Tổng giá trị giảm dần</option>
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "images" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-image-sort"
-                >
-                  <label>Sắp xếp</label>
-                  <br />
-                  <select>
-                    <option value="0">Mới nhất</option>
-                    <option value="1">Cũ nhất</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="owner-mid-content-right">
-              {/* --------------------------SANPHAM------------------------- */}
-              <div
-                className="owner-mid-content-right-list-product"
-                style={{
-                  display: activeSection === "products" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Mã sản phẩm</th>
-                      <th>Tên sản phẩm</th>
-                      <th>Hình ảnh</th>
-                      <th>Danh mục</th>
-                      <th>Giá</th>
-                      <th>Kho</th>
-                      <th>KM</th>
-                      <th>Chỉnh sửa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Static product item */}
-                    <tr
-                      className="owner-mid-content-right-list-product-item"
-                      style={{
-                        display:
-                          0 >= startIndexProducts && 0 < endIndexProducts
-                            ? "table-row"
-                            : "none",
-                      }}
-                    >
-                      <td>SP1</td>
-                      <td>Sản phẩm 1111111111111111</td>
-                      <td>
-                        <img src={hinhtest} alt="" />
-                      </td>
-                      <td>Phần mềm</td>
-                      <td className="f">
-                        <p>120000</p>
-                        <p>vnđ</p>
-                      </td>
-                      <td>1000</td>
-                      <td>0</td>
-                      <td className="f">
-                        <button>
-                          <IonIcon icon={buildOutline}></IonIcon>
-                        </button>
-                        <button>
-                          <IonIcon icon={closeCircleOutline}></IonIcon>
-                        </button>
-                      </td>
-                    </tr>
-                    {/* Add more static <tr> elements here as needed */}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleProductPageChange(1)}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleProductPageChange(productPage - 1)
-                    }
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={productPage}
-                    onChange={(e) => this.handlePageInput(e, "products")}
-                  />
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleProductPageChange(productPage + 1)
-                    }
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() =>
-                      this.handleProductPageChange(totalProductPages)
-                    }
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-              {/* ----------------------------HOADON------------------------- */}
-              <div
-                className="owner-mid-content-right-list-invoice"
-                style={{
-                  display: activeSection === "invoices" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Mã hóa đơn</th>
-                      <th>Thời gian tạo</th>
-                      <th>Tên Khách Hàng</th>
-                      <th>SL</th>
-                      <th>Tổng tiền hàng</th>
-                      <th>
-                        Tình trạng
-                        <br />
-                        thanh toán
-                      </th>
-                      <th>
-                        Tình trạng
-                        <br />
-                        giao hàng
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Static invoice item */}
-                    <tr
-                      className="owner-mid-content-right-list-invoice-item"
-                      style={{
-                        display:
-                          0 >= startIndexInvoices && 0 < endIndexInvoices
-                            ? "table-row"
-                            : "none",
-                      }}
-                    >
-                      <td>HD1</td>
-                      <td>2021-01-01 20:21</td>
-                      <td>Nguyen Van A</td>
-                      <td>15</td>
-                      <td className="f">
-                        <p>120000 vnđ</p>
-                      </td>
-                      <td>abc</td>
-                      <td>abc</td>
-                    </tr>
-                    {/* Add more static <tr> elements here as needed */}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleInvoicePageChange(1)}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleInvoicePageChange(invoicePage - 1)
-                    }
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={invoicePage}
-                    onChange={(e) => this.handlePageInput(e, "invoices")}
-                  />
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleInvoicePageChange(invoicePage + 1)
-                    }
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() =>
-                      this.handleInvoicePageChange(totalInvoicePages)
-                    }
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-              {/* --------------------HINHANH------------------------- */}
-              <div
-                className="owner-mid-content-right-list-img"
-                style={{
-                  display: activeSection === "images" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Hiển thị</th>
-                      <th>Hình ảnh Banner</th>
-                      <th>Mã sản phẩm</th>
-                      <th>Tên sản phẩm</th>
-                      <th>Thời gian tạo</th>
-                      <th>Thời gian ẩn</th>
-                      <th>Chỉnh sửa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Map over imageItems to render rows dynamically */}
-                    {imageItems.map((item, index) => (
-                      <tr
-                        key={item.id}
-                        className="owner-mid-content-right-list-img-item"
-                        style={{
-                          display:
-                            index >= startIndexImages && index < endIndexImages
-                              ? "table-row"
-                              : "none",
-                        }}
-                      >
-                        <td>
-                          {item.isActive ? (
-                            <button
-                              className="active"
-                              onClick={() => this.toggleImageStatus(item.id)}
-                            >
-                              <IonIcon icon={checkmarkOutline}></IonIcon>
-                            </button>
-                          ) : (
-                            <button
-                              className="unactive"
-                              onClick={() => this.toggleImageStatus(item.id)}
-                            >
-                              <IonIcon icon={closeOutline}></IonIcon>
-                            </button>
-                          )}
-                        </td>
-                        <td>
-                          <img src={bannertest} alt="Banner" />
-                        </td>
-                        <td>Sp01</td>
-                        <td>sản phẩm 1111111</td>
-                        <td>2010-20-10 20:15</td>
-                        <td>2010-20-10 20:15</td>
-                        <td>
-                          <button>
-                            <IonIcon icon={buildOutline}></IonIcon>
-                          </button>
-                          <button>
-                            <IonIcon icon={closeCircleOutline}></IonIcon>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleImagePageChange(1)}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleImagePageChange(
-                        (this.state.imagePage || 1) - 1
-                      )
-                    }
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={this.state.imagePage || 1}
-                    onChange={(e) => this.handlePageInput(e, "images")}
-                  />
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleImagePageChange(
-                        (this.state.imagePage || 1) + 1
-                      )
-                    }
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() => this.handleImagePageChange(totalImagePages)}
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
-
-const mapStateToProps = (state) => ({});
-
-const mapDispatchToProps = {};
-export default connect(mapStateToProps, mapDispatchToProps)(Owner);
-
-
-
-
-
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { IonIcon } from "@ionic/react"; // Import thư viện icon
-import {
-  buildOutline,
-  closeCircleOutline,
-  searchOutline,
-  add,
-  trashOutline,
-  closeOutline,
-  checkmarkOutline,
-} from "ionicons/icons"; // Chỉ import các icon cần dùng
-import "./Owner.scss"; // Import SCSS
-import OwnerCreateProductModal from "./OwnerCreateProductModal";
-import OwnerEditProductModal from "./OwnerEditProductModal";
-import OwnerCreateBannerModal from "./OwnerCreateBannerModal";
-import OwnerViewInvoiceModal from "./OwnerViewInvoiceModal";
-
-import hinhtest from "../../assets/productha/hinhtest.jpg";
-import bannertest from "../../assets/bannerimgs/1.webp";
-import adtest from "../../assets/ad-imgs/1.png";
-
-class Owner extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isShowCreateBannerModal: false,
-      isShowCreateProductModal: false,
-      isShowEditProductModal: false,
-      isShowViewInvoiceModal: false,
-      activeSection: "products", // Default to showing the "SẢN PHẨM" section
-      productPage: 1, // Current page for products
-      invoicePage: 1, // Current page for invoices
-      invoiceDate: "", // State to store the selected date for filtering invoices
-      imageItems: [
-        // State to track active/unactive status for each row in the "Hình ảnh" table
-        { id: 1, isActive: true }, // Initially, the "active" button is shown
-      ],
-    };
-
-    // Number of static items (you can update this as you add more <tr> elements)
-    this.totalProductItems = 1; // Currently 1 static product item
-    this.totalInvoiceItems = 1; // Currently 1 static invoice item
-    this.totalImageItems = 1; // Currently 1 static image item
-
-    // Pagination settings
-    this.itemsPerPageProducts = 7; // Max 7 items per page for products
-    this.itemsPerPageInvoices = 10; // Max 10 items per page for invoices
-    this.itemsPerPageImages = 10; // Max 10 items per page for images
-  }
-
-  componentDidMount() {}
-
-  // Handler to update the active section
-  handleSectionChange = (section) => {
-    this.setState({ activeSection: section });
-  };
-
-  // Handler for date input change
-  handleDateChange = (e) => {
-    this.setState({ invoiceDate: e.target.value });
-    // You can add filtering logic here later based on the selected date
-  };
-
-  // Pagination handlers for products
-  handleProductPageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.totalProductItems / this.itemsPerPageProducts
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ productPage: page });
-    }
-  };
-
-  // Pagination handlers for invoices
-  handleInvoicePageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.totalInvoiceItems / this.itemsPerPageInvoices
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ invoicePage: page });
-    }
-  };
-
-  // Pagination handlers for images
-  handleImagePageChange = (page) => {
-    const totalPages = Math.ceil(
-      this.totalImageItems / this.itemsPerPageImages
-    );
-    if (page >= 1 && page <= totalPages) {
-      this.setState({ imagePage: page });
-    }
-  };
-
-  // Handle input change for direct page navigation
-  handlePageInput = (e, type) => {
-    const page = parseInt(e.target.value, 10);
-    if (type === "products") {
-      this.handleProductPageChange(page || 1);
-    } else if (type === "invoices") {
-      this.handleInvoicePageChange(page || 1);
-    } else if (type === "images") {
-      this.handleImagePageChange(page || 1);
-    }
-  };
-
-  // Handler to toggle active/unactive status for a specific image item
-  toggleImageStatus = (id) => {
-    this.setState((prevState) => ({
-      imageItems: prevState.imageItems.map((item) =>
-        item.id === id ? { ...item, isActive: !item.isActive } : item
-      ),
-    }));
-  };
-
-  toggleCreateProductModal = () => {
-    this.setState({
-      isShowCreateProductModal: !this.state.isShowCreateProductModal,
-    });
-  };
-  toggleEditProductModal = () => {
-    this.setState({
-      isShowEditProductModal: !this.state.isShowEditProductModal,
-    });
-  };
-  toggleCreateBannerModal = () => {
-    this.setState({
-      isShowCreateBannerModal: !this.state.isShowCreateBannerModal,
-    });
-  };
-  toggleViewInvoiceModal = () => {
-    this.setState({
-      isShowViewInvoiceModal: !this.state.isShowViewInvoiceModal,
-    });
-  };
-
-  render() {
-    const { activeSection, productPage, invoicePage, invoiceDate, imageItems } =
-      this.state;
-
-    // Calculate the range of items to display for the current page
-    const startIndexProducts = (productPage - 1) * this.itemsPerPageProducts;
-    const endIndexProducts = startIndexProducts + this.itemsPerPageProducts;
-    const totalProductPages = Math.ceil(
-      this.totalProductItems / this.itemsPerPageProducts
-    );
-
-    const startIndexInvoices = (invoicePage - 1) * this.itemsPerPageInvoices;
-    const endIndexInvoices = startIndexInvoices + this.itemsPerPageInvoices;
-    const totalInvoicePages = Math.ceil(
-      this.totalInvoiceItems / this.itemsPerPageInvoices
-    );
-
-    const startIndexImages =
-      (this.state.imagePage || 1 - 1) * this.itemsPerPageImages;
-    const endIndexImages = startIndexImages + this.itemsPerPageImages;
-    const totalImagePages = Math.ceil(
-      this.totalImageItems / this.itemsPerPageImages
-    );
-
-    return (
-      <div className="owner-body">
-        <OwnerCreateProductModal
-          isOpen={this.state.isShowCreateProductModal}
-          toggleFromModal={this.toggleCreateProductModal}
-        />
-        <OwnerEditProductModal
-          isOpen={this.state.isShowEditProductModal}
-          toggleFromModal={this.toggleEditProductModal}
-        />
-        <OwnerCreateBannerModal
-          isOpen={this.state.isShowCreateBannerModal}
-          toggleFromModal={this.toggleCreateBannerModal}
-        />
-        <OwnerViewInvoiceModal
-          isOpen={this.state.isShowViewInvoiceModal}
-          toggleFromModal={this.toggleViewInvoiceModal}
-        />
-        <div className="container">
-          <h1>Trang chủ cửa hàng</h1>
-          <div className="owner-top-content">
-            <div className="owner-top-content-menu f">
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("products")}
-                  className={activeSection === "products" ? "active" : ""}
-                >
-                  SẢN PHẨM
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("invoices")}
-                  className={activeSection === "invoices" ? "active" : ""}
-                >
-                  HÓA ĐƠN
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => this.handleSectionChange("images")}
-                  className={activeSection === "images" ? "active" : ""}
-                >
-                  HÌNH ẢNH
-                </a>
-              </li>
-              <li>
-                <button
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  onClick={() => this.toggleCreateProductModal()}
-                >
-                  THÊM SẢN PHẨM <IonIcon icon={add}></IonIcon>
-                </button>
-                <button
-                  style={{
-                    display: activeSection === "images" ? "block" : "none",
-                  }}
-                  onClick={() => this.toggleCreateBannerModal()}
-                >
-                  THÊM HÌNH ẢNH <IonIcon icon={add}></IonIcon>
-                </button>
-              </li>
-            </div>
-          </div>
-          <div className="owner-mid-content f">
-            <div className="owner-mid-content-left">
-              <div
-                className="owner-mid-content-left-search-product "
-                style={{
-                  display: activeSection === "products" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input type="text" placeholder="Search..."></input>
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-              <div
-                className="owner-mid-content-left-search-invoice "
-                style={{
-                  display: activeSection === "invoices" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input type="text" placeholder="Search..."></input>
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div>
-              {/* <div
-                className="owner-mid-content-left-search-banner "
-                style={{
-                  display: activeSection === "images" ? "block" : "none",
-                }}
-              >
-                <p>Tìm kiếm:</p>
-                <input
-                  type="text"
-                  placeholder="Hãy nhập tên sản phẩm..."
-                ></input>
-                <IonIcon icon={searchOutline}></IonIcon>
-              </div> */}
-              <div className="f">
-                <div
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-product-filter"
-                >
-                  <label>Lọc sản phẩm</label>
-                  <br />
-                  <select>
-                    <option value="0">abc</option>
-                    <option value="1">abc</option>
-                    <option value="2">abc</option>
-                    <option value="3">abc</option>
-                    <option value="4">abc</option>
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "products" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-product-sort"
-                >
-                  <label>Sắp Xếp:</label>
-                  <br />
-                  <select>
-                    <option value="0">Mặc định</option>
-                    <option value="1">Bán chạy</option>
-                    <option value="4">Hàng mới về</option>
-                    <option value="2">Giá bán tăng dần</option>
-                    <option value="3">Giá bán giảm dần</option>
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "invoices" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-invoice-date"
-                >
-                  <label>Ngày hóa đơn:</label>
-                  <input
-                    type="date"
-                    value={invoiceDate}
-                    onChange={this.handleDateChange}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: activeSection === "invoices" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-invoice-sort"
-                >
-                  <label>Sắp Xếp:</label>
-                  <br />
-                  <select>
-                    <option value="0">Mặc định</option>
-                    <option value="1">Mới nhất</option>
-                    <option value="2">Cũ nhất</option>
-                    <option value="3">Tổng giá trị tăng dần</option>
-                    <option value="4">Tổng giá trị giảm dần</option>
-                  </select>
-                </div>
-                {/* <div
-                  style={{
-                    display: activeSection === "images" ? "block" : "none",
-                  }}
-                  className="owner-mid-content-left-image-sort"
-                >
-                  <label>Sắp xếp</label>
-                  <br />
-                  <select>
-                    <option value="0">Mới nhất</option>
-                    <option value="1">Cũ nhất</option>
-                  </select>
-                </div> */}
-              </div>
-            </div>
-            <div className="owner-mid-content-right">
-              {/* --------------------------SANPHAM------------------------- */}
-              <div
-                className="owner-mid-content-right-list-product"
-                style={{
-                  display: activeSection === "products" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Mã sản phẩm</th>
-                      <th>Tên sản phẩm</th>
-                      <th>Hình ảnh</th>
-                      <th>Danh mục</th>
-                      <th>Giá</th>
-                      <th>Kho</th>
-                      <th>KM</th>
-                      <th>Chỉnh sửa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Static product item */}
-                    <tr
-                      className="owner-mid-content-right-list-product-item"
-                      style={{
-                        display:
-                          0 >= startIndexProducts && 0 < endIndexProducts
-                            ? "table-row"
-                            : "none",
-                      }}
-                      onClick={() => this.toggleEditProductModal()}
-                    >
-                      <td>SP1</td>
-                      <td>Sản phẩm 1111111111111111</td>
-                      <td>
-                        <img src={hinhtest} alt="" />
-                      </td>
-                      <td>Phần mềm</td>
-                      <td className="f">
-                        <p>120000</p>
-                        <p>vnđ</p>
-                      </td>
-                      <td>1000</td>
-                      <td>0</td>
-                      <td className="f">
-                        <button>
-                          <IonIcon icon={buildOutline}></IonIcon>
-                        </button>
-                        <button>
-                          <IonIcon icon={closeCircleOutline}></IonIcon>
-                        </button>
-                      </td>
-                    </tr>
-                    {/* Add more static <tr> elements here as needed */}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleProductPageChange(1)}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleProductPageChange(productPage - 1)
-                    }
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={productPage}
-                    onChange={(e) => this.handlePageInput(e, "products")}
-                  />
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleProductPageChange(productPage + 1)
-                    }
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() =>
-                      this.handleProductPageChange(totalProductPages)
-                    }
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-              {/* ----------------------------HOADON------------------------- */}
-              <div
-                className="owner-mid-content-right-list-invoice"
-                style={{
-                  display: activeSection === "invoices" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Mã hóa đơn</th>
-                      <th>Thời gian tạo</th>
-                      <th>Tên Khách Hàng</th>
-                      <th>SL</th>
-                      <th>Tổng tiền hàng</th>
-                      <th>
-                        Tình trạng
-                        <br />
-                        thanh toán
-                      </th>
-                      <th>
-                        Tình trạng
-                        <br />
-                        giao hàng
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Static invoice item */}
-                    <tr
-                      className="owner-mid-content-right-list-invoice-item"
-                      style={{
-                        display:
-                          0 >= startIndexInvoices && 0 < endIndexInvoices
-                            ? "table-row"
-                            : "none",
-                      }}
-                      onClick={() => this.toggleViewInvoiceModal()}
-                    >
-                      <td>HD1</td>
-                      <td>2021-01-01 20:21</td>
-                      <td>Nguyen Van A</td>
-                      <td>15</td>
-                      <td className="f">
-                        <p>120000 vnđ</p>
-                      </td>
-                      <td>abc</td>
-                      <td>abc</td>
-                    </tr>
-                    {/* Add more static <tr> elements here as needed */}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleInvoicePageChange(1)}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleInvoicePageChange(invoicePage - 1)
-                    }
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={invoicePage}
-                    onChange={(e) => this.handlePageInput(e, "invoices")}
-                  />
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleInvoicePageChange(invoicePage + 1)
-                    }
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() =>
-                      this.handleInvoicePageChange(totalInvoicePages)
-                    }
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-              {/* --------------------HINHANH------------------------- */}
-              <div
-                className="owner-mid-content-right-list-img"
-                style={{
-                  display: activeSection === "images" ? "block" : "none",
-                }}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Hiển thị</th>
-                      <th>Hình ảnh Banner</th>
-                      <th>Mã sản phẩm</th>
-                      <th>Tên sản phẩm</th>
-                      <th>Thời gian tạo</th>
-                      <th>Thời gian ẩn</th>
-                      <th>Chỉnh sửa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Map over imageItems to render rows dynamically */}
-                    {imageItems.map((item, index) => (
-                      <tr
-                        key={item.id}
-                        className="owner-mid-content-right-list-img-item"
-                        style={{
-                          display:
-                            index >= startIndexImages && index < endIndexImages
-                              ? "table-row"
-                              : "none",
-                        }}
-                      >
-                        <td>
-                          {item.isActive ? (
-                            <button
-                              className="active"
-                              onClick={() => this.toggleImageStatus(item.id)}
-                            >
-                              <IonIcon icon={checkmarkOutline}></IonIcon>
-                            </button>
-                          ) : (
-                            <button
-                              className="unactive"
-                              onClick={() => this.toggleImageStatus(item.id)}
-                            >
-                              <IonIcon icon={closeOutline}></IonIcon>
-                            </button>
-                          )}
-                        </td>
-                        <td>
-                          <img src={bannertest} alt="Banner" />
-                        </td>
-                        <td>Sp01</td>
-                        <td>sản phẩm 1111111</td>
-                        <td>2010-20-10 20:15</td>
-                        <td>2010-20-10 20:15</td>
-                        <td>
-                          <button>
-                            <IonIcon icon={buildOutline}></IonIcon>
-                          </button>
-                          <button>
-                            <IonIcon icon={closeCircleOutline}></IonIcon>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="pages f">
-                  <button
-                    className="first"
-                    onClick={() => this.handleImagePageChange(1)}
-                  >
-                    {"<<"}
-                  </button>
-                  <button
-                    className="prev"
-                    onClick={() =>
-                      this.handleImagePageChange(
-                        (this.state.imagePage || 1) - 1
-                      )
-                    }
-                  >
-                    {"<"}
-                  </button>
-                  <input
-                    type="text"
-                    value={this.state.imagePage || 1}
-                    onChange={(e) => this.handlePageInput(e, "images")}
-                  />
-                  <button
-                    className="next"
-                    onClick={() =>
-                      this.handleImagePageChange(
-                        (this.state.imagePage || 1) + 1
-                      )
-                    }
-                  >
-                    {">"}
-                  </button>
-                  <button
-                    className="last"
-                    onClick={() => this.handleImagePageChange(totalImagePages)}
-                  >
-                    {">>"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
-
-const mapStateToProps = (state) => ({});
-
-const mapDispatchToProps = {};
-export default connect(mapStateToProps, mapDispatchToProps)(Owner);
-
-
-
-
-
-.f {
-  display: flex;
-}
-
-.owner-body {
-  .container {
-    max-width: 1450px !important;
-    h1 {
-      text-align: center;
-    }
-    .owner-top-content {
-      margin-top: 60px;
-      margin-left: 510px;
-      .owner-top-content-menu {
-        width: 900px;
-        margin-left: 60px;
-
-        li {
-          margin-right: 20px;
-
-          a {
-            color: black;
-            cursor: pointer; // Make the link look clickable
-            &:hover {
-              padding-bottom: 3px;
-              border-bottom: 2px solid black;
-            }
-            &.active {
-              padding-bottom: 3px;
-              border-bottom: 2px solid black;
-              font-weight: bold; // Optional: make the active tab bold
-            }
-          }
-          button {
-            background-color: rgb(1, 176, 1);
-            border-radius: 5px;
-            margin-left: 380px;
-            height: 30px;
-            width: 170px;
-            color: white;
-            ion-icon {
-              margin-bottom: -3.5px;
-              font-size: 20px;
-            }
-          }
-          button:hover {
-            font-size: 15px;
-            ion-icon {
-              font-size: 18px;
-            }
-          }
-          button:active {
-            background-color: rgb(0, 133, 0);
-          }
-        }
-        margin-bottom: 10px;
-      }
-    }
-    .owner-mid-content {
-      width: 100%;
-      .owner-mid-content-left {
-        width: 28%;
-        .owner-mid-content-left-search-product,
-        .owner-mid-content-left-search-invoice,
-        .owner-mid-content-left-search-banner {
-          margin-bottom: 20px;
-          p {
-            margin-right: 10px;
-            margin-bottom: 0;
-          }
-          input {
-            width: 380px;
-            height: 30px;
-            padding: 5px;
-            font-size: 18px;
-            border-radius: 5px;
-          }
-          ion-icon {
-            position: absolute;
-            margin-top: 6px;
-            left: 410px;
-          }
-        }
-        .owner-mid-content-left-product-filter {
-          margin-right: 20px;
-          select {
-            width: 180px;
-            height: 30px;
-            font-size: 18px;
-            border-radius: 5px;
-          }
-        }
-        .owner-mid-content-left-product-sort {
-          select {
-            width: 180px;
-            height: 30px;
-            font-size: 18px;
-            border-radius: 5px;
-          }
-        }
-        .owner-mid-content-left-invoice-date {
-          margin-right: 10px;
-          label {
-            display: block;
-          }
-          input[type="date"] {
-            width: 160px;
-            height: 30px;
-            font-size: 18px;
-            border-radius: 5px;
-            padding: 5px;
-            border: 1px solid #717171;
-            box-sizing: border-box;
-          }
-        }
-        .owner-mid-content-left-invoice-sort {
-          select {
-            width: 210px;
-            height: 30px;
-            font-size: 18px;
-            border-radius: 5px;
-          }
-        }
-        .owner-mid-content-left-image-sort {
-          margin-right: 20px;
-          select {
-            width: 180px;
-            height: 30px;
-            font-size: 18px;
-            border-radius: 5px;
-          }
-        }
-      }
-      .owner-mid-content-right {
-        width: 72%;
-
-        .owner-mid-content-right-list-product,
-        .owner-mid-content-right-list-invoice,
-        .owner-mid-content-right-list-img {
-          table {
-            text-align: center;
-            margin-top: 25px;
-            thead {
-              tr {
-                th {
-                  padding-bottom: 10px;
-                }
-              }
-            }
-            tbody {
-              .owner-mid-content-right-list-product-item {
-                img {
-                  max-width: 90px;
-                }
-                td:hover {
-                  background-color: rgb(247, 246, 246);
-                }
-
-                td:nth-child(4) {
-                  margin-top: 32px;
-                  justify-content: center;
-                  p {
-                    margin-right: 5px;
-                  }
-                }
-                td:nth-child(5) {
-                  margin-top: 33px;
-                  justify-content: center;
-                  p {
-                    margin-right: 5px;
-                  }
-                }
-
-                td:nth-child(7) {
-                  width: 70px;
-                }
-                td:nth-child(8) {
-                  justify-content: center;
-                  button {
-                    border-radius: 7px;
-                    width: 40px;
-                    height: 40px;
-                    margin-right: 10px;
-                    ion-icon {
-                      padding-top: 5px;
-                      width: 25px;
-                      height: 25px;
-                    }
-                  }
-                  button:last-child {
-                    background-color: rgb(255, 0, 0);
-                    ion-icon {
-                      color: white;
-                    }
-                  }
-                  button:first-child {
-                    background-color: rgb(233, 233, 0);
-                    ion-icon {
-                      color: rgb(0, 0, 0);
-                    }
-                  }
-                  button:first-child:hover {
-                    ion-icon {
-                      width: 22px;
-                      height: 22px;
-                    }
-                  }
-                  button:last-child:hover {
-                    ion-icon {
-                      width: 22px;
-                      height: 22px;
-                    }
-                  }
-                }
-              }
-              .owner-mid-content-right-list-invoice-item {
-                td:hover {
-                  background-color: rgb(247, 246, 246);
-                }
-
-                td:nth-child(5) {
-                  margin-top: 16.5px;
-                  justify-content: center;
-                }
-              }
-              .owner-mid-content-right-list-img-item {
-              }
-            }
-          }
-          .pages {
-            margin: 30px 0;
-            justify-content: center;
-            align-items: center;
-
-            button {
-              width: 30px;
-              height: 30px;
-              color: white;
-              background-color: rgb(113, 102, 102);
-              border: none;
-              border-radius: 5px;
-              margin: 0 5px;
-              cursor: pointer;
-              padding: 0; // Remove default padding to ensure width is respected
-              box-sizing: border-box; // Ensure padding/border are included in width
-
-              display: flex;
-              justify-content: center;
-              align-items: center;
-            }
-            button:hover {
-              background-color: rgb(91, 82, 82);
-            }
-            button:active {
-              background-color: rgb(70, 63, 63);
-            }
-            input {
-              width: 40px;
-              height: 30px;
-              text-align: center;
-              border-radius: 5px;
-              border: 1px solid #ccc;
-              margin: 0 5px;
-            }
-          }
-        }
-        .owner-mid-content-right-list-product {
-          table {
-            table-layout: fixed; // Enforce fixed column widths
-            width: 100%; // Ensure the table fits its container
-            max-width: 900px; // Optional: Limit the maximum width of the table
-
-            thead {
-              tr {
-                th:first-child {
-                  width: 120px;
-                } // Mã sản phẩm
-                th:nth-child(2) {
-                  width: 270px;
-                } // Tên sản phẩm
-                th:nth-child(3) {
-                  width: 100px;
-                } // Hình ảnh
-                th:nth-child(4) {
-                  width: 150px;
-                } // Danh mục
-                th:nth-child(5) {
-                  width: 100px;
-                } // Giá
-                th:nth-child(6) {
-                  width: 80px;
-                } // Kho
-                th:nth-child(7) {
-                  width: 100px;
-                } // KM
-                th:nth-child(8) {
-                  width: 100px;
-                } // Chỉnh sửa
-              }
-            }
-
-            tbody {
-              .owner-mid-content-right-list-product-item {
-                td:nth-child(2) {
-                  // Tên sản phẩm column
-                  white-space: normal; // Allow text to wrap
-                  overflow-wrap: break-word; // Break long words
-                  max-width: 200px; // Match the th width
-                }
-
-                img {
-                  max-width: 90px; // Ensure it fits the reduced th width
-                }
-              }
-            }
-          }
-        }
-        .owner-mid-content-right-list-invoice {
-          table {
-            table-layout: fixed; // Enforce fixed column widths
-            width: 100%; // Ensure the table fits its container
-            max-width: 900px; // Optional: Limit the maximum width of the table
-
-            thead {
-              tr {
-                th:first-child {
-                  width: 120px;
-                } // Mã hóa đơn
-                th:nth-child(2) {
-                  width: 140px;
-                } // Thời gian tạo
-                th:nth-child(3) {
-                  width: 180px;
-                } // Tên Khách Hàng
-                th:nth-child(4) {
-                  width: 70px;
-                } // Tổng số hàng
-                th:nth-child(5) {
-                  width: 140px;
-                } // Tổng tiền hàng
-                th:nth-child(6) {
-                  width: 160px;
-                } // Tình trạng thanh toán
-                th:nth-child(7) {
-                  width: 150px;
-                }
-              }
-            }
-          }
-        }
-        .owner-mid-content-right-list-img {
-          table {
-            table-layout: fixed; // Enforce fixed column widths
-            width: 100%; // Ensure the table fits its container
-            max-width: 900px; // Optional: Limit the maximum width of the table
-
-            thead {
-              tr {
-                th:first-child {
-                  width: 57px;
-                }
-                th:nth-child(2) {
-                  width: 300px;
-                }
-                th:nth-child(3) {
-                  width: 110px;
-                }
-                th:nth-child(4) {
-                  width: 150px;
-                }
-                th:nth-child(5) {
-                  width: 150px;
-                } // Tổng tiền hàng
-                th:nth-child(6) {
-                  width: 150px;
-                } // Tình trạng thanh toán
-                th:nth-child(7) {
-                  width: 150px;
-                }
-              }
-            }
-            tbody {
-              .owner-mid-content-right-list-img-item {
-                td {
-                  height: 130px;
-                }
-                td:first-child {
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  .active {
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 5px;
-                    background: rgb(0, 199, 0);
-                    ion-icon {
-                      color: white;
-                      font-size: 24px;
-                    }
-                  }
-                  .unactive {
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 5px;
-                    background: rgb(234, 0, 0);
-                    ion-icon {
-                      margin-top: 1px;
-                      color: white;
-                      font-size: 24px;
-                    }
-                  }
-                }
-                td:nth-child(2) {
-                  width: 300px;
-                  img {
-                    max-width: 300px;
-                  }
-                }
-                td:nth-child(7) {
-                  justify-content: center;
-                  button {
-                    border-radius: 7px;
-                    width: 40px;
-                    height: 40px;
-                    margin-right: 10px;
-                    ion-icon {
-                      padding-top: 5px;
-                      width: 25px;
-                      height: 25px;
-                    }
-                  }
-                  button:last-child {
-                    background-color: rgb(255, 0, 0);
-                    ion-icon {
-                      color: white;
-                    }
-                  }
-                  button:first-child {
-                    background-color: rgb(233, 233, 0);
-                    ion-icon {
-                      color: rgb(0, 0, 0);
-                    }
-                  }
-                  button:first-child:hover {
-                    ion-icon {
-                      width: 22px;
-                      height: 22px;
-                    }
-                  }
-                  button:last-child:hover {
-                    ion-icon {
-                      width: 22px;
-                      height: 22px;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
-import OwnerEditDetailModal from "./OwnerEditDetailModal";
-isShowEditDetailModal: false,
- toggleEditDetailModal = () => {
-    this.setState({
-      isShowEditDetailModal: !this.state.isShowCreateProductModal,
-    });
-  };
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // <div className="bill-page">
-      //   <div className="bill-container">
-      //     {/* note: Hiển thị thông báo lỗi nếu có lỗi xảy ra */}
-      //     {error ? (
-      //       <div className="error">
-      //         {error}
-      //         <p>Đang chuyển hướng về trang chủ...</p>
-      //       </div>
-      //     ) : orderDetails ? (
-      //       // note: Hiển thị thông tin đơn hàng nếu dữ liệu được load thành công
-      //       <div className="bill-content">
-      //         <img src={logo} />
-      //         <h2>HÓA ĐƠN THANH TOÁN</h2>
-      //         <div className="bill-info">
-      //           <div className="f">
-      //             <p className="bill-info-date">
-      //               <strong>Ngày đặt hàng:</strong>{" "}
-      //               {new Date(orderDetails.NgayLapDonHang).toLocaleString()}
-      //             </p>
-      //             <p className="bill-info-id">
-      //               <strong>Mã đơn hàng:</strong> {orderDetails.MADONHANG}
-      //             </p>
-      //           </div>
-      //           <p className="bill-info-cusname">
-      //             <strong>Tên khách hàng:</strong> {orderDetails.TenKhachHang}
-      //           </p>
-      //           <p className="bill-info-cusphone">
-      //             <strong>Số điện thoại:</strong> {orderDetails.SDTNhanHang}
-      //           </p>
-      //           <p className="bill-info-cusaddress">
-      //             <strong>Địa chỉ:</strong> {orderDetails.DiaChiNhanHang}
-      //           </p>
-      //           <p className="bill-info-payment">
-      //             <strong>Phương thức thanh toán:</strong>{" "}
-      //             {orderDetails.PaymentType}
-      //           </p>
-      //           <p className="bill-info-payment-status">
-      //             <strong>Tình trạng thanh toán:</strong>{" "}
-      //             {orderDetails.PaymentStatus}
-      //           </p>
-      //           <p className="bill-info-delivery-method">
-      //             <strong>Phương thức giao hàng:</strong>{" "}
-      //             {orderDetails.DeliveryMethod}
-      //           </p>
-      //           <p className="bill-info-total">
-      //             <strong>Tổng tiền:</strong>{" "}
-      //             {orderDetails.TongTien.toLocaleString()} VNĐ
-      //           </p>
-      //         </div>
-
-      //         <h3>Chi tiết đơn hàng</h3>
-      //         <table className="bill-table">
-      //           <thead>
-      //             <tr>
-      //               <th>Sản phẩm</th>
-      //               <th>Mã chi tiết</th>
-      //               <th>Số lượng</th>
-      //               <th>Đơn giá</th>
-      //               <th>Thành tiền</th>
-      //             </tr>
-      //           </thead>
-      //           <tbody>
-      //             {/* note: Hiển thị danh sách chi tiết đơn hàng */}
-      //             {orderDetails.orderInfo.map((item, index) => (
-      //               <tr key={index}>
-      //                 <td>{item.masanpham}</td>
-      //                 <td>{item.mactsp}</td>
-      //                 <td>{item.soluong}</td>
-      //                 <td>{item.dongia.toLocaleString()} VNĐ</td>
-      //                 <td>
-      //                   {(item.soluong * item.dongia).toLocaleString()} VNĐ
-      //                 </td>
-      //               </tr>
-      //             ))}
-      //           </tbody>
-      //         </table>
-
-      //         {/* note: Hiển thị các nút hành động */}
-      //         <div className="bill-actions">
-      //           <button onClick={this.handleCancelOrder} className="cancel-btn">
-      //             Hủy đơn hàng
-      //           </button>
-      //           <button onClick={this.handleGeneratePDF} className="pdf-btn">
-      //             In PDF
-      //           </button>
-      //           <button onClick={this.handleSendEmail} className="email-btn">
-      //             Gửi qua email
-      //           </button>
-      //         </div>
-      //       </div>
-      //     ) : null}
-      //   </div>
-      // </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      // .f {
-//   display: flex;
-// }
-// .bill-page {
-//   display: flex;
-//   justify-content: center; /* Căn giữa theo chiều ngang */
-//   align-items: center; /* Căn giữa theo chiều dọc */
-//   min-height: 100vh; /* Chiều cao tối thiểu bằng toàn bộ viewport */
-//   width: 100%;
-//   background-color: #f5f5f5; /* Màu nền nhẹ để dễ nhìn */
-//   padding: 20px; /* Khoảng cách bên trong để tránh sát cạnh */
-
-//   .bill-container {
-//     display: flex;
-//     flex-direction: column; /* Sắp xếp các phần tử con theo cột */
-//     align-items: center; /* Căn giữa các phần tử con */
-//     width: 90%; /* Chiếm 90% chiều rộng, để lại khoảng trống hai bên */
-//     max-width: 800px; /* Giới hạn chiều rộng tối đa */
-//     padding: 20px;
-//     background-color: #ffffff; /* Nền trắng cho container */
-//     border-radius: 8px; /* Bo góc nhẹ */
-//     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
-//     text-align: center; /* Căn giữa văn bản bên trong */
-
-//     .bill-content {
-//       width: 100%; /* Chiếm toàn bộ chiều rộng của container */
-//       display: flex;
-//       flex-direction: column;
-//       align-items: center; /* Căn giữa các phần tử con */
-
-//       h2 {
-//         margin-top: 10px;
-//         font-size: 24px;
-//         margin-bottom: 20px;
-//         color: #333;
-//       }
-
-//       .bill-info {
-//         width: 100%;
-//         margin-bottom: 20px;
-//         p {
-//           text-align: left;
-//         }
-//         .bill-info-id {
-//           position: absolute;
-//           right: 470px;
-//         }
-//       }
-
-//       h3 {
-//         font-size: 20px;
-//         margin: 20px 0;
-//         color: #333;
-//       }
-
-//       .bill-table {
-//         width: 100%;
-//         border-collapse: collapse;
-//         margin-bottom: 20px;
-
-//         th,
-//         td {
-//           padding: 12px;
-//           border: 1px solid #ddd;
-//           font-size: 15px;
-//           text-align: center; /* Căn giữa nội dung bảng */
-//         }
-
-//         th {
-//           background-color: #f2f2f2;
-//           font-weight: bold;
-//           color: #333;
-//         }
-
-//         td {
-//           color: #555;
-//         }
-//       }
-
-//       .bill-actions {
-//         display: flex;
-//         justify-content: center; /* Căn giữa các nút */
-//         gap: 15px; /* Khoảng cách giữa các nút */
-//         margin-top: 20px;
-
-//         button {
-//           padding: 10px 20px;
-//           border: none;
-//           border-radius: 4px;
-//           font-size: 16px;
-//           cursor: pointer;
-//           transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu mượt */
-//         }
-
-//         .cancel-btn {
-//           background-color: #ff4d4f;
-//           color: white;
-
-//           &:hover {
-//             background-color: #d9363e;
-//           }
-//         }
-
-//         .pdf-btn {
-//           background-color: #1890ff;
-//           color: white;
-
-//           &:hover {
-//             background-color: #096dd9;
-//           }
-//         }
-
-//         .email-btn {
-//           background-color: #52c41a;
-//           color: white;
-
-//           &:hover {
-//             background-color: #389e0d;
-//           }
-//         }
-//       }
-//     }
-
-//     .error {
-//       color: #ff4d4f;
-//       font-size: 18px;
-//       margin-bottom: 10px;
-
-//       p {
-//         font-size: 16px;
-//         color: #555;
-//       }
-//     }
-//   }
-// }
-
-// /* Responsive design cho màn hình nhỏ */
-// @media (max-width: 600px) {
-//   .bill-page {
-//     padding: 10px;
-//   }
-
-//   .bill-container {
-//     width: 95%;
-//     padding: 15px;
-
-//     .bill-content {
-//       h2 {
-//         font-size: 20px;
-//       }
-
-//       .bill-info p {
-//         font-size: 14px;
-//         flex-direction: column; /* Chuyển sang cột trên màn hình nhỏ */
-//         align-items: center;
-//       }
-
-//       .bill-table {
-//         font-size: 14px;
-
-//         th,
-//         td {
-//           padding: 8px;
-//         }
-//       }
-
-//       .bill-actions {
-//         flex-direction: column; /* Xếp nút theo cột */
-//         gap: 10px;
-
-//         button {
-//           width: 100%; /* Nút chiếm toàn bộ chiều rộng */
-//           padding: 12px;
-//         }
-//       }
-//     }
-//   }
-// }
-*Blank Component:
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { IonIcon } from "@ionic/react"; //import thư viện icon
-import { } from "ionicons/icons"; //chỉ import các icon cần dùng
-import './.scss'; //import scss
-
-class  extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-
-        }
-    }
-    componentDidMount() {
-       
-    }
-    render() {
-        return (
-            <div>
-
-            </div>
-        );
-    }
-}
-
-const mapStateToProps = (state) => ({
-
-});
-
-const mapDispatchToProps = {
-};
-export default connect(mapStateToProps, mapDispatchToProps)();
+________________________________________________________________________________

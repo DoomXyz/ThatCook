@@ -61,6 +61,15 @@ class Track extends Component {
           this.props.clearTrackInfo();
         }
       }
+      // Parse query params from VNPay return
+      const query = new URLSearchParams(window.location.search);
+      const success = query.get('success');
+      const invoiceId = query.get('invoiceId');
+      if (success === 'true' && invoiceId) {
+        toast.success('Thanh toán thành công!');
+        this.setState({ billid: invoiceId, billtype: 1, actionPage: 1 });
+        await this.handleLoadBillDetails(invoiceId, 1);
+      }
     } catch (e) {
       console.error('Error in componentDidMount:', e);
       toast.error('Lỗi khi tải dữ liệu từ trang trước!');
@@ -229,7 +238,7 @@ class Track extends Component {
   };
   //Hàm thao tác của Product
   handleConfirmReceived = async (invoiceid) => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: true } });
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } });
     const confirmReceived = () =>
       new Promise((resolve) => {
         toast(
@@ -284,7 +293,7 @@ class Track extends Component {
     }
   };
   handleContinueInvoice = async (invoiceid) => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: true } });
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } });
     const confirmContinue = () =>
       new Promise((resolve) => {
         toast(
@@ -372,7 +381,7 @@ class Track extends Component {
   };
   //Hàm thao tác của Appointment
   handleCancelAppointment = async (appointmentid) => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: true } });
+    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } });
     const confirmCancel = () =>
       new Promise((resolve) => {
         toast(
@@ -497,13 +506,13 @@ class Track extends Component {
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                          second: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -691,12 +700,12 @@ class Track extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -820,12 +829,12 @@ class Track extends Component {
                                       <b>Thời gian:</b>
                                       {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
                                         ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
