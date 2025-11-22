@@ -48,6 +48,7 @@ module.exports = {
         // PaymentType
         { Type: 'PaymentType', Code: 'CASH', CodeValueVI: 'Tiền mặt', ExtraValue: null },
         { Type: 'PaymentType', Code: 'CARD', CodeValueVI: 'Thanh toán bằng thẻ', ExtraValue: null },
+        { Type: 'PaymentType', Code: 'QR', CodeValueVI: 'VnPay QR', ExtraValue: null },
 
         // PaymentStatus
         { Type: 'PaymentStatus', Code: 'PEND', CodeValueVI: 'Chờ thanh toán', ExtraValue: null },
@@ -61,9 +62,9 @@ module.exports = {
         { Type: 'ShippingStatus', Code: 'CANCELED', CodeValueVI: 'Đã hủy', ExtraValue: null },
 
         // ShippingMethod
-        { Type: 'ShippingMethod', Code: 'FAST', CodeValueVI: 'Giao hàng chuyển phát nhanh', ExtraValue: 30000.00 },
-        { Type: 'ShippingMethod', Code: 'ECO', CodeValueVI: 'Giao hàng tiết kiệm', ExtraValue: 15000.00 },
-        { Type: 'ShippingMethod', Code: 'EXPRESS', CodeValueVI: 'Giao hàng hỏa tốc', ExtraValue: 40000.00 },
+        { Type: 'ShippingMethod', Code: 'FAST', CodeValueVI: 'Giao hàng chuyển phát nhanh', ExtraValue: 30000.0 },
+        { Type: 'ShippingMethod', Code: 'ECO', CodeValueVI: 'Giao hàng tiết kiệm', ExtraValue: 15000.0 },
+        { Type: 'ShippingMethod', Code: 'EXPRESS', CodeValueVI: 'Giao hàng hỏa tốc', ExtraValue: 40000.0 },
 
         // CouponStatus
         { Type: 'CouponStatus', Code: 'ACTIVE', CodeValueVI: 'Hoạt động', ExtraValue: null },

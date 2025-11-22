@@ -3,6 +3,8 @@ import db from '../models/index';
 import { checkValidAllCode, generateID } from './utilitiesService';
 
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+const querystring = require('qs');
 
 let sendInvoiceEmail = async (invoiceid, email) => {
   try {
@@ -691,7 +693,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
   });
 };
 
-let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow) => {
+let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow, req) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
@@ -807,6 +809,17 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         });
       }
       await transaction.commit();
+
+      let vnpayUrl = null;
+      if (paymenttype === 'QR' || paymenttype === 'CARD') {
+        const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '127.0.0.1';
+        const bankCode = paymenttype === 'QR' ? 'VNPAYQR' : ''; // Rỗng cho card form
+        const vnpayResponse = await generateVnpayUrl(InvoiceID, totalpayment, ipAddr, bankCode); // Thêm bankCode param
+        if (vnpayResponse.errCode === 0) {
+          vnpayUrl = vnpayResponse.data;
+        }
+      }
+
       let emailSent = true;
       if (invoiceData.email) {
         emailSent = await sendInvoiceEmail(InvoiceID, invoiceData.email);
@@ -815,14 +828,14 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         resolve({
           errCode: 0,
           errMessage: 'Tạo đơn hàng thành công, nhưng gửi email thất bại!',
-          data: { InvoiceID },
+          data: { InvoiceID, vnpayUrl },
         });
         return;
       }
       resolve({
         errCode: 0,
         errMessage: 'Tạo đơn hàng thành công!',
-        data: { InvoiceID },
+        data: { InvoiceID, vnpayUrl },
       });
     } catch (e) {
       await transaction.rollback();
@@ -1004,7 +1017,7 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
   }
 
   const where = {
-    '$Invoice.PaymentStatus$': "PAID",
+    '$Invoice.PaymentStatus$': 'PAID',
     '$Invoice.CanceledAt$': null,
   };
 
@@ -1039,7 +1052,7 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
 
 const getTopProducts = async (type = 'monthly', startDate, endDate) => {
   const where = {
-    '$Invoice.PaymentStatus$': "PAID",
+    '$Invoice.PaymentStatus$': 'PAID',
     '$Invoice.CanceledAt$': null,
   };
 
@@ -1077,6 +1090,122 @@ const getTopProducts = async (type = 'monthly', startDate, endDate) => {
   }));
 };
 
+// Hàm sắp xếp object (từ demo VNPay - fix %20 -> +)
+function sortObject(obj) {
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
+  }
+  return sorted;
+}
+
+// Hàm tạo URL VNPay (thêm bankCode param)
+let generateVnpayUrl = (invoiceid, totalpayment, ipAddr, bankCode = '') => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let vnpUrl = process.env.VNP_URL;
+      process.env.TZ = 'Asia/Ho_Chi_Minh';
+      let date = new Date();
+      let createDate = date.getFullYear().toString() + ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + date.getDate()).slice(-2) + ('0' + date.getHours()).slice(-2) + ('0' + date.getMinutes()).slice(-2) + ('0' + date.getSeconds()).slice(-2);
+      let orderId = invoiceid;
+      let amount = totalpayment * 100;
+      let locale = 'vn';
+      let currCode = 'VND';
+      let vnp_Params = {};
+      vnp_Params['vnp_Version'] = '2.1.0';
+      vnp_Params['vnp_Command'] = 'pay';
+      vnp_Params['vnp_TmnCode'] = process.env.VNP_TMNCODE;
+      vnp_Params['vnp_Locale'] = locale;
+      vnp_Params['vnp_CurrCode'] = currCode;
+      vnp_Params['vnp_TxnRef'] = orderId;
+      vnp_Params['vnp_OrderInfo'] = 'Thanh toan don hang ' + orderId;
+      vnp_Params['vnp_OrderType'] = 'other';
+      vnp_Params['vnp_Amount'] = amount;
+      vnp_Params['vnp_ReturnUrl'] = process.env.VNP_RETURNURL;
+      console.log('Generated vnp_ReturnUrl:', process.env.VNP_RETURNURL);
+      vnp_Params['vnp_IpAddr'] = ipAddr;
+      vnp_Params['vnp_CreateDate'] = createDate;
+      if (bankCode) {
+        vnp_Params['vnp_BankCode'] = bankCode; // QR: 'VNPAYQR', card: rỗng hoặc 'NCB' cho test
+      }
+
+      vnp_Params = sortObject(vnp_Params);
+
+      let signData = querystring.stringify(vnp_Params, { encode: false });
+      let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+      let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+      vnp_Params['vnp_SecureHash'] = signed;
+      vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Tạo URL VNPay thành công',
+        data: vnpUrl,
+      });
+    } catch (e) {
+      console.log('Lỗi tạo URL VNPay:', e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi tạo URL VNPay: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+// Hàm handleVnpayIpn (từ demo, fix Buffer)
+let handleVnpayIpn = (query) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      let vnp_Params = query;
+      let secureHash = vnp_Params['vnp_SecureHash'];
+
+      delete vnp_Params['vnp_SecureHash'];
+      delete vnp_Params['vnp_SecureHashType'];
+
+      vnp_Params = sortObject(vnp_Params);
+      let signData = querystring.stringify(vnp_Params, { encode: false });
+      let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+      let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+      if (secureHash === signed) {
+        let orderId = vnp_Params['vnp_TxnRef'];
+        let rspCode = vnp_Params['vnp_ResponseCode'];
+        console.log('IPN received for order:', orderId, 'rspCode:', rspCode);
+
+        if (rspCode === '00') {
+          // Success - update 'PAID'
+          await db.Invoice.update({ PaymentStatus: 'PAID' }, { where: { InvoiceID: orderId }, transaction });
+          await transaction.commit();
+          console.log('IPN Success: Updated Invoice ' + orderId + ' to PAID');
+          resolve({ RspCode: '00', Message: 'Confirm Success' });
+        } else {
+          await transaction.rollback();
+          console.log('IPN Fail: rspCode ' + rspCode);
+          resolve({ RspCode: rspCode, Message: 'Fail Code ' + rspCode });
+        }
+      } else {
+        await transaction.rollback();
+        console.log('IPN Fail: Checksum failed for params:', vnp_Params);
+        resolve({ RspCode: '97', Message: 'Checksum failed' });
+      }
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Lỗi IPN:', e);
+      resolve({ RspCode: '99', Message: 'Unknow error' });
+    }
+  });
+};
+
 module.exports = {
   createInvoice,
   getAccountInvoiceInfo,
@@ -1086,4 +1215,5 @@ module.exports = {
   getInvoiceEmail,
   getRevenueStats,
   getTopProducts,
+  handleVnpayIpn,
 };

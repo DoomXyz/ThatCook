@@ -47,7 +47,7 @@ let handleGetInvoiceDetailInfo = async (req, res) => {
 let handleCreateInvoice = async (req, res) => {
   try {
     const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow } = req.body;
-    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow);
+    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow, req); // Thêm req ở cuối
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
