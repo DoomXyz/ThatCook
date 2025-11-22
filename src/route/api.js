@@ -11,7 +11,28 @@ import appointmentController from '../controllers/appointmentController';
 import scheduleController from '../controllers/scheduleController';
 import utilitiesController from '../controllers/utilitiesController';
 import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
+import querystring from 'qs'; // Import qs for querystring
+import crypto from 'crypto'; // Import crypto
+import db from '../models/index'; // Import db for sequelize
+
 let router = express.Router();
+
+function sortObject(obj) {
+  // Copy sortObject function here
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
+  }
+  return sorted;
+}
 
 const protectRoute = (req, res, next) => {
   const adminPaths = ['/api/load-accountinfo', '/api/change-accountstatus', '/api/load-serviceinfo', '/api/create-service', '/api/change-serviceinfo', '/api/change-servicestatus'];
@@ -153,7 +174,46 @@ let initAPIRoutes = (app) => {
 
   router.get('/api/load-schedule', scheduleController.handleLoadSchedule);
   router.put('/api/change-schedulestatus', scheduleController.handleChangeScheduleStatus);
+
+  // Route mới cho VNPay return (GET)
+  router.get('/api/vnpay_return', async (req, res) => {
+    // Thêm async
+    console.log('VNPay Return Params:', req.query);
+    const rspCode = req.query.vnp_ResponseCode;
+    const orderId = req.query.vnp_TxnRef;
+    // Copy logic kiểm tra secure hash từ IPN
+    let vnp_Params = req.query;
+    let secureHash = vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+    vnp_Params = sortObject(vnp_Params);
+    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+    let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+    if (secureHash === signed && rspCode === '00') {
+      // Update status 'PAID' (giống IPN)
+      const transaction = await db.sequelize.transaction();
+      try {
+        await db.Invoice.update({ PaymentStatus: 'PAID' }, { where: { InvoiceID: orderId }, transaction });
+        await transaction.commit();
+        console.log('Return URL Success: Updated Invoice ' + orderId + ' to PAID');
+      } catch (e) {
+        await transaction.rollback();
+        console.log('Return URL Fail: Error updating status', e);
+      }
+      // Redirect về FE track với success
+      res.redirect(`${process.env.URL_FRONTEND}/track?success=true&invoiceId=${orderId}`);
+    } else {
+      // Fail
+      res.redirect(`${process.env.URL_FRONTEND}/checkout?error=Thanh toán thất bại&code=${rspCode}`);
+    }
+  });
+  // Route mới cho VNPay IPN (POST)
+  router.post('/api/vnpay_ipn', async (req, res) => {
+    console.log('VNPay IPN Callback:', req.query);
+    const response = await invoiceService.handleVnpayIpn(req.query);
+    res.status(200).send(response);
+  });
   return app.use('/', router);
 };
-
 module.exports = initAPIRoutes;
