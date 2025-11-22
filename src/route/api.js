@@ -110,6 +110,8 @@ let initAPIRoutes = (app) => {
   router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
   router.post('/api/get-appointment-email', appointmentController.handleGetAppointmentEmail);
   router.post('/api/get-appointmentbill-email', appointmentController.handleGetAppointmentBillEmail);
+
+  router.post('/api/send-notification', utilitiesController.handleSendNotification);
   //admin
   router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
   router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

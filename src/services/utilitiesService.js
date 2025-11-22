@@ -433,6 +433,164 @@ let changeCodeInfo = (codeInfo) => {
   });
 };
 
+let checkAccountExist = (accountID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!accountID) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu mã tài khoản để kiểm tra!',
+          data: null,
+        });
+        return;
+      }
+      let exist = await db.Account.findOne({
+        where: { AccountID: accountID },
+      });
+      resolve(exist ? true : false);
+    } catch (e) {
+      console.log(e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi kiểm tra: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+
+let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extravalue) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      if (!accountid || !notiftype || !extravalue) {
+        await transaction.rollback();
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      if (!receivenotifid && !rolereceive) {
+        await transaction.rollback();
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const validNotifType = await checkValidAllCode('NotifType', notiftype);
+      if (!validNotifType) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Loại thông báo không hợp lệ!',
+          data: null,
+        });
+        return;
+      }
+      const isSenderExist = await checkAccountExist(accountid);
+      if (!isSenderExist) {
+        await transaction.rollback();
+        resolve({
+          errCode: 1,
+          errMessage: 'Tài khoản không tồn tại trong hệ thống!',
+          data: null,
+        });
+        return;
+      }
+      if (rolereceive) {
+        const validAccountType = await checkValidAllCode('AccountType', rolereceive);
+        if (!validAccountType) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Loại tài khoản không hợp lệ!',
+            data: null,
+          });
+          return;
+        }
+      } else {
+        const isReceiverExist = await checkAccountExist(receivenotifid);
+        if (!isReceiverExist) {
+          await transaction.rollback();
+          resolve({
+            errCode: 1,
+            errMessage: 'Tài khoản không tồn tại trong hệ thống!',
+            data: null,
+          });
+          return;
+        }
+      }
+      let notifdescription = 'UIA';
+      switch (notiftype) {
+        case 'ORDER_COMPLETE':
+          notifdescription = `Đơn hàng ${extravalue} đã được khách hàng ${accountid} đặt và thanh toán thành công!`;
+          break;
+        case 'ORDER_CONFIRM':
+          notifdescription = `Khách hàng ${accountid} đã đặt đơn hàng ${extravalue} và đang chờ xác nhận.`;
+          break;
+        case 'ORDER_SUCCESS':
+          notifdescription = `Bạn đã đặt đơn hàng ${extravalue} thành công. Cảm ơn bạn đã mua sắm!`;
+          break;
+        case 'ORDER_CANCEL':
+          notifdescription = `Đơn hàng ${extravalue} đã bị hủy bởi ${accountid}.`;
+          break;
+        case 'APM_SUCCESS':
+          notifdescription = `Lịch khám ${extravalue} của bạn đã được đặt thành công.`;
+          break;
+        case 'APM_WAIT':
+          notifdescription = `Khách hàng ${accountid} đã đặt lịch khám ${extravalue} và đang chờ bạn xác nhận.`;
+          break;
+        case 'APM_CONFIRM':
+          notifdescription = `Lịch khám ${extravalue} đã được bác sĩ ${accountid} xác nhận.`;
+          break;
+        case 'APM_REFUSE':
+          notifdescription = `Lịch khám ${extravalue} đã bị bác sĩ ${accountid} từ chối.`;
+          break;
+        case 'APM_COMPLETE':
+          notifdescription = `Lịch khám ${extravalue} đã được hoàn thành.`;
+          break;
+        case 'APM_CANCAEL':
+          notifdescription = `Lịch khám ${extravalue} đã bị hủy bởi ${accountid}.`;
+          break;
+        default:
+          notifdescription = 'UIA';
+      }
+      const createdAt = new Date();
+      await db.Notification.create(
+        {
+          NotifDescription: notifdescription,
+          CreatedAt: createdAt,
+          ExtraValue: extravalue,
+          ReceiveNotifID: receivenotifid,
+          AccountID: accountid,
+          RoleReceive: rolereceive,
+          NotifType: notiftype,
+          NotifStatus: 'UNREAD',
+        },
+        { transaction }
+      );
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Gửi thông báo thành công!',
+        data: null,
+      });
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Error in sendNotification: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi gửi thông báo: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
 module.exports = {
   getAllCodes,
   generateID,
@@ -440,4 +598,5 @@ module.exports = {
   createCode,
   changeCodeInfo,
   checkValidAllCode,
+  sendNotification,
 };

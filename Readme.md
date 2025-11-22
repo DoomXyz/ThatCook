@@ -140,3 +140,25 @@ ADD CONSTRAINT veterinarianservice_ibfk_1
 FOREIGN KEY (VeterinarianID)
 REFERENCES thatcookdb.account(AccountID)
 ON DELETE CASCADE ON UPDATE CASCADE;
+-------------Thêm bảng Notification vào db-------------
+USE thatcookdb;
+CREATE TABLE Notification (
+    NotifID          INT AUTO_INCREMENT PRIMARY KEY,
+    AccountID        VARCHAR(42) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    ReceiveNotifID   VARCHAR(42) NULL,
+    NotifDescription TEXT COLLATE utf8mb4_bin NOT NULL,
+    CreatedAt        DATETIME NOT NULL,
+    ExtraValue       VARCHAR(10) NOT NULL,
+    RoleReceive      VARCHAR(20) NULL,
+    NotifType        VARCHAR(20) NOT NULL,
+    NotifStatus      VARCHAR(20) NOT NULL,
+
+    INDEX index_accountid (AccountID),
+    INDEX index_receivenotifid (ReceiveNotifID),
+    INDEX index_rolereceive (RoleReceive),
+
+    CONSTRAINT fk_notification_account
+        FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

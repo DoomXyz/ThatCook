@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       Account.hasMany(models.Invoice, { foreignKey: 'AccountID' });
       Account.hasMany(models.CartItem, { foreignKey: 'AccountID' });
       Account.hasMany(models.VeterinarianService, { foreignKey: 'VeterinarianID' });
+      Account.hasMany(models.Notification, { foreignKey: 'SendNotifID' });
     }
   }
 

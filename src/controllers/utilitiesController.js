@@ -50,9 +50,20 @@ let handleChangeCodeInfo = async (req, res) => {
   }
 };
 
+let handleSendNotification = async (req, res) => {
+  try {
+    const { accountid, receivenotifid, rolereceive, notiftype, extravalue } = req.body;
+    let response = await utilitiesService.sendNotification(accountid, receivenotifid, rolereceive, notiftype, extravalue);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 module.exports = {
   handleGetAllCodes,
   handleLoadAllCodesInfo,
   handleCreateCode,
   handleChangeCodeInfo,
+  handleSendNotification,
 };
