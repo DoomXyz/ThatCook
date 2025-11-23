@@ -50,20 +50,49 @@ let handleChangeCodeInfo = async (req, res) => {
   }
 };
 
-let handleSendNotification = async (req, res) => {
+
+let handleGetUserNotifications = async (req, res) => {
   try {
-    const { accountid, receivenotifid, rolereceive, notiftype, extravalue } = req.body;
-    let response = await utilitiesService.sendNotification(accountid, receivenotifid, rolereceive, notiftype, extravalue);
+    const { receiveId } = req.query;
+
+    if (!receiveId) {
+      return res.status(400).json({
+        errCode: 1,
+        errMessage: 'Thiếu tham số receiveId',
+        data: null,
+      });
+    }
+
+    console.log(`[API DEBUG] Gọi /get-user-notifications cho receiveId: ${receiveId}`);
+
+    let response = await utilitiesService.getUserNotifications(receiveId);
+
+    console.log(`[API DEBUG] Response từ service: errCode=${response.errCode}, Số thông báo: ${response.data.length}`);
+
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
+let handleNotifiStatusChange = async (req, res) => {
+  try {
+    const { notificationId, status } = req.body;
+    if (!notificationId) {
+      return res.status(400).json({ errCode: 1, errMessage: 'Thiếu notificationId' });
+    }
 
+    const result = await utilitiesService.NotifiStatusChange(notificationId, status);
+    return res.status(200).json(result);
+  } catch (e) {
+    console.log('Error handleNotifiStatusChange:', e);
+    return res.status(500).json({ errCode: 3, errMessage: 'Lỗi server' });
+  }
+};
 module.exports = {
   handleGetAllCodes,
   handleLoadAllCodesInfo,
   handleCreateCode,
   handleChangeCodeInfo,
-  handleSendNotification,
+  handleNotifiStatusChange,
+  handleGetUserNotifications,
 };

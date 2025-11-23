@@ -108,7 +108,7 @@ module.exports = {
         { Type: 'ServiceStatus', Code: 'VALID', CodeValueVI: 'Hoạt động', ExtraValue: null },
         { Type: 'ServiceStatus', Code: 'INVALID', CodeValueVI: 'Tạm dừng', ExtraValue: null },
         // NotifType
-        { Type: 'NotifType', Code: 'System', CodeValueVI: 'Hệ Thống', ExtraValue: null }, ///hệ thống gửi đến cho người dùng
+
         { Type: 'NotifType', Code: 'ORDER_COMPLETE', CodeValueVI: 'đã thanh toán', ExtraValue: null }, //khách hàng đặt hàng xong (đã thanh toán) -> chủ cửa hàng
         { Type: 'NotifType', Code: 'ORDER_CONFIRM', CodeValueVI: 'chờ xác nhận đơn hàng', ExtraValue: null }, //khách hàng đặt hàng xong (chưa thanh toán) -> chủ cửa hàng
         { Type: 'NotifType', Code: 'ORDER_SUCCESS', CodeValueVI: 'đặt đơn hàng thành công', ExtraValue: null }, //khách hàng đặt đơn hàng thành công -> khách hàng

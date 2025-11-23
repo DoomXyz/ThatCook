@@ -1,6 +1,6 @@
 import { Op, literal } from 'sequelize';
 import db from '../models/index';
-import { checkValidAllCode, generateID } from './utilitiesService';
+import { checkValidAllCode, generateID, sendNotification } from './utilitiesService';
 
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
@@ -809,7 +809,41 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         });
       }
       await transaction.commit();
-
+      console.log(`[DEBUG] Tạo đơn hàng ${InvoiceID} thành công! PaymentType: ${paymenttype}`);
+      //Phân loại thanh toán để thông báo 
+      if (accountid && paymenttype === 'CASH') {
+        const owner = await db.Account.findOne({
+          where: { AccountType: 'O' },
+          attributes: ['AccountID'],
+          raw: true,
+        });
+        if (owner?.AccountID) {
+          console.log(`[DEBUG] Gửi ORDER_CONFIRM cho chủ shop từ khách ${accountid}`);
+          await sendNotification(
+            accountid,     // người gửi (khách hàng)
+            null,          // không gửi cho người cụ thể
+            'O',           // gửi cho tất cả chủ shop
+            'ORDER_CONFIRM',
+            InvoiceID      // mã đơn hàng
+          );
+        } else {
+          console.log('[ERROR] Không tìm thấy chủ cửa hàng (AccountType=O) trong DB!');
+        }
+        if (accountid) {
+          try {
+            await sendNotification(
+              accountid,
+              accountid,
+              null,
+              'ORDER_SUCCESS',
+              InvoiceID
+            );
+            console.log(`[NOTIF SUCCESS] Đã gửi ORDER_SUCCESS cho khách ${accountid}`);
+          } catch (err) {
+            console.log('[NOTIF ERROR] Gửi ORDER_SUCCESS thất bại:', err);
+          }
+        }
+      }
       let vnpayUrl = null;
       if (paymenttype === 'QR' || paymenttype === 'CARD') {
         const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '127.0.0.1';
@@ -955,6 +989,85 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
       }
       await invoice.save({ transaction });
       await transaction.commit();
+      console.log(`[DEBUG] Đổi trạng thái đơn hàng ${invoiceid} thành công! Type: ${type}, Status: ${status}`);
+      // THÊM TỪ ĐÂY ↓↓↓ - GỬI THÔNG BÁO ORDER_CANCEL CHO KHÁCH HÀNG KHI HỦY
+      if (type === 'ShippingStatus' && status === 'CANCELED') {
+        console.log(`[DEBUG CHANGE] Phát hiện HỦY ĐƠN - Gửi ORDER_CANCEL cho khách hàng`);
+        try {
+          const invoiceData = await db.Invoice.findOne({
+            where: { InvoiceID: invoiceid },
+            attributes: ['AccountID'],
+            raw: true,
+          });
+          console.log(`[DEBUG CHANGE] Invoice AccountID (khách hàng): ${invoiceData ? invoiceData.AccountID : 'KHÔNG CÓ'}`);
+
+          if (invoiceData?.AccountID) {
+            const owner = await db.Account.findOne({
+              where: { AccountType: 'O' },
+              attributes: ['AccountID'],
+              raw: true,
+            });
+            console.log(`[DEBUG CHANGE] Chủ shop: ${owner ? owner.AccountID : 'KHÔNG TÌM THẤY'}`);
+
+            if (owner?.AccountID) {
+              const cancelResult = await sendNotification(
+                owner.AccountID,              // Người gửi: chủ cửa hàng
+                invoiceData.AccountID,        // Gửi cho: khách hàng cụ thể
+                null,                         // Không gửi theo role
+                'ORDER_CANCEL',               // Loại: hủy đơn hàng
+                invoiceid                     // Extra: mã đơn hàng
+              );
+              console.log(`[DEBUG CHANGE] Kết quả ORDER_CANCEL: `, cancelResult);
+            } else {
+              console.log('[ERROR CHANGE] KHÔNG TÌM THẤY CHỦ SHOP!');
+            }
+          } else {
+            console.log('[DEBUG CHANGE] Đơn hàng không có AccountID (khách vãng lai) - Không gửi thông báo');
+          }
+        } catch (notifErr) {
+          console.log('[ERROR CHANGE] Lỗi gửi ORDER_CANCEL: ', notifErr);
+        }
+      }
+      // === THÊM THÔNG BÁO KHI CHUYỂN SANG PAID (admin bấm tay) ===
+      if (type === 'PaymentStatus' && status === 'PAID') {
+        const invoice = await db.Invoice.findOne({
+          where: { InvoiceID: invoiceid },
+          attributes: ['AccountID'],
+          raw: true,
+        });
+
+        if (invoice?.AccountID) {
+          const owner = await db.Account.findOne({
+            where: { AccountType: 'O' },
+            attributes: ['AccountID'],
+            raw: true,
+          });
+
+          if (owner?.AccountID) {
+            console.log(`[DEBUG] Gửi ORDER_COMPLETE cho chủ shop và ORDER_SUCCESS cho khách ${invoice.AccountID}`);
+            // Thông báo cho chủ shop
+            await sendNotification(
+              invoice.AccountID,
+              null,
+              'O',
+              'ORDER_COMPLETE',
+              invoiceid
+            );
+            // Thông báo cho khách hàng
+            await sendNotification(
+              owner.AccountID,
+              invoice.AccountID,
+              null,
+              'ORDER_SUCCESS',
+              invoiceid
+            );
+          } else {
+            console.log('[ERROR] Không tìm thấy chủ cửa hàng (AccountType=O) trong DB!');
+          }
+        } else {
+          console.log(`[DEBUG] Đơn hàng ${invoiceid} không có AccountID (khách vãng lai)`);
+        }
+      }
       resolve({
         errCode: 0,
         errMessage: 'Thay đổi trạng thái hóa đơn thành công!',
@@ -1185,6 +1298,29 @@ let handleVnpayIpn = (query) => {
         if (rspCode === '00') {
           // Success - update 'PAID'
           await db.Invoice.update({ PaymentStatus: 'PAID' }, { where: { InvoiceID: orderId }, transaction });
+          const invoice = await db.Invoice.findOne({
+            where: { InvoiceID: orderId },
+            attributes: ['AccountID'],
+            raw: true,
+          });
+
+          if (invoice?.AccountID) {
+            const owner = await db.Account.findOne({
+              where: { AccountType: 'O' },
+              attributes: ['AccountID'],
+              raw: true,
+            });
+
+            if (owner?.AccountID) {
+              console.log(`[DEBUG] Gửi ORDER_COMPLETE cho chủ shop và ORDER_SUCCESS cho khách ${invoice.AccountID}`);
+              await sendNotification(invoice.AccountID, null, 'O', 'ORDER_COMPLETE', orderId);
+              await sendNotification(owner.AccountID, invoice.AccountID, null, 'ORDER_SUCCESS', orderId);
+            } else {
+              console.log('[ERROR] Không tìm thấy chủ cửa hàng (AccountType=O) trong DB!');
+            }
+          } else {
+            console.log(`[DEBUG] Đơn hàng ${orderId} không có AccountID (khách vãng lai)`);
+          }
           await transaction.commit();
           console.log('IPN Success: Updated Invoice ' + orderId + ' to PAID');
           resolve({ RspCode: '00', Message: 'Confirm Success' });

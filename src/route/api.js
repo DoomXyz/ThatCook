@@ -132,7 +132,9 @@ let initAPIRoutes = (app) => {
   router.post('/api/get-appointment-email', appointmentController.handleGetAppointmentEmail);
   router.post('/api/get-appointmentbill-email', appointmentController.handleGetAppointmentBillEmail);
 
-  router.post('/api/send-notification', utilitiesController.handleSendNotification);
+  //notification
+  router.get('/api/get-user-notifications', utilitiesController.handleGetUserNotifications);
+  router.put('/api/change-notification-status', utilitiesController.handleNotifiStatusChange);
   //admin
   router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
   router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

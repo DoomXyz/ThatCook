@@ -524,37 +524,43 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
           return;
         }
       }
+      const account = await db.Account.findOne({
+        attributes: ['AccountID', 'UserName'],
+        where: { AccountID: accountid },
+        raw: true,
+        transaction,
+      });
       let notifdescription = 'UIA';
       switch (notiftype) {
         case 'ORDER_COMPLETE':
-          notifdescription = `Đơn hàng ${extravalue} đã được khách hàng ${accountid} đặt và thanh toán thành công!`;
+          notifdescription = `Đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> đã được khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đặt và thanh toán thành công!`;
           break;
         case 'ORDER_CONFIRM':
-          notifdescription = `Khách hàng ${accountid} đã đặt đơn hàng ${extravalue} và đang chờ xác nhận.`;
+          notifdescription = `Khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đã đặt đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> và đang chờ xác nhận.`;
           break;
         case 'ORDER_SUCCESS':
-          notifdescription = `Bạn đã đặt đơn hàng ${extravalue} thành công. Cảm ơn bạn đã mua sắm!`;
+          notifdescription = `Bạn đã đặt đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> thành công. Cảm ơn bạn đã mua sắm!`;
           break;
         case 'ORDER_CANCEL':
-          notifdescription = `Đơn hàng ${extravalue} đã bị hủy bởi ${accountid}.`;
+          notifdescription = `Đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
           break;
         case 'APM_SUCCESS':
           notifdescription = `Lịch khám ${extravalue} của bạn đã được đặt thành công.`;
           break;
         case 'APM_WAIT':
-          notifdescription = `Khách hàng ${accountid} đã đặt lịch khám ${extravalue} và đang chờ bạn xác nhận.`;
+          notifdescription = `Khách hàng ${account.UserName} đã đặt lịch khám ${extravalue} và đang chờ bạn xác nhận.`;
           break;
         case 'APM_CONFIRM':
-          notifdescription = `Lịch khám ${extravalue} đã được bác sĩ ${accountid} xác nhận.`;
+          notifdescription = `Lịch khám ${extravalue} đã được bác sĩ ${account.UserName} xác nhận.`;
           break;
         case 'APM_REFUSE':
-          notifdescription = `Lịch khám ${extravalue} đã bị bác sĩ ${accountid} từ chối.`;
+          notifdescription = `Lịch khám ${extravalue} đã bị bác sĩ ${account.UserName} từ chối.`;
           break;
         case 'APM_COMPLETE':
           notifdescription = `Lịch khám ${extravalue} đã được hoàn thành.`;
           break;
         case 'APM_CANCAEL':
-          notifdescription = `Lịch khám ${extravalue} đã bị hủy bởi ${accountid}.`;
+          notifdescription = `Lịch khám ${extravalue} đã bị hủy bởi ${account.UserName}.`;
           break;
         default:
           notifdescription = 'UIA';
@@ -590,7 +596,92 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
     }
   });
 };
+let getUserNotifications = (receiveId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!receiveId) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu ReceiveNotifID!',
+          data: null,
+        });
+        return;
+      }
 
+      const user = await db.Account.findOne({
+        where: { AccountID: receiveId },
+        attributes: ['AccountType'],
+        raw: true,
+      });
+
+      if (!user) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Tài khoản không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+
+      const userRole = (user.AccountType || '').trim().toUpperCase();
+
+      const notifications = await db.Notification.findAll({
+        where: {
+          [Op.or]: [
+            { ReceiveNotifID: receiveId },                                    // 1. Thông báo gửi riêng cho bạn
+            {
+              [Op.and]: [
+                { RoleReceive: userRole },    // 2. Thông báo gửi theo role (ví dụ: 'O' = chủ shop)
+                { ReceiveNotifID: null }      // và không gửi riêng cho ai cả → gửi cho cả nhóm
+              ]
+            },
+          ],
+        },
+        attributes: [
+          'NotifID',
+          'NotifDescription',
+          'CreatedAt',
+          'NotifType',
+          'NotifStatus',
+          'ExtraValue'
+        ],
+        order: [['CreatedAt', 'DESC']],
+        limit: 30,
+        raw: true,
+      });
+
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy danh sách thông báo thành công!',
+        data: notifications,
+      });
+    } catch (e) {
+      console.log('Error in getUserNotifications:', e);
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy thông báo: ' + e.message,
+        data: null,
+      });
+    }
+  });
+};
+let NotifiStatusChange = async (notificationId, status = 'READ') => {
+  try {
+    if (!notificationId) {
+      return { errCode: -1, errMessage: 'Thiếu notificationId' };
+    }
+
+    await db.Notification.update(
+      { NotifStatus: status },
+      { where: { NotifID: notificationId } }
+    );
+
+    return { errCode: 0, errMessage: 'Cập nhật thành công' };
+  } catch (e) {
+    console.log('Error NotifiStatusChange:', e);
+    return { errCode: 3, errMessage: 'Lỗi server' };
+  }
+};
 module.exports = {
   getAllCodes,
   generateID,
@@ -599,4 +690,6 @@ module.exports = {
   changeCodeInfo,
   checkValidAllCode,
   sendNotification,
+  getUserNotifications,
+  NotifiStatusChange,
 };

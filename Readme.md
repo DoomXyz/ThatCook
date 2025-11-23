@@ -162,6 +162,22 @@ CREATE TABLE Notification (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-----------------------//INSERT NOTIFTYPE//----------------------------
+
+-- insert-only-notiftype-mysql.sql
+INSERT IGNORE INTO AllCodes (`Type`, `Code`, `CodeValueVI`, `ExtraValue`) VALUES
+('NotifType', 'ORDER_COMPLETE', 'đã thanh toán',                        NULL),
+('NotifType', 'ORDER_CONFIRM',  'chờ xác nhận đơn hàng',                NULL),
+('NotifType', 'ORDER_SUCCESS',  'đặt đơn hàng thành công',              NULL),
+('NotifType', 'ORDER_CANCEL',   'hủy đơn hàng',                         NULL),
+('NotifType', 'APM_SUCCESS',    'lịch khám đã được đặt',                NULL),
+('NotifType', 'APM_WAIT',       'lịch khám chờ xác nhận',               NULL),
+('NotifType', 'APM_CONFIRM',    'xác nhận lịch khám',                   NULL),
+('NotifType', 'APM_REFUSE',     'từ chối lịch khám',                    NULL),
+('NotifType', 'APM_COMPLETE',   'hoàn thành lịch khám',                 NULL),
+('NotifType', 'APM_CANCAEL',    'hủy lịch khám',                        NULL),
+('NotifStatus', 'READ',         'Đã đọc',                               NULL),
+('NotifStatus', 'UNREAD',       'Chưa đọc',                             NULL);
 -----------------------------------------------------------------------
 api.js fix xong lỗi track:
 import express from 'express';
