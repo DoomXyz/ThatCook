@@ -59,11 +59,23 @@ const uploadImageToCloudinaryApi = async (file) => {
     };
   }
 };
-
+const getUserNotifications = (receiveId) => {
+  return axios.get('/api/get-user-notifications', {
+    params: { receiveId }
+  });
+};
+const NotifiStatusChange = (notificationId, status) => {
+  return axios.put('/api/change-notification-status', {
+    notificationId,
+    status
+  });
+}
 export {
   handleGetAllCodesApi,
   handleLoadAllCodesInfoApi,
   handleCreateCodeApi,
   handleChangeCodeApi,
   uploadImageToCloudinaryApi,
+  getUserNotifications,
+  NotifiStatusChange,
 };

@@ -21,6 +21,10 @@ const handleLoadAccountInfoApi = (page, limit, search, filter, sort) => {
   return axios.get(`/api/load-accountinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
+const handleGetNotificationsApi = (accountid) => {
+  return axios.get(`/api/get-notifications?receiveId=${accountid}`);
+};
+
 const handleChangeAccountStatusApi = (accountid, accountstatus) => {
   return axios.put('/api/change-accountstatus', { accountid, accountstatus });
 };
@@ -65,6 +69,7 @@ export {
   handleLogoutApi,
   handleGetAccountInfoApi,
   handleLoadAccountInfoApi,
+  handleGetNotificationsApi,
   handleChangeAccountStatusApi,
   handleChangeAccountInfoApi,
   handleChangePasswordApi,

@@ -77,6 +77,31 @@ class Track extends Component {
       this.setState({ isLoading: false });
     }
   }
+  async componentDidUpdate(prevProps) {
+    if (prevProps.trackInfo !== this.props.trackInfo && this.props.trackInfo) {
+      const { billid, billtype } = this.props.trackInfo;
+      console.log('[TRACK DEBUG] Nhận trackInfo mới từ Redux:', { billid, billtype });
+
+      this.setState({
+        billid,
+        billtype,
+        actionPage: billtype,
+        isLoading: true  // Bật loading khi load mới
+      });
+
+      try {
+        const success = await this.handleLoadBillDetails(billid, billtype);
+        if (success) {
+          this.props.clearTrackInfo();
+        }
+      } catch (e) {
+        console.error('Error in componentDidUpdate:', e);
+        toast.error('Lỗi khi tải chi tiết đơn hàng!');
+      } finally {
+        this.setState({ isLoading: false });
+      }
+    }
+  }
   handleLoadCode = async (codeTypeFilter) => {
     try {
       const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
@@ -506,13 +531,13 @@ class Track extends Component {
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            second: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          second: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -700,12 +725,12 @@ class Track extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -829,12 +854,12 @@ class Track extends Component {
                                       <b>Thời gian:</b>
                                       {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
                                         ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                          })
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
                                         : 'N/A'}
                                     </p>
                                   </div>

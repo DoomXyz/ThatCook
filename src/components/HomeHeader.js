@@ -13,7 +13,10 @@ import { handleGetCartApi } from '../services/cartServices';
 import { handleGetServiceInfoApi } from '../services/serviceServices';
 
 import { checkLoginStatus } from '../utils/pakage';
-import { userLogin, userLogout, clearCheckOutCart, selectServiceType } from '../store/actions/';
+import { userLogin, userLogout, clearCheckOutCart, selectServiceType, saveTrackInfo } from '../store/actions/';
+
+import { notificationsOutline } from 'ionicons/icons';
+import { getUserNotifications, NotifiStatusChange } from '../services/utilitiesServices';
 
 const defUserImage = 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg';
 
@@ -31,6 +34,11 @@ class HomeHeader extends Component {
       disabledButtons: {
         logout: false,
       },
+      //state thông báo
+      notifications: [],
+      notifCount: 0,
+      isNotifOpen: false,
+      isLoadingNotif: false,
     };
     this.handleScroll = this.handleScroll.bind(this);
   }
@@ -50,6 +58,7 @@ class HomeHeader extends Component {
     setTimeout(() => {
       this.countCartItem();
       this.handleLoadInformation();
+      this.fetchNotifications();
     }, 0);
     window.addEventListener('scroll', this.handleScroll, { passive: true });
     this.handleScroll();
@@ -63,6 +72,7 @@ class HomeHeader extends Component {
       await this.handleIsLogin();
       await this.handleLoadInformation();
       await this.countCartItem();
+      this.fetchNotifications();
     }
     if (prevProps.triggerCountCartItem !== this.props.triggerCountCartItem) {
       await this.countCartItem();
@@ -70,7 +80,58 @@ class HomeHeader extends Component {
     if (prevProps.triggerLoadInformation !== this.props.triggerLoadInformation) {
       await this.handleLoadInformation();
     }
+    // Đóng dropdown khi click ngoài
+    if (this.state.isNotifOpen) {
+      setTimeout(() => {
+        document.addEventListener('click', this.closeNotifOnClickOutside);
+      }, 0);
+    }
   }
+  handleNotificationClick = async (notif) => {
+    const orderTypes = ['ORDER_SUCCESS', 'ORDER_CANCEL', 'ORDER_COMPLETE', 'ORDER_CONFIRM'];
+
+    if (orderTypes.includes(notif.NotifType) && notif.ExtraValue) {
+      const invoiceId = notif.ExtraValue;
+      if (notif.NotifStatus === 'UNREAD') {
+        try {
+          // GỌI API BẰNG HÀM BẠN ĐÃ TẠO – HOÀN TOÀN ĐÚNG!
+          const response = await NotifiStatusChange(notif.NotifID, 'READ');
+
+          // Kiểm tra kết quả từ backend
+          if (response?.data?.errCode === 0) {
+            console.log('[NOTIF] Đánh dấu đã đọc thành công:', notif.NotifID);
+
+            // Cập nhật UI ngay lập tức
+            this.setState(prevState => ({
+              notifCount: Math.max(0, prevState.notifCount - 1),
+              notifications: prevState.notifications.map(n =>
+                n.NotifID === notif.NotifID
+                  ? { ...n, NotifStatus: 'READ' }
+                  : n
+              ),
+            }));
+          } else {
+            console.log('[NOTIF] Backend lỗi:', response?.data?.errMessage);
+          }
+        } catch (err) {
+          console.log('Lỗi đánh dấu đã đọc:', err);
+          // Vẫn chuyển trang dù lỗi (không làm gián đoạn trải nghiệm)
+        }
+      }
+      // Dùng đúng Redux action bạn đã setup
+      this.props.saveTrackInfo({
+        billid: invoiceId,
+        billtype: 1
+      });
+      // Đóng dropdown thông báo
+      this.setState({ isNotifOpen: false });
+
+      // Chuyển hướng đến trang track
+      this.props.navigate('/track', { replace: true, state: { refresh: Date.now() } });
+
+
+    }
+  };
 
   handleIsLogin = async () => {
     try {
@@ -229,8 +290,82 @@ class HomeHeader extends Component {
     await this.countCartItem();
   };
 
+  // Lấy danh sách thông báo
+  fetchNotifications = async () => {
+    const { isLoggedIn, accountInfo } = this.state;
+
+    if (!isLoggedIn || !accountInfo?.AccountID) {
+      this.setState({
+        notifications: [],
+        notifCount: 0,
+        isLoadingNotif: false
+      });
+      return;
+    }
+    if (accountInfo?.AccountID) {
+      try {
+        console.log(`[FRONT DEBUG] Gọi API thông báo cho AccountID: ${accountInfo.AccountID}`);
+
+        const response = await getUserNotifications(accountInfo.AccountID);
+
+        console.log('[FRONT DEBUG] API trả về:', {
+          errCode: response.errCode,
+          soThongBao: response.data.length,
+          thongBaoDauTien: response.data[0] || 'Trống'
+        });
+
+        if (response.errCode === 0) {
+          this.setState({
+            notifications: response.data,
+            notifCount: response.data.filter(item => item.NotifStatus === 'UNREAD').length,
+          });
+        } else {
+          console.log('[FRONT ERROR] API lỗi:', response.errMessage);
+        }
+      } catch (error) {
+        console.log('[FRONT ERROR] Lỗi gọi API:', error);
+      }
+    }
+    this.setState({ isLoadingNotif: true });
+
+    try {
+      const axiosResponse = await getUserNotifications(accountInfo.AccountID);
+      const response = axiosResponse.data;
+      if (response && response.errCode === 0) {
+        const notifications = response.data || [];
+        const notifCount = notifications.filter(n => n.NotifStatus === 'UNREAD').length;
+
+        this.setState({
+          notifications,
+          notifCount,
+          isLoadingNotif: false
+        });
+      } else {
+        this.setState({
+          notifications: [],
+          notifCount: 0,
+          isLoadingNotif: false
+        });
+      }
+    } catch (e) {
+      console.log('Lỗi tải thông báo:', e);
+      this.setState({ isLoadingNotif: false });
+    }
+  };
+  // Mở/đóng dropdown
+  toggleNotifDropdown = () => {
+    this.setState(prev => ({ isNotifOpen: !prev.isNotifOpen }));
+  };
+
+  // Đóng khi click ra ngoài
+  closeNotifOnClickOutside = (e) => {
+    if (!e.target.closest('.notification-wrapper')) {
+      this.setState({ isNotifOpen: false });
+      document.removeEventListener('click', this.closeNotifOnClickOutside);
+    }
+  };
   render() {
-    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codeService, isScrolled, disabledButtons } = this.state;
+    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codeService, isScrolled, disabledButtons, notifications, notifCount, isNotifOpen, isLoadingNotif } = this.state;
     return (
       <div className="body-container">
         <div className={`header-container ${isScrolled ? 'scrolled' : ''}`}>
@@ -408,6 +543,67 @@ class HomeHeader extends Component {
                   </div>
                 )}
               </li>
+              <li>{isLoggedIn ? (
+                <div className="notification-wrapper">
+                  <button
+                    type="button"
+                    className="notification-bell link-button"
+                    onClick={this.toggleNotifDropdown}
+                  >
+                    <IonIcon icon={notificationsOutline} />
+                    {notifCount > 0 &&
+                      <span className="notif-badge">
+                        {notifCount > 99 ? '99+' : notifCount}
+                      </span>
+                    }
+                  </button>
+
+                  {isNotifOpen && (
+                    <div className="notification-dropdown">
+                      <div className="notif-header">
+                        <h4>Thông báo</h4>
+                        {notifCount > 0 && <span>{notifCount} chưa đọc</span>}
+                      </div>
+
+                      <div className="notif-body">
+                        {isLoadingNotif ? (
+                          <div className="notif-loading">Đang tải...</div>
+                        ) : notifications.length > 0 ? (
+                          notifications.map((item) => (
+                            <div
+                              key={item.NotifID}
+                              className={`notif-item ${item.NotifStatus === 'UNREAD' ? 'unread' : ''}`}
+                              onClick={() => this.handleNotificationClick(item)}
+                            >
+                              <p
+                                className="notif-desc"
+                                dangerouslySetInnerHTML={{ __html: item.NotifDescription }}
+                              />
+                              <span className="notif-time">
+                                {new Date(item.CreatedAt).toLocaleString('vi-VN')}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="notif-empty">Không có thông báo</div>
+                        )}
+                      </div>
+
+                      <div className="notif-footer">
+                        <button
+                          type="button"
+                          className="link-button"
+                          onClick={() => this.props.navigate('/notifications')}
+                        >
+
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className='notifi'></div>
+              )}</li>
             </div>
           </div>
         </div>
@@ -420,6 +616,7 @@ const mapStateToProps = (state) => ({
   userInfo: state.user.userInfo,
   cartItems: state.cart.cartItems,
   isUpdateCartCount: state.cart.isUpdateCartCount,
+  trackInfo: state.track.trackInfo,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -427,6 +624,7 @@ const mapDispatchToProps = (dispatch) => ({
   userLogout: () => dispatch(userLogout()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
   selectServiceType: (serviceType) => dispatch(selectServiceType(serviceType)),
+  saveTrackInfo: (trackData) => dispatch(saveTrackInfo(trackData)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeHeader);
