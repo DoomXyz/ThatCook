@@ -162,9 +162,7 @@ CREATE TABLE Notification (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
------------------------//INSERT NOTIFTYPE//----------------------------
-
--- insert-only-notiftype-mysql.sql
+-------------------------INSERT NOTIFTYPE------------------------------
 INSERT IGNORE INTO AllCodes (`Type`, `Code`, `CodeValueVI`, `ExtraValue`) VALUES
 ('NotifType', 'ORDER_COMPLETE', 'đã thanh toán',                        NULL),
 ('NotifType', 'ORDER_CONFIRM',  'chờ xác nhận đơn hàng',                NULL),

@@ -10,6 +10,7 @@ contract PetRegistry {
         uint256 petWeight;
         uint256 age;
         string petStatus;
+        string petImage;
     }
 
     mapping(address => Pet[]) public pets;
@@ -25,7 +26,8 @@ contract PetRegistry {
         string memory petGender,
         uint256 petWeight,
         uint256 age,
-        string memory petStatus
+        string memory petStatus,
+        string memory petImage
     ) public {
         require(bytes(petId).length > 0, "Pet ID is required");
         require(bytes(petName).length > 0, "Pet name is required");
@@ -43,7 +45,7 @@ contract PetRegistry {
         }
         require(validCount < 3, "Maximum 3 VALID pets allowed per account");
 
-        pets[msg.sender].push(Pet(petId, petName, petType, petGender, petWeight, age, petStatus));
+        pets[msg.sender].push(Pet(petId, petName, petType, petGender, petWeight, age, petStatus, petImage));
         emit PetAdded(msg.sender, petId);
     }
 
@@ -58,7 +60,8 @@ contract PetRegistry {
         string memory petGender,
         uint256 petWeight,
         uint256 age,
-        string memory petStatus
+        string memory petStatus,
+        string memory petImage
     ) public {
         require(bytes(petId).length > 0, "Pet ID is required");
         require(bytes(petName).length > 0, "Pet name is required");
@@ -76,6 +79,7 @@ contract PetRegistry {
                 userPets[i].petWeight = petWeight;
                 userPets[i].age = age;
                 userPets[i].petStatus = petStatus;
+                userPets[i].petImage = petImage;
                 emit PetUpdated(msg.sender, petId);
                 return;
             }

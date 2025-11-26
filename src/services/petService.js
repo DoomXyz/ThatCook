@@ -37,7 +37,8 @@ const abi = [
             { "name": "petGender", "type": "string" },
             { "name": "petWeight", "type": "uint256" },
             { "name": "age", "type": "uint256" },
-            { "name": "petStatus", "type": "string" }
+            { "name": "petStatus", "type": "string" },
+            { "name": "petImage", "type": "string" }
         ],
         "outputs": [],
         "stateMutability": "nonpayable"
@@ -56,7 +57,8 @@ const abi = [
                     { "name": "petGender", "type": "string" },
                     { "name": "petWeight", "type": "uint256" },
                     { "name": "age", "type": "uint256" },
-                    { "name": "petStatus", "type": "string" }
+                    { "name": "petStatus", "type": "string" },
+                    { "name": "petImage", "type": "string" }
                 ]
             }
         ],
@@ -72,7 +74,8 @@ const abi = [
             { "name": "petGender", "type": "string" },
             { "name": "petWeight", "type": "uint256" },
             { "name": "age", "type": "uint256" },
-            { "name": "petStatus", "type": "string" }
+            { "name": "petStatus", "type": "string" },
+            { "name": "petImage", "type": "string" }
         ],
         "outputs": [],
         "stateMutability": "nonpayable"
@@ -111,7 +114,8 @@ let getAccountPetInfo = (accountid) => {
                 PetGender: pet.petGender,
                 PetWeight: Number(pet.petWeight),
                 Age: Number(pet.age),
-                PetStatus: pet.petStatus
+                PetStatus: pet.petStatus,
+                PetImage: pet.petImage
             }));
             resolve({
                 errCode: 0,
@@ -159,7 +163,8 @@ let getPetInfo = (accountid, petid) => {
                     PetGender: pet.petGender,
                     PetWeight: Number(pet.petWeight),
                     Age: Number(pet.age),
-                    petStatus: pet.petStatus
+                    petStatus: pet.petStatus,
+                    petImage: pet.petImage
                 };
                 resolve({
                     errCode: 0,
