@@ -1,6 +1,7 @@
-import { Op, where } from 'sequelize';
+import { Op } from 'sequelize';
 import db from '../models/index';
 import { generateID, checkValidAllCode } from './utilitiesService';
+import { getAccountPetInfo, getPetInfo } from './petService'
 
 const nodemailer = require('nodemailer');
 
@@ -13,7 +14,6 @@ let sendAppointmentEmail = async (appointmentid, email) => {
         pass: process.env.EMAIL_PASS,
       },
     });
-
     // Retrieve appointment details
     const appointment = await db.Appointment.findOne({
       where: { AppointmentID: appointmentid },
@@ -31,16 +31,12 @@ let sendAppointmentEmail = async (appointmentid, email) => {
         'PetID',
         'VeterinarianID',
         'CreatedAt',
+        'AccountID'
       ],
       include: [
         {
           model: db.Service,
           attributes: ['ServiceName'],
-          required: true,
-        },
-        {
-          model: db.Pet,
-          attributes: ['PetName', 'PetType'],
           required: true,
         },
         {
@@ -53,11 +49,13 @@ let sendAppointmentEmail = async (appointmentid, email) => {
       raw: true,
       nest: true,
     });
-
     if (!appointment) {
-      console.log('Lịch hẹn không tồn tại');
       return false;
     }
+
+    const petResult = await getPetInfo(appointment.AccountID, appointment.PetID);
+    const petName = petResult.errCode === 0 ? petResult.data.PetName : 'Thú cưng (đã xóa)';
+    const petType = petResult.errCode === 0 ? petResult.data.PetType : '';
 
     // Retrieve appointment status and type from AllCodes
     const appointmentStatus = await db.AllCodes.findOne({
@@ -67,11 +65,6 @@ let sendAppointmentEmail = async (appointmentid, email) => {
     });
     const appointmentType = await db.AllCodes.findOne({
       where: { Type: 'AppointmentType', Code: appointment.AppointmentType },
-      attributes: ['CodeValueVI'],
-      raw: true,
-    });
-    const petType = await db.AllCodes.findOne({
-      where: { Type: 'PetType', Code: appointment.Pet.PetType },
       attributes: ['CodeValueVI'],
       raw: true,
     });
@@ -90,7 +83,7 @@ let sendAppointmentEmail = async (appointmentid, email) => {
         Số điện thoại: ${appointment.CustomerPhone}
         Ngày hẹn: ${new Date(appointment.AppointmentDate).toLocaleDateString('vi-VN')}
         Giờ hẹn: ${appointment.StartTime.slice(0, 5)} - ${appointment.EndTime.slice(0, 5)}
-        Tên thú cưng: ${appointment.Pet.PetName} (${petType?.CodeValueVI || appointment.Pet.PetType})
+        Tên thú cưng: ${petName} (${petType || 'Không xác định'})
         Dịch vụ: ${appointment.Service.ServiceName}
         Bác sĩ phụ trách: ${appointment.Veterinarian?.UserName || 'Chưa phân bác sĩ'}
         Loại lịch hẹn: ${appointmentType?.CodeValueVI || appointment.AppointmentType}
@@ -146,16 +139,13 @@ let sendAppointmentBillEmail = async (appointmentbillid, email) => {
             'AppointmentStatus',
             'ServiceID',
             'PetID',
+            , 'VeterinarianID',
+            'AccountID'
           ],
           include: [
             {
               model: db.Service,
               attributes: ['ServiceName'],
-              required: true,
-            },
-            {
-              model: db.Pet,
-              attributes: ['PetName', 'PetType'],
               required: true,
             },
             {
@@ -172,17 +162,14 @@ let sendAppointmentBillEmail = async (appointmentbillid, email) => {
       nest: true,
     });
     if (!appointmentBill) {
-      console.log('Hóa đơn lịch hẹn không tồn tại');
       return false;
     }
+    const petResult = await getPetInfo(appointmentBill.Appointment.AccountID, appointmentBill.Appointment.PetID);
+    const petName = petResult.errCode === 0 ? petResult.data.PetName : 'Thú cưng (đã xóa)';
+    const petType = petResult.errCode === 0 ? petResult.data.PetType : '';
     // Retrieve appointment status from AllCodes
     const appointmentStatus = await db.AllCodes.findOne({
       where: { Type: 'AppointmentStatus', Code: appointmentBill.Appointment.AppointmentStatus },
-      attributes: ['CodeValueVI'],
-      raw: true,
-    });
-    const petType = await db.AllCodes.findOne({
-      where: { Type: 'PetType', Code: appointmentBill.Appointment.Pet.PetType },
       attributes: ['CodeValueVI'],
       raw: true,
     });
@@ -202,7 +189,7 @@ let sendAppointmentBillEmail = async (appointmentbillid, email) => {
         Số điện thoại: ${appointmentBill.Appointment.CustomerPhone}
         Ngày hẹn: ${new Date(appointmentBill.Appointment.AppointmentDate).toLocaleDateString('vi-VN')}
         Giờ hẹn: ${appointmentBill.Appointment.StartTime.slice(0, 5)} - ${appointmentBill.Appointment.EndTime.slice(0, 5)}
-        Tên thú cưng: ${appointmentBill.Appointment.Pet.PetName} (${petType?.CodeValueVI || appointmentBill.Appointment.Pet.PetType})
+        Tên thú cưng: ${petName} (${petType || 'Không xác định'})
         Dịch vụ: ${appointmentBill.Appointment.Service.ServiceName}
         Bác sĩ phụ trách: ${appointmentBill.Appointment.Veterinarian?.UserName || 'Chưa phân bác sĩ'}
         Chi phí dịch vụ: ${parseFloat(appointmentBill.ServicePrice).toLocaleString('vi-VN')} VND
@@ -338,7 +325,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
       data: null,
     };
   } else {
-    const validAccount = await db.Pet.findOne({
+    const validAccount = await db.Account.findOne({
       where: { AccountID: accountid }
     });
     if (!validAccount) {
@@ -386,14 +373,12 @@ let validateAppointmentInput = async (appointmentInfo) => {
       data: null,
     };
   } else {
-    const validPet = await db.Pet.findOne({
-      where: { PetID: petid }
-    });
-    if (!validPet) {
+    const petResult = await getPetInfo(accountid, petid);
+    if (petResult.errCode !== 0 || petResult.data.petStatus !== 'VALID') {
       return {
         errCode: 2,
-        errMessage: 'Thú cưng không tồn tại!',
-        data: null,
+        errMessage: 'Thú cưng không tồn tại hoặc đã bị xóa!',
+        data: null
       };
     }
   }
@@ -763,7 +748,6 @@ let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, 
       if (search?.trim()) {
         const searchTerm = search.trim().substring(0, 50);
         where[Op.or] = [
-          { '$Pet.PetName$': { [Op.like]: `%${searchTerm}%` } },
           { '$Service.ServiceName$': { [Op.like]: `%${searchTerm}%` } },
         ];
       }
@@ -832,6 +816,7 @@ let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, 
       }
       const { count, rows } = await db.Appointment.findAndCountAll({
         where,
+        attributes: ['StartTime', 'EndTime', 'ServiceID', 'CustomerName', 'Notes', 'AppointmentStatus', 'VeterinarianID', 'PetID', 'AccountID'],
         attributes: [
           'AppointmentID',
           'AppointmentDate',
@@ -842,18 +827,14 @@ let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, 
           'Notes',
           'AppointmentStatus',
           'VeterinarianID',
+          'PetID',
+          'AccountID'
         ],
         include: [
           {
             model: db.Service,
             as: 'Service',
             attributes: ['ServiceName'],
-            required: true,
-          },
-          {
-            model: db.Pet,
-            as: 'Pet',
-            attributes: ['PetName'],
             required: true,
           },
           {
@@ -879,13 +860,19 @@ let loadAppointmentInfo = (accountid, page, limit, search, filter, sort, date1, 
         });
         return;
       }
+      for (const row of rows) {
+        const pet = await getPetInfo(row.AccountID, row.PetID);
+        row.dataValues.PetName = pet.errCode === 0 && pet.data?.petStatus === 'VALID'
+          ? pet.data.PetName
+          : 'Thú cưng đã xóa';
+      }
       const data = rows.map((row) => ({
         AppointmentID: row.AppointmentID,
         AppointmentDate: row.AppointmentDate,
         StartTime: row.StartTime,
         EndTime: row.EndTime,
         ServiceName: row.Service.ServiceName,
-        PetName: row.Pet.PetName,
+        PetName: row.dataValues.PetName,
         CustomerName: row.CustomerName,
         Notes: row.Notes,
         AppointmentStatus: row.AppointmentStatus,
@@ -1052,18 +1039,14 @@ let loadAppointments = (veterinarianid, page, limit, search, filter, sort, date1
           'VeterinarianID',
           'CustomerName',
           'Notes',
+          'PetID',
+          'AccountID'
         ],
         include: [
           {
             model: db.Service,
             as: 'Service',
             attributes: ['ServiceName'],
-            required: true,
-          },
-          {
-            model: db.Pet,
-            as: 'Pet',
-            attributes: ['PetName'],
             required: true,
           },
         ],
@@ -1084,13 +1067,19 @@ let loadAppointments = (veterinarianid, page, limit, search, filter, sort, date1
         });
         return;
       }
+      for (const row of rows) {
+        const pet = await getPetInfo(row.AccountID, row.PetID); // cần thêm AccountID vào attributes
+        row.dataValues.PetName = pet.errCode === 0 && pet.data?.petStatus === 'VALID'
+          ? pet.data.PetName
+          : 'Thú cưng đã xóa';
+      }
       const data = rows.map(row => ({
         AppointmentID: row.AppointmentID,
         AppointmentDate: row.AppointmentDate,
         StartTime: row.StartTime,
         EndTime: row.EndTime,
         ServiceName: row.Service.ServiceName,
-        PetName: row.Pet.PetName,
+        PetName: row.dataValues.PetName,
         VeterinarianID: row.VeterinarianID,
         CustomerName: row.CustomerName,
         Notes: row.Notes
@@ -1123,7 +1112,6 @@ let loadAppointmentDetails = (appointmentid) => {
         });
         return;
       }
-
       const appointment = await db.Appointment.findOne({
         where: { AppointmentID: appointmentid },
         attributes: [
@@ -1141,18 +1129,14 @@ let loadAppointmentDetails = (appointmentid) => {
           'VeterinarianID',
           'AccountID',
           'CreatedAt',
+          'PetID',
+          'ServiceID'
         ],
         include: [
           {
             model: db.Service,
             as: 'Service',
             attributes: ['ServiceID', 'ServiceName', 'Price'],
-            required: true,
-          },
-          {
-            model: db.Pet,
-            as: 'Pet',
-            attributes: ['PetID', 'PetName', 'PetType', 'PetWeight', 'Age', 'PetGender'],
             required: true,
           },
           {
@@ -1201,7 +1185,10 @@ let loadAppointmentDetails = (appointmentid) => {
         });
         return;
       }
-
+      console.log(appointment.AccountID, appointment.PetID)
+      const petResult = await getPetInfo(appointment.AccountID, appointment.PetID);
+      const pet = petResult.errCode === 0 && petResult.data?.petStatus === 'VALID'
+        ? petResult.data : { PetName: 'Thú cưng đã xóa', PetType: '', PetWeight: 0, Age: 0, PetGender: '', petImage: '' };
       const data = {
         AppointmentID: appointment.AppointmentID,
         CustomerName: appointment.CustomerName,
@@ -1217,12 +1204,12 @@ let loadAppointmentDetails = (appointmentid) => {
         PrevAppointmentID: appointment.PrevAppointmentID,
         CreatedAt: appointment.CreatedAt,
         Pet: {
-          PetID: appointment.Pet.PetID,
-          PetName: appointment.Pet.PetName,
-          PetType: appointment.Pet.PetType,
-          PetWeight: appointment.Pet.PetWeight,
-          Age: appointment.Pet.Age,
-          PetGender: appointment.Pet.PetGender,
+          PetID: appointment.PetID,
+          PetName: pet.PetName,
+          PetType: pet.PetType,
+          PetWeight: pet.PetWeight,
+          Age: pet.Age,
+          PetGender: pet.PetGender,
         },
         Service: {
           ServiceID: appointment.Service.ServiceID,
@@ -1299,12 +1286,6 @@ let getAppointmentBillDetail = (appointmentbillid) => {
             ],
             include: [
               {
-                model: db.Pet,
-                as: 'Pet',
-                attributes: ['PetType', 'PetGender', 'PetName'],
-                required: true,
-              },
-              {
                 model: db.Service,
                 as: 'Service',
                 attributes: ['ServiceName'],
@@ -1331,6 +1312,13 @@ let getAppointmentBillDetail = (appointmentbillid) => {
         });
         return;
       }
+      const petResult = await getPetInfo(
+        appointmentBill.Appointment.AccountID,
+        appointmentBill.Appointment.PetID
+      );
+      const petName = petResult.errCode === 0 ? petResult.data.PetName : 'Thú cưng đã xóa';
+      const petType = petResult.errCode === 0 ? petResult.data.PetType : '';
+      const petGender = petResult.errCode === 0 ? petResult.data.PetGender : '';
       const data = {
         AppointmentBill: {
           AppointmentBillID: appointmentBill.AppointmentBillID,
@@ -1350,9 +1338,9 @@ let getAppointmentBillDetail = (appointmentbillid) => {
         EndTime: appointmentBill.Appointment.EndTime.slice(0, 5),
         AppointmentStatus: appointmentBill.Appointment.AppointmentStatus,
         Pet: {
-          PetType: appointmentBill.Appointment.Pet.PetType,
-          PetGender: appointmentBill.Appointment.Pet.PetGender,
-          PetName: appointmentBill.Appointment.Pet.PetName,
+          PetName: petName,
+          PetType: petType,
+          PetGender: petGender,
         },
         Service: {
           ServiceName: appointmentBill.Appointment.Service.ServiceName,

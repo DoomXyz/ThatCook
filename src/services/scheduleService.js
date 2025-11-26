@@ -1,6 +1,7 @@
 import db from '../models/index';
 import { Op } from 'sequelize';
 import { checkValidAllCode } from './utilitiesService';
+import { getAccountPetInfo, getPetInfo } from './petService';
 
 let cancelExpiredSchedules = () => {
     return new Promise(async (resolve, reject) => {
@@ -155,19 +156,13 @@ let loadSchedule = (veterinarianid, startDate) => {
                     {
                         model: db.Appointment,
                         as: 'Appointment',
-                        attributes: ['CustomerName', 'ServiceID', 'PetID', 'AppointmentStatus', 'AppointmentType'],
+                        attributes: ['CustomerName', 'ServiceID', 'PetID', 'AppointmentStatus', 'AppointmentType', 'AccountID'],
                         required: true,
                         include: [
                             {
                                 model: db.Service,
                                 as: 'Service',
                                 attributes: ['ServiceName'],
-                                required: true,
-                            },
-                            {
-                                model: db.Pet,
-                                as: 'Pet',
-                                attributes: ['PetName'],
                                 required: true,
                             },
                         ],
@@ -185,6 +180,16 @@ let loadSchedule = (veterinarianid, startDate) => {
                 });
                 return;
             }
+            for (const row of rows) {
+                if (row.Appointment && row.Appointment.PetID && row.Appointment.AccountID) {
+                    const petResult = await getPetInfo(row.Appointment.AccountID, row.Appointment.PetID);
+                    row.Appointment.dataValues.PetName = petResult.errCode === 0 && petResult.data?.PetStatus === 'VALID'
+                        ? petResult.data.PetName
+                        : 'Thú cưng đã xóa';
+                } else {
+                    row.Appointment.dataValues.PetName = 'Không xác định';
+                }
+            }
             const data = rows.map(row => ({
                 ScheduleID: row.ScheduleID,
                 Date: row.Date,
@@ -192,7 +197,7 @@ let loadSchedule = (veterinarianid, startDate) => {
                 EndTime: row.EndTime.slice(0, 5),
                 CustomerName: row.Appointment.CustomerName,
                 ServiceName: row.Appointment.Service.ServiceName,
-                PetName: row.Appointment.Pet.PetName,
+                PetName: row.Appointment.dataValues.PetName,
                 AppointmentID: row.AppointmentID,
                 AppointmentType: row.Appointment.AppointmentType,
                 AppointmentStatus: row.Appointment.AppointmentStatus,

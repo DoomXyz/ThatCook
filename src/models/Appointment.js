@@ -7,7 +7,6 @@ module.exports = (sequelize, DataTypes) => {
       Appointment.belongsTo(models.Account, { foreignKey: 'AccountID' });
       Appointment.belongsTo(models.Account, { foreignKey: 'VeterinarianID', as: 'Veterinarian' });
       Appointment.belongsTo(models.Service, { foreignKey: 'ServiceID' });
-      Appointment.belongsTo(models.Pet, { foreignKey: 'PetID' });
       Appointment.hasOne(models.AppointmentBill, { foreignKey: 'AppointmentID' });
       Appointment.hasOne(models.Schedule, { foreignKey: 'AppointmentID' });
       Appointment.hasMany(models.Image, { foreignKey: 'ReferenceID', constraints: false, scope: { ReferenceType: 'Appointment' } });
@@ -93,7 +92,6 @@ module.exports = (sequelize, DataTypes) => {
         { fields: ['AccountID'], name: 'index_account_id' },
         { fields: ['VeterinarianID'], name: 'index_veterinarian_id' },
         { fields: ['ServiceID'], name: 'index_service_id' },
-        { fields: ['PetID'], name: 'index_pet_id' },
         { fields: ['AppointmentDate'], name: 'index_appointment_date' },
       ],
     }
