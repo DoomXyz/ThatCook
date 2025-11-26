@@ -493,6 +493,7 @@ class MakeAppointment extends Component {
         type,
         prevappointmentid: prevAppointmentID,
       });
+      console.log(response)
       if (response && response.errCode === 0) {
         this.setState({
           createdAppointmentID: response.data.AppointmentID,
