@@ -390,7 +390,6 @@ class MakeAppointment extends Component {
     }
   };
   handleOnChangeInput = (event, type) => {
-    console.log(event.target.value, type);
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
     this.setState({ ...copyState }, async () => {
@@ -587,7 +586,8 @@ class MakeAppointment extends Component {
   };
   handleSelectPetFromModal = async (petID) => {
     try {
-      const response = await handleGetPetInfoApi(petID);
+      const { accountInfo } = this.state
+      const response = await handleGetPetInfoApi(accountInfo.AccountID, petID);
       if (response && response.errCode === 0) {
         this.setState({
           selectedPetID: petID,

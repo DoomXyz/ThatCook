@@ -37,7 +37,8 @@ const abi = [
       { "name": "petGender", "type": "string" },
       { "name": "petWeight", "type": "uint256" },
       { "name": "age", "type": "uint256" },
-      { "name": "petStatus", "type": "string" }
+      { "name": "petStatus", "type": "string" },
+      { "name": "petImage", "type": "string" }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
@@ -56,7 +57,8 @@ const abi = [
           { "name": "petGender", "type": "string" },
           { "name": "petWeight", "type": "uint256" },
           { "name": "age", "type": "uint256" },
-          { "name": "petStatus", "type": "string" }
+          { "name": "petStatus", "type": "string" },
+          { "name": "petImage", "type": "string" }
         ]
       }
     ],
@@ -72,7 +74,8 @@ const abi = [
       { "name": "petGender", "type": "string" },
       { "name": "petWeight", "type": "uint256" },
       { "name": "age", "type": "uint256" },
-      { "name": "petStatus", "type": "string" }
+      { "name": "petStatus", "type": "string" },
+      { "name": "petImage", "type": "string" }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
@@ -96,6 +99,8 @@ const handleGetPetInfoApi = (accountid, petid) => {
 const handleSavePetInfoApi = async (petInfo, signer) => {
   try {
     const contract = new ethers.Contract(contractAddress, abi, signer);
+    console.log('pet: ', petInfo)
+
     const petId = `P${Date.now().toString().slice(-9).padStart(9, '0')}`;
     const tx = await contract.addPet(
       petId,
@@ -104,7 +109,8 @@ const handleSavePetInfoApi = async (petInfo, signer) => {
       petInfo.petgender,
       petInfo.petweight,
       petInfo.age,
-      'VALID'
+      'VALID',
+      petInfo.petimage
     );
     await tx.wait();
     return { data: { errCode: 0, errMessage: 'Lưu thông tin thú cưng thành công!', data: { PetID: petId } } };
@@ -124,7 +130,8 @@ const handleChangePetInfoApi = async (petid, petInfo, signer) => {
       petInfo.petgender,
       petInfo.petweight,
       petInfo.age,
-      petInfo.petStatus || 'VALID'
+      petInfo.petStatus || 'VALID',
+      petInfo.petImage || ''
     );
     await tx.wait();
     return { data: { errCode: 0, errMessage: 'Cập nhật thông tin thú cưng thành công!', data: null } };

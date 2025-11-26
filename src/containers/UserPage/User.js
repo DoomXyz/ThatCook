@@ -608,6 +608,7 @@ class User extends Component {
                     PetGender: prevState.codePetGender[0]?.Code || '',
                     Age: '',
                     PetWeight: '',
+                    PetImage: ''
                   },
                   ...prevState.loadedPetInfo,
                 ],
@@ -628,6 +629,7 @@ class User extends Component {
             PetGender: prevState.codePetGender[0]?.Code || '',
             Age: '',
             PetWeight: '',
+            PetImage: ''
           },
           ...prevState.loadedPetInfo,
         ],
@@ -711,6 +713,7 @@ class User extends Component {
       petgender: pet.PetGender,
       petweight: parseFloat(pet.PetWeight),
       age: parseInt(pet.Age),
+      petimage: 'https://fastcdn.hoyoverse.com/mi18n/hkrpg_global/m12021633011271/upload/ca25afaf19673f9faeb4ba91570d8666_1989960374012270022.png'
     };
     const isValidatePetInput = await validatePetInput(newPetInfo);
     if (!isValidatePetInput) {
