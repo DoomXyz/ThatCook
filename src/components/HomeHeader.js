@@ -89,7 +89,7 @@ class HomeHeader extends Component {
   }
   handleNotificationClick = async (notif) => {
     const orderTypes = ['ORDER_SUCCESS', 'ORDER_CANCEL', 'ORDER_COMPLETE', 'ORDER_CONFIRM'];
-
+    const apmTypes = ['APM_SUCCESS', 'APM_WAIT', 'APM_CONFIRM', 'APM_REFUSE'];
     if (orderTypes.includes(notif.NotifType) && notif.ExtraValue) {
       const invoiceId = notif.ExtraValue;
       if (notif.NotifStatus === 'UNREAD') {
@@ -130,6 +130,34 @@ class HomeHeader extends Component {
       this.props.navigate('/track', { replace: true, state: { refresh: Date.now() } });
 
 
+    } else if (apmTypes.includes(notif.NotifType) && notif.ExtraValue) {
+      const appointmentId = notif.ExtraValue;
+
+      // Đánh dấu đã đọc (nếu chưa)
+      if (notif.NotifStatus === 'UNREAD') {
+        try {
+          const response = await NotifiStatusChange(notif.NotifID, 'READ');
+          if (response?.data?.errCode === 0) {
+            this.setState(prevState => ({
+              notifCount: Math.max(0, prevState.notifCount - 1),
+              notifications: prevState.notifications.map(n =>
+                n.NotifID === notif.NotifID ? { ...n, NotifStatus: 'READ' } : n
+              ),
+            }));
+          }
+        } catch (err) {
+          console.log('Lỗi đánh dấu đã đọc:', err);
+        }
+      }
+      this.props.saveTrackInfo({
+        billid: appointmentId,
+        billtype: 2
+
+      });
+      console.log('DEBUG: Chuyển đến trang lịch khám với ID:', appointmentId);
+      // Đóng dropdown và chuyển trang lịch khám (tuỳ chỉnh theo route của bạn)
+      this.setState({ isNotifOpen: false });
+      this.props.navigate(`/track`);
     }
   };
 
