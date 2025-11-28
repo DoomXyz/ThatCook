@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import db from '../models/index';
 import { generateID, checkValidAllCode } from './utilitiesService';
 import { getAccountPetInfo, getPetInfo } from './petService'
-
+import { sendNotification } from './utilitiesService';
 const nodemailer = require('nodemailer');
 
 let sendAppointmentEmail = async (appointmentid, email) => {
@@ -1522,6 +1522,49 @@ let createAppointment = (customername, customeremail, customerphone, appointment
         }
       }
       await transaction.commit();
+      console.log(`[DEBUG] Tạo lịch khám ${appointmentIdResult.data} thành công!`);
+
+      // === THÊM THÔNG BÁO APM_SUCCESS CHO KHÁCH HÀNG ===
+      if (accountid) {
+        try {
+          console.log(`[DEBUG] Gửi APM_SUCCESS cho khách hàng ${accountid}`);
+          await sendNotification(
+            accountid,            // Người gửi: hệ thống
+            accountid,             // Gửi riêng cho khách hàng
+            null,                  // Không gửi theo role
+            'APM_SUCCESS',         // Loại: đặt lịch thành công
+            appointmentIdResult.data  // ExtraValue: mã lịch khám
+          );
+        } catch (notifErr) {
+          console.log('[ERROR] Gửi APM_SUCCESS thất bại:', notifErr);
+        }
+      }
+
+      // === THÊM THÔNG BÁO APM_WAIT CHO BÁC SĨ ===
+      try {
+        console.log(`[DEBUG] Gửi APM_WAIT cho bác sĩ`);
+        if (veterinarianid) {
+          // Trường hợp chọn bác sĩ cụ thể → gửi riêng
+          await sendNotification(
+            accountid || 'GUEST',  // Người gửi: khách hàng (hoặc guest)
+            veterinarianid,        // Gửi riêng cho bác sĩ đó
+            null,                  // Không gửi theo role
+            'APM_WAIT',            // Loại: lịch khám chờ xác nhận
+            appointmentIdResult.data
+          );
+        } else {
+          // Không chọn bác sĩ → gửi cho tất cả bác sĩ (role 'V')
+          await sendNotification(
+            accountid || 'GUEST',
+            null,
+            'V',                   // Gửi cho toàn bộ AccountType = 'V'
+            'APM_WAIT',
+            appointmentIdResult.data
+          );
+        }
+      } catch (notifErr) {
+        console.log('[ERROR] Gửi APM_WAIT thất bại:', notifErr);
+      }
       let emailSent = true;
       if (customeremail) {
         emailSent = await sendAppointmentEmail(appointmentID, customeremail);
@@ -1666,6 +1709,7 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
       // Kiểm tra lịch hẹn
       const appointment = await db.Appointment.findOne({
         where: { AppointmentID: appointmentid },
+
         transaction,
       });
       if (!appointment) {
@@ -1687,9 +1731,20 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
         });
         return;
       }
+      const customerId = appointment.AccountID;
+      const vetId = appointment.VeterinarianID;
+      // Bác sĩ đang thực hiện hành động
       if (appointmentstatus === 'CONF') {
         // Gọi hàm xác nhận
         const result = await confirmAppointment(appointmentid, veterinarianid, transaction);
+        console.log(`[DEBUG] Gửi APM_CONFIRM cho khách hàng ${customerId}`);
+        await sendNotification(
+          vetId,                 // Người gửi: bác sĩ
+          customerId,            // Gửi riêng cho khách hàng
+          null,
+          'APM_CONFIRM',         // Loại: xác nhận lịch khám
+          appointmentid          // ExtraValue: mã lịch khám
+        );
         await transaction.commit();
         resolve({
           errCode: result.errCode,
@@ -1707,6 +1762,15 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
           where: { AppointmentID: appointmentid },
           transaction,
         });
+        console.log(`[DEBUG] Gửi APM_REFUSE cho khách hàng ${customerId}`);
+        await sendNotification(
+          vetId,                 // Người gửi: bác sĩ
+          customerId,            // Gửi riêng cho khách hàng
+          null,
+          'APM_REFUSE',          // Loại: từ chối lịch khám
+          appointmentid          // ExtraValue: mã lịch khám
+        );
+
         await transaction.commit();
         resolve({
           errCode: 0,
@@ -1714,6 +1778,7 @@ let changeAppointmentStatus = (appointmentid, appointmentstatus, veterinarianid)
           data: null,
         });
       }
+
     } catch (e) {
       await transaction.rollback();
       console.log(e);

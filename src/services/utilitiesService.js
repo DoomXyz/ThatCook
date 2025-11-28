@@ -545,22 +545,22 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
           notifdescription = `Đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
           break;
         case 'APM_SUCCESS':
-          notifdescription = `Lịch khám ${extravalue} của bạn đã được đặt thành công.`;
+          notifdescription = `Bạn đã đặt lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> thành công! Chúng tôi sẽ sớm xác nhận. Cảm ơn bạn! ❤️`;
           break;
         case 'APM_WAIT':
-          notifdescription = `Khách hàng ${account.UserName} đã đặt lịch khám ${extravalue} và đang chờ bạn xác nhận.`;
+          notifdescription = `Khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đã đặt lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> và đang chờ bạn xác nhận.`;
           break;
         case 'APM_CONFIRM':
-          notifdescription = `Lịch khám ${extravalue} đã được bác sĩ ${account.UserName} xác nhận.`;
+          notifdescription = `Lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> đã được bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> xác nhận.`;
           break;
         case 'APM_REFUSE':
-          notifdescription = `Lịch khám ${extravalue} đã bị bác sĩ ${account.UserName} từ chối.`;
+          notifdescription = `Lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> đã bị bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> từ chối.`;
           break;
         case 'APM_COMPLETE':
-          notifdescription = `Lịch khám ${extravalue} đã được hoàn thành.`;
+          notifdescription = `Lịch khám <strong style="color:#27ae60;">${extravalue}</strong> đã được hoàn thành.`;
           break;
-        case 'APM_CANCAEL':
-          notifdescription = `Lịch khám ${extravalue} đã bị hủy bởi ${account.UserName}.`;
+        case 'APM_CANCEL':
+          notifdescription = `Lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
           break;
         default:
           notifdescription = 'UIA';

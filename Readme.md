@@ -177,6 +177,22 @@ INSERT IGNORE INTO AllCodes (`Type`, `Code`, `CodeValueVI`, `ExtraValue`) VALUES
 ('NotifStatus', 'READ',         'Đã đọc',                               NULL),
 ('NotifStatus', 'UNREAD',       'Chưa đọc',                             NULL);
 -----------------------------------------------------------------------
+SELECT 
+    TABLE_NAME, 
+    COLUMN_NAME, 
+    CONSTRAINT_NAME, 
+    REFERENCED_TABLE_NAME, 
+    REFERENCED_COLUMN_NAME
+FROM 
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE 
+    REFERENCED_TABLE_NAME = 'pet'
+    AND TABLE_SCHEMA = 'thatcookdb';
+-----------------------------------------------------------------------
+ALTER TABLE appointment DROP FOREIGN KEY appointment_ibfk_3;
+ALTER TABLE appointment DROP INDEX appointment_ibfk_3;
+DROP TABLE pet;
+-----------------------------------------------------------------------
 api.js fix xong lỗi track:
 import express from 'express';
 import accountController from '../controllers/accountController';
