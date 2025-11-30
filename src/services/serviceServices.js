@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const handleGetServiceInfoApi = (serviceid) => {
-    return axios.get(`/api/get-serviceinfo?serviceid=${serviceid}`);
+const handleGetServiceInfoApi = (ServiceID) => {
+    return axios.get(`/api/get-serviceinfo?ServiceID=${ServiceID}`);
 };
 
 const handleLoadServiceInfoApi = (page, limit, search, filter, sort) => {
@@ -16,8 +16,8 @@ const handleChangeServiceInfoApi = (serviceInfo) => {
     return axios.put('/api/change-serviceinfo', serviceInfo);
 };
 
-const handleChangeServiceStatusApi = (serviceID, newStatus) => {
-    return axios.put('/api/change-servicestatus', { serviceID, newStatus });
+const handleChangeServiceStatusApi = (ServiceID, newStatus) => {
+    return axios.put('/api/change-servicestatus', { ServiceID, newStatus });
 };
 
 export {

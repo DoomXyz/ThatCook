@@ -26,8 +26,8 @@ class HomeHeader extends Component {
     this.state = {
       isLoggedIn: false,
       accountInfo: null,
-      userImage: null,
-      userName: null,
+      UserImage: null,
+      UserName: null,
       codeService: [],
       cartItemsCount: 0,
       isScrolled: false,
@@ -91,7 +91,7 @@ class HomeHeader extends Component {
     const orderTypes = ['ORDER_SUCCESS', 'ORDER_CANCEL', 'ORDER_COMPLETE', 'ORDER_CONFIRM'];
     const apmTypes = ['APM_SUCCESS', 'APM_WAIT', 'APM_CONFIRM', 'APM_REFUSE'];
     if (orderTypes.includes(notif.NotifType) && notif.ExtraValue) {
-      const invoiceId = notif.ExtraValue;
+      const InvoiceID = notif.ExtraValue;
       if (notif.NotifStatus === 'UNREAD') {
         try {
           // GỌI API BẰNG HÀM BẠN ĐÃ TẠO – HOÀN TOÀN ĐÚNG!
@@ -120,8 +120,8 @@ class HomeHeader extends Component {
       }
       // Dùng đúng Redux action bạn đã setup
       this.props.saveTrackInfo({
-        billid: invoiceId,
-        billtype: 1
+        BillID: InvoiceID,
+        BillType: 1
       });
       // Đóng dropdown thông báo
       this.setState({ isNotifOpen: false });
@@ -131,7 +131,7 @@ class HomeHeader extends Component {
 
 
     } else if (apmTypes.includes(notif.NotifType) && notif.ExtraValue) {
-      const appointmentId = notif.ExtraValue;
+      const AppointmentID = notif.ExtraValue;
 
       // Đánh dấu đã đọc (nếu chưa)
       if (notif.NotifStatus === 'UNREAD') {
@@ -150,11 +150,11 @@ class HomeHeader extends Component {
         }
       }
       this.props.saveTrackInfo({
-        billid: appointmentId,
-        billtype: 2
+        BillID: AppointmentID,
+        BillType: 2
 
       });
-      console.log('DEBUG: Chuyển đến trang lịch khám với ID:', appointmentId);
+      console.log('DEBUG: Chuyển đến trang lịch khám với ID:', AppointmentID);
       // Đóng dropdown và chuyển trang lịch khám (tuỳ chỉnh theo route của bạn)
       this.setState({ isNotifOpen: false });
       this.props.navigate(`/track`);
@@ -192,8 +192,8 @@ class HomeHeader extends Component {
       if (response && response.errCode === 0) {
         const accountInfo = response.data;
         this.setState({
-          userImage: accountInfo.UserImage || defUserImage,
-          userName: accountInfo.UserName,
+          UserImage: accountInfo.UserImage || defUserImage,
+          UserName: accountInfo.UserName,
         });
       }
     }
@@ -215,14 +215,14 @@ class HomeHeader extends Component {
     }
   };
 
-  handleServiceNavigate = (serviceID) => {
+  handleServiceNavigate = (ServiceID) => {
     const serviceTypeMap = {
       1: 1, // General Health Check
       2: 2, // Vaccination
       3: 3, // Surgery
       4: 4, // Test
     };
-    const serviceType = serviceTypeMap[serviceID] || 1;
+    const serviceType = serviceTypeMap[ServiceID] || 1;
     this.props.selectServiceType(serviceType);
     this.props.navigate('/showservice');
   };
@@ -252,14 +252,14 @@ class HomeHeader extends Component {
       console.log('Chưa kết nối backend!');
     }
   };
-  handleAccountTypeNavigate = (accounttype) => {
+  handleAccountTypeNavigate = (AccountType) => {
     const navigateMap = {
       A: '/user/admin',
       O: '/user/owner',
       V: '/user/veterinarian',
       C: '/home',
     };
-    const path = navigateMap[accounttype] || '/login';
+    const path = navigateMap[AccountType] || '/login';
     setTimeout(() => {
       this.props.navigate(path);
     }, 0);
@@ -393,7 +393,7 @@ class HomeHeader extends Component {
     }
   };
   render() {
-    const { accountInfo, isLoggedIn, cartItemsCount, userImage, userName, codeService, isScrolled, disabledButtons, notifications, notifCount, isNotifOpen, isLoadingNotif } = this.state;
+    const { accountInfo, isLoggedIn, cartItemsCount, UserImage, UserName, codeService, isScrolled, disabledButtons, notifications, notifCount, isNotifOpen, isLoadingNotif } = this.state;
     return (
       <div className="body-container">
         <div className={`header-container ${isScrolled ? 'scrolled' : ''}`}>
@@ -518,8 +518,8 @@ class HomeHeader extends Component {
               <li>
                 {isLoggedIn ? (
                   <div className="user f" id="user-icon">
-                    <img src={userImage} loading="lazy" alt="User" />
-                    <p>{userName}</p>
+                    <img src={UserImage} loading="lazy" alt="User" />
+                    <p>{UserName}</p>
                     <ul className="sub-menu">
                       <li>
                         <div className="f" >

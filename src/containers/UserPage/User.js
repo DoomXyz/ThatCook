@@ -33,7 +33,7 @@ class User extends Component {
       actionPage: 1,
       isLoading: true,
       isLoggedIn: false,
-      accountid: '',
+      AccountID: '',
       triggerLoadInformation: false,
       // Codes
       codeGender: [],
@@ -67,16 +67,16 @@ class User extends Component {
       loadedPetInfo: [],
       serviceList: [],
       // AccountInfo
-      editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "username", "phone", ...)
+      editField: null, // Theo dõi trường đang chỉnh sửa (ví dụ: "UserName", "Phone", ...)
       originalValue: '',
       imageInfo: null,
-      userimage: '',
-      accountname: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: '',
-      email: '',
+      UserImage: '',
+      AccountName: '',
+      UserName: '',
+      Phone: '',
+      Address: '',
+      Gender: '',
+      Email: '',
       isUploading: false,
       oldPassword: '',
       newPassword: '',
@@ -154,7 +154,7 @@ class User extends Component {
         this.setState({
           accountInfo,
           isLoggedIn: true,
-          accountid: accountInfo.AccountID,
+          AccountID: accountInfo.AccountID,
         });
       } else {
         await handleLogoutApi();
@@ -162,7 +162,7 @@ class User extends Component {
         this.setState({
           accountInfo: null,
           isLoggedIn: false,
-          accountid: '',
+          AccountID: '',
         });
         this.props.navigate('/login');
       }
@@ -186,7 +186,7 @@ class User extends Component {
         }
         newState[`code${type}`] = response.data;
         if (hasDefault.includes(type)) {
-          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
       this.setState(newState);
@@ -231,9 +231,9 @@ class User extends Component {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const account = await signer.getAddress();
-        toast.success('Kết nối MetaMask thành công!');
+        // toast.success('Kết nối MetaMask thành công!');
         this.setState((prevState) => ({
-          accountid: prevState.accountid || account,
+          AccountID: prevState.AccountID || account,
         }));
         return signer;
       } catch (e) {
@@ -247,18 +247,18 @@ class User extends Component {
   };
   handleLoadAccountInfo = async () => {
     try {
-      const { accountid } = this.state
-      const response = await handleGetAccountInfoApi(accountid);
+      const { AccountID } = this.state
+      const response = await handleGetAccountInfoApi(AccountID);
       if (response && response.errCode === 0) {
         const accountInfo = response.data;
         this.setState({
-          accountname: accountInfo.AccountName,
-          email: accountInfo.Email,
-          username: accountInfo.UserName,
-          phone: accountInfo.Phone,
-          address: accountInfo.Address,
-          gender: accountInfo.Gender,
-          userimage: accountInfo.UserImage,
+          AccountName: accountInfo.AccountName,
+          Email: accountInfo.Email,
+          UserName: accountInfo.UserName,
+          Phone: accountInfo.Phone,
+          Address: accountInfo.Address,
+          Gender: accountInfo.Gender,
+          UserImage: accountInfo.UserImage,
         });
       }
     } catch (e) {
@@ -268,8 +268,10 @@ class User extends Component {
   };
   handleLoadPetInfo = async () => {
     try {
-      const { accountid } = this.state;
-      const response = await handleGetAccountPetInfoApi(accountid);
+      const { AccountID } = this.state;
+      console.log(AccountID)
+      const response = await handleGetAccountPetInfoApi(AccountID);
+      console.log(response)
       if (response && response.errCode === 0) {
         this.setState({
           loadedPetInfo: response.data || [],
@@ -282,8 +284,8 @@ class User extends Component {
   };
   handleLoadInvoiceInfo = async () => {
     try {
-      const { accountid, limitInvoicePerQuery } = this.state;
-      const response = await handleGetAccountInvoiceInfoApi(accountid);
+      const { AccountID, limitInvoicePerQuery } = this.state;
+      const response = await handleGetAccountInvoiceInfoApi(AccountID);
       if (response && response.errCode === 0) {
         this.setState({
           loadedInvoiceInfo: response.data,
@@ -296,9 +298,9 @@ class User extends Component {
     }
   };
   handleLoadAppointmentInfo = async () => {
-    const { accountid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
+    const { AccountID, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
     try {
-      const response = await handleLoadAppointmentInfoApi(accountid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2);
+      const response = await handleLoadAppointmentInfoApi(AccountID, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2);
       if (response && response.errCode === 0) {
         this.setState({
           loadedAppointmentInfo: response.data,
@@ -310,10 +312,10 @@ class User extends Component {
       toast.error('Lỗi khi tải danh sách lịch hẹn!');
     }
   };
-  handleLoadAppointmentDetails = async (appointmentid) => {
+  handleLoadAppointmentDetails = async (AppointmentID) => {
     this.setState({ isLoading: true });
     try {
-      const response = await handleLoadAppointmentDetailsApi(appointmentid);
+      const response = await handleLoadAppointmentDetailsApi(AppointmentID);
       if (response && response.errCode === 0) {
         this.setState({
           loadedAppointmentDetail: response.data,
@@ -327,9 +329,9 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleLoadInvoiceDetail = async (invoiceid) => {
+  handleLoadInvoiceDetail = async (InvoiceID) => {
     try {
-      const response = await handleGetInvoiceDetailInfoApi(invoiceid);
+      const response = await handleGetInvoiceDetailInfoApi(InvoiceID);
       if (response && response.errCode === 0 && response.data) {
         return response.data;
       }
@@ -341,9 +343,9 @@ class User extends Component {
       return null;
     }
   };
-  handleLoadAppointmentBillDetail = async (appointmentid) => {
+  handleLoadAppointmentBillDetail = async (AppointmentID) => {
     try {
-      const response = await handleLoadAppointmentDetailsApi(appointmentid);
+      const response = await handleLoadAppointmentDetailsApi(AppointmentID);
       if (response && response.errCode === 0 && response.data) {
         const appointmentDetail = response.data;
         let billDetail = null;
@@ -396,11 +398,11 @@ class User extends Component {
   };
   handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
-    const { editField, gender } = this.state;
-    if (name === 'gender' && editField !== 'gender') {
+    const { editField, Gender } = this.state;
+    if (name === 'Gender' && editField !== 'Gender') {
       this.setState({
-        editField: 'gender',
-        originalValue: gender, // Lưu giá trị ban đầu của gender
+        editField: 'Gender',
+        originalValue: Gender, // Lưu giá trị ban đầu của Gender
       });
     }
     this.setState({
@@ -415,15 +417,15 @@ class User extends Component {
   }
   handleChangeAccountInfo = async (e) => {
     e.preventDefault();
-    const { imageInfo, isUploading, editField, originalValue, accountid, accountname, username, phone, address, gender, email } = this.state;
+    const { imageInfo, isUploading, editField, originalValue, AccountID, AccountName, UserName, Phone, Address, Gender, Email } = this.state;
     let updateInfo = {
-      accountid,
-      accountname,
-      username,
-      phone,
-      address,
-      gender,
-      email,
+      AccountID,
+      AccountName,
+      UserName,
+      Phone,
+      Address,
+      Gender,
+      Email,
     };
     let hasChanges = false;
     if (imageInfo) {
@@ -439,7 +441,7 @@ class User extends Component {
           return;
         }
         const uploadedImage = uploadResult.images[0];
-        updateInfo.userimage = {
+        updateInfo.UserImage = {
           public_id: uploadedImage.ImageID,
           secure_url: uploadedImage.Image,
           original_filename: imageInfo.file.name,
@@ -461,14 +463,14 @@ class User extends Component {
         hasChanges = true;
       }
     }
-    const accountName = updateInfo.accountname.trim();
+    const accountName = updateInfo.AccountName.trim();
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
     if (!accountNameRegex.test(accountName)) {
       toast.error('Tên tài khoản không hợp lệ!');
       this.handleLoadAccountInfo();
       return;
     }
-    const phoneNumber = updateInfo.phone.trim();
+    const phoneNumber = updateInfo.Phone.trim();
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(phoneNumber)) {
       toast.error('Số điện thoại không hợp lệ!');
@@ -503,7 +505,7 @@ class User extends Component {
   };
   handleChangePassword = async (e) => {
     e.preventDefault();
-    const { accountid, oldPassword, newPassword, confirmPassword } = this.state;
+    const { AccountID, oldPassword, newPassword, confirmPassword } = this.state;
     if (!oldPassword || !newPassword || !confirmPassword) {
       toast.error('Vui lòng điền đầy đủ tất cả các trường!');
       return;
@@ -520,7 +522,7 @@ class User extends Component {
     }
     try {
       this.setState({ isLoading: true });
-      const response = await handleChangePasswordApi(accountid, oldPassword, newPassword);
+      const response = await handleChangePasswordApi(AccountID, oldPassword, newPassword);
       if (response && response.errCode === 0) {
         toast.success('Đổi mật khẩu thành công, hãy đăng nhập lại với mật khẩu mới');
         this.setState({
@@ -533,7 +535,7 @@ class User extends Component {
           this.props.userLogout();
           this.setState({
             isLoggedIn: false,
-            accountid: '',
+            AccountID: '',
           });
           this.props.navigate('/login');
         }, 1001);
@@ -598,7 +600,7 @@ class User extends Component {
               isAddingPet: false,
             },
             async () => {
-              await this.handleLoadPetInfo(this.state.accountid);
+              await this.handleLoadPetInfo(this.state.AccountID);
               this.setState((prevState) => ({
                 loadedPetInfo: [
                   {
@@ -691,7 +693,7 @@ class User extends Component {
             };
           },
           async () => {
-            await this.handleLoadPetInfo(this.state.accountid);
+            await this.handleLoadPetInfo(this.state.AccountID);
           }
         );
       }
@@ -705,19 +707,19 @@ class User extends Component {
     });
   }
   handleSavePet = async (index) => {
-    const { accountid, loadedPetInfo, isAddingPet } = this.state;
+    const { AccountID, loadedPetInfo, isAddingPet } = this.state;
     const pet = loadedPetInfo[index];
     const newPetInfo = {
-      petname: pet.PetName.trim(),
-      pettype: pet.PetType,
-      petgender: pet.PetGender,
-      petweight: parseFloat(pet.PetWeight),
-      age: parseInt(pet.Age),
-      petimage: 'https://fastcdn.hoyoverse.com/mi18n/hkrpg_global/m12021633011271/upload/ca25afaf19673f9faeb4ba91570d8666_1989960374012270022.png'
+      PetName: pet.PetName.trim(),
+      PetType: pet.PetType,
+      PetGender: pet.PetGender,
+      PetWeight: parseFloat(pet.PetWeight),
+      Age: parseInt(pet.Age),
+      PetImage: 'https://fastcdn.hoyoverse.com/mi18n/hkrpg_global/m12021633011271/upload/ca25afaf19673f9faeb4ba91570d8666_1989960374012270022.png'
     };
     const isValidatePetInput = await validatePetInput(newPetInfo);
-    if (!isValidatePetInput) {
-      toast.error(`${isValidatePetInput.errMessage} tại dòng ${index + 1}`);
+    if (!isValidatePetInput.valid) {
+      toast.error(`${isValidatePetInput.errMessage}`);
       return;
     }
     this.setState({ isLoading: true });
@@ -726,16 +728,18 @@ class User extends Component {
       if (signer) {
         let response;
         if (isAddingPet) {
+          console.log('yes')
           response = await handleSavePetInfoApi(newPetInfo, signer);
         } else {
           response = await handleChangePetInfoApi(pet.PetID, newPetInfo, signer);
         }
-        if (response.data && response.data.errCode === 0) {
+        console.log(response)
+        if (response && response.errCode === 0) {
           toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
-          await this.handleLoadPetInfo(accountid);
+          await this.handleLoadPetInfo(AccountID);
           this.setState({ isEditingPet: null, isAddingPet: false });
         } else {
-          toast.error(response.data?.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
+          toast.error(response.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
         }
       } else {
         toast.error('Không thể kết nối MetaMask!');
@@ -746,7 +750,7 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleDeletePet = async (petid) => {
+  handleDeletePet = async (PetID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: true } });
     const confirmDelete = () =>
       new Promise((resolve) => {
@@ -765,12 +769,12 @@ class User extends Component {
       try {
         const signer = await this.connectMetaMask();
         if (signer) {
-          const response = await handleRemovePetApi(petid, signer);
-          if (response.data && response.data.errCode === 0) {
+          const response = await handleRemovePetApi(PetID, signer);
+          if (response && response.errCode === 0) {
             toast.success('Xóa thú cưng thành công!');
-            await this.handleLoadPetInfo(this.state.accountid);
+            await this.handleLoadPetInfo(this.state.AccountID);
           } else {
-            toast.error(response.data?.errMessage || 'Xóa thú cưng thất bại!');
+            toast.error(response.errMessage || 'Xóa thú cưng thất bại!');
           }
         } else {
           toast.error('Không thể kết nối MetaMask!');
@@ -895,7 +899,7 @@ class User extends Component {
     }
   };
   //InvoiceAction Management
-  handleConfirmReceived = async (invoiceid) => {
+  handleConfirmReceived = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: true } });
     const confirmReceived = () =>
       new Promise((resolve) => {
@@ -936,10 +940,10 @@ class User extends Component {
     try {
       const type = 'ShippingStatus';
       const status = 'DELI';
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, type, status, '');
       if (response && response.errCode === 0) {
         toast.success('Xác nhận nhận hàng thành công!');
-        await this.handleLoadInvoiceInfo(this.state.accountid);
+        await this.handleLoadInvoiceInfo(this.state.AccountID);
       } else {
         const errMessage = response?.errMessage || 'Xác nhận nhận hàng thất bại!';
         toast.error(errMessage);
@@ -950,7 +954,7 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleContinueInvoice = async (invoiceid) => {
+  handleContinueInvoice = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: true } });
     const confirmContinue = () =>
       new Promise((resolve) => {
@@ -991,10 +995,10 @@ class User extends Component {
     try {
       const type = 'ShippingStatus';
       const status = 'PEND';
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, type, status, '');
       if (response && response.errCode === 0) {
         toast.success('Tiếp tục đơn hàng thành công!');
-        await this.handleLoadInvoiceInfo(this.state.accountid);
+        await this.handleLoadInvoiceInfo(this.state.AccountID);
       } else {
         const errMessage = response?.errMessage || 'Tiếp tục đơn hàng thất bại!';
         toast.error(errMessage);
@@ -1006,7 +1010,7 @@ class User extends Component {
     this.setState({ isLoading: false });
   };
   //AppointmentAction Management
-  handleCancelAppointment = async (appointmentid) => {
+  handleCancelAppointment = async (AppointmentID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: true } });
     const confirmCancel = () =>
       new Promise((resolve) => {
@@ -1046,10 +1050,10 @@ class User extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', null);
+      const response = await handleChangeAppointmentStatusApi(AppointmentID, 'CANCELED', null);
       if (response && response.errCode === 0) {
         toast.success('Hủy lịch hẹn thành công!');
-        this.handleLoadAppointmentInfo(this.state.accountid);
+        this.handleLoadAppointmentInfo(this.state.AccountID);
       } else {
         toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
       }
@@ -1092,17 +1096,17 @@ class User extends Component {
     e.preventDefault();
     this.setState({ actionPage: 3 });
   };
-  handleFormChiTietDonHang = async (invoiceid) => {
-    if (this.state.selectedInvoiceID === invoiceid && this.state.loadedInvoiceDetail) {
+  handleFormChiTietDonHang = async (InvoiceID) => {
+    if (this.state.selectedInvoiceID === InvoiceID && this.state.loadedInvoiceDetail) {
       this.setState({ actionPage: 4 });
       return;
     }
     this.setState({ isLoading: true });
-    const invoiceDetail = await this.handleLoadInvoiceDetail(invoiceid);
+    const invoiceDetail = await this.handleLoadInvoiceDetail(InvoiceID);
     if (invoiceDetail) {
       this.setState({
         actionPage: 4,
-        selectedInvoiceID: invoiceid,
+        selectedInvoiceID: InvoiceID,
         loadedInvoiceDetail: invoiceDetail,
         totalPages: Math.ceil((invoiceDetail.ProductList?.length || 0) / this.state.limitProductPerQuery),
         currentPage: 1,
@@ -1113,17 +1117,17 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleFormChiTietLichKham = async (appointmentid) => {
-    if (this.state.selectedAppointmentID === appointmentid && this.state.loadedAppointmentDetail) {
+  handleFormChiTietLichKham = async (AppointmentID) => {
+    if (this.state.selectedAppointmentID === AppointmentID && this.state.loadedAppointmentDetail) {
       this.setState({ actionPage: this.state.loadedAppointmentDetail.AppointmentStatus === 'COMP' && this.state.loadedAppointmentDetail.AppointmentBill ? 9 : 6 });
       return;
     }
     this.setState({ isLoading: true, loadedAppointmentBillDetail: null });
-    const result = await this.handleLoadAppointmentBillDetail(appointmentid);
+    const result = await this.handleLoadAppointmentBillDetail(AppointmentID);
     if (result) {
       this.setState({
         actionPage: result.appointmentDetail.AppointmentStatus === 'COMP' && result.appointmentDetail.AppointmentBill ? 9 : 6,
-        selectedAppointmentID: appointmentid,
+        selectedAppointmentID: AppointmentID,
         loadedAppointmentDetail: result.appointmentDetail,
         loadedAppointmentBillDetail: result.billDetail,
       });
@@ -1138,9 +1142,9 @@ class User extends Component {
     return days[date.getDay()];
   };
   //CancelInvoice Modal
-  handleSelectedCancelInvoice = (invoiceid) => {
+  handleSelectedCancelInvoice = (InvoiceID) => {
     this.setState({
-      selectedCancelInvoice: invoiceid,
+      selectedCancelInvoice: InvoiceID,
       isShowCancelInvoiceModal: true,
     });
   };
@@ -1149,15 +1153,15 @@ class User extends Component {
       isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
     });
   };
-  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+  handleCancelInvoiceFromModal = async (InvoiceID, CancelReason) => {
     this.setState({ isLoading: true });
     try {
       const type = 'ShippingStatus';
       const status = 'PEND_CANCEL';
-      const response = await handleChangeInvoiceStatusApi(invoiceid, type, status, cancelreason);
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, type, status, CancelReason);
       if (response && response.errCode === 0) {
         toast.success('Gửi yêu cầu hủy đơn hàng thành công!');
-        await this.handleLoadInvoiceInfo(this.state.accountid);
+        await this.handleLoadInvoiceInfo(this.state.AccountID);
         this.setState({
           isShowCancelInvoiceModal: false,
         });
@@ -1188,17 +1192,17 @@ class User extends Component {
         break;
     }
   };
-  handleSendEmail = async (billid, type) => {
-    const { email } = this.state;
-    if (!email) {
+  handleSendEmail = async (BillID, type) => {
+    const { Email } = this.state;
+    if (!Email) {
       toast.info('Hãy nhập Email để gửi hóa đơn!');
       return;
     }
     try {
       this.setState({ isLoading: true });
       const sendInfo = {
-        billid,
-        email,
+        BillID,
+        Email,
       };
       let response;
       switch (type) {
@@ -1231,15 +1235,15 @@ class User extends Component {
 
   renderForm() {
     const {
-      userimage,
+      UserImage,
       imageInfo,
       actionPage,
-      accountname,
-      username,
-      phone,
-      address,
-      gender,
-      email,
+      AccountName,
+      UserName,
+      Phone,
+      Address,
+      Gender,
+      Email,
       codeGender,
       loadedInvoiceInfo,
       editField,
@@ -1290,33 +1294,33 @@ class User extends Component {
               <div className="user-content-left">
                 <div className="user-info-tab">
                   <div className="descreption-user">Email:</div>
-                  <div className="value-user-email">{email}</div>
+                  <div className="value-user-email">{Email}</div>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Tên tài khoản:</div>
-                  {editField === 'accountname' ? <input type="text" name="accountname" value={accountname} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{accountname}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('accountname')}>
+                  {editField === 'AccountName' ? <input type="text" name="AccountName" value={AccountName} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{AccountName}</div>}
+                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('AccountName')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Họ và tên:</div>
-                  {editField === 'username' ? <input type="text" name="username" value={username} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{username}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('username')}>
+                  {editField === 'UserName' ? <input type="text" name="UserName" value={UserName} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{UserName}</div>}
+                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('UserName')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Số điện thoại: </div>
-                  {editField === 'phone' ? <input type="text" name="phone" value={phone} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{phone}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('phone')}>
+                  {editField === 'Phone' ? <input type="text" name="Phone" value={Phone} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{Phone}</div>}
+                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('Phone')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
                 <div className="user-info-tab">
                   <div className="descreption-user">Địa chỉ:</div>
-                  {editField === 'address' ? <input type="text" name="address" value={address} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{address}</div>}
-                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('address')}>
+                  {editField === 'Address' ? <input type="text" name="Address" value={Address} onChange={this.handleAccountInfoChange} className="value-user-input" /> : <div className="value-user">{Address}</div>}
+                  <button type="button" className="edit-button" onClick={() => this.handleEditClick('Address')}>
                     <IonIcon icon={pencil}></IonIcon>
                   </button>
                 </div>
@@ -1325,7 +1329,7 @@ class User extends Component {
                   <div className="value-user gender-radio-group">
                     {codeGender.map((item) => (
                       <label key={item.Code} className="gender-radio">
-                        <input type="radio" name="gender" value={item.Code} checked={gender === item.Code} onChange={this.handleAccountInfoChange} />
+                        <input type="radio" name="Gender" value={item.Code} checked={Gender === item.Code} onChange={this.handleAccountInfoChange} />
                         {item.CodeValueVI}
                       </label>
                     ))}
@@ -1350,7 +1354,7 @@ class User extends Component {
                 <div className="user-content-right-img-content">
                   <div className="user-content-img-description">Ảnh đại diện</div>
                   <div className="user-content-img-info" style={{ position: 'relative' }}>
-                    {imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : userimage ? <img src={userimage} alt="Ảnh đại diện" /> : <img src={defUserImage} alt="Ảnh đại diện" />}
+                    {imageInfo ? <img src={imageInfo.Image} alt="Ảnh đại diện" /> : UserImage ? <img src={UserImage} alt="Ảnh đại diện" /> : <img src={defUserImage} alt="Ảnh đại diện" />}
                     {imageInfo && (
                       <button type="button" className="remove-image-btn" onClick={this.handleRemoveImage}>
                         X

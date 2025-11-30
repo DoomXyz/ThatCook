@@ -14,11 +14,11 @@ class ForgotPassword extends Component {
     super(props);
     this.state = {
       currentStep: 1,
-      email: '',
+      Email: '',
       verificationCode: '',
       newPassword: '',
       confirmPassword: '',
-      accountID: '',
+      AccountID: '',
       isLoading: false,
       showNewPassword: false,
       showConfirmPassword: false,
@@ -35,13 +35,13 @@ class ForgotPassword extends Component {
     }));
   };
   handleSendForgotToken = async () => {
-    const { email } = this.state;
+    const { Email } = this.state;
     this.setState({ isLoading: true });
     try {
-      const response = await handleSendForgotTokenApi(email);
+      const response = await handleSendForgotTokenApi(Email);
       if (response && response.errCode === 0) {
         this.setState({
-          accountID: response.data,
+          AccountID: response.data,
           currentStep: 2,
         });
         toast.success('Mã xác nhận đã được gửi đến email!');
@@ -55,10 +55,10 @@ class ForgotPassword extends Component {
     this.setState({ isLoading: false });
   };
   handleVerifyForgotToken = async () => {
-    const { accountID, verificationCode } = this.state;
+    const { AccountID, verificationCode } = this.state;
     this.setState({ isLoading: true });
     try {
-      const response = await handleVerifyForgotTokenApi(accountID, verificationCode);
+      const response = await handleVerifyForgotTokenApi(AccountID, verificationCode);
       if (response && response.errCode === 0) {
         this.setState({ currentStep: 3 });
         toast.success('Xác nhận mã thành công!');
@@ -72,7 +72,7 @@ class ForgotPassword extends Component {
     this.setState({ isLoading: false });
   };
   handleChangePassword = async () => {
-    const { accountID, newPassword, confirmPassword } = this.state;
+    const { AccountID, newPassword, confirmPassword } = this.state;
     if (newPassword !== confirmPassword) {
       toast.error('Mật khẩu xác nhận không khớp!');
       return;
@@ -84,7 +84,7 @@ class ForgotPassword extends Component {
     }
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangePasswordApi(accountID, 'forgot_password', newPassword);
+      const response = await handleChangePasswordApi(AccountID, 'forgot_password', newPassword);
       if (response && response.errCode === 0) {
         toast.success('Đổi mật khẩu thành công!');
         setTimeout(() => {
@@ -113,7 +113,7 @@ class ForgotPassword extends Component {
   };
 
   renderForm() {
-    const { currentStep, email, verificationCode, newPassword, confirmPassword, isLoading } = this.state;
+    const { currentStep, Email, verificationCode, newPassword, confirmPassword, isLoading } = this.state;
     switch (currentStep) {
       case 1:
         return (
@@ -125,8 +125,8 @@ class ForgotPassword extends Component {
               <div className="input-form">
                 <input
                   type="email"
-                  value={email}
-                  onChange={(event) => this.handleOnChangeInput(event, 'email')}
+                  value={Email}
+                  onChange={(event) => this.handleOnChangeInput(event, 'Email')}
                   placeholder="Email"
                   required
                 />

@@ -15,14 +15,14 @@ class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      accountname: '',
-      email: '',
-      password: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: '',
-      accounttype: 'C', //mặc định tạo khách hàng
+      AccountName: '',
+      Email: '',
+      Password: '',
+      UserName: '',
+      Phone: '',
+      Address: '',
+      Gender: '',
+      AccountType: 'C', //mặc định tạo khách hàng
       confirmPassword: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
@@ -46,7 +46,7 @@ class Register extends Component {
         }
         newState[`code${type}`] = response.data;
         if (hasDefault.includes(type)) {
-          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
       this.setState(newState);
@@ -68,7 +68,7 @@ class Register extends Component {
     }
     this.setState((prevState) => ({ [value]: !prevState[value] }));
   }
-  //quản lý state nhập  
+  //quản lý state nhập dữ liệu
   handleOnChangeInput = (event, type) => {
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
@@ -79,21 +79,21 @@ class Register extends Component {
   //thực hiện đăng ký
   handleRegister = async () => {
     this.setState({ isLoading: true });
-    const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword } = this.state;
-    if (password !== confirmPassword) {
+    const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType, confirmPassword } = this.state;
+    if (Password !== confirmPassword) {
       toast.error('Mật khẩu không trùng khớp!');
       this.setState({ isLoading: false });
       return;
     }
     const userInfo = {
-      accountname,
-      email,
-      password,
-      username,
-      phone,
-      address,
-      gender,
-      accounttype,
+      AccountName,
+      Email,
+      Password,
+      UserName,
+      Phone,
+      Address,
+      Gender,
+      AccountType,
     };
     const isValidateInput = await validateAccountInput(userInfo, "REG");
     if (!isValidateInput.valid) {
@@ -119,7 +119,7 @@ class Register extends Component {
     });
   };
   render() {
-    const { accountname, email, password, username, phone, address, gender, confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, isLoading } = this.state;
+    const { AccountName, Email, Password, UserName, Phone, Address, Gender, confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, isLoading } = this.state;
     return (
       <div className="body-register">
         <ToastContainer
@@ -146,7 +146,7 @@ class Register extends Component {
                 <div className="single">
                   <div className="inputbox">
                     <IonIcon icon={mailOutline}></IonIcon>
-                    <input type="email" placeholder="" value={email} onChange={(event) => this.handleOnChangeInput(event, 'email')} />
+                    <input type="email" placeholder="" value={Email} onChange={(event) => this.handleOnChangeInput(event, 'Email')} />
                     <label>Email</label>
                   </div>
 
@@ -154,33 +154,33 @@ class Register extends Component {
                 <div className="R1">
                   <div className="inputbox">
                     <IonIcon icon={person}></IonIcon>
-                    <input type="text" placeholder="" value={username} onChange={(event) => this.handleOnChangeInput(event, 'username')} />
+                    <input type="text" placeholder="" value={UserName} onChange={(event) => this.handleOnChangeInput(event, 'UserName')} />
                     <label>Họ Tên</label>
                   </div>
                   <div className="inputbox">
                     <IonIcon icon={call}></IonIcon>
-                    <input type="tel" placeholder="" value={phone} onChange={(event) => this.handleOnChangeInput(event, 'phone')} />
+                    <input type="tel" placeholder="" value={Phone} onChange={(event) => this.handleOnChangeInput(event, 'Phone')} />
                     <label>Số điện thoại</label>
                   </div>
                 </div>
                 <div className="R1">
                   <div className="inputbox">
                     <IonIcon icon={keyOutline}></IonIcon>
-                    <input type="text" placeholder="" value={accountname} onChange={(event) => this.handleOnChangeInput(event, 'accountname')} />
+                    <input type="text" placeholder="" value={AccountName} onChange={(event) => this.handleOnChangeInput(event, 'AccountName')} />
                     <label>Tên tài khoản</label>
                   </div>
                   <div className="inputbox">
                     <div className="toggle-password">
                       <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={() => this.handleTogglePassword(1)}></IonIcon>
                     </div>
-                    <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={password} onChange={(event) => this.handleOnChangeInput(event, 'password')} />
+                    <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={Password} onChange={(event) => this.handleOnChangeInput(event, 'Password')} />
                     <label>Mật khẩu</label>
                   </div>
                 </div>
                 <div className="R1">
                   <div className="selectbox">
                     <label>Giới tính</label>
-                    <select value={gender} onChange={(event) => this.handleOnChangeInput(event, 'gender')}>
+                    <select value={Gender} onChange={(event) => this.handleOnChangeInput(event, 'Gender')}>
                       {codeGender.length > 0 ? (
                         codeGender.map((item) => (
                           <option key={item.Code} value={item.Code}>
@@ -204,7 +204,7 @@ class Register extends Component {
                 <div className="single">
                   <div className="inputbox">
                     <IonIcon icon={location}></IonIcon>
-                    <input type="text" placeholder="" value={address} onChange={(event) => this.handleOnChangeInput(event, 'address')} />
+                    <input type="text" placeholder="" value={Address} onChange={(event) => this.handleOnChangeInput(event, 'Address')} />
                     <label>Địa chỉ</label>
                   </div>
                 </div>

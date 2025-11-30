@@ -16,7 +16,7 @@ class HomeProductModal extends Component {
     super(props);
     this.state = {
       selectedImage: '',
-      quantity: 1,
+      Quantity: 1,
       loadedProductInfo: null,
       loadedProductDetail: null,
       loadedProductImage: null,
@@ -35,16 +35,16 @@ class HomeProductModal extends Component {
   resetState = async () => {
     this.setState({
       selectedImage: '',
-      quantity: 1,
+      Quantity: 1,
       loadedProductInfo: null,
       loadedProductDetail: null,
       loadedProductImage: null,
       selectedProductDetail: null,
     });
   };
-  loadProductDetails = async (productid) => {
+  loadProductDetails = async (ProductID) => {
     try {
-      const response = await handleGetSaleProductInfoApi(productid);
+      const response = await handleGetSaleProductInfoApi(ProductID);
       if (response && response.errCode === 0) {
         const loadedInfo = response.data;
         const loadedProductImage = loadedInfo.Image;
@@ -73,53 +73,53 @@ class HomeProductModal extends Component {
     }
   };
   handleQuantityIncrease = () => {
-    const { selectedProductDetail, quantity } = this.state;
-    if (selectedProductDetail && quantity < selectedProductDetail.Stock) {
-      this.setState((prevState) => ({ quantity: prevState.quantity + 1 }));
+    const { selectedProductDetail, Quantity } = this.state;
+    if (selectedProductDetail && Quantity < selectedProductDetail.Stock) {
+      this.setState((prevState) => ({ Quantity: prevState.Quantity + 1 }));
     }
   };
   handleQuantityDecrease = () => {
     this.setState((prevState) => ({
-      quantity: Math.max(1, prevState.quantity - 1),
+      Quantity: Math.max(1, prevState.Quantity - 1),
     }));
   };
   handleProductDetailChange = (selectedProductDetail) => {
     this.setState({
       selectedProductDetail,
-      quantity: 1,
+      Quantity: 1,
     });
   };
   handleProductImageClick = (src) => {
     this.setState({ selectedImage: src });
   };
   handleAddToCart = () => {
-    const { loadedProductInfo, quantity, selectedProductDetail } = this.state;
+    const { loadedProductInfo, Quantity, selectedProductDetail } = this.state;
     if (!loadedProductInfo || !selectedProductDetail) return;
     // Gọi hàm thêm vào giỏ hàng
-    const productPrice = (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice)) * (1 - parseFloat(selectedProductDetail.Promotion) / 100);
+    const ProductPrice = (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice)) * (1 - parseFloat(selectedProductDetail.Promotion) / 100);
     this.props.handleAddToCart({
       ProductID: loadedProductInfo.ProductID,
       ProductDetailID: selectedProductDetail.ProductDetailID,
-      ItemPrice: productPrice,
-      ItemQuantity: quantity,
+      ItemPrice: ProductPrice,
+      ItemQuantity: Quantity,
     });
     // Reset state về trạng thái ban đầu
     const firstDetail = this.state.loadedProductDetail[0] || null;
     this.setState({
       selectedImage: loadedProductInfo.ProductImage || '',
-      quantity: 1,
+      Quantity: 1,
       selectedProductDetail: firstDetail,
     });
   };
   handleBuyNow = () => {
-    const { loadedProductInfo, quantity, selectedProductDetail } = this.state;
+    const { loadedProductInfo, Quantity, selectedProductDetail } = this.state;
     if (!loadedProductInfo || !selectedProductDetail) return;
-    const productPrice = (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice)) * (1 - parseFloat(selectedProductDetail.Promotion) / 100);
+    const ProductPrice = (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice)) * (1 - parseFloat(selectedProductDetail.Promotion) / 100);
     this.props.handleBuyNowFromModal({
       ProductID: loadedProductInfo.ProductID,
       ProductDetailID: selectedProductDetail.ProductDetailID,
-      ItemPrice: productPrice,
-      ItemQuantity: quantity,
+      ItemPrice: ProductPrice,
+      ItemQuantity: Quantity,
     });
   };
   toggle = () => {
@@ -128,7 +128,7 @@ class HomeProductModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { selectedImage, quantity, selectedProductDetail, loadedProductInfo, loadedProductDetail, loadedProductImage } = this.state;
+    const { selectedImage, Quantity, selectedProductDetail, loadedProductInfo, loadedProductDetail, loadedProductImage } = this.state;
     if (!loadedProductInfo || !loadedProductDetail) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="HomeProductModal" centered backdrop="static">
@@ -138,16 +138,16 @@ class HomeProductModal extends Component {
     }
     const basePrice = selectedProductDetail ? (parseFloat(loadedProductInfo.ProductPrice) + parseFloat(selectedProductDetail.ExtraPrice || 0)) * (1 - parseFloat(selectedProductDetail.Promotion || 0) / 100) : parseFloat(loadedProductInfo.ProductPrice);
     const formattedOriginalPrice = basePrice.toLocaleString('vi-VN');
-    const finalPrice = quantity * basePrice;
+    const finalPrice = Quantity * basePrice;
     const formattedFinalPrice = finalPrice.toLocaleString('vi-VN');
     const handleQuantityChange = (e) => {
       const value = parseInt(e.target.value, 10);
       if (isNaN(value) || value < 1) {
-        this.setState({ quantity: 1 });
+        this.setState({ Quantity: 1 });
       } else if (selectedProductDetail && value > selectedProductDetail.Stock) {
-        this.setState({ quantity: selectedProductDetail.Stock });
+        this.setState({ Quantity: selectedProductDetail.Stock });
       } else {
-        this.setState({ quantity: value });
+        this.setState({ Quantity: value });
       }
     };
     return (
@@ -195,7 +195,7 @@ class HomeProductModal extends Component {
                   <button onClick={this.handleQuantityDecrease}>
                     <IonIcon icon={remove} />
                   </button>
-                  <input type="text" value={quantity} onChange={handleQuantityChange} min="1" max={selectedProductDetail ? selectedProductDetail.Stock : ''} style={{ width: '50px', textAlign: 'center' }} />
+                  <input type="text" value={Quantity} onChange={handleQuantityChange} min="1" max={selectedProductDetail ? selectedProductDetail.Stock : ''} style={{ width: '50px', textAlign: 'center' }} />
                   <button onClick={this.handleQuantityIncrease}>
                     <IonIcon icon={add} />
                   </button>

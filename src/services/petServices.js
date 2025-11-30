@@ -1,5 +1,6 @@
 import axios from '../axios';
 import { ethers } from 'ethers';
+import { validatePetInput } from '../utils/pakage';
 
 const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 const abi = [
@@ -88,76 +89,102 @@ const abi = [
     "stateMutability": "nonpayable"
   }
 ];
-const handleGetAccountPetInfoApi = (accountid) => {
-  return axios.get(`/api/get-account-petinfo?accountid=${accountid}`);
+const handleGetAccountPetInfoApi = (AccountID) => {
+  return axios.get(`/api/get-account-petinfo?AccountID=${AccountID}`);
 };
-
-const handleGetPetInfoApi = (accountid, petid) => {
-  return axios.get(`/api/get-petinfo?accountid=${accountid}&petid=${petid}`);
+const handleGetPetInfoApi = (AccountID, PetID) => {
+  return axios.get(`/api/get-petinfo?AccountID=${AccountID}&PetID=${PetID}`);
 };
-
 const handleSavePetInfoApi = async (petInfo, signer) => {
   try {
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    console.log('pet: ', petInfo)
-
-    const petId = `P${Date.now().toString().slice(-9).padStart(9, '0')}`;
-    const tx = await contract.addPet(
-      petId,
-      petInfo.petname,
-      petInfo.pettype,
-      petInfo.petgender,
-      petInfo.petweight,
-      petInfo.age,
-      'VALID',
-      petInfo.petimage
-    );
-    await tx.wait();
-    return { data: { errCode: 0, errMessage: 'Lưu thông tin thú cưng thành công!', data: { PetID: petId } } };
-  } catch (e) {
-    console.error('Error in handleSavePetInfoApi:', e);
-    return { data: { errCode: 3, errMessage: `Lỗi khi lưu thú cưng`, data: null } };
-  }
-};
-
-const handleChangePetInfoApi = async (petid, petInfo, signer) => {
-  try {
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    const tx = await contract.updatePet(
-      petid,
-      petInfo.petname,
-      petInfo.pettype,
-      petInfo.petgender,
-      petInfo.petweight,
-      petInfo.age,
-      petInfo.petStatus || 'VALID',
-      petInfo.petImage || ''
-    );
-    await tx.wait();
-    return { data: { errCode: 0, errMessage: 'Cập nhật thông tin thú cưng thành công!', data: null } };
-  } catch (e) {
-    return {
-      data: {
-        errCode: 3,
-        errMessage: `Lỗi khi cập nhật thông tin`,
+    const isValidateInput = await validatePetInput(petInfo);
+    if (!isValidateInput.valid) {
+      return {
+        errCode: 1,
+        errMessage: isValidateInput.errMessage,
         data: null
       }
+    }
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+    const PetID = `P${Date.now().toString().slice(-9).padStart(9, '0')}`;
+    console.log(petInfo)
+    const tx = await contract.addPet(
+      PetID,
+      petInfo.PetName,
+      petInfo.PetType,
+      petInfo.PetGender,
+      petInfo.PetWeight,
+      petInfo.Age,
+      'VALID',
+      petInfo.PetImage,
+    );
+    await tx.wait();
+    return {
+      errCode: 0,
+      errMessage: 'Lưu thông tin thú cưng thành công!',
+      data: null
+    };
+  } catch (e) {
+    return {
+      errCode: 3,
+      errMessage: `Lỗi khi lưu thú cưng`,
+      data: null
     };
   }
 };
-
-const handleRemovePetApi = async (petid, signer) => {
+const handleChangePetInfoApi = async (PetID, petInfo, signer) => {
   try {
+    const isValidateInput = await validatePetInput(petInfo);
+    if (!isValidateInput.valid) {
+      return {
+        errCode: 1,
+        errMessage: isValidateInput.errMessage,
+        data: null
+      }
+    }
     const contract = new ethers.Contract(contractAddress, abi, signer);
-    const tx = await contract.removePet(petid);
+    const tx = await contract.updatePet(
+      PetID,
+      petInfo.PetName,
+      petInfo.PetType,
+      petInfo.PetGender,
+      petInfo.PetWeight,
+      petInfo.Age,
+      petInfo.PetStatus || 'VALID',
+      petInfo.PetImage || ''
+    );
     await tx.wait();
-    return { data: { errCode: 0, errMessage: 'Xóa thú cưng thành công!', data: null } };
+    return {
+      errCode: 0,
+      errMessage: 'Cập nhật thông tin thú cưng thành công!',
+      data: null
+    };
   } catch (e) {
-    console.error('Error in handleRemovePetApi:', e);
-    return { data: { errCode: 3, errMessage: `Lỗi khi xóa thú cưng: ${e.message}`, data: null } };
+    return {
+      errCode: 3,
+      errMessage: `Lỗi khi cập nhật thông tin thú cưng`,
+      data: null
+    }
   }
 };
-
+const handleRemovePetApi = async (PetID, signer) => {
+  try {
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+    const tx = await contract.removePet(PetID);
+    await tx.wait();
+    return {
+      errCode: 0,
+      errMessage: 'Xóa thú cưng thành công!',
+      data: null
+    };
+  } catch (e) {
+    return {
+      errCode: 3,
+      errMessage: `Lỗi khi xóa thú cưng`,
+      data: null
+    };
+  }
+};
 export {
   handleGetAccountPetInfoApi,
   handleGetPetInfoApi,

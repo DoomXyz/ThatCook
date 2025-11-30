@@ -17,18 +17,18 @@ class CreateAccountModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      accountname: '',
-      email: '',
-      password: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: '',
-      accounttype: '',
+      AccountName: '',
+      Email: '',
+      Password: '',
+      UserName: '',
+      Phone: '',
+      Address: '',
+      Gender: '',
+      AccountType: '',
       confirmPassword: '',
-      bio: '',
-      specialization: '',
-      workingstatus: '',
+      Bio: '',
+      Specialization: '',
+      WorkingStatus: '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       codeGender: [],
@@ -85,18 +85,18 @@ class CreateAccountModal extends Component {
   resetState = () => {
     const { codeGender, codeAccountType, codeWorkingStatus } = this.state
     this.setState({
-      accountname: '',
-      email: '',
-      password: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: codeGender.length > 0 ? codeGender[0].Code : '',
-      accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
+      AccountName: '',
+      Email: '',
+      Password: '',
+      UserName: '',
+      Phone: '',
+      Address: '',
+      Gender: codeGender.length > 0 ? codeGender[0].Code : '',
+      AccountType: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
       confirmPassword: '',
-      bio: '',
-      specialization: '',
-      workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
+      Bio: '',
+      Specialization: '',
+      WorkingStatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
       isTogglePassword1: false,
       isTogglePassword2: false,
       selectedServices: [],
@@ -129,21 +129,21 @@ class CreateAccountModal extends Component {
     this.setState({ selectedServices: selectedServiceIds });
   };
   handleCreateAccount = async () => {
-    const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus, selectedServices } = this.state;
-    if (password !== confirmPassword) {
+    const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType, confirmPassword, Bio, Specialization, WorkingStatus, selectedServices } = this.state;
+    if (Password !== confirmPassword) {
       toast.error('Mật khẩu không trùng khớp!');
       this.setState({ isLoading: false });
       return;
     }
     const userInfo = {
-      accountname,
-      email,
-      password,
-      username,
-      phone,
-      address,
-      gender,
-      accounttype,
+      AccountName,
+      Email,
+      Password,
+      UserName,
+      Phone,
+      Address,
+      Gender,
+      AccountType,
     };
     const isValidateAccountInput = await validateAccountInput(userInfo, "REG");
     if (!isValidateAccountInput.valid) {
@@ -151,11 +151,11 @@ class CreateAccountModal extends Component {
       this.setState({ isLoading: false });
       return;
     }
-    if (accounttype === 'V') {
+    if (AccountType === 'V') {
       userInfo.veterinarianInfo = {
-        bio: bio || null,
-        specialization: specialization || null,
-        workingstatus: workingstatus || null,
+        Bio: Bio || null,
+        Specialization: Specialization || null,
+        WorkingStatus: WorkingStatus || null,
         selectedServicesList: selectedServices,
       };
       const isValidateVeterinarianInput = await validateVeterinarianInput(userInfo.veterinarianInfo);
@@ -169,7 +169,7 @@ class CreateAccountModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus,
+    const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType, confirmPassword, Bio, Specialization, WorkingStatus,
       isTogglePassword1, isTogglePassword2, selectedServices,
       codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo } = this.state;
     const serviceOptions = loadedServiceInfo.map((service) => ({
@@ -185,12 +185,12 @@ class CreateAccountModal extends Component {
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={mailOutline}></IonIcon>
-              <input type="email" placeholder="" value={email} onChange={(event) => this.handleOnChangeInput(event, 'email')} />
+              <input type="email" placeholder="" value={Email} onChange={(event) => this.handleOnChangeInput(event, 'Email')} />
               <label>Email</label>
             </div>
             <div className="selectbox">
               <label>Phân quyền</label>
-              <select value={accounttype} onChange={(event) => this.handleOnChangeInput(event, 'accounttype')}>
+              <select value={AccountType} onChange={(event) => this.handleOnChangeInput(event, 'AccountType')}>
                 {codeAccountType.length > 0 ? (
                   codeAccountType.map((item) => (
                     <option key={item.Code} value={item.Code}>
@@ -204,17 +204,17 @@ class CreateAccountModal extends Component {
               <IonIcon icon={lockClosedOutline}></IonIcon>
             </div>
           </div>
-          {accounttype === 'V' && (
+          {AccountType === 'V' && (
             <div className="R2 veterinarian-info">
               <div className="f">
                 <div className="inputbox-2">
                   <IonIcon icon={briefcaseOutline}></IonIcon>
-                  <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
+                  <input type="text" placeholder="" value={Specialization} onChange={(event) => this.handleOnChangeInput(event, 'Specialization')} />
                   <label>Chuyên khoa</label>
                 </div>
                 <div className="selectbox">
                   <label>Trạng thái làm việc</label>
-                  <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
+                  <select value={WorkingStatus} onChange={(event) => this.handleOnChangeInput(event, 'WorkingStatus')}>
                     {codeWorkingStatus.length > 0 ? (
                       codeWorkingStatus.map((item) => (
                         <option key={item.Code} value={item.Code}>
@@ -230,7 +230,7 @@ class CreateAccountModal extends Component {
               </div>
               <div className="inputbox-1">
                 <IonIcon icon={informationCircleOutline}></IonIcon>
-                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
+                <textarea placeholder="" value={Bio} onChange={(event) => this.handleOnChangeInput(event, 'Bio')} className={Bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
               </div>
               <div className="selectbox-service">
@@ -243,33 +243,33 @@ class CreateAccountModal extends Component {
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={person}></IonIcon>
-              <input type="text" placeholder="" value={username} onChange={(event) => this.handleOnChangeInput(event, 'username')} />
+              <input type="text" placeholder="" value={UserName} onChange={(event) => this.handleOnChangeInput(event, 'UserName')} />
               <label>Họ Tên</label>
             </div>
             <div className="inputbox">
               <IonIcon icon={call}></IonIcon>
-              <input type="tel" placeholder="" value={phone} onChange={(event) => this.handleOnChangeInput(event, 'phone')} />
+              <input type="tel" placeholder="" value={Phone} onChange={(event) => this.handleOnChangeInput(event, 'Phone')} />
               <label>Số điện thoại</label>
             </div>
           </div>
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={keyOutline}></IonIcon>
-              <input type="text" placeholder="" value={accountname} onChange={(event) => this.handleOnChangeInput(event, 'accountname')} />
+              <input type="text" placeholder="" value={AccountName} onChange={(event) => this.handleOnChangeInput(event, 'AccountName')} />
               <label>Tên tài khoản</label>
             </div>
             <div className="inputbox">
               <div className="toggle-password">
                 <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={() => this.handleTogglePassword(1)}></IonIcon>
               </div>
-              <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={password} onChange={(event) => this.handleOnChangeInput(event, 'password')} />
+              <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={Password} onChange={(event) => this.handleOnChangeInput(event, 'Password')} />
               <label>Mật khẩu</label>
             </div>
           </div>
           <div className="R1">
             <div className="selectbox">
               <label>Giới tính</label>
-              <select value={gender} onChange={(event) => this.handleOnChangeInput(event, 'gender')}>
+              <select value={Gender} onChange={(event) => this.handleOnChangeInput(event, 'Gender')}>
                 {codeGender.length > 0 ? (
                   codeGender.map((item) => (
                     <option key={item.Code} value={item.Code}>
@@ -293,7 +293,7 @@ class CreateAccountModal extends Component {
           <div className="R2">
             <div className="inputbox-address">
               <IonIcon icon={location}></IonIcon>
-              <input className="address" type="text" placeholder="" value={address} onChange={(event) => this.handleOnChangeInput(event, 'address')} />
+              <input className="address" type="text" placeholder="" value={Address} onChange={(event) => this.handleOnChangeInput(event, 'Address')} />
               <label>Địa chỉ</label>
             </div>
           </div>

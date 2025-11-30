@@ -12,14 +12,14 @@ class CreateCouponModal extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            couponcode: '',
-            coupondescription: '',
-            minordervalue: 0,
-            discountvalue: 0,
-            maxdiscount: 0,
-            startdate: null,
-            enddate: null,
-            discounttype: '',
+            CouponCode: '',
+            CouponDescription: '',
+            MinOrderValue: 0,
+            DiscountValue: 0,
+            MaxDiscount: 0,
+            StartDate: null,
+            EndDate: null,
+            DiscountType: '',
             codeDiscountType: [],
             disabledButtons: {
                 createCoupon: false,
@@ -48,7 +48,7 @@ class CreateCouponModal extends Component {
                 }
                 newState[`code${type}`] = response.data;
                 if (hasDefault.includes(type)) {
-                    newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+                    newState[type] = response.data.length > 0 ? response.data[0].Code : '';
                 }
             });
             this.setState(newState);
@@ -61,14 +61,14 @@ class CreateCouponModal extends Component {
     resetState = () => {
         const { codeDiscountType } = this.state
         this.setState({
-            couponcode: '',
-            coupondescription: '',
-            minordervalue: '',
-            discountvalue: '',
-            maxdiscount: '',
-            startdate: null,
-            enddate: null,
-            discounttype: codeDiscountType.length > 0 ? codeDiscountType[0].Code : '',
+            CouponCode: '',
+            CouponDescription: '',
+            MinOrderValue: '',
+            DiscountValue: '',
+            MaxDiscount: '',
+            StartDate: null,
+            EndDate: null,
+            DiscountType: codeDiscountType.length > 0 ? codeDiscountType[0].Code : '',
         });
     };
     toggle = () => {
@@ -79,17 +79,17 @@ class CreateCouponModal extends Component {
         this.setState({ [field]: e.target.value });
     };
     handleCreateCoupon = async () => {
-        const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, startdate, enddate, discounttype } = this.state;
+        const { CouponCode, CouponDescription, MinOrderValue, DiscountValue, MaxDiscount, StartDate, EndDate, DiscountType } = this.state;
         const couponInfo = {
-            couponcode,
-            coupondescription,
-            minordervalue: minordervalue ? parseFloat(minordervalue) : 0,
-            discountvalue: parseFloat(discountvalue),
-            maxdiscount: maxdiscount ? parseFloat(maxdiscount) : undefined,
-            discounttype,
-            startdate: startdate ? startdate.toISOString().split('T')[0] : null,
-            enddate: enddate ? enddate.toISOString().split('T')[0] : null,
-            couponstatus: "ACTIVE"
+            CouponCode,
+            CouponDescription,
+            MinOrderValue: MinOrderValue ? parseFloat(MinOrderValue) : 0,
+            DiscountValue: parseFloat(DiscountValue),
+            MaxDiscount: MaxDiscount ? parseFloat(MaxDiscount) : undefined,
+            DiscountType,
+            StartDate: StartDate ? StartDate.toISOString().split('T')[0] : null,
+            EndDate: EndDate ? EndDate.toISOString().split('T')[0] : null,
+            CouponStatus: "ACTIVE"
         };
         const isValidateInput = await validateCouponInput(couponInfo);
         if (!isValidateInput.valid) {
@@ -138,7 +138,7 @@ class CreateCouponModal extends Component {
         }
     };
     render() {
-        const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, codeDiscountType, startdate, enddate, discounttype, disabledButtons } = this.state;
+        const { CouponCode, CouponDescription, MinOrderValue, DiscountValue, MaxDiscount, codeDiscountType, StartDate, EndDate, DiscountType, disabledButtons } = this.state;
         return (
             <Modal show={this.props.isOpen} onHide={this.toggle} centered backdrop="static" className="create-coupon-modal">
                 <Modal.Header closeButton>
@@ -149,11 +149,11 @@ class CreateCouponModal extends Component {
                         <div className="f">
                             <div className="modal-content-add-coupon-code">
                                 <p>Mã giảm giá: </p>
-                                <input type="text" placeholder="Nhập mã giảm giá" value={couponcode} onChange={(e) => this.handleInputChange(e, 'couponcode')} />
+                                <input type="text" placeholder="Nhập mã giảm giá" value={CouponCode} onChange={(e) => this.handleInputChange(e, 'CouponCode')} />
                             </div>
                             <div className="modal-content-add-discount-type">
                                 <p>Loại giảm giá:</p>
-                                <select value={discounttype} onChange={(e) => this.handleInputChange(e, 'discounttype')}>
+                                <select value={DiscountType} onChange={(e) => this.handleInputChange(e, 'DiscountType')}>
                                     {codeDiscountType.map((type) => (
                                         <option key={type.Code} value={type.Code}>
                                             {type.CodeValueVI}
@@ -169,8 +169,8 @@ class CreateCouponModal extends Component {
                                     <input
                                         type="text"
                                         placeholder="Nhập giá trị giảm"
-                                        value={discountvalue}
-                                        onChange={(e) => this.handleInputChange(e, 'discountvalue')}
+                                        value={DiscountValue}
+                                        onChange={(e) => this.handleInputChange(e, 'DiscountValue')}
                                         onInput={(e) => {
                                             e.target.value = e.target.value.replace(/[^0-9]/g, '');
                                         }}
@@ -182,8 +182,8 @@ class CreateCouponModal extends Component {
                                 <input
                                     type="text"
                                     placeholder="Nhập giá giảm tối đa"
-                                    value={maxdiscount}
-                                    onChange={(e) => this.handleInputChange(e, 'maxdiscount')}
+                                    value={MaxDiscount}
+                                    onChange={(e) => this.handleInputChange(e, 'MaxDiscount')}
                                     onInput={(e) => {
                                         e.target.value = e.target.value.replace(/[^0-9]/g, '');
                                     }}
@@ -193,15 +193,15 @@ class CreateCouponModal extends Component {
                         <div className="f">
                             <div className="modal-content-add-coupon-description">
                                 <p>Mô tả: </p>
-                                <input type="text" placeholder="Nhập mô tảaa" value={coupondescription} onChange={(e) => this.handleInputChange(e, 'coupondescription')} />
+                                <input type="text" placeholder="Nhập mô tảaa" value={CouponDescription} onChange={(e) => this.handleInputChange(e, 'CouponDescription')} />
                             </div>
                             <div className="modal-content-add-min-value">
                                 <p>Mua tối thiểu: </p>
                                 <input
                                     type="text"
                                     placeholder="Nhập giá mua ít nhất"
-                                    value={minordervalue}
-                                    onChange={(e) => this.handleInputChange(e, 'minordervalue')}
+                                    value={MinOrderValue}
+                                    onChange={(e) => this.handleInputChange(e, 'MinOrderValue')}
                                     onInput={(e) => {
                                         e.target.value = e.target.value.replace(/[^0-9]/g, '');
                                     }}
@@ -212,11 +212,11 @@ class CreateCouponModal extends Component {
                         <div className="modal-content-add-dates f">
                             <div className="modal-content-add-dates-start-date">
                                 <p>Ngày bắt đầu:</p>
-                                <DatePicker selected={startdate} onChange={(date) => this.setState({ startdate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                                <DatePicker selected={StartDate} onChange={(date) => this.setState({ StartDate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
                             </div>
                             <div className="modal-content-add-dates-end-date">
                                 <p>Ngày hết hiệu lực:</p>
-                                <DatePicker selected={enddate} onChange={(date) => this.setState({ enddate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
+                                <DatePicker selected={EndDate} onChange={(date) => this.setState({ EndDate: date })} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
                             </div>
                         </div>
                     </div>

@@ -26,25 +26,25 @@ class CheckOut extends Component {
     isLoading: true,
     isLoggedIn: false,
     accountInfo: null,
-    receiverName: '',
-    receiverPhone: '',
-    receiverAddress: '',
-    receiverEmail: '',
-    paymenttype: '',
-    shippingmethod: '',
-    couponCode: '',
+    ReceiverName: '',
+    ReceiverPhone: '',
+    ReceiverAddress: '',
+    ReceiverEmail: '',
+    PaymentType: '',
+    ShippingMethod: '',
+    CouponCode: '',
     tempCouponCode: '',
     codePaymentType: [],
     codeShippingMethod: [],
     checkOutCart: [],
     loadedCheckOutCartDetailInfo: [],
-    totalPrice: 0,
+    TotalPrice: 0,
     totalPriceAfterPromo: 0,
-    discountAmout: 0,
-    totalPayment: 0,
+    DiscountAmount: 0,
+    TotalPayment: 0,
     isBuyNow: false,
     isPlaced: false,
-    invoiceID: null,
+    InvoiceID: null,
     vnpayUrl: null, // State mới để lưu URL redirect VNPay
     currentPage: 1,
     tempCurrentPage: '1',
@@ -88,7 +88,7 @@ class CheckOut extends Component {
           toast.error(`Không thể tải danh sách ${type}!`);
         }
         newState[`code${type}`] = response.data;
-        newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+        newState[type] = response.data.length > 0 ? response.data[0].Code : '';
       });
       this.setState(newState);
     } catch (error) {
@@ -139,9 +139,9 @@ class CheckOut extends Component {
         if (response && response.errCode === 0) {
           const userInfo = response.data;
           this.setState({
-            receiverName: userInfo.UserName,
-            receiverPhone: userInfo.Phone,
-            receiverAddress: userInfo.Address,
+            ReceiverName: userInfo.UserName,
+            ReceiverPhone: userInfo.Phone,
+            ReceiverAddress: userInfo.Address,
           });
         } else {
           toast.error('Tải thông tin người dùng thất bại!');
@@ -195,27 +195,27 @@ class CheckOut extends Component {
       const responseDetail = await handleGetCartDetailApi(JSON.stringify(checkOutCart));
       if (responseDetail && responseDetail.errCode === 0) {
         const checkOutCart = responseDetail.data;
-        let totalPrice = 0;
+        let TotalPrice = 0;
         for (let i = 0; i < checkOutCart.length; i++) {
           if (checkOutCart[i].ProductPrice > 0) {
-            totalPrice += checkOutCart[i].ProductPrice * checkOutCart[i].ItemQuantity;
+            TotalPrice += checkOutCart[i].ProductPrice * checkOutCart[i].ItemQuantity;
           }
         }
         let totalPriceAfterPromo = 0;
         for (let i = 0; i < checkOutCart.length; i++) {
-          let productPrice = 0;
+          let ProductPrice = 0;
           if (checkOutCart[i].ProductPrice > 0) {
-            productPrice = checkOutCart[i].ProductPrice;
+            ProductPrice = checkOutCart[i].ProductPrice;
           }
           if (checkOutCart[i].Promotion) {
-            productPrice *= (100 - parseFloat(checkOutCart[i].Promotion, 10)) / 100;
+            ProductPrice *= (100 - parseFloat(checkOutCart[i].Promotion, 10)) / 100;
           }
-          totalPriceAfterPromo += productPrice * checkOutCart[i].ItemQuantity;
+          totalPriceAfterPromo += ProductPrice * checkOutCart[i].ItemQuantity;
         }
         this.setState({
           loadedCheckOutCartDetailInfo: checkOutCart,
           totalPages: Math.ceil(checkOutCart.length / limitProductPerQuery),
-          totalPrice,
+          TotalPrice,
           totalPriceAfterPromo,
           isLoading: false,
         });
@@ -231,20 +231,20 @@ class CheckOut extends Component {
   };
 
   handleApplyCouponCode = async () => {
-    const { tempCouponCode, couponCode, totalPriceAfterPromo, shippingmethod, codeShippingMethod } = this.state;
-    const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === shippingmethod).ExtraValue);
+    const { tempCouponCode, CouponCode, totalPriceAfterPromo, ShippingMethod, codeShippingMethod } = this.state;
+    const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === ShippingMethod).ExtraValue);
     let finalPrice = totalPriceAfterPromo + shipValue;
-    if (tempCouponCode !== couponCode) {
+    if (tempCouponCode !== CouponCode) {
       try {
         const responseApi = await handleGetCouponApi(tempCouponCode);
         const response = responseApi.data;
         if (response && response.errCode === 0 && parseFloat(finalPrice) > parseFloat(response.data.MinOrderValue) && response.data.CouponStatus === 'ACTIVE') {
           this.setState({ isLoading: true });
           toast.success('Áp dụng mã giảm giá thành công!');
-          this.setState({ couponCode: tempCouponCode, isLoading: false });
+          this.setState({ CouponCode: tempCouponCode, isLoading: false });
         } else {
           toast.error('Áp dụng mã giảm giá thất bại');
-          this.setState({ couponCode: '' });
+          this.setState({ CouponCode: '' });
         }
       } catch (e) {
         console.log(e);
@@ -257,43 +257,43 @@ class CheckOut extends Component {
   };
 
   handleCalculateTotalPayment = async () => {
-    const { totalPriceAfterPromo, couponCode, shippingmethod, codeShippingMethod } = this.state;
-    const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === shippingmethod).ExtraValue);
+    const { totalPriceAfterPromo, CouponCode, ShippingMethod, codeShippingMethod } = this.state;
+    const shipValue = parseFloat(codeShippingMethod.find((method) => method.Code === ShippingMethod).ExtraValue);
     let finalPrice = totalPriceAfterPromo + shipValue;
     let discount = 0;
-    if (couponCode) {
+    if (CouponCode) {
       try {
-        console.log(couponCode, finalPrice);
-        const responseApi = await handleCheckCouponApi(couponCode, finalPrice);
+        console.log(CouponCode, finalPrice);
+        const responseApi = await handleCheckCouponApi(CouponCode, finalPrice);
         const response = responseApi.data;
         console.log(response.data);
         if (response && response.errCode === 0) {
           discount = response.data;
-          this.setState({ discountAmout: discount });
+          this.setState({ DiscountAmount: discount });
         } else {
-          this.setState({ discountAmout: 0 });
+          this.setState({ DiscountAmount: 0 });
         }
       } catch (e) {
         console.log(e);
         toast.error('Lỗi khi tải thông tin giảm giá!');
       }
     }
-    const totalPayment = finalPrice - discount;
+    const TotalPayment = finalPrice - discount;
     this.setState({
-      totalPayment,
+      TotalPayment,
     });
   };
 
   handleOnChangeInput = (event, type) => {
     if (type === 'tempCouponCode') {
-      this.setState({ couponCode: '' });
+      this.setState({ CouponCode: '' });
     }
     let copyState = { ...this.state };
     copyState[type] = event.target.value;
     this.setState({
       ...copyState,
     });
-    if (type === 'shippingmethod') {
+    if (type === 'ShippingMethod') {
       setTimeout(() => {
         this.handleCalculateTotalPayment();
       }, 10);
@@ -352,60 +352,60 @@ class CheckOut extends Component {
   };
 
   handleCompleteOrder = async () => {
-    const { receiverName, receiverPhone, receiverAddress, receiverEmail, isLoggedIn, accountInfo, checkOutCart, paymenttype, shippingmethod, couponCode, totalPriceAfterPromo, discountAmout, totalPayment, isBuyNow } = this.state;
+    const { ReceiverName, ReceiverPhone, ReceiverAddress, ReceiverEmail, isLoggedIn, accountInfo, checkOutCart, PaymentType, ShippingMethod, CouponCode, totalPriceAfterPromo, DiscountAmount, TotalPayment, isBuyNow } = this.state;
 
     await this.loadCheckOutCart();
-    let couponID = null;
+    let CouponID = null;
     try {
-      const response = await handleGetCouponApi(couponCode);
+      const response = await handleGetCouponApi(CouponCode);
       if (response && response.data.errCode === 0) {
-        couponID = response.data.data.CouponID;
+        CouponID = response.data.data.CouponID;
       }
     } catch (e) {
       console.log(e);
       toast.error('Lỗi khi tải thông tin giảm giá!');
     }
-    const shippingStatus = 'PEND';
-    let paymentStatus = 'FAIL';
-    let cardInfo = null;
-    if (!receiverName || !receiverPhone || !receiverAddress) {
+    const ShippingStatus = 'PEND';
+    let PaymentStatus = 'FAIL';
+    let cartInfo = null;
+    if (!ReceiverName || !ReceiverPhone || !ReceiverAddress) {
       toast.info('Vui lòng nhập đầy đủ thông tin giao hàng!');
       return;
     }
-    if (paymenttype === 'CARD' || paymenttype === 'QR') {
-      paymentStatus = 'PEND'; // Pending cho VNPay redirect
-    } else if (paymenttype === 'CASH') {
-      paymentStatus = 'PEND';
+    if (PaymentType === 'CARD' || PaymentType === 'QR') {
+      PaymentStatus = 'PEND'; // Pending cho VNPay redirect
+    } else if (PaymentType === 'CASH') {
+      PaymentStatus = 'PEND';
     }
-    if (receiverEmail) {
+    if (ReceiverEmail) {
       const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+.[^\s@]+$/;
-      if (!emailRegex.test(receiverEmail)) {
+      if (!emailRegex.test(ReceiverEmail)) {
         toast.error('Email sai định dạng!');
         return;
       }
     }
     const invoiceData = {
-      accountid: isLoggedIn ? accountInfo.AccountID : null,
-      receivername: receiverName,
-      receiverphone: receiverPhone,
-      receiveraddress: receiverAddress,
-      email: receiverEmail ? receiverEmail : null,
+      AccountID: isLoggedIn ? accountInfo.AccountID : null,
+      ReceiverName,
+      ReceiverPhone,
+      ReceiverAddress,
+      Email: ReceiverEmail ? ReceiverEmail : null,
       cartItems: checkOutCart.map((item) => ({
-        productid: item.ProductID,
-        productdetailid: item.ProductDetailID,
-        itemprice: item.ItemPrice,
-        itemquantity: item.ItemQuantity,
+        ProductID: item.ProductID,
+        ProductDetailID: item.ProductDetailID,
+        ItemPrice: item.ItemPrice,
+        ItemQuantity: item.ItemQuantity,
       })),
-      totalquantity: checkOutCart.length,
-      totalprice: totalPriceAfterPromo,
-      discountamount: discountAmout,
-      totalpayment: totalPayment,
-      paymentstatus: paymentStatus,
-      shippingstatus: shippingStatus,
-      paymenttype: paymenttype,
-      shippingmethod: shippingmethod,
-      couponid: couponID,
-      cartinfo: cardInfo,
+      TotalQuantity: checkOutCart.length,
+      TotalPrice: totalPriceAfterPromo,
+      DiscountAmount,
+      TotalPayment,
+      PaymentStatus,
+      ShippingStatus,
+      PaymentType,
+      ShippingMethod,
+      CouponID,
+      cartInfo,
       isBuyNow,
     };
     this.setState({ isLoading: true });
@@ -415,7 +415,7 @@ class CheckOut extends Component {
         this.props.clearCheckOutCart();
         this.props.clearCart();
         this.setState({
-          invoiceID: response.data.InvoiceID,
+          InvoiceID: response.data.InvoiceID,
           isPlaced: true,
           checkOutCart: [],
           loadedCheckOutCartDetailInfo: [],
@@ -423,8 +423,8 @@ class CheckOut extends Component {
         });
         console.log('response.data.vnpayUrl', response.data.vnpayUrl);
         toast.success('Đặt hàng thành công!');
-        this.props.saveTrackInfo({ billid: response.data.InvoiceID, billtype: 1 });
-        if ((paymenttype === 'CARD' || paymenttype === 'QR') && response.data.vnpayUrl) {
+        this.props.saveTrackInfo({ BillID: response.data.InvoiceID, BillType: 1 });
+        if ((PaymentType === 'CARD' || PaymentType === 'QR') && response.data.vnpayUrl) {
           // Redirect đến trang VNPay
           window.location.href = response.data.vnpayUrl;
         } else {
@@ -441,7 +441,7 @@ class CheckOut extends Component {
   };
 
   render() {
-    const { isLoading, receiverName, receiverPhone, receiverAddress, receiverEmail, tempCouponCode, codePaymentType, codeShippingMethod, paymenttype, shippingmethod, discountAmout, loadedCheckOutCartDetailInfo, totalPrice, totalPriceAfterPromo, totalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced } = this.state;
+    const { isLoading, ReceiverName, ReceiverPhone, ReceiverAddress, ReceiverEmail, tempCouponCode, codePaymentType, codeShippingMethod, PaymentType, ShippingMethod, DiscountAmount, loadedCheckOutCartDetailInfo, TotalPrice, totalPriceAfterPromo, TotalPayment, currentPage, limitProductPerQuery, totalPages, tempCurrentPage, isPlaced } = this.state;
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
     const endIndex = startIndex + limitProductPerQuery;
@@ -487,19 +487,19 @@ class CheckOut extends Component {
                     <div className="delivery-content-left-input-top-none-logged">
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Họ tên</label>
-                        <input type="text" value={receiverName} onChange={(event) => this.handleOnChangeInput(event, 'receiverName')} />
+                        <input type="text" value={ReceiverName} onChange={(event) => this.handleOnChangeInput(event, 'ReceiverName')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Số điện thoại</label>
-                        <input type="text" value={receiverPhone} onChange={(event) => this.handleOnChangeInput(event, 'receiverPhone')} />
+                        <input type="text" value={ReceiverPhone} onChange={(event) => this.handleOnChangeInput(event, 'ReceiverPhone')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Địa chỉ</label>
-                        <input type="text" value={receiverAddress} onChange={(event) => this.handleOnChangeInput(event, 'receiverAddress')} />
+                        <input type="text" value={ReceiverAddress} onChange={(event) => this.handleOnChangeInput(event, 'ReceiverAddress')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Email</label>
-                        <input type="text" value={receiverEmail} placeholder="Nhập Email nếu cần gửi hóa đơn" onChange={(event) => this.handleOnChangeInput(event, 'receiverEmail')} />
+                        <input type="text" value={ReceiverEmail} placeholder="Nhập Email nếu cần gửi hóa đơn" onChange={(event) => this.handleOnChangeInput(event, 'ReceiverEmail')} />
                       </div>
                       <div className="delivery-content-left-input-top-item-none-logged">
                         <label>Mã giảm giá</label>
@@ -516,7 +516,7 @@ class CheckOut extends Component {
                       {codeShippingMethod.length > 0 ? (
                         codeShippingMethod.map((method, index) => (
                           <div key={index} className="pay-content-left-method-delivery-item">
-                            <input type="radio" id={method.Code} value={method.Code} checked={shippingmethod === method.Code} onChange={(event) => this.handleOnChangeInput(event, 'shippingmethod')} />
+                            <input type="radio" id={method.Code} value={method.Code} checked={ShippingMethod === method.Code} onChange={(event) => this.handleOnChangeInput(event, 'ShippingMethod')} />
                             <label htmlFor={method.Code}>
                               {method.CodeValueVI} ({method.Code === 'FAST' ? '3-7 ngày' : method.Code === 'ECO' ? '7-14 ngày' : '~1 ngày'})
                             </label>
@@ -539,7 +539,7 @@ class CheckOut extends Component {
                       {codePaymentType.length > 0 ? (
                         codePaymentType.map((type, index) => (
                           <div key={index} className="pay-content-left-method-payment-item">
-                            <input type="radio" id={type.Code} name="paymentType" value={type.Code} checked={paymenttype === type.Code} onChange={(event) => this.handleOnChangeInput(event, 'paymenttype')} />
+                            <input type="radio" id={type.Code} name="PaymentType" value={type.Code} checked={PaymentType === type.Code} onChange={(event) => this.handleOnChangeInput(event, 'PaymentType')} />
                             <label htmlFor={type.Code}>{type.CodeValueVI}</label>
                           </div>
                         ))
@@ -550,7 +550,7 @@ class CheckOut extends Component {
                         </div>
                       )}
                       <div className="pay-content-left-method-payment-item">
-                        <input type="radio" id="QR" name="paymentType" value="QR" checked={paymenttype === 'QR'} onChange={(event) => this.handleOnChangeInput(event, 'paymenttype')} />
+                        <input type="radio" id="QR" name="PaymentType" value="QR" checked={PaymentType === 'QR'} onChange={(event) => this.handleOnChangeInput(event, 'PaymentType')} />
                         <label htmlFor="QR">Quét QR (VNPay)</label>
                       </div>
                       <div className="pay-content-left-method-payment-item-img">
@@ -625,9 +625,9 @@ class CheckOut extends Component {
                           <td colSpan="6">Tổng tiền hàng (trước giảm giá)</td>
                           <td>
                             <div className="f">
-                              {totalPrice > 0 ? (
+                              {TotalPrice > 0 ? (
                                 <>
-                                  <p>{totalPrice}</p>
+                                  <p>{TotalPrice}</p>
                                   <sup>đ</sup>
                                 </>
                               ) : (
@@ -652,21 +652,21 @@ class CheckOut extends Component {
                           </td>
                         </tr>
                         <tr>
-                          <td colSpan="6">{codeShippingMethod.find((method) => method.Code === shippingmethod).CodeValueVI}</td>
+                          <td colSpan="6">{codeShippingMethod.find((method) => method.Code === ShippingMethod).CodeValueVI}</td>
                           <td>
                             <div className="f">
-                              <p>{parseFloat(codeShippingMethod.find((method) => method.Code === shippingmethod).ExtraValue)}</p>
+                              <p>{parseFloat(codeShippingMethod.find((method) => method.Code === ShippingMethod).ExtraValue)}</p>
                               <sup>đ</sup>
                             </div>
                           </td>
                         </tr>
-                        {discountAmout > 0 ? (
+                        {DiscountAmount > 0 ? (
                           <tr className="discount">
                             <td colSpan="6">Số tiền giảm</td>
                             <td>
                               <div className="f">
                                 <>
-                                  <p>-{parseFloat(discountAmout)}</p>
+                                  <p>-{parseFloat(DiscountAmount)}</p>
                                   <sup>đ</sup>
                                 </>
                               </div>
@@ -681,7 +681,7 @@ class CheckOut extends Component {
                           </td>
                           <td>
                             <p>
-                              <b>{totalPayment}</b>
+                              <b>{TotalPayment}</b>
                               <sup>
                                 <b>đ</b>
                               </sup>
@@ -739,7 +739,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   clearCart: () => dispatch(clearCart()),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
-  saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
+  saveCartForCheckOut: (checkOutCart, AccountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, AccountID, expiresAt, isBuyNow)),
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
   saveTrackInfo: (trackData) => dispatch(saveTrackInfo(trackData)),

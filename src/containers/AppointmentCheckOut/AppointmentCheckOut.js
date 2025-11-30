@@ -19,25 +19,25 @@ class AppointmentCheckOut extends Component {
     super(props);
     this.fileInputRef = React.createRef();
     this.state = {
-      veterinarianid: '',
-      appointmentid: '',
+      VeterinarianID: '',
+      AppointmentID: '',
       image: null,
       isLoading: true,
       isUploading: false,
       loadedAppointmentDetail: null,
-      medicalNotes: '',
-      medicalPrice: '',
-      totalPayment: '',
+      MedicalNotes: '',
+      MedicalPrice: '',
+      TotalPayment: '',
     };
   }
   async componentDidMount() {
     if (this.props.appointmentCheckout) {
-      const { veterinarianid, appointmentid } = this.props.appointmentCheckout.appointmentData;
+      const { VeterinarianID, AppointmentID } = this.props.appointmentCheckout.appointmentData;
       this.setState({
-        veterinarianid,
-        appointmentid,
+        VeterinarianID,
+        AppointmentID,
       });
-      await this.handleLoadAppointmentDetails(appointmentid);
+      await this.handleLoadAppointmentDetails(AppointmentID);
     } else {
       this.props.navigate('/home');
     }
@@ -47,14 +47,14 @@ class AppointmentCheckOut extends Component {
       URL.revokeObjectURL(this.state.image.Image);
     }
   }
-  handleLoadAppointmentDetails = async (appointmentid) => {
+  handleLoadAppointmentDetails = async (AppointmentID) => {
     this.setState({ isLoading: true });
     try {
-      const response = await handleLoadAppointmentDetailsApi(appointmentid);
+      const response = await handleLoadAppointmentDetailsApi(AppointmentID);
       if (response && response.errCode === 0) {
         this.setState({
           loadedAppointmentDetail: response.data,
-          totalPayment: parseFloat(response.data.Service.Price || 0),
+          TotalPayment: parseFloat(response.data.Service.Price || 0),
         });
       } else {
         toast.error('Không thể tải chi tiết lịch hẹn!', {
@@ -111,43 +111,43 @@ class AppointmentCheckOut extends Component {
   };
   handleOnChangeInput = (event, type) => {
     let value = event.target.value;
-    if (type === 'medicalPrice' && value && isNaN(value)) return; // Ngăn nhập chữ
+    if (type === 'MedicalPrice' && value && isNaN(value)) return; // Ngăn nhập chữ
     let copyState = { ...this.state, [type]: value };
-    if (type === 'medicalPrice') {
-      copyState.medicalPrice = parseFloat(value || 0);
+    if (type === 'MedicalPrice') {
+      copyState.MedicalPrice = parseFloat(value || 0);
     }
-    copyState.totalPayment = this.handleCalculateTotalPayment(copyState.medicalPrice);
+    copyState.TotalPayment = this.handleCalculateTotalPayment(copyState.MedicalPrice);
     this.setState(copyState);
   };
-  handleCalculateTotalPayment = (medicalPrice) => {
-    const servicePrice = parseFloat(this.state.loadedAppointmentDetail?.Service?.Price || 0);
-    return servicePrice + medicalPrice;
+  handleCalculateTotalPayment = (MedicalPrice) => {
+    const ServicePrice = parseFloat(this.state.loadedAppointmentDetail?.Service?.Price || 0);
+    return ServicePrice + MedicalPrice;
   };
   checkValidateInput = () => {
-    const { veterinarianid, appointmentid, medicalPrice, medicalNotes } = this.state;
+    const { VeterinarianID, AppointmentID, MedicalPrice, MedicalNotes } = this.state;
     const { Service } = this.state.loadedAppointmentDetail || {};
-    if (!veterinarianid || !appointmentid || !Service || medicalPrice === '' || medicalPrice === undefined) {
+    if (!VeterinarianID || !AppointmentID || !Service || MedicalPrice === '' || MedicalPrice === undefined) {
       return {
         errCode: -1,
         errMessage: 'Thiếu thông tin hóa đơn!',
       };
     }
-    const servicePrice = parseFloat(Service.Price || 0);
-    if (servicePrice <= 0) {
+    const ServicePrice = parseFloat(Service.Price || 0);
+    if (ServicePrice <= 0) {
       return {
         errCode: -1,
         errMessage: 'Giá dịch vụ không hợp lệ!',
       };
     }
-    const medicalPriceValue = parseFloat(medicalPrice || 0);
+    const medicalPriceValue = parseFloat(MedicalPrice || 0);
     if (isNaN(medicalPriceValue) || medicalPriceValue < 0) {
       return {
         errCode: -1,
         errMessage: 'Giá thuốc không hợp lệ!',
       };
     }
-    if (medicalNotes) {
-      const notesCheck = medicalNotes.trim();
+    if (MedicalNotes) {
+      const notesCheck = MedicalNotes.trim();
       if (!notesCheck || notesCheck.length > 65535) {
         return {
           errCode: 1,
@@ -160,7 +160,7 @@ class AppointmentCheckOut extends Component {
   handleCreateAppointmentBill = async () => {
     try {
       this.setState({ isLoading: true });
-      const { veterinarianid, medicalNotes, medicalPrice, loadedAppointmentDetail, image, isUploading } = this.state;
+      const { VeterinarianID, MedicalNotes, MedicalPrice, loadedAppointmentDetail, image, isUploading } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
         toast.error(isValidateInput.errMessage, {
@@ -180,7 +180,7 @@ class AppointmentCheckOut extends Component {
         this.setState({ isLoading: false });
         return;
       }
-      let medicalImage = null;
+      let MedicalImage = null;
       if (image) {
         this.setState({ isUploading: true });
         const uploadResult = await uploadImages([{ file: image.file }]);
@@ -193,15 +193,15 @@ class AppointmentCheckOut extends Component {
           this.setState({ isUploading: false });
           return;
         }
-        medicalImage = uploadResult.images[0].Image;
+        MedicalImage = uploadResult.images[0].Image;
       }
       const appointmentBillInfo = {
-        veterinarianid,
-        appointmentid: loadedAppointmentDetail.AppointmentID,
-        serviceprice: loadedAppointmentDetail.Service.Price,
-        medicalprice: medicalPrice,
-        medicalimage: medicalImage,
-        medicalnotes: medicalNotes,
+        VeterinarianID,
+        AppointmentID: loadedAppointmentDetail.AppointmentID,
+        ServicePrice: loadedAppointmentDetail.Service.Price,
+        MedicalPrice,
+        MedicalImage,
+        MedicalNotes,
       };
       const response = await handleCreateAppointmentBillApi(appointmentBillInfo);
       if (response && response.errCode === 0) {
@@ -211,7 +211,7 @@ class AppointmentCheckOut extends Component {
             <div style={{ marginTop: '10px' }}>
               <button
                 onClick={() => {
-                  this.props.saveFuAppointmentInfo({ appointmentid: response.data.AppointmentID });
+                  this.props.saveFuAppointmentInfo({ AppointmentID: response.data.AppointmentID });
                   this.props.clearAppointmentCheckout();
                   this.props.navigate('/makeappointment');
                 }}
@@ -227,7 +227,7 @@ class AppointmentCheckOut extends Component {
               </button>
               <button
                 onClick={() => {
-                  this.props.saveTrackInfo({ billid: response.data.AppointmentBillID, billtype: 3 });
+                  this.props.saveTrackInfo({ BillID: response.data.AppointmentBillID, BillType: 3 });
                   this.props.clearAppointmentCheckout();
                   this.props.navigate('/track');
                 }}
@@ -328,13 +328,13 @@ class AppointmentCheckOut extends Component {
                       <tr>
                         <td>Tiền thuốc</td>
                         <td>
-                          <input type="text" placeholder="Nhập phí thuốc" value={this.state.medicalPrice} onChange={(e) => this.handleOnChangeInput(e, 'medicalPrice')} />
+                          <input type="text" placeholder="Nhập phí thuốc" value={this.state.MedicalPrice} onChange={(e) => this.handleOnChangeInput(e, 'MedicalPrice')} />
                         </td>
                         <td>vnđ</td>
                       </tr>
                       <tr>
                         <td>TỔNG CỘNG</td>
-                        <td className="total-payment">{this.state.totalPayment.toLocaleString('vi-VN')}</td>
+                        <td className="total-payment">{this.state.TotalPayment.toLocaleString('vi-VN')}</td>
                         <td>vnđ</td>
                       </tr>
                     </tfoot>
@@ -363,7 +363,7 @@ class AppointmentCheckOut extends Component {
                 <div className="appointment-check-out-content-right-notes">
                   <p>*Thêm ghi chú nếu có</p>
                   <div className="appointment-check-out-content-right-notes-item">
-                    <textarea value={this.state.medicalNotes} onChange={(e) => this.handleOnChangeInput(e, 'medicalNotes')} placeholder="Nhập ghi chú y tế"></textarea>
+                    <textarea value={this.state.MedicalNotes} onChange={(e) => this.handleOnChangeInput(e, 'MedicalNotes')} placeholder="Nhập ghi chú y tế"></textarea>
                   </div>
                 </div>
               </div>

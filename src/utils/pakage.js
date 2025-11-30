@@ -9,15 +9,15 @@ const checkLoginStatus = async () => {
   try {
     const response = await handleVerifyTokenApi();
     if (response && response.errCode === 0) {
-      const accountInfo = response.data;
+      const { AccountID, AccountName, AccountType, UserImage, UserName } = response.data
       return {
         status: true,
         accountInfo: {
-          AccountID: accountInfo.AccountID,
-          AccountName: accountInfo.AccountName,
-          AccountType: accountInfo.AccountType,
-          UserImage: accountInfo.UserImage,
-          UserName: accountInfo.UserName,
+          AccountID,
+          AccountName,
+          AccountType,
+          UserImage,
+          UserName,
         },
       };
     }
@@ -34,9 +34,9 @@ const checkLoginStatus = async () => {
   }
 };
 
-const getAllCodes = async (type) => {
+const getAllCodes = async (Type) => {
   try {
-    const response = await handleGetAllCodesApi(type);
+    const response = await handleGetAllCodesApi(Type);
     if (response && response.length > 0) {
       return {
         status: true,
@@ -48,7 +48,7 @@ const getAllCodes = async (type) => {
       data: [],
     };
   } catch (error) {
-    console.log(`Lỗi khi lấy dữ liệu ${type}:`, error);
+    console.log(`Lỗi khi lấy dữ liệu ${Type}:`, error);
     return {
       status: false,
       data: [],
@@ -114,41 +114,42 @@ const validateCodeInput = (codeInfo) => {
 };
 
 const validateAccountInput = async (userInfo, type) => {
-  const { accountname, email, password, username, phone, address, gender, accounttype } = userInfo;
+  const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType } = userInfo;
+  console.log(userInfo)
   const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
   const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
   const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
   const phoneRegex = /^[0-9]{10,11}$/;
 
-  if (!accountname) return { valid: false, errMessage: 'Tên tài khoản trống!' };
-  if (!accountNameRegex.test(accountname)) return { valid: false, errMessage: 'Tên tài khoản sai định dạng!' };
+  if (!AccountName) return { valid: false, errMessage: 'Tên tài khoản trống!' };
+  if (!accountNameRegex.test(AccountName)) return { valid: false, errMessage: 'Tên tài khoản sai định dạng!' };
 
-  if (!email) return { valid: false, errMessage: 'Email trống!' };
-  if (!emailRegex.test(email)) return { valid: false, errMessage: 'Email sai định dạng!' };
+  if (!Email) return { valid: false, errMessage: 'Email trống!' };
+  if (!emailRegex.test(Email)) return { valid: false, errMessage: 'Email sai định dạng!' };
 
   if (type === 'REG') {
-    if (!password) return { valid: false, errMessage: 'Mật khẩu trống!' };
-    if (!passwordRegex.test(password)) return { valid: false, errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)' };
+    if (!Password) return { valid: false, errMessage: 'Mật khẩu trống!' };
+    if (!passwordRegex.test(Password)) return { valid: false, errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)' };
   }
 
-  if (!username) return { valid: false, errMessage: 'Tên người dùng trống!' };
-  if (!userNameRegex.test(username)) return { valid: false, errMessage: 'Tên người dùng không hợp lệ!' };
+  if (!UserName) return { valid: false, errMessage: 'Tên người dùng trống!' };
+  if (!userNameRegex.test(UserName)) return { valid: false, errMessage: 'Tên người dùng không hợp lệ!' };
 
-  if (!phone) return { valid: false, errMessage: 'Số điện thoại trống!' };
-  if (!phoneRegex.test(phone)) return { valid: false, errMessage: 'Số điện thoại không hợp lệ!' };
+  if (!Phone) return { valid: false, errMessage: 'Số điện thoại trống!' };
+  if (!phoneRegex.test(Phone)) return { valid: false, errMessage: 'Số điện thoại không hợp lệ!' };
 
-  if (!address) return { valid: false, errMessage: 'Địa chỉ trống!' };
+  if (!Address) return { valid: false, errMessage: 'Địa chỉ trống!' };
 
   const genderResponse = await getAllCodes('Gender');
   const validGender = genderResponse.data?.map((item) => item.Code) || [];
-  if (!gender) return { valid: false, errMessage: 'Giới tính không tồn tại!' };
-  if (!validGender.includes(gender)) return { valid: false, errMessage: 'Giới tính không hợp lệ!' };
+  if (!Gender) return { valid: false, errMessage: 'Giới tính không tồn tại!' };
+  if (!validGender.includes(Gender)) return { valid: false, errMessage: 'Giới tính không hợp lệ!' };
 
   const accounttypeResponse = await getAllCodes('AccountType');
   const validAccountType = accounttypeResponse.data?.map((item) => item.Code) || [];
-  if (!accounttype) return { valid: false, errMessage: 'Loại tài khoản không tồn tại!' };
-  if (!validAccountType.includes(accounttype)) return { valid: false, errMessage: 'Loại tài khoản không hợp lệ!' };
+  if (!AccountType) return { valid: false, errMessage: 'Loại tài khoản không tồn tại!' };
+  if (!validAccountType.includes(AccountType)) return { valid: false, errMessage: 'Loại tài khoản không hợp lệ!' };
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
@@ -168,8 +169,8 @@ const validateProductInput = async (productInfo) => {
   if (!validProductType.includes(ProductType)) return { valid: false, errMessage: 'Loại sản phẩm không hợp lệ!' };
 
   if (!ProductPrice) return { valid: false, errMessage: 'Giá sản phẩm không được để trống!' };
-  const price = parseFloat(ProductPrice);
-  if (isNaN(price) || price <= 0) return { valid: false, errMessage: 'Giá sản phẩm phải lớn hơn 0!' };
+  const Price = parseFloat(ProductPrice);
+  if (isNaN(Price) || Price <= 0) return { valid: false, errMessage: 'Giá sản phẩm phải lớn hơn 0!' };
 
   if (ProductDescription?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả sản phẩm vượt quá giới hạn ký tự!' };
 
@@ -192,27 +193,26 @@ const validateProductInput = async (productInfo) => {
 const validateProductDetailInput = async (productDetail) => {
   const detailNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
   if (!productDetail || !Array.isArray(productDetail) || !productDetail.length) return { valid: false, errMessage: 'Vui lòng thêm ít nhất một chi tiết sản phẩm!' };
-
   for (let i = 0; i < productDetail.length; i++) {
-    const detail = productDetail[i];
-    if (!detail.DetailName) return { valid: false, errMessage: `Tên chi tiết tại dòng ${i + 1} không được để trống!` };
-    if (!detailNameRegex.test(detail.DetailName.trim())) return { valid: false, errMessage: `Tên chi tiết tại dòng ${i + 1} không hợp lệ!` };
+    const { DetailName, Stock, ExtraPrice, Promotion, DetailStatus } = productDetail[i]
+    if (!DetailName) return { valid: false, errMessage: `Tên chi tiết tại dòng ${i + 1} không được để trống!` };
+    if (!detailNameRegex.test(DetailName.trim())) return { valid: false, errMessage: `Tên chi tiết tại dòng ${i + 1} không hợp lệ!` };
 
-    if (detail.Stock === undefined || detail.Stock === '') return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} không được để trống!` };
-    if (isNaN(detail.Stock) || parseInt(detail.Stock) < 0) return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!` };
+    if (Stock === undefined || Stock === '') return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} không được để trống!` };
+    if (isNaN(Stock) || parseInt(Stock) < 0) return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!` };
 
-    if (detail.ExtraPrice === undefined || detail.ExtraPrice === '') return { valid: false, errMessage: `Giá thêm tại dòng ${i + 1} không được để trống!` };
-    if (isNaN(detail.ExtraPrice) || parseFloat(detail.ExtraPrice) < 0) return { valid: false, errMessage: `Giá thêm tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!` };
+    if (ExtraPrice === undefined || ExtraPrice === '') return { valid: false, errMessage: `Giá thêm tại dòng ${i + 1} không được để trống!` };
+    if (isNaN(ExtraPrice) || parseFloat(ExtraPrice) < 0) return { valid: false, errMessage: `Giá thêm tại dòng ${i + 1} phải lớn hơn hoặc bằng 0!` };
 
-    if (detail.Promotion === undefined || detail.Promotion === '') return { valid: false, errMessage: `Khuyến mãi tại dòng ${i + 1} không được để trống!` };
-    if (isNaN(detail.Promotion) || parseFloat(detail.Promotion) < 0 || parseFloat(detail.Promotion) > 100) return { valid: false, errMessage: `Khuyến mãi tại dòng ${i + 1} phải từ 0 đến 100%!` };
+    if (Promotion === undefined || Promotion === '') return { valid: false, errMessage: `Khuyến mãi tại dòng ${i + 1} không được để trống!` };
+    if (isNaN(Promotion) || parseFloat(Promotion) < 0 || parseFloat(Promotion) > 100) return { valid: false, errMessage: `Khuyến mãi tại dòng ${i + 1} phải từ 0 đến 100%!` };
 
-    if (!detail.DetailStatus) return { valid: false, errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không được để trống!` };
-    const detailStatusResponse = await getAllCodes('DetailStatus');
-    const validDetailStatus = detailStatusResponse.data?.map((item) => item.Code) || [];
-    if (!validDetailStatus.includes(detail.DetailStatus)) return { valid: false, errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không hợp lệ!` };
+    if (!DetailStatus) return { valid: false, errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không được để trống!` };
+    const validDetailStatusResponse = await getAllCodes('DetailStatus');
+    const validDetailStatus = validDetailStatusResponse.data?.map((item) => item.Code) || [];
+    if (!validDetailStatus.includes(DetailStatus)) return { valid: false, errMessage: `Trạng thái chi tiết tại dòng ${i + 1} không hợp lệ!` };
 
-    if (parseInt(detail.Stock) === 0 && detail.DetailStatus === 'AVAIL') return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} bằng 0, không thể chọn trạng thái Còn hàng!` };
+    if (parseInt(Stock) === 0 && DetailStatus === 'AVAIL') return { valid: false, errMessage: `Số lượng tồn tại dòng ${i + 1} bằng 0, không thể chọn trạng thái Còn hàng!` };
   }
   return { valid: true, errMessage: 'Kiểm tra chi tiết sản phẩm hoàn tất!' };
 };
@@ -220,17 +220,17 @@ const validateProductDetailInput = async (productDetail) => {
 const validateVeterinarianInput = async (veterinarianInfo) => {
   if (!veterinarianInfo || !Object.keys(veterinarianInfo).length) return { valid: false, errMessage: 'Thiếu thông tin bác sĩ thú y!' };
 
-  const { bio, specialization, workingstatus, selectedServicesList } = veterinarianInfo;
+  const { Bio, Specialization, WorkingStatus, selectedServicesList } = veterinarianInfo;
   const specializationRegex = /^[A-Za-zÀ-ỹ0-9\s]{1,50}$/;
 
-  if (bio?.trim().length > 65535) return { valid: false, errMessage: 'Bio vượt quá độ dài tối đa (65535 ký tự)!' };
+  if (Bio?.trim().length > 65535) return { valid: false, errMessage: 'Bio vượt quá độ dài tối đa (65535 ký tự)!' };
 
-  if (specialization && !specializationRegex.test(specialization.trim())) return { valid: false, errMessage: 'Chuyên khoa không hợp lệ hoặc vượt quá 50 ký tự!' };
+  if (Specialization && !specializationRegex.test(Specialization.trim())) return { valid: false, errMessage: 'Chuyên khoa không hợp lệ hoặc vượt quá 50 ký tự!' };
 
-  const workingstatusResponse = await getAllCodes('WorkingStatus');
-  const validWorkingStatus = workingstatusResponse.data?.map((item) => item.Code) || [];
-  if (!workingstatus) return { valid: false, errMessage: 'Trạng thái làm việc không tồn tại!' };
-  if (!validWorkingStatus.includes(workingstatus)) return { valid: false, errMessage: 'Trạng thái làm việc không hợp lệ!' };
+  const validWorkingStatusResponse = await getAllCodes('WorkingStatus');
+  const validWorkingStatus = validWorkingStatusResponse.data?.map((item) => item.Code) || [];
+  if (!WorkingStatus) return { valid: false, errMessage: 'Trạng thái làm việc không tồn tại!' };
+  if (!validWorkingStatus.includes(WorkingStatus)) return { valid: false, errMessage: 'Trạng thái làm việc không hợp lệ!' };
 
   if (selectedServicesList.length === 0) return { valid: false, errMessage: 'Vui lòng chọn ít nhất một dịch vụ cho bác sĩ!' };
 
@@ -258,26 +258,25 @@ const validateServiceInput = (serviceInfo) => {
 const validatePetInput = async (petInfo) => {
   if (!petInfo || !Object.keys(petInfo).length) return { valid: false, errMessage: 'Thiếu thông tin thú cưng!' };
 
-  const { petname, pettype, petgender, petweight, age } = petInfo;
+  const { PetName, PetType, PetGender, PetWeight, Age } = petInfo;
   const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
 
-  console.log(petname);
-  if (!petname?.trim() || petname.trim().length > 50) return { valid: false, errMessage: 'Tên thú cưng trống hoặc vượt quá 50 ký tự!' };
-  if (!petNameRegex.test(petname.trim())) return { valid: false, errMessage: 'Tên thú cưng không hợp lệ!' };
+  if (!PetName?.trim() || PetName.trim().length > 50) return { valid: false, errMessage: 'Tên thú cưng trống hoặc vượt quá 50 ký tự!' };
+  if (!petNameRegex.test(PetName.trim())) return { valid: false, errMessage: 'Tên thú cưng không hợp lệ!' };
 
-  if (!pettype) return { valid: false, errMessage: 'Loại thú cưng không được để trống!' };
-  const petTypeResponse = await getAllCodes('PetType');
-  const validPetType = petTypeResponse.data?.map((item) => item.Code) || [];
-  if (!validPetType.includes(pettype)) return { valid: false, errMessage: 'Loại thú cưng không hợp lệ!' };
+  if (!PetType) return { valid: false, errMessage: 'Loại thú cưng không được để trống!' };
+  const validPetTypeResponse = await getAllCodes('PetType');
+  const validPetType = validPetTypeResponse.data?.map((item) => item.Code) || [];
+  if (!validPetType.includes(PetType)) return { valid: false, errMessage: 'Loại thú cưng không hợp lệ!' };
 
-  if (!petgender) return { valid: false, errMessage: 'Giới tính thú cưng không được để trống!' };
-  const petGenderResponse = await getAllCodes('PetGender');
-  const validPetGender = petGenderResponse.data?.map((item) => item.Code) || [];
-  if (!validPetGender.includes(petgender)) return { valid: false, errMessage: 'Giới tính thú cưng không hợp lệ!' };
+  if (!PetGender) return { valid: false, errMessage: 'Giới tính thú cưng không được để trống!' };
+  const validPetGenderResponse = await getAllCodes('PetGender');
+  const validPetGender = validPetGenderResponse.data?.map((item) => item.Code) || [];
+  if (!validPetGender.includes(PetGender)) return { valid: false, errMessage: 'Giới tính thú cưng không hợp lệ!' };
 
-  if (!petweight || isNaN(petweight) || petweight <= 0 || petweight > 999.99) return { valid: false, errMessage: 'Cân nặng thú cưng không hợp lệ (phải từ 0.01 đến 999.99)!' };
+  if (!PetWeight || isNaN(PetWeight) || PetWeight <= 0 || PetWeight > 999.99) return { valid: false, errMessage: 'Cân nặng thú cưng không hợp lệ (phải từ 0.01 đến 999.99)!' };
 
-  if (age === undefined || isNaN(age) || age < 0 || age > 999) return { valid: false, errMessage: 'Tuổi thú cưng không hợp lệ (phải từ 0 đến 999)!' };
+  if (Age === undefined || isNaN(Age) || Age < 0 || Age > 999) return { valid: false, errMessage: 'Tuổi thú cưng không hợp lệ (phải từ 0 đến 999)!' };
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
@@ -285,32 +284,32 @@ const validatePetInput = async (petInfo) => {
 const validateAppointmentInput = async (appointmentInfo) => {
   if (!appointmentInfo || !Object.keys(appointmentInfo).length) return { valid: false, errMessage: 'Thiếu thông tin đặt lịch!' };
 
-  const { customername, customeremail, customerphone, appointmentdate, starttime, notes, serviceid, petid } = appointmentInfo;
+  const { CustomerName, CustomerEmail, CustomerPhone, AppointmentDate, StartTime, Notes, ServiceID, PetID } = appointmentInfo;
   const customerNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
   const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10,11}$/;
   const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
 
-  if (!customername) return { valid: false, errMessage: 'Tên khách hàng không được để trống!' };
-  if (!customerNameRegex.test(customername.trim())) return { valid: false, errMessage: 'Tên khách hàng sai định dạng!' };
+  if (!CustomerName) return { valid: false, errMessage: 'Tên khách hàng không được để trống!' };
+  if (!customerNameRegex.test(CustomerName.trim())) return { valid: false, errMessage: 'Tên khách hàng sai định dạng!' };
 
-  if (!customeremail) return { valid: false, errMessage: 'Email không được để trống!' };
-  if (!emailRegex.test(customeremail.trim())) return { valid: false, errMessage: 'Email sai định dạng!' };
+  if (!CustomerEmail) return { valid: false, errMessage: 'Email không được để trống!' };
+  if (!emailRegex.test(CustomerEmail.trim())) return { valid: false, errMessage: 'Email sai định dạng!' };
 
-  if (!customerphone) return { valid: false, errMessage: 'Số điện thoại không được để trống!' };
-  if (!phoneRegex.test(customerphone.trim())) return { valid: false, errMessage: 'Số điện thoại không hợp lệ!' };
+  if (!CustomerPhone) return { valid: false, errMessage: 'Số điện thoại không được để trống!' };
+  if (!phoneRegex.test(CustomerPhone.trim())) return { valid: false, errMessage: 'Số điện thoại không hợp lệ!' };
 
-  if (!appointmentdate || !starttime) return { valid: false, errMessage: 'Ngày hoặc giờ hẹn không được để trống!' };
-  if (!timeRegex.test(starttime)) return { valid: false, errMessage: 'Giờ hẹn không hợp lệ (HH:mm)!' };
-  const dateCheck = new Date(appointmentdate);
+  if (!AppointmentDate || !StartTime) return { valid: false, errMessage: 'Ngày hoặc giờ hẹn không được để trống!' };
+  if (!timeRegex.test(StartTime)) return { valid: false, errMessage: 'Giờ hẹn không hợp lệ (HH:mm)!' };
+  const dateCheck = new Date(AppointmentDate);
   if (isNaN(dateCheck.getTime())) return { valid: false, errMessage: 'Ngày hẹn không hợp lệ!' };
-  const [hours, minutes] = starttime.split(':').map(Number);
+  const [hours, minutes] = StartTime.split(':').map(Number);
   dateCheck.setHours(hours, minutes, 0, 0);
   if (dateCheck <= new Date()) return { valid: false, errMessage: 'Thời gian hẹn phải trong tương lai!' };
 
-  if (notes?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+  if (Notes?.trim().length > 65535) return { valid: false, errMessage: 'Mô tả tình trạng không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
-  if (!serviceid || !petid) return { valid: false, errMessage: 'Thông tin thú cưng và dịch vụ không được bỏ trống!' };
+  if (!ServiceID || !PetID) return { valid: false, errMessage: 'Thông tin thú cưng và dịch vụ không được bỏ trống!' };
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
@@ -338,46 +337,46 @@ const validateBannerInput = async (bannerInfo) => {
 const validateCouponInput = async (couponInfo) => {
   if (!couponInfo || !Object.keys(couponInfo).length) return { valid: false, errMessage: 'Thiếu thông tin mã giảm giá!' };
 
-  const { couponcode, coupondescription, minordervalue, discountvalue, maxdiscount, discounttype, startdate, enddate, couponstatus } = couponInfo;
+  const { CouponCode, CouponDescription, MinOrderValue, DiscountValue, MaxDiscount, DiscountType, StartDate, EndDate, CouponStatus } = couponInfo;
   const couponCodeRegex = /^[a-zA-Z0-9]{5,20}$/;
 
-  if (!couponcode) return { valid: false, errMessage: 'Vui lòng nhập mã giảm giá!' };
-  if (!couponCodeRegex.test(couponcode.trim())) return { valid: false, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+  if (!CouponCode) return { valid: false, errMessage: 'Vui lòng nhập mã giảm giá!' };
+  if (!couponCodeRegex.test(CouponCode.trim())) return { valid: false, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
-  if (coupondescription?.trim().length > 0 && coupondescription.trim().length > 65535) return { valid: false, errMessage: 'Mô tả giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
+  if (CouponDescription?.trim().length > 0 && CouponDescription.trim().length > 65535) return { valid: false, errMessage: 'Mô tả giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!' };
 
-  if (minordervalue !== undefined && minordervalue < 0) return { valid: false, errMessage: 'Giá trị mua ít nhất không được nhỏ hơn 0!' };
+  if (MinOrderValue !== undefined && MinOrderValue < 0) return { valid: false, errMessage: 'Giá trị mua ít nhất không được nhỏ hơn 0!' };
 
-  if (!discountvalue) return { valid: false, errMessage: 'Giá trị giảm không được để trống!' };
-  if (discounttype === 'PERC' && (discountvalue > 100 || discountvalue < 0)) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
-  if (discounttype === 'FIXED' && discountvalue < 0) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
+  if (!DiscountValue) return { valid: false, errMessage: 'Giá trị giảm không được để trống!' };
+  if (DiscountType === 'PERC' && (DiscountValue > 100 || DiscountValue < 0)) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
+  if (DiscountType === 'FIXED' && DiscountValue < 0) return { valid: false, errMessage: 'Giá trị giảm không hợp lệ!' };
 
-  if (maxdiscount !== undefined) {
-    if (maxdiscount < 0) return { valid: false, errMessage: 'Giảm giá tối đa phải lớn hơn 0!' };
-    if (discounttype === 'FIXED' && parseFloat(maxdiscount) > parseFloat(discountvalue)) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
+  if (MaxDiscount !== undefined) {
+    if (MaxDiscount < 0) return { valid: false, errMessage: 'Giảm giá tối đa phải lớn hơn 0!' };
+    if (DiscountType === 'FIXED' && parseFloat(MaxDiscount) > parseFloat(DiscountValue)) return { valid: false, errMessage: 'Giảm giá tối đa không được lớn hơn giá trị giảm ban đầu!' };
   }
 
-  if (!discounttype) return { valid: false, errMessage: 'Loại giảm giá không được để trống!' };
+  if (!DiscountType) return { valid: false, errMessage: 'Loại giảm giá không được để trống!' };
   const typeResponse = await getAllCodes('DiscountType');
   const validDiscountType = typeResponse.data?.map((item) => item.Code) || [];
-  if (!validDiscountType.includes(discounttype)) return { valid: false, errMessage: 'Loại giảm giá không hợp lệ!' };
+  if (!validDiscountType.includes(DiscountType)) return { valid: false, errMessage: 'Loại giảm giá không hợp lệ!' };
 
 
-  if (!startdate) return { valid: false, errMessage: 'Ngày bắt đầu không được để trống!' };
+  if (!StartDate) return { valid: false, errMessage: 'Ngày bắt đầu không được để trống!' };
 
-  if (enddate) {
-    const startdateObj = new Date(startdate);
-    const enddateObj = new Date(enddate);
+  if (EndDate) {
+    const startdateObj = new Date(StartDate);
+    const enddateObj = new Date(EndDate);
     if (isNaN(enddateObj.getTime())) return { valid: false, errMessage: 'Ngày hết hạn không hợp lệ!' };
     const now = new Date();
     if (enddateObj <= now) return { valid: false, errMessage: 'Ngày hết hạn phải trong tương lai!' };
     if (enddateObj < startdateObj) return { valid: false, errMessage: 'Ngày hết hạn phải sau ngày bắt đầu!' };
   }
 
-  if (!couponstatus) return { valid: false, errMessage: 'Trạng thái giảm giá không được để trống!' };
+  if (!CouponStatus) return { valid: false, errMessage: 'Trạng thái giảm giá không được để trống!' };
   const statusResponse = await getAllCodes('CouponStatus');
   const validCouponStatus = statusResponse.data?.map((item) => item.Code) || [];
-  if (!validCouponStatus.includes(couponstatus)) return { valid: false, errMessage: 'Trạng thái giảm giá không hợp lệ!' };
+  if (!validCouponStatus.includes(CouponStatus)) return { valid: false, errMessage: 'Trạng thái giảm giá không hợp lệ!' };
 
   return { valid: true, errMessage: 'Kiểm tra thông tin hoàn tất!' };
 };
@@ -405,15 +404,15 @@ const generateInvoicePDF = async (invoiceData) => {
   const codePaymentType = paymentTypeResponse.status ? paymentTypeResponse.data : [];
   const codeShippingMethod = shippingMethodResponse.status ? shippingMethodResponse.data : [];
   const codeShippingStatus = shippingStatusResponse.status ? shippingStatusResponse.data : [];
-
+  const { InvoiceID, ReceiverName, ReceiverPhone, ReceiverAddress, TotalQuantity, TotalPrice, DiscountAmount, TotalPayment, CreatedAt, PaymentType, ShippingMethod, ShippingStatus } = invoiceData
   doc.setFontSize(18);
   doc.text('MINCOW', 14, 20);
   doc.setFontSize(10);
   doc.text('Pet Accessories & Food', 14, 26);
   doc.text('136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM', 14, 34);
 
-  const dateText = `Thời gian: ${invoiceData.CreatedAt
-    ? new Date(invoiceData.CreatedAt).toLocaleString('vi-VN', {
+  const dateText = `Thời gian: ${CreatedAt
+    ? new Date(CreatedAt).toLocaleString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -423,18 +422,18 @@ const generateInvoicePDF = async (invoiceData) => {
     })
     : 'N/A'}`;
   doc.text(dateText, 14, 42);
-  doc.text(`Mã hóa đơn: ${invoiceData.InvoiceID || 'N/A'}`, 150, 42, { align: 'right' });
+  doc.text(`Mã hóa đơn: ${InvoiceID || 'N/A'}`, 150, 42, { align: 'right' });
 
-  const customerText = `Khách hàng: ${invoiceData.ReceiverName || 'N/A'}\nSĐT: ${invoiceData.ReceiverPhone || 'N/A'}\nĐịa chỉ: ${invoiceData.ReceiverAddress || 'N/A'}`;
+  const customerText = `Khách hàng: ${ReceiverName || 'N/A'}\nSĐT: ${ReceiverPhone || 'N/A'}\nĐịa chỉ: ${ReceiverAddress || 'N/A'}`;
   doc.text(customerText, 14, 50);
 
-  const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === invoiceData.PaymentType)?.CodeValueVI || invoiceData.PaymentType || 'N/A'}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod)?.CodeValueVI || invoiceData.ShippingMethod || 'N/A'}\nTrạng thái giao hàng: ${codeShippingStatus.find((item) => item.Code === invoiceData.ShippingStatus)?.CodeValueVI || invoiceData.ShippingStatus || 'N/A'}`;
+  const statusText = `Phương thức thanh toán: ${codePaymentType.find((item) => item.Code === PaymentType)?.CodeValueVI || PaymentType || 'N/A'}\nPhương thức giao hàng: ${codeShippingMethod.find((item) => item.Code === ShippingMethod)?.CodeValueVI || ShippingMethod || 'N/A'}\nTrạng thái giao hàng: ${codeShippingStatus.find((item) => item.Code === ShippingStatus)?.CodeValueVI || ShippingStatus || 'N/A'}`;
   doc.text(statusText, 14, 70);
 
   doc.setLineWidth(0.5);
   doc.line(14, 85, 196, 85);
 
-  const tableData = (invoiceData.ProductList || []).map((item) => [
+  const tableData = (invoiceData.productList || []).map((item) => [
     item.ProductName || 'N/A',
     item.DetailName || 'N/A',
     `${parseFloat(item.ItemPrice || 0).toLocaleString('vi-VN')}đ`,
@@ -478,17 +477,17 @@ const generateInvoicePDF = async (invoiceData) => {
   doc.setLineWidth(0.5);
   doc.line(14, finalY + 2, 196, finalY + 2);
 
-  const shippingFee = codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod)?.ExtraValue
-    ? parseFloat(codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod).ExtraValue)
+  const shippingFee = codeShippingMethod.find((item) => item.Code === ShippingMethod)?.ExtraValue
+    ? parseFloat(codeShippingMethod.find((item) => item.Code === ShippingMethod).ExtraValue)
     : 0;
 
   doc.setFontSize(10);
-  doc.text(`Tổng sản phẩm: ${invoiceData.TotalQuantity || 0}`, 14, finalY + 10);
-  doc.text(`Tổng tiền hàng: ${parseFloat(invoiceData.TotalPrice || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 16);
-  doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === invoiceData.ShippingMethod)?.CodeValueVI || invoiceData.ShippingMethod || 'N/A'}): ${shippingFee.toLocaleString('vi-VN')}đ`, 14, finalY + 22);
-  doc.text(`Giảm giá: -${parseFloat(invoiceData.DiscountAmount || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 28);
+  doc.text(`Tổng sản phẩm: ${TotalQuantity || 0}`, 14, finalY + 10);
+  doc.text(`Tổng tiền hàng: ${parseFloat(TotalPrice || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 16);
+  doc.text(`Phí vận chuyển (${codeShippingMethod.find((item) => item.Code === ShippingMethod)?.CodeValueVI || ShippingMethod || 'N/A'}): ${shippingFee.toLocaleString('vi-VN')}đ`, 14, finalY + 22);
+  doc.text(`Giảm giá: -${parseFloat(DiscountAmount || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 28);
   doc.setFont(fontLoaded ? 'Roboto-Regular' : 'Helvetica', 'normal');
-  doc.text(`Tổng thanh toán: ${parseFloat(invoiceData.TotalPayment || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 34);
+  doc.text(`Tổng thanh toán: ${parseFloat(TotalPayment || 0).toLocaleString('vi-VN')}đ`, 14, finalY + 34);
 
   doc.setLineWidth(0.5);
   doc.line(14, finalY + 38, 196, finalY + 38);
@@ -509,13 +508,12 @@ const generateInvoicePDF = async (invoiceData) => {
     minute: '2-digit',
     second: '2-digit',
   }).replace(/[,/: ]/g, '');
-  doc.save(`HoaDon_${invoiceData.InvoiceID || 'unknown'}_${timestamp}.pdf`);
+  doc.save(`HoaDon_${InvoiceID || 'unknown'}_${timestamp}.pdf`);
 };
 
-const generateAppointmentBillPDF = async (appointmentbillData) => {
+const generateAppointmentBillPDF = async (appointmentBillData) => {
   const doc = new jsPDF();
   let fontLoaded = false;
-
   try {
     doc.addFileToVFS('Roboto-Regular-normal.ttf', RobotoRegularFont);
     doc.addFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal');
@@ -525,14 +523,12 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
     console.error('Error loading custom font:', e);
     doc.setFont('Helvetica');
   }
-
   // Fetch code values for display
-  const [appointmentStatusResponse, petTypeResponse, petGenderResponse] = await Promise.all([getAllCodes('AppointmentStatus'), getAllCodes('PetType'), getAllCodes('PetGender')]);
+  const [validAppointmentStatusResponse, validPetTypeResponse, validPetGenderResponse] = await Promise.all([getAllCodes('AppointmentStatus'), getAllCodes('PetType'), getAllCodes('PetGender')]);
 
-  const codeAppointmentStatus = appointmentStatusResponse.status ? appointmentStatusResponse.data : [];
-  const codePetType = petTypeResponse.status ? petTypeResponse.data : [];
-  const codePetGender = petGenderResponse.status ? petGenderResponse.data : [];
-
+  const codeAppointmentStatus = validAppointmentStatusResponse.status ? validAppointmentStatusResponse.data : [];
+  const codePetType = validPetTypeResponse.status ? validPetTypeResponse.data : [];
+  const codePetGender = validPetGenderResponse.status ? validPetGenderResponse.data : [];
   // Header Section
   doc.setFontSize(18);
   doc.text('MINCOW', 14, 20);
@@ -541,8 +537,8 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
   doc.text('Địa chỉ: 136 Huỳnh Văn Bánh, P. 11, Q. Phú Nhuận, Tp.HCM', 14, 32);
 
   // Time (left-aligned)
-  const timeText = `Thời gian: ${appointmentbillData.AppointmentBill?.CreatedAt
-    ? new Date(appointmentbillData.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
+  const timeText = `Thời gian: ${appointmentBillData.AppointmentBill?.CreatedAt
+    ? new Date(appointmentBillData.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -554,12 +550,12 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
   doc.text(timeText, 14, 40);
 
   // Bill ID (right-aligned)
-  doc.text(`Mã hóa đơn: ${appointmentbillData.AppointmentBill?.AppointmentBillID || 'N/A'}`, 196, 40, { align: 'right' });
+  doc.text(`Mã hóa đơn: ${appointmentBillData.AppointmentBill?.AppointmentBillID || 'N/A'}`, 196, 40, { align: 'right' });
 
   // Status and Service Info (right-aligned, with custom line height)
-  const statusLine = `Trạng thái: ${codeAppointmentStatus.find((item) => item.Code === appointmentbillData.AppointmentStatus)?.CodeValueVI || appointmentbillData.AppointmentStatus || 'N/A'}`;
-  const serviceLine = `Dịch vụ: ${appointmentbillData.Service?.ServiceName || 'N/A'}`;
-  const vetLine = `Bác sĩ: ${appointmentbillData.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}`;
+  const statusLine = `Trạng thái: ${codeAppointmentStatus.find((item) => item.Code === appointmentBillData.AppointmentStatus)?.CodeValueVI || appointmentBillData.AppointmentStatus || 'N/A'}`;
+  const serviceLine = `Dịch vụ: ${appointmentBillData.Service?.ServiceName || 'N/A'}`;
+  const vetLine = `Bác sĩ: ${appointmentBillData.VeterinarianID ? 'Đã chỉ định' : 'Chưa chỉ định'}`;
 
   const statusLineHeight = 8; // Line height for status text (in mm)
   doc.text(statusLine, 196, 50, { align: 'right' });
@@ -567,10 +563,10 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
   doc.text(vetLine, 196, 50 + statusLineHeight * 2, { align: 'right' });
 
   // Customer and Pet Info (left-aligned, with custom line height)
-  const customerLine = `Khách hàng: ${appointmentbillData.CustomerName || 'N/A'}`;
-  const petNameLine = `Tên thú cưng: ${appointmentbillData.Pet?.PetName || 'N/A'}`;
-  const petTypeLine = `Loại thú cưng: ${codePetType.find((item) => item.Code === appointmentbillData.Pet?.PetType)?.CodeValueVI || appointmentbillData.Pet?.PetType || 'N/A'}`;
-  const petGenderLine = `Giới tính: ${codePetGender.find((item) => item.Code === appointmentbillData.Pet?.PetGender)?.CodeValueVI || appointmentbillData.Pet?.PetGender || 'N/A'}`;
+  const customerLine = `Khách hàng: ${appointmentBillData.CustomerName || 'N/A'}`;
+  const petNameLine = `Tên thú cưng: ${appointmentBillData.Pet?.PetName || 'N/A'}`;
+  const petTypeLine = `Loại thú cưng: ${codePetType.find((item) => item.Code === appointmentBillData.Pet?.PetType)?.CodeValueVI || appointmentBillData.Pet?.PetType || 'N/A'}`;
+  const petGenderLine = `Giới tính: ${codePetGender.find((item) => item.Code === appointmentBillData.Pet?.PetGender)?.CodeValueVI || appointmentBillData.Pet?.PetGender || 'N/A'}`;
 
   const customerLineHeight = 8; // Line height for customer text (in mm)
   doc.text(customerLine, 14, 48);
@@ -586,10 +582,10 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
   // Table for Appointment Details
   const tableData = [
     [
-      appointmentbillData.AppointmentDate ? `${new Date(appointmentbillData.AppointmentDate).toLocaleDateString('vi-VN')} ${appointmentbillData.StartTime} - ${appointmentbillData.EndTime}` : 'N/A',
-      appointmentbillData.AppointmentBill?.ServicePrice ? parseFloat(appointmentbillData.AppointmentBill.ServicePrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
-      appointmentbillData.AppointmentBill?.MedicalPrice ? parseFloat(appointmentbillData.AppointmentBill.MedicalPrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
-      appointmentbillData.AppointmentBill?.TotalPayment ? parseFloat(appointmentbillData.AppointmentBill.TotalPayment).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
+      appointmentBillData.AppointmentDate ? `${new Date(appointmentBillData.AppointmentDate).toLocaleDateString('vi-VN')} ${appointmentBillData.StartTime} - ${appointmentBillData.EndTime}` : 'N/A',
+      appointmentBillData.AppointmentBill?.ServicePrice ? parseFloat(appointmentBillData.AppointmentBill.ServicePrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
+      appointmentBillData.AppointmentBill?.MedicalPrice ? parseFloat(appointmentBillData.AppointmentBill.MedicalPrice).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
+      appointmentBillData.AppointmentBill?.TotalPayment ? parseFloat(appointmentBillData.AppointmentBill.TotalPayment).toLocaleString('vi-VN') + ' vnđ' : 'N/A',
     ],
   ];
 
@@ -631,14 +627,14 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
 
   // Footer: Notes and Medical Image
   doc.setFontSize(10);
-  const notesText = `Ghi chú của bác sĩ: ${appointmentbillData.AppointmentBill?.MedicalNotes || 'Không có ghi chú'}`;
+  const notesText = `Ghi chú của bác sĩ: ${appointmentBillData.AppointmentBill?.MedicalNotes || 'Không có ghi chú'}`;
   const splitNotes = doc.splitTextToSize(notesText, 180);
   doc.text(splitNotes, 14, finalY + 10);
 
   // Medical Image (if available)
-  if (appointmentbillData.AppointmentBill?.MedicalImage) {
+  if (appointmentBillData.AppointmentBill?.MedicalImage) {
     try {
-      doc.addImage(appointmentbillData.AppointmentBill.MedicalImage, 'JPEG', 14, finalY + 20, 50, 50); // Adjust size and position as needed
+      doc.addImage(appointmentBillData.AppointmentBill.MedicalImage, 'JPEG', 14, finalY + 20, 50, 50); // Adjust size and position as needed
       finalY += 60; // Adjust Y position after image
     } catch (e) {
       console.error('Error adding medical image to PDF:', e);
@@ -671,7 +667,7 @@ const generateAppointmentBillPDF = async (appointmentbillData) => {
       second: '2-digit',
     })
     .replace(/[,/: ]/g, '');
-  doc.save(`HoaDonLichKham_${appointmentbillData.AppointmentBill?.AppointmentBillID || 'unknown'}_${timestamp}.pdf`);
+  doc.save(`HoaDonLichKham_${appointmentBillData.AppointmentBill?.AppointmentBillID || 'unknown'}_${timestamp}.pdf`);
 };
 
 export {

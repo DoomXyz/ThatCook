@@ -103,12 +103,12 @@ class Cart extends Component {
       tempCurrentPage: Math.min(prevState.currentPage, prevState.totalPages),
     }));
   };
-  loadCartInfo = async (accountid) => {
+  loadCartInfo = async (AccountID) => {
     return new Promise(async (resolve, reject) => {
       try {
         let cartItems = [];
-        if (accountid) {
-          const response = await handleGetCartApi(accountid);
+        if (AccountID) {
+          const response = await handleGetCartApi(AccountID);
           if (response && response.errCode === 0) {
             cartItems = response.data || [];
           } else {
@@ -214,23 +214,23 @@ class Cart extends Component {
   };
   handleTotalPriceAfterPromotion = () => {
     const { loadedCartDetailInfo } = this.state;
-    let totalPrice = 0;
+    let TotalPrice = 0;
     for (let i = 0; i < loadedCartDetailInfo.length; i++) {
-      let productPrice = 0;
+      let ProductPrice = 0;
       if (loadedCartDetailInfo[i].ProductPrice > 0) {
-        productPrice = loadedCartDetailInfo[i].ProductPrice;
+        ProductPrice = loadedCartDetailInfo[i].ProductPrice;
       }
       if (loadedCartDetailInfo[i].Promotion) {
-        productPrice *= (100 - parseFloat(loadedCartDetailInfo[i].Promotion, 10)) / 100;
+        ProductPrice *= (100 - parseFloat(loadedCartDetailInfo[i].Promotion, 10)) / 100;
       }
-      totalPrice += productPrice * loadedCartDetailInfo[i].ItemQuantity;
+      TotalPrice += ProductPrice * loadedCartDetailInfo[i].ItemQuantity;
     }
-    return totalPrice;
+    return TotalPrice;
   };
-  handleQuantityChange = async (productid, productdetailid, quantity) => {
+  handleQuantityChange = async (ProductID, ProductDetailID, Quantity) => {
     const { loadedCartDetailInfo, isLoggedIn, accountInfo } = this.state;
-    let newQuantity = parseInt(quantity, 10) || 1;
-    const detailInfo = loadedCartDetailInfo.find((detail) => detail.ProductID === productid && detail.ProductDetailID === productdetailid);
+    let newQuantity = parseInt(Quantity, 10) || 1;
+    const detailInfo = loadedCartDetailInfo.find((detail) => detail.ProductID === ProductID && detail.ProductDetailID === ProductDetailID);
     if (newQuantity < 1) {
       newQuantity = 1;
     } else if (newQuantity > detailInfo.Stock) {
@@ -247,21 +247,21 @@ class Cart extends Component {
     await this.handleLoadCartInfo();
     this.triggerCountCartItem();
   };
-  handleAddQuantity = async (productid, productdetailid, quantity) => {
-    this.handleQuantityChange(productid, productdetailid, quantity);
+  handleAddQuantity = async (ProductID, ProductDetailID, Quantity) => {
+    this.handleQuantityChange(ProductID, ProductDetailID, Quantity);
   };
-  handleDecreaseQuantity = async (productid, productdetailid, quantity) => {
-    if (quantity === 0) {
-      this.handleRemoveFromCart(productid, productdetailid);
+  handleDecreaseQuantity = async (ProductID, ProductDetailID, Quantity) => {
+    if (Quantity === 0) {
+      this.handleRemoveFromCart(ProductID, ProductDetailID);
       return;
     }
-    this.handleQuantityChange(productid, productdetailid, quantity);
+    this.handleQuantityChange(ProductID, ProductDetailID, Quantity);
   };
-  handleQuantityInputChange = (productid, productdetailid, e) => {
+  handleQuantityInputChange = (ProductID, ProductDetailID, e) => {
     const newQuantity = parseInt(e.target.value, 10) || 1;
-    this.handleQuantityChange(productid, productdetailid, newQuantity);
+    this.handleQuantityChange(ProductID, ProductDetailID, newQuantity);
   };
-  handleRemoveFromCart = async (productid, productdetailid) => {
+  handleRemoveFromCart = async (ProductID, ProductDetailID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, removeFromCart: true } });
     const { isSaveDelete } = this.state;
     let isConfirmed = false;
@@ -308,14 +308,14 @@ class Cart extends Component {
       const { isLoggedIn, accountInfo } = this.state;
       try {
         if (isLoggedIn) {
-          const response = await handleRemoveFromCartApi(accountInfo.AccountID, productid, productdetailid);
+          const response = await handleRemoveFromCartApi(accountInfo.AccountID, ProductID, ProductDetailID);
           if (response && response.errCode === 0) {
             toast.success('Xóa sản phẩm thành công');
           } else {
             toast.error('Xóa sản phẩm thất bại!');
           }
         } else {
-          this.props.removeFromCart(productid, productdetailid);
+          this.props.removeFromCart(ProductID, ProductDetailID);
           toast.success('Xóa sản phẩm thành công');
         }
         await this.handleLoadCartInfo();
@@ -327,27 +327,27 @@ class Cart extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleChangeProductDetail = async (productid, productdetailid1, productdetailid2) => {
+  handleChangeProductDetail = async (ProductID, ProductDetailID1, ProductDetailID2) => {
     const { isLoggedIn, accountInfo, loadedCartDetailInfo } = this.state;
     let isExistDetail = false;
     if (loadedCartDetailInfo && loadedCartDetailInfo.length > 0) {
-      isExistDetail = loadedCartDetailInfo.some((item) => item.ProductID === productid && item.ProductDetailID === productdetailid2);
+      isExistDetail = loadedCartDetailInfo.some((item) => item.ProductID === ProductID && item.ProductDetailID === ProductDetailID2);
     }
     if (!isExistDetail) {
       if (isLoggedIn) {
-        const response = await handleUpdateCartDetailApi(accountInfo.AccountID, productid, productdetailid1, productdetailid2);
+        const response = await handleUpdateCartDetailApi(accountInfo.AccountID, ProductID, ProductDetailID1, ProductDetailID2);
         if (response && response.errCode !== 0) {
           toast.error('Đổi chi tiết sản phẩm thất bại!');
         }
       } else {
-        const productDetailInfo = await handleGetProductDetailInfoApi(productid, productdetailid2);
+        const productDetailInfo = await handleGetProductDetailInfoApi(ProductID, ProductDetailID2);
         if (productDetailInfo && productDetailInfo.errCode === 0) {
           const { cartItems } = this.props;
           const detail = productDetailInfo.data;
-          const currentProduct = cartItems.find((cart) => cart.ProductID === productid && cart.ProductDetailID === productdetailid1);
+          const currentProduct = cartItems.find((cart) => cart.ProductID === ProductID && cart.ProductDetailID === ProductDetailID1);
           const newItemPrice = (parseFloat(detail.ProductPrice) + parseFloat(detail.ExtraPrice)) * (1 - parseFloat(detail.Promotion) / 100);
           const newItemQuantity = currentProduct.ItemQuantity > detail.Stock ? detail.Stock : currentProduct.ItemQuantity;
-          this.props.updateCartDetail(productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity);
+          this.props.updateCartDetail(ProductID, ProductDetailID1, ProductDetailID2, newItemPrice, newItemQuantity);
         }
       }
     } else {
@@ -397,19 +397,19 @@ class Cart extends Component {
           isLoading: true,
         });
         const { isLoggedIn, accountInfo } = this.state;
-        const quantity1 = loadedCartDetailInfo.find((item) => item.ProductDetailID === productdetailid1)?.ItemQuantity || 0;
-        const quantity2 = loadedCartDetailInfo.find((item) => item.ProductDetailID === productdetailid2)?.ItemQuantity || 0;
-        const newQuantity = quantity1 + quantity2;
-        const productDetailInfo = await handleGetProductDetailInfoApi(productid, productdetailid2);
+        const Quantity1 = loadedCartDetailInfo.find((item) => item.ProductDetailID === ProductDetailID1)?.ItemQuantity || 0;
+        const Quantity2 = loadedCartDetailInfo.find((item) => item.ProductDetailID === ProductDetailID2)?.ItemQuantity || 0;
+        const newQuantity = Quantity1 + Quantity2;
+        const productDetailInfo = await handleGetProductDetailInfoApi(ProductID, ProductDetailID2);
         const detail = productDetailInfo.data;
         const newItemQuantity = newQuantity > detail.Stock ? detail.Stock : newQuantity;
         if (isLoggedIn) {
-          const response = await handleMergeCartDetailApi(accountInfo.AccountID, productid, productdetailid1, productdetailid2, newItemQuantity);
+          const response = await handleMergeCartDetailApi(accountInfo.AccountID, ProductID, ProductDetailID1, ProductDetailID2, newItemQuantity);
           if (response && response.errCode !== 0) {
             toast.error('Gộp chi tiết sản phẩm thất bại!');
           }
         } else {
-          this.props.mergeCartDetail(productid, productdetailid1, productdetailid2, newItemQuantity);
+          this.props.mergeCartDetail(ProductID, ProductDetailID1, ProductDetailID2, newItemQuantity);
         }
       }
     }
@@ -422,9 +422,9 @@ class Cart extends Component {
   handleCheckOut = () => {
     const { isLoggedIn, accountInfo, loadedCartInfo } = this.state;
     let checkOutCart = null;
-    let accountID = null;
+    let AccountID = null;
     if (isLoggedIn) {
-      accountID = accountInfo.AccountID;
+      AccountID = accountInfo.AccountID;
       checkOutCart = loadedCartInfo.map(({ CartItemID, ...rest }) => rest);
     } else {
       checkOutCart = this.props.cartItems;
@@ -434,7 +434,7 @@ class Cart extends Component {
       return;
     }
     const expiresAt = new Date().getTime() + 60 * 60 * 1000;
-    this.props.saveCartForCheckOut(checkOutCart, accountID, expiresAt, false);
+    this.props.saveCartForCheckOut(checkOutCart, AccountID, expiresAt, false);
     this.props.navigate('/checkout');
   };
   handleFirstPage = () => {
@@ -484,7 +484,7 @@ class Cart extends Component {
 
   render() {
     const { isLoading, loadedCartDetailInfo, loadedCartDetailList, currentPage, tempCurrentPage, limitProductPerQuery, totalPages, disabledButtons } = this.state;
-    const price = this.handleTotalProductPrice() || 0;
+    const Price = this.handleTotalProductPrice() || 0;
     const priceAfterPromo = this.handleTotalPriceAfterPromotion() || 0;
 
     const startIndex = (currentPage - 1) * limitProductPerQuery;
@@ -644,9 +644,9 @@ class Cart extends Component {
                       <tr>
                         <td>TẠM TÍNH</td>
                         <td>
-                          {price > 0 ? (
+                          {Price > 0 ? (
                             <>
-                              <p>{price}</p>
+                              <p>{Price}</p>
                               <sup>đ</sup>
                             </>
                           ) : (
@@ -705,11 +705,11 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  removeFromCart: (productid, productdetailid) => dispatch(removeFromCart(productid, productdetailid)),
-  updateItemQuantity: (productid, productdetailid, quantity) => dispatch(updateItemQuantity(productid, productdetailid, quantity)),
-  updateCartDetail: (productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity) => dispatch(updateCartDetail(productid, productdetailid1, productdetailid2, newItemPrice, newItemQuantity)),
-  mergeCartDetail: (productid, productdetailid1, productdetailid2, quantity) => dispatch(mergeCartDetail(productid, productdetailid1, productdetailid2, quantity)),
-  saveCartForCheckOut: (checkOutCart, accountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, accountID, expiresAt, isBuyNow)),
+  removeFromCart: (ProductID, ProductDetailID) => dispatch(removeFromCart(ProductID, ProductDetailID)),
+  updateItemQuantity: (ProductID, ProductDetailID, Quantity) => dispatch(updateItemQuantity(ProductID, ProductDetailID, Quantity)),
+  updateCartDetail: (ProductID, ProductDetailID1, ProductDetailID2, newItemPrice, newItemQuantity) => dispatch(updateCartDetail(ProductID, ProductDetailID1, ProductDetailID2, newItemPrice, newItemQuantity)),
+  mergeCartDetail: (ProductID, ProductDetailID1, ProductDetailID2, Quantity) => dispatch(mergeCartDetail(ProductID, ProductDetailID1, ProductDetailID2, Quantity)),
+  saveCartForCheckOut: (checkOutCart, AccountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(checkOutCart, AccountID, expiresAt, isBuyNow)),
   clearCheckOutCart: () => dispatch(clearCheckOutCart()),
   userLogout: () => dispatch(userLogout()),
 });

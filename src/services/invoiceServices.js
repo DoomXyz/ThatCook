@@ -4,40 +4,40 @@ const handleCreateInvoiceApi = (invoiceData) => {
   return axios.post('/api/create-invoice', invoiceData);
 };
 
-const handleGetAccountInvoiceInfoApi = (accountid) => {
-  return axios.get(`/api/get-account-invoiceinfo?accountid=${accountid}`);
+const handleGetAccountInvoiceInfoApi = (AccountID) => {
+  return axios.get(`/api/get-account-invoiceinfo?AccountID=${AccountID}`);
 };
 
-const handleGetInvoiceDetailInfoApi = (invoiceid) => {
-  return axios.get(`/api/get-invoicedetailinfo?invoiceid=${invoiceid}`);
+const handleGetInvoiceDetailInfoApi = (InvoiceID) => {
+  return axios.get(`/api/get-invoicedetailinfo?InvoiceID=${InvoiceID}`);
 };
 
 const handleLoadInvoiceInfoApi = (page, limit, search, filter, sort, date) => {
   return axios.get(`/api/load-invoiceinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}&date=${date}`);
 };
 
-const handleChangeInvoiceStatusApi = (invoiceid, type, status, cancelReason) => {
-  return axios.put('/api/change-invoicestatus', { invoiceid, type, status, cancelReason });
+const handleChangeInvoiceStatusApi = (InvoiceID, Type, Status, CancelReason) => {
+  return axios.put('/api/change-invoicestatus', { InvoiceID, Type, Status, CancelReason });
 };
 
 const handleSendInvoiceEmailApi = (sendInfo) => {
   return axios.post('/api/get-invoice-email', sendInfo);
 };
 
-// const handleLoadRevenueStatsApi = (type, startDate, endDate) => {
-//   return axios.get(`/api/load-revenue-stats?type=${type}&startDate=${startDate}&endDate=${endDate}`);
+// const handleLoadRevenueStatsApi = (Type, StartDate, EndDate) => {
+//   return axios.get(`/api/load-revenue-stats?Type=${Type}&StartDate=${StartDate}&EndDate=${EndDate}`);
 // };
 
-const handleLoadRevenueStatsApi = (type, startDate, endDate) => {
-  return axios.get(`/api/load-revenue-stats?type=${type}&startDate=${startDate}&endDate=${endDate}`, { withCredentials: true });
+const handleLoadRevenueStatsApi = (Type, StartDate, EndDate) => {
+  return axios.get(`/api/load-revenue-stats?Type=${Type}&StartDate=${StartDate}&EndDate=${EndDate}`, { withCredentials: true });
 };
 
-// const handleLoadTopProductsApi = (type, startDate, endDate) => {
-//   return axios.get(`/api/load-top-products?type=${type}&startDate=${startDate}&endDate=${endDate}`);
+// const handleLoadTopProductsApi = (Type, StartDate, EndDate) => {
+//   return axios.get(`/api/load-top-products?Type=${Type}&StartDate=${StartDate}&EndDate=${EndDate}`);
 // };
 
-const handleLoadTopProductsApi = (type, startDate, endDate) => {
-  return axios.get(`/api/load-top-products?type=${type}&startDate=${startDate}&endDate=${endDate}`, { withCredentials: true });
+const handleLoadTopProductsApi = (Type, StartDate, EndDate) => {
+  return axios.get(`/api/load-top-products?Type=${Type}&StartDate=${StartDate}&EndDate=${EndDate}`, { withCredentials: true });
 };
 
 export { handleCreateInvoiceApi, handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi, handleLoadRevenueStatsApi, handleLoadTopProductsApi };

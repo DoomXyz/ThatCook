@@ -23,11 +23,11 @@ class EditProductModal extends Component {
       codeProductType: [],
       codeDetailStatus: [],
       codePetType: [],
-      productname: '',
-      producttype: '',
-      pettype: [],
-      productprice: '',
-      productdescription: '',
+      ProductName: '',
+      ProductType: '',
+      PetType: [],
+      ProductPrice: '',
+      ProductDescription: '',
       isUploading: false,
       allImages: [],
       isEditingDetail: null,
@@ -69,7 +69,7 @@ class EditProductModal extends Component {
         }
         newState[`code${type}`] = response.data;
         if (hasDefault.includes(type)) {
-          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
       this.setState(newState);
@@ -82,11 +82,11 @@ class EditProductModal extends Component {
   resetState = () => {
     const { codeProductType } = this.state
     this.setState({
-      productname: '',
-      producttype: codeProductType.length > 0 ? codeProductType[0].Code : '',
-      pettype: [],
-      productprice: '',
-      productdescription: '',
+      ProductName: '',
+      ProductType: codeProductType.length > 0 ? codeProductType[0].Code : '',
+      PetType: [],
+      ProductPrice: '',
+      ProductDescription: '',
       allImages: [],
       isUploading: false,
       isEditingDetail: null,
@@ -97,9 +97,9 @@ class EditProductModal extends Component {
     this.resetState();
     this.props.toggleFromModal();
   };
-  handleLoadProductInfo = async (productid) => {
+  handleLoadProductInfo = async (ProductID) => {
     try {
-      const response = await handleGetProductInfoApi(productid);
+      const response = await handleGetProductInfoApi(ProductID);
       if (response && response.errCode === 0) {
         const productInfo = response.data;
         const allImages = [
@@ -114,11 +114,11 @@ class EditProductModal extends Component {
           loadedProductInfo: productInfo,
           selectedProductID: productInfo.ProductID,
           loadedProductDetailInfo: productInfo.ProductDetail || [],
-          productname: productInfo.ProductName,
-          producttype: productInfo.ProductType,
-          pettype: productInfo.PetType || [],
-          productprice: productInfo.ProductPrice,
-          productdescription: productInfo.ProductDescription,
+          ProductName: productInfo.ProductName,
+          ProductType: productInfo.ProductType,
+          PetType: productInfo.PetType || [],
+          ProductPrice: productInfo.ProductPrice,
+          ProductDescription: productInfo.ProductDescription,
           allImages,
         });
       } else {
@@ -137,8 +137,8 @@ class EditProductModal extends Component {
     const petType = e.target.value;
     const isChecked = e.target.checked;
     this.setState((prevState) => {
-      const updatedPetTypes = isChecked ? [...prevState.pettype, petType] : prevState.pettype.filter((type) => type !== petType);
-      return { pettype: updatedPetTypes };
+      const updatedPetTypes = isChecked ? [...prevState.PetType, petType] : prevState.PetType.filter((type) => type !== petType);
+      return { PetType: updatedPetTypes };
     });
   };
   handleAddImage = (e) => {
@@ -164,20 +164,20 @@ class EditProductModal extends Component {
       this.fileInputRef.current.value = null;
     }
   };
-  handleRemoveImage = (imageID) => {
+  handleRemoveImage = (ImageID) => {
     this.setState((prevState) => ({
-      allImages: prevState.allImages.filter((img) => img.ImageID !== imageID),
+      allImages: prevState.allImages.filter((img) => img.ImageID !== ImageID),
     }));
   };
   handleSaveProduct = async () => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, saveProduct: true } });
-    const { productname, producttype, productprice, allImages, productdescription, pettype, loadedProductDetailInfo, selectedProductID } = this.state;
+    const { ProductName, ProductType, ProductPrice, allImages, ProductDescription, PetType, loadedProductDetailInfo, selectedProductID } = this.state;
     const productInfo = {
-      ProductName: productname,
-      ProductType: producttype,
-      ProductPrice: productprice,
-      ProductDescription: productdescription,
-      PetType: pettype,
+      ProductName,
+      ProductType,
+      ProductPrice,
+      ProductDescription,
+      PetType,
       Image: allImages,
     };
     const isValidateProduct = await validateProductInput(productInfo);
@@ -230,7 +230,7 @@ class EditProductModal extends Component {
     }
     this.setState({ isUploading: true });
     try {
-      const { allImages, productname, producttype, pettype, productprice, productdescription, selectedProductID, loadedProductDetailInfo } = this.state;
+      const { allImages, ProductName, ProductType, PetType, ProductPrice, ProductDescription, selectedProductID, loadedProductDetailInfo } = this.state;
       const uploadedImages = [];
       if (allImages.length > 0) {
         if (allImages.length > 5) {
@@ -258,12 +258,12 @@ class EditProductModal extends Component {
       }
       const productInfo = {
         ProductID: selectedProductID,
-        ProductName: productname,
-        ProductPrice: parseFloat(productprice).toFixed(2),
+        ProductName,
+        ProductPrice: parseFloat(ProductPrice).toFixed(2),
         ProductImage: uploadedImages[0].Image,
-        ProductType: producttype,
-        ProductDescription: productdescription,
-        PetType: pettype,
+        ProductType,
+        ProductDescription,
+        PetType,
         ProductDetail: loadedProductDetailInfo.map((item) => ({
           ProductDetailID: item.ProductDetailID,
           DetailName: item.DetailName,
@@ -448,7 +448,7 @@ class EditProductModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, loadedProductDetailInfo, isEditingDetail, codeDetailStatus, isAddingDetail } = this.state;
+    const { ProductName, ProductType, ProductPrice, ProductDescription, allImages, codeProductType, codePetType, PetType, loadedProductDetailInfo, isEditingDetail, codeDetailStatus, isAddingDetail } = this.state;
     return (
       <Modal show={isOpen} onHide={this.toggle} centered backdrop="static" className="create-product-modal">
         <Modal.Header closeButton>
@@ -479,12 +479,12 @@ class EditProductModal extends Component {
             </div>
             <div className="modal-content-add-name">
               <p>Tên sản phẩm:</p>
-              <input type="text" placeholder="Nhập tên sản phẩm" value={productname} onChange={(e) => this.handleInputChange(e, 'productname')} />
+              <input type="text" placeholder="Nhập tên sản phẩm" value={ProductName} onChange={(e) => this.handleInputChange(e, 'ProductName')} />
             </div>
             <div className="f">
               <div className="modal-content-add-category">
                 <p>Loại sản phẩm:</p>
-                <select value={producttype} onChange={(e) => this.handleInputChange(e, 'producttype')} >
+                <select value={ProductType} onChange={(e) => this.handleInputChange(e, 'ProductType')} >
                   {codeProductType.map((type) => (
                     <option key={type.Code} value={type.Code}>
                       {type.CodeValueVI}
@@ -496,7 +496,7 @@ class EditProductModal extends Component {
               <div className="modal-content-add-main-price">
                 <p>Giá cơ bản:</p>
                 <div className="f">
-                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(productprice)) ? '' : parseFloat(productprice)} onChange={(e) => this.handleInputChange(e, 'productprice')} />
+                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(ProductPrice)) ? '' : parseFloat(ProductPrice)} onChange={(e) => this.handleInputChange(e, 'ProductPrice')} />
                   <p>vnđ</p>
                 </div>
               </div>
@@ -505,7 +505,7 @@ class EditProductModal extends Component {
                 <div className="pettype-checkboxes f">
                   {codePetType.map((type) => (
                     <label key={type.Code} className="pettype-checkbox f">
-                      <input type="checkbox" className="custom-checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
+                      <input type="checkbox" className="custom-checkbox" value={type.Code} checked={PetType.includes(type.Code)} onChange={this.handlePetTypeChange} />
                       <p>{type.CodeValueVI}</p>
                     </label>
                   ))}
@@ -635,7 +635,7 @@ class EditProductModal extends Component {
             </div>
             <div className="modal-content-add-info">
               <p>Mô tả sản phẩm:</p>
-              <textarea placeholder="Nhập mô tả sản phẩm" value={productdescription} onChange={(e) => this.handleInputChange(e, 'productdescription')} />
+              <textarea placeholder="Nhập mô tả sản phẩm" value={ProductDescription} onChange={(e) => this.handleInputChange(e, 'ProductDescription')} />
             </div>
           </div>
         </Modal.Body>

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const handleGetAllCodesApi = async (type) => {
+const handleGetAllCodesApi = async (Type) => {
   try {
-    const response = await axios.get(`/api/get-allcodes?type=${type}`);
+    const response = await axios.get(`/api/get-allcodes?Type=${Type}`);
     return Array.isArray(response.data.data) ? response.data.data : [];
   } catch (error) {
     return [];
@@ -59,6 +59,7 @@ const uploadImageToCloudinaryApi = async (file) => {
     };
   }
 };
+//not
 const getUserNotifications = (receiveId) => {
   return axios.get('/api/get-user-notifications', {
     params: { receiveId }

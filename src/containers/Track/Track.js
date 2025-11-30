@@ -27,8 +27,8 @@ class Track extends Component {
       actionPage: 0, // 0: tìm kiếm, 1: Product, 2: Appointment, 3: Appointment Bill
       selectedTab: 1, // 1: Product, 2: Appointment, 3: Appointment Bill
       searchValue: '',
-      billid: '',
-      billtype: 0,
+      BillID: '',
+      BillType: 0,
       loadedInvoiceDetails: null,
       loadedAppointmentDetails: null,
       loadedAppointmentBillDetails: null,
@@ -41,7 +41,7 @@ class Track extends Component {
       codePetGender: [],
       isShowCancelInvoiceModal: false,
       selectedCancelInvoice: null,
-      email: '',
+      Email: '',
       disabledButtons: {
         confirmReceived: false,
         continueInvoice: false,
@@ -54,9 +54,9 @@ class Track extends Component {
     try {
       await this.handleLoadCode(['PaymentType', 'ShippingMethod', 'ShippingStatus', 'AppointmentType', 'AppointmentStatus', 'PetType', 'PetGender']);
       if (this.props.trackInfo) {
-        const { billid, billtype } = this.props.trackInfo;
-        this.setState({ billid, billtype, actionPage: billtype });
-        const success = await this.handleLoadBillDetails(billid, billtype);
+        const { BillID, BillType } = this.props.trackInfo;
+        this.setState({ BillID, BillType, actionPage: BillType });
+        const success = await this.handleLoadBillDetails(BillID, BillType);
         if (success) {
           this.props.clearTrackInfo();
         }
@@ -64,11 +64,11 @@ class Track extends Component {
       // Parse query params from VNPay return
       const query = new URLSearchParams(window.location.search);
       const success = query.get('success');
-      const invoiceId = query.get('invoiceId');
-      if (success === 'true' && invoiceId) {
+      const InvoiceID = query.get('InvoiceID');
+      if (success === 'true' && InvoiceID) {
         toast.success('Thanh toán thành công!');
-        this.setState({ billid: invoiceId, billtype: 1, actionPage: 1 });
-        await this.handleLoadBillDetails(invoiceId, 1);
+        this.setState({ BillID: InvoiceID, BillType: 1, actionPage: 1 });
+        await this.handleLoadBillDetails(InvoiceID, 1);
       }
     } catch (e) {
       console.error('Error in componentDidMount:', e);
@@ -79,18 +79,18 @@ class Track extends Component {
   }
   async componentDidUpdate(prevProps) {
     if (prevProps.trackInfo !== this.props.trackInfo && this.props.trackInfo) {
-      const { billid, billtype } = this.props.trackInfo;
-      console.log('[TRACK DEBUG] Nhận trackInfo mới từ Redux:', { billid, billtype });
+      const { BillID, BillType } = this.props.trackInfo;
+      console.log('[TRACK DEBUG] Nhận trackInfo mới từ Redux:', { BillID, BillType });
 
       this.setState({
-        billid,
-        billtype,
-        actionPage: billtype,
+        BillID,
+        BillType,
+        actionPage: BillType,
         isLoading: true  // Bật loading khi load mới
       });
 
       try {
-        const success = await this.handleLoadBillDetails(billid, billtype);
+        const success = await this.handleLoadBillDetails(BillID, BillType);
         if (success) {
           this.props.clearTrackInfo();
         }
@@ -160,13 +160,13 @@ class Track extends Component {
       return { success: false };
     }
   };
-  handleLoadBillDetails = async (billid, billtype) => {
-    if (!billid || !billtype) {
+  handleLoadBillDetails = async (BillID, BillType) => {
+    if (!BillID || !BillType) {
       toast.error('Mã hóa đơn hoặc loại hóa đơn không hợp lệ!');
       return false;
     }
     this.setState({ isLoading: true });
-    const result = await this.loadtrackData(billid, billtype);
+    const result = await this.loadtrackData(BillID, BillType);
     this.setState({ isLoading: false });
     if (result.success) {
       this.setState({ [result.stateKey]: result.data });
@@ -187,8 +187,8 @@ class Track extends Component {
       this.setState({
         actionPage: selectedTab,
         [result.stateKey]: result.data,
-        billid: searchValue,
-        billtype: selectedTab,
+        BillID: searchValue,
+        BillType: selectedTab,
       });
     }
   };
@@ -202,12 +202,12 @@ class Track extends Component {
     this.setState({
       actionPage: 0,
       selectedTab: 1,
-      billid: '',
-      billtype: 0,
+      BillID: '',
+      BillType: 0,
     });
   };
-  getShippingFee = (shippingMethod) => {
-    const method = this.state.codeShippingMethod.find((item) => item.Code === shippingMethod);
+  getShippingFee = (ShippingMethod) => {
+    const method = this.state.codeShippingMethod.find((item) => item.Code === ShippingMethod);
     return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
   //Tải pdf và gửi email
@@ -227,16 +227,16 @@ class Track extends Component {
         break;
     }
   };
-  handleSendEmail = async (billid, email, type) => {
-    if (!email) {
+  handleSendEmail = async (BillID, Email, type) => {
+    if (!Email) {
       toast.info('Không tìm thấy Email để gửi hóa đơn!');
       return;
     }
     try {
       this.setState({ isLoading: true });
       const sendInfo = {
-        billid,
-        email,
+        BillID,
+        Email,
       };
       let response;
       switch (type) {
@@ -262,7 +262,7 @@ class Track extends Component {
     this.setState({ isLoading: false });
   };
   //Hàm thao tác của Product
-  handleConfirmReceived = async (invoiceid) => {
+  handleConfirmReceived = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmReceived: false } });
     const confirmReceived = () =>
       new Promise((resolve) => {
@@ -303,10 +303,10 @@ class Track extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'DELI', '');
       if (response && response.errCode === 0) {
         toast.success('Xác nhận nhận hàng thành công!');
-        await this.handleLoadBillDetails(invoiceid, this.state.billtype);
+        await this.handleLoadBillDetails(InvoiceID, this.state.BillType);
       } else {
         toast.error(response?.errMessage || 'Xác nhận nhận hàng thất bại!');
       }
@@ -317,7 +317,7 @@ class Track extends Component {
       this.setState({ isLoading: false });
     }
   };
-  handleContinueInvoice = async (invoiceid) => {
+  handleContinueInvoice = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, continueInvoice: false } });
     const confirmContinue = () =>
       new Promise((resolve) => {
@@ -358,10 +358,10 @@ class Track extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'PEND', '');
       if (response && response.errCode === 0) {
         toast.success('Tiếp tục đơn hàng thành công!');
-        await this.handleLoadBillDetails(invoiceid, this.state.billtype);
+        await this.handleLoadBillDetails(InvoiceID, this.state.BillType);
       } else {
         toast.error(response?.errMessage || 'Tiếp tục đơn hàng thất bại!');
       }
@@ -372,9 +372,9 @@ class Track extends Component {
       this.setState({ isLoading: false });
     }
   };
-  handleSelectedCancelInvoice = (invoiceid) => {
+  handleSelectedCancelInvoice = (InvoiceID) => {
     this.setState({
-      selectedCancelInvoice: invoiceid,
+      selectedCancelInvoice: InvoiceID,
       isShowCancelInvoiceModal: true,
     });
   };
@@ -383,13 +383,13 @@ class Track extends Component {
       isShowCancelInvoiceModal: !this.state.isShowCancelInvoiceModal,
     });
   };
-  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+  handleCancelInvoiceFromModal = async (InvoiceID, CancelReason) => {
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND_CANCEL', cancelreason);
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'PEND_CANCEL', CancelReason);
       if (response && response.errCode === 0) {
         toast.success('Gửi yêu cầu hủy đơn hàng thành công!');
-        await this.handleLoadBillDetails(invoiceid, this.state.billtype);
+        await this.handleLoadBillDetails(InvoiceID, this.state.BillType);
         this.setState({
           isShowCancelInvoiceModal: false,
           selectedCancelInvoice: null,
@@ -405,7 +405,7 @@ class Track extends Component {
     }
   };
   //Hàm thao tác của Appointment
-  handleCancelAppointment = async (appointmentid) => {
+  handleCancelAppointment = async (AppointmentID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelAppointment: false } });
     const confirmCancel = () =>
       new Promise((resolve) => {
@@ -446,10 +446,10 @@ class Track extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeAppointmentStatusApi(appointmentid, 'CANCELED', this.state.loadedAppointmentDetails?.AccountID || '');
+      const response = await handleChangeAppointmentStatusApi(AppointmentID, 'CANCELED', this.state.loadedAppointmentDetails?.AccountID || '');
       if (response && response.errCode === 0) {
         toast.success('Hủy lịch hẹn thành công!');
-        await this.handleLoadBillDetails(appointmentid, this.state.billtype);
+        await this.handleLoadBillDetails(AppointmentID, this.state.BillType);
       } else {
         toast.error(response?.errMessage || 'Hủy lịch hẹn thất bại!');
       }
@@ -468,7 +468,7 @@ class Track extends Component {
   };
 
   render() {
-    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, billid, email, disabledButtons } = this.state;
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, BillID, Email, disabledButtons } = this.state;
     return (
       <div className="view-invoice">
         <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
@@ -542,7 +542,7 @@ class Track extends Component {
                                     </p>
                                   </div>
                                   <div className="view-invoice-modal-content-top-invoiceid">
-                                    <p>Mã hóa đơn: {billid}</p>
+                                    <p>Mã hóa đơn: {BillID}</p>
                                   </div>
                                 </div>
                                 <div className="view-invoice-modal-content-top-cusname-1">
@@ -647,8 +647,8 @@ class Track extends Component {
                               </div>
                               <div className="bill-actions-invoice">
                                 <div className="sb">
-                                  <input type="text" value={email} placeholder="Nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />{' '}
-                                  <button onClick={() => this.handleSendEmail(billid, email, 1)} className="email-btn">
+                                  <input type="text" value={Email} placeholder="Nhập email để gửi hóa đơn" onChange={(e) => this.setState({ Email: e.target.value })} />{' '}
+                                  <button onClick={() => this.handleSendEmail(BillID, Email, 1)} className="email-btn">
                                     Gửi qua email
                                   </button>
                                 </div>
@@ -657,17 +657,17 @@ class Track extends Component {
                                     <IonIcon icon={chevronBackOutline}></IonIcon> Quay về
                                   </button>
                                   {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                    <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(billid)} title="Hủy đơn hàng">
+                                    <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(BillID)} title="Hủy đơn hàng">
                                       <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
                                     </button>
                                   )}
                                   {loadedInvoiceDetails.PaymentStatus === 'PAID' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
-                                    <button className="received-order-btn" onClick={() => this.handleConfirmReceived(billid)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmReceived}>
+                                    <button className="received-order-btn" onClick={() => this.handleConfirmReceived(BillID)} title="Xác nhận giao hàng" disabled={disabledButtons.confirmReceived}>
                                       <IonIcon icon={checkmarkCircleOutline}></IonIcon> Xác nhận giao hàng
                                     </button>
                                   )}
                                   {(loadedInvoiceDetails.PaymentStatus === 'PEND' || loadedInvoiceDetails.PaymentStatus === 'PAID') && loadedInvoiceDetails.ShippingStatus === 'PEND_CANCEL' && (
-                                    <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(billid)} title="Tiếp tục đơn hàng" disabled={disabledButtons.continueInvoice}>
+                                    <button className="continue-order-btn" onClick={() => this.handleContinueInvoice(BillID)} title="Tiếp tục đơn hàng" disabled={disabledButtons.continueInvoice}>
                                       <IonIcon icon={refreshOutline}></IonIcon> Tiếp tục đơn hàng
                                     </button>
                                   )}
@@ -716,7 +716,7 @@ class Track extends Component {
                                   </h1>
                                   <div className="bill-id f">
                                     <b>Mã lịch hẹn: </b>
-                                    <p> {billid}</p>
+                                    <p> {BillID}</p>
                                   </div>
                                 </div>
                                 <div className="sb">

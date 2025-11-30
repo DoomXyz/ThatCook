@@ -209,7 +209,7 @@ class ShowDoctor extends Component {
       }
     );
   };
-  handlePreSelectVeterinarian = (accountID) => {
+  handlePreSelectVeterinarian = (AccountID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, preSelectVeterinarian: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -247,9 +247,9 @@ class ShowDoctor extends Component {
     confirmAction().then((isConfirmed) => {
       if (isConfirmed) {
         const { loadedVeterinarianInfo } = this.state;
-        const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === accountID);
+        const selectedVet = loadedVeterinarianInfo.find((item) => item.AccountID === AccountID);
         if (selectedVet) {
-          this.props.savePreselectInfo('Veterinarian', accountID);
+          this.props.savePreselectInfo('Veterinarian', AccountID);
           this.props.navigate('/makeappointment');
         } else {
           toast.error('Không tìm thấy thông tin bác sĩ!');

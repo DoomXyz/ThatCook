@@ -13,16 +13,15 @@ import { handleAddToCartApi } from '../../services/cartServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
 import { userLogin, userLogout, clearCart, clearCheckOutCart, clearNotification } from '../../store/actions';
-import { set } from 'lodash';
 
 class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      accountname: '',
-      password: '',
+      AccountName: '',
+      Password: '',
       isTogglePassword: false,
-      rememberMe: false,
+      rememberLogin: false,
       isLoading: true,
     };
   }
@@ -43,7 +42,7 @@ class Login extends Component {
       ...copyState,
     });
   };
-  //quản lý state ẩn hiện password
+  //quản lý state ẩn hiện Password
   handleTogglePassword = () => {
     this.setState({
       //khi ấn vào thì chuyển state thành state đối nghịch
@@ -86,32 +85,32 @@ class Login extends Component {
       isLoading: true,
     });
     try {
-      //gọi api login ở backend, truyển email và password đi để kiểm tra
+      //gọi api login ở backend, truyển email và Password đi để kiểm tra
       //biến data dùng để lưu thông tin trả về từ api
-      const { accountname, password, rememberMe } = this.state;
-      let response = await handleLoginApi(accountname, password, rememberMe);
+      const { AccountName, Password, rememberLogin } = this.state;
+      let response = await handleLoginApi(AccountName, Password, rememberLogin);
       // nếu nhận được thông tin từ backend với mã lỗi khác 0 -> các trường hợp sai mail, sai pass,...
       if (response && response.errCode !== 0) {
         toast.error(response.errMessage);
       } else {
-        const accountInfo = response.data;
+        const { AccountID, AccountName, AccountType, UserImage, UserName, navigate } = response.data;
         if (this.props.cartItems.length !== 0) {
-          const responseCart = await handleAddToCartApi(accountInfo.AccountID, this.props.cartItems);
+          const responseCart = await handleAddToCartApi(AccountID, this.props.cartItems);
           if (responseCart) {
             this.props.clearCart();
           }
         }
         this.props.clearCheckOutCart();
         this.props.userLogin({
-          AccountID: accountInfo.AccountID,
-          AccountName: accountInfo.AccountName,
-          AccountType: accountInfo.AccountType,
-          UserImage: accountInfo.UserImage,
-          UserName: accountInfo.UserName,
+          AccountID,
+          AccountName,
+          AccountType,
+          UserImage,
+          UserName,
         });
         toast.success('Đăng nhập thành công!');
         setTimeout(() => {
-          this.props.navigate(accountInfo.navigate);
+          this.props.navigate(navigate);
         }, 501);
       }
     } catch (e) {
@@ -122,7 +121,7 @@ class Login extends Component {
     });
   };
   render() {
-    const { accountname, password, rememberMe, isLoading } = this.state;
+    const { AccountName, Password, rememberLogin, isLoading } = this.state;
     return (
       <div className="login-background">
         <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
@@ -144,9 +143,9 @@ class Login extends Component {
                     type="text"
                     placeholder=""
                     //set value của ô input bằng dữ liệu của state
-                    value={accountname}
+                    value={AccountName}
                     //quản lý event khi thay đổi thì gọi hàm handleOnChangeEmail để chuyển state
-                    onChange={(event) => this.handleOnChangeInput(event, 'accountname')}
+                    onChange={(event) => this.handleOnChangeInput(event, 'AccountName')}
                     required
                   />
                   <label>Tên đăng nhập</label>
@@ -167,16 +166,16 @@ class Login extends Component {
                     type={this.state.isTogglePassword ? 'text' : 'password'}
                     id="password"
                     placeholder=""
-                    value={password}
-                    onChange={(event) => this.handleOnChangeInput(event, 'password')}
+                    value={Password}
+                    onChange={(event) => this.handleOnChangeInput(event, 'Password')}
                     required
                   />
                   <label>Mật khẩu</label>
                 </div>
                 <div className="password-util">
                   <div className="remember-me">
-                    <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(event) => this.setState({ rememberMe: event.target.checked })} />
-                    <label htmlFor="rememberMe">Ghi nhớ đăng nhập</label>
+                    <input type="checkbox" id="rememberLogin" checked={rememberLogin} onChange={(event) => this.setState({ rememberLogin: event.target.checked })} />
+                    <label htmlFor="rememberLogin">Ghi nhớ đăng nhập</label>
                   </div>
                   <a href="/forgotpassword" className="forgot-password">
                     Quên mật khẩu?

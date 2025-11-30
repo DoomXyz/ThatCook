@@ -49,11 +49,11 @@ class Doctor extends Component {
       // VeterinarianInfo
       editField: null,
       originalValue: '',
-      veterinarianid: '',
+      VeterinarianID: '',
       veterinarianname: '',
-      workingstatus: '',
-      bio: '',
-      specialization: '',
+      WorkingStatus: '',
+      Bio: '',
+      Specialization: '',
       serviceList: [],
       // Data Lists
       loadedPendingAppointments: [],
@@ -102,7 +102,7 @@ class Doctor extends Component {
         this.setState({
           accountInfo,
           isLoggedIn: true,
-          veterinarianid: accountInfo.AccountID,
+          VeterinarianID: accountInfo.AccountID,
         });
       } else {
         await handleLogoutApi();
@@ -110,7 +110,7 @@ class Doctor extends Component {
         this.setState({
           accountInfo: null,
           isLoggedIn: false,
-          veterinarianid: '',
+          VeterinarianID: '',
         });
         this.props.navigate('/login');
       }
@@ -134,7 +134,7 @@ class Doctor extends Component {
         }
         newState[`code${type}`] = response.data;
         if (hasDefault.includes(type)) {
-          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
       this.setState(newState);
@@ -179,14 +179,14 @@ class Doctor extends Component {
   };
   handleLoadVeterinarianInfo = async () => {
     try {
-      const { veterinarianid } = this.state
-      const response = await handleGetVeterinarianInfoApi(veterinarianid);
+      const { VeterinarianID } = this.state
+      const response = await handleGetVeterinarianInfoApi(VeterinarianID);
       if (response && response.errCode === 0) {
         const veterinarianInfo = response.data;
         this.setState({
-          specialization: veterinarianInfo.Specialization,
-          workingstatus: veterinarianInfo.WorkingStatus,
-          bio: veterinarianInfo.Bio,
+          Specialization: veterinarianInfo.Specialization,
+          WorkingStatus: veterinarianInfo.WorkingStatus,
+          Bio: veterinarianInfo.Bio,
           servicesList: veterinarianInfo.services
         });
       }
@@ -196,9 +196,9 @@ class Doctor extends Component {
     }
   };
   handleLoadPendingAppointments = async () => {
-    const { veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
+    const { VeterinarianID, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
     try {
-      const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "PEND");
+      const response = await handleLoadAppointmentsApi(VeterinarianID, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "PEND");
       if (response && response.errCode === 0) {
         this.setState({
           loadedPendingAppointments: response.data,
@@ -213,10 +213,10 @@ class Doctor extends Component {
     }
   };
   handleLoadSchedule = async () => {
-    const { veterinarianid, currentWeekStart } = this.state;
+    const { VeterinarianID, currentWeekStart } = this.state;
     try {
       const startDate = currentWeekStart.toISOString().split('T')[0];
-      const response = await handleLoadScheduleApi(veterinarianid, startDate);
+      const response = await handleLoadScheduleApi(VeterinarianID, startDate);
       if (response && response.errCode === 0) {
         this.setState({
           loadedSchedules: response.data,
@@ -230,9 +230,9 @@ class Doctor extends Component {
     }
   };
   handleLoadCompleteAppointments = async () => {
-    const { veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
+    const { VeterinarianID, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2 } = this.state;
     try {
-      const response = await handleLoadAppointmentsApi(veterinarianid, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "COMP");
+      const response = await handleLoadAppointmentsApi(VeterinarianID, currentPage, limitAppointmentPerQuery, searchValue, filterValue, sortValue, date1, date2, "COMP");
       if (response && response.errCode === 0) {
         this.setState({
           loadedCompleteAppointments: response.data,
@@ -246,9 +246,9 @@ class Doctor extends Component {
       toast.error('Lỗi hệ thống khi tải danh sách!');
     }
   };
-  handleLoadAppointmentDetails = async (appointmentid) => {
+  handleLoadAppointmentDetails = async (AppointmentID) => {
     try {
-      const response = await handleLoadAppointmentDetailsApi(appointmentid);
+      const response = await handleLoadAppointmentDetailsApi(AppointmentID);
       if (response && response.errCode === 0) {
         this.setState({ loadedAppointmentDetail: response.data, });
       } else {
@@ -269,11 +269,11 @@ class Doctor extends Component {
   };
   handleVeterinarianInfoChange = (e) => {
     const { name, value } = e.target;
-    const { editField, workingstatus } = this.state
-    if (name === 'workingstatus' && editField !== 'workingstatus') {
+    const { editField, WorkingStatus } = this.state
+    if (name === 'WorkingStatus' && editField !== 'WorkingStatus') {
       this.setState({
-        editField: 'workingstatus',
-        originalValue: workingstatus,
+        editField: 'WorkingStatus',
+        originalValue: WorkingStatus,
       });
     }
     this.setState({
@@ -288,16 +288,16 @@ class Doctor extends Component {
   }
   handleChangeVeterinarianInfo = async (e) => {
     e.preventDefault();
-    const { editField, originalValue, veterinarianid, bio, specialization, workingstatus, servicesList } = this.state;
+    const { editField, originalValue, VeterinarianID, Bio, Specialization, WorkingStatus, servicesList } = this.state;
     let updateInfo = {
-      accountid: veterinarianid,
-      accounttype: "V"
+      AccountID: VeterinarianID,
+      AccountType: "V"
     };
     const formattedServicesList = servicesList.map(service => service.ServiceID);
     updateInfo.veterinarianInfo = {
-      bio: bio,
-      specialization: specialization,
-      workingstatus: workingstatus,
+      Bio,
+      Specialization,
+      WorkingStatus,
       selectedServicesList: formattedServicesList
     };
     let hasChanges = false;
@@ -314,18 +314,18 @@ class Doctor extends Component {
         toast.success('Cập nhật thông tin thành công!');
       } else {
         toast.error(response.errMessage);
-        this.handleLoadVeterinarianInfo(updateInfo.accountid);
+        this.handleLoadVeterinarianInfo(updateInfo.AccountID);
       }
     }
     this.setState({ editField: null, originalValue: '' });
   };
   handleChangeWorkingStatus = async () => {
-    const { workingstatus, veterinarianid } = this.state;
-    const newStatus = workingstatus === 'WORK' ? 'LEAVE' : 'WORK';
+    const { WorkingStatus, VeterinarianID } = this.state;
+    const newStatus = WorkingStatus === 'WORK' ? 'LEAVE' : 'WORK';
     try {
-      const response = await handleChangeWorkingStatusApi(veterinarianid, newStatus);
+      const response = await handleChangeWorkingStatusApi(VeterinarianID, newStatus);
       if (response && response.errCode === 0) {
-        this.setState({ workingstatus: newStatus });
+        this.setState({ WorkingStatus: newStatus });
       } else {
         toast.error('Lỗi khi cập nhật trạng thái!');
       }
@@ -442,9 +442,9 @@ class Doctor extends Component {
     }
   };
   //Appointment Management
-  handleChangeAppointmentStatus = async (appointmentid, status) => {
+  handleChangeAppointmentStatus = async (AppointmentID, status) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, changeAppointment: true } });
-    const { veterinarianid, workingstatus } = this.state;
+    const { VeterinarianID, WorkingStatus } = this.state;
     let isConfirmed = false;
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -479,9 +479,9 @@ class Doctor extends Component {
       });
     isConfirmed = await confirmAction();
     if (isConfirmed) {
-      if (workingstatus === "WORK")
+      if (WorkingStatus === "WORK")
         try {
-          const response = await handleChangeAppointmentStatusApi(appointmentid, status, veterinarianid);
+          const response = await handleChangeAppointmentStatusApi(AppointmentID, status, VeterinarianID);
           if (response && response.errCode === 0) {
             if (status === "CONF") {
               toast.success('Xác nhận lịch hẹn thành công!');
@@ -503,7 +503,7 @@ class Doctor extends Component {
     }
   };
   //Schedule Management
-  handleChangeScheduleStatus = async (scheduleid, status) => {
+  handleChangeScheduleStatus = async (ScheduleID, status) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, changeSchedule: true } });
     let isConfirmed = false;
     const confirmAction = () =>
@@ -540,7 +540,7 @@ class Doctor extends Component {
     isConfirmed = await confirmAction();
     if (isConfirmed) {
       try {
-        const response = await handleChangeScheduleStatusApi(scheduleid, status);
+        const response = await handleChangeScheduleStatusApi(ScheduleID, status);
         if (response && response.errCode === 0) {
           toast.success(`Cập nhật thành công!`);
           await this.handleLoadSchedule()
@@ -556,7 +556,7 @@ class Doctor extends Component {
       }
     }
   };
-  handleAppointmentCheckOut = (appointmentid) => {
+  handleAppointmentCheckOut = (AppointmentID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, appointmentCheckout: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -591,10 +591,10 @@ class Doctor extends Component {
       });
     confirmAction().then((isConfirmed) => {
       if (isConfirmed) {
-        const { veterinarianid } = this.state;
+        const { VeterinarianID } = this.state;
         const appointmentData = {
-          veterinarianid,
-          appointmentid,
+          VeterinarianID,
+          AppointmentID,
         };
         this.props.saveAppointmentForCheckout(appointmentData);
         this.props.navigate('/appointmentcheckout');
@@ -602,7 +602,7 @@ class Doctor extends Component {
     });
   };
   //AppointmentBill Management
-  handleViewBill = (billid) => {
+  handleViewBill = (BillID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, viewBill: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -637,7 +637,7 @@ class Doctor extends Component {
       });
     confirmAction().then((isConfirmed) => {
       if (isConfirmed) {
-        this.props.saveTrackInfo({ billid, billtype: 3 });
+        this.props.saveTrackInfo({ BillID, BillType: 3 });
         this.props.navigate('/track');
       }
     });
@@ -645,14 +645,14 @@ class Doctor extends Component {
   //form controller
   handleFormHoSoBacSi = (e) => {
     e.preventDefault();
-    const { veterinarianid } = this.state
+    const { VeterinarianID } = this.state
     this.setState(
       {
         actionPage: 1,
         editField: null,
         originalValue: '',
       }, () => {
-        this.handleLoadVeterinarianInfo(veterinarianid);
+        this.handleLoadVeterinarianInfo(VeterinarianID);
       }
     );
   };
@@ -703,15 +703,15 @@ class Doctor extends Component {
       }
     );
   };
-  handleFormChiTietLichHen = (appointmentid, type) => {
+  handleFormChiTietLichHen = (AppointmentID, type) => {
     this.setState(
       {
         actionPage: 5,
-        selectedAppointment: appointmentid,
+        selectedAppointment: AppointmentID,
         fromForm: type,
       },
       () => {
-        this.handleLoadAppointmentDetails(appointmentid);
+        this.handleLoadAppointmentDetails(AppointmentID);
       }
     );
   };
@@ -751,8 +751,8 @@ class Doctor extends Component {
     );
   };
   renderForm() {
-    const { actionPage, veterinarianid, accountInfo, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
-      editField, bio, servicesList, specialization, workingstatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType, codePetType, codePetGender,
+    const { actionPage, VeterinarianID, accountInfo, currentWeekStart, loadedPendingAppointments, loadedCompleteAppointments, loadedSchedules, loadedAppointmentDetail,
+      editField, Bio, servicesList, Specialization, WorkingStatus, codeWorkingStatus, codeAppointmentStatus, codeScheduleStatus, codeAppointmentType, codePetType, codePetGender,
       serviceList, filterValue, sortValue, currentPage, tempCurrentPage, date1, date2, totalPages, fromForm, disabledButtons } = this.state;
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
@@ -783,13 +783,13 @@ class Doctor extends Component {
                 </h3>
               </div>
               <div className='doctor-head-right' >
-                <div className="value-doctor-status" data-status={workingstatus}>
-                  {codeWorkingStatus.find(status => status.Code === workingstatus)?.CodeValueVI || workingstatus}
+                <div className="value-doctor-status" data-status={WorkingStatus}>
+                  {codeWorkingStatus.find(status => status.Code === WorkingStatus)?.CodeValueVI || WorkingStatus}
                 </div>
                 <div className="descreption-doctor"> <label className="switch">
                   <input
                     type="checkbox"
-                    checked={workingstatus === 'WORK'}
+                    checked={WorkingStatus === 'WORK'}
                     onChange={this.handleChangeWorkingStatus}
                   />
                   <span className="slider round"></span>
@@ -817,16 +817,16 @@ class Doctor extends Component {
               </div>
               <div className="doctor-info-tab">
                 <div className="descreption-doctor">Chuyên Khoa: </div>
-                {editField === 'specialization' ? <input type="text" name='specialization' value={specialization}
-                  onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{specialization}</div>}
-                <button type="button" className="edit-button" onClick={() => this.handleEditClick('specialization')}>
+                {editField === 'Specialization' ? <input type="text" name='Specialization' value={Specialization}
+                  onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{Specialization}</div>}
+                <button type="button" className="edit-button" onClick={() => this.handleEditClick('Specialization')}>
                   <IonIcon icon={pencil}></IonIcon>
                 </button>
               </div>
               <div className="doctor-info-tab">
                 <div className="descreption-doctor">Tiểu sử: </div>
-                {editField === 'bio' ? <input type="text" name='bio' value={bio} onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{bio}</div>}
-                <button type="button" className="edit-button" onClick={() => this.handleEditClick('bio')}>
+                {editField === 'Bio' ? <input type="text" name='Bio' value={Bio} onChange={this.handleVeterinarianInfoChange} className="value-doctor-input" /> : <div className="value-doctor">{Bio}</div>}
+                <button type="button" className="edit-button" onClick={() => this.handleEditClick('Bio')}>
                   <IonIcon icon={pencil}></IonIcon>
                 </button>
               </div>
@@ -950,7 +950,7 @@ class Doctor extends Component {
                           >
                             Xác nhận
                           </button>
-                          {appointment.VeterinarianID === veterinarianid ?
+                          {appointment.VeterinarianID === VeterinarianID ?
                             <button
                               type="button"
                               className='wait-appointment-button-refuse'
@@ -1274,7 +1274,7 @@ class Doctor extends Component {
                     <div className="detail-item">
                       <label>Loại thú cưng:</label>
                       <span>
-                        {codePetType.find(pettype => pettype.Code === loadedAppointmentDetail.Pet.PetType)?.CodeValueVI || loadedAppointmentDetail.Pet.PetType}
+                        {codePetType.find(PetType => PetType.Code === loadedAppointmentDetail.Pet.PetType)?.CodeValueVI || loadedAppointmentDetail.Pet.PetType}
                       </span>
                     </div>
                     <div className="detail-item">
@@ -1288,7 +1288,7 @@ class Doctor extends Component {
                     <div className="detail-item">
                       <label>Giới tính:</label>
                       <span>
-                        {codePetGender.find(petgender => petgender.Code === loadedAppointmentDetail.Pet.PetGender)?.CodeValueVI || loadedAppointmentDetail.Pet.PetGender}
+                        {codePetGender.find(PetGender => PetGender.Code === loadedAppointmentDetail.Pet.PetGender)?.CodeValueVI || loadedAppointmentDetail.Pet.PetGender}
                       </span>
                     </div>
                   </div>

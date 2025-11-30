@@ -4,20 +4,20 @@ const handleLoadProductInfoApi = (page, limit, search, filter, sort) => {
   return axios.get(`/api/load-productinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
-const handleGetProductInfoApi = (productid) => {
-  return axios.get(`/api/get-productinfo?productid=${productid}`);
+const handleGetProductInfoApi = (ProductID) => {
+  return axios.get(`/api/get-productinfo?ProductID=${ProductID}`);
 };
 
 const handleLoadSaleProductInfoApi = (page, limit, search, filter, sort) => {
   return axios.get(`/api/load-sale-productinfo?page=${page}&limit=${limit}&search=${search}&filter=${filter}&sort=${sort}`);
 };
 
-const handleGetSaleProductInfoApi = (productid) => {
-  return axios.get(`/api/get-sale-productinfo?productid=${productid}`);
+const handleGetSaleProductInfoApi = (ProductID) => {
+  return axios.get(`/api/get-sale-productinfo?ProductID=${ProductID}`);
 };
 
-const handleGetProductDetailInfoApi = (productid, productdetailid) => {
-  return axios.get(`/api/get-productdetailinfo?productid=${productid}&productdetailid=${productdetailid}`);
+const handleGetProductDetailInfoApi = (ProductID, ProductDetailID) => {
+  return axios.get(`/api/get-productdetailinfo?ProductID=${ProductID}&ProductDetailID=${ProductDetailID}`);
 };
 
 const handleCreateProductApi = (productInfo) => {

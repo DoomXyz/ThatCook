@@ -239,25 +239,25 @@ class Home extends Component {
       isShowHomeProductModal: !this.state.isShowHomeProductModal,
     });
   };
-  handleSelectedProduct = (productid) => {
+  handleSelectedProduct = (ProductID) => {
     this.setState({
-      selectedProduct: productid,
+      selectedProduct: ProductID,
       isShowHomeProductModal: true,
     });
   };
   handleBuyNowFromModal = (productInfo) => {
     this.toggleHomeProductModal();
     const { isLoggedIn, accountInfo } = this.state;
-    let accountID = null;
+    let AccountID = null;
     if (isLoggedIn) {
-      accountID = accountInfo.AccountID;
+      AccountID = accountInfo.AccountID;
     }
     if (!productInfo) {
       toast.info('Không có sản phẩm để thanh toán!');
       return;
     }
     const expiresAt = new Date().getTime() + 60 * 60 * 1000;
-    this.props.saveCartForCheckOut([productInfo], accountID, expiresAt, true);
+    this.props.saveCartForCheckOut([productInfo], AccountID, expiresAt, true);
     this.props.navigate('/checkout');
   };
   handleAddToCart = async (product) => {
@@ -432,7 +432,7 @@ class Home extends Component {
                           {codeProductType && codeProductType.length > 0 && (
                             <optgroup label="Loại sản phẩm">
                               {codeProductType.map((item) => (
-                                <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
+                                <option key={`ProductType-${item.Code}`} value={`ProductType-${item.Code}`}>
                                   {item.CodeValueVI}
                                 </option>
                               ))}
@@ -441,7 +441,7 @@ class Home extends Component {
                           {codePetType && codePetType.length > 0 && (
                             <optgroup label="Loại thú cưng">
                               {codePetType.map((item) => (
-                                <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
+                                <option key={`PetType-${item.Code}`} value={`PetType-${item.Code}`}>
                                   Sản phẩm dành cho {item.CodeValueVI}
                                 </option>
                               ))}
@@ -529,9 +529,9 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   userLogin: (userInfo) => dispatch(userLogin(userInfo)),
   userLogout: () => dispatch(userLogout()),
-  addToCart: (product, quantity) => dispatch(addToCart(product, quantity)),
+  addToCart: (product, Quantity) => dispatch(addToCart(product, Quantity)),
   clearCart: () => dispatch(clearCart()),
-  saveCartForCheckOut: (cartItems, accountid, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(cartItems, accountid, expiresAt, isBuyNow)),
+  saveCartForCheckOut: (cartItems, AccountID, expiresAt, isBuyNow) => dispatch(saveCartForCheckOut(cartItems, AccountID, expiresAt, isBuyNow)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home);

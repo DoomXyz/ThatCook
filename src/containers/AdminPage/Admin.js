@@ -484,9 +484,9 @@ class Admin extends Component {
     });
   };
   //modal input
-  handleSelectedAccount = (accountid) => {
+  handleSelectedAccount = (AccountID) => {
     this.setState({
-      selectedAccount: accountid,
+      selectedAccount: AccountID,
       isShowEditAccountModal: true,
     });
   };
@@ -974,21 +974,21 @@ class Admin extends Component {
                     <option value="ALL">Mặc định (Tất cả)</option>
                     <optgroup label="Theo Quyền Hạn">
                       {codeAccountType.map((item) => (
-                        <option key={item.Code} value={`accounttype-${item.Code}`}>
+                        <option key={item.Code} value={`AccoutType-${item.Code}`}>
                           {item.CodeValueVI}
                         </option>
                       ))}
                     </optgroup>
                     <optgroup label="Theo Giới Tính">
                       {codeGender.map((item) => (
-                        <option key={item.Code} value={`gender-${item.Code}`}>
+                        <option key={item.Code} value={`Gender-${item.Code}`}>
                           {item.CodeValueVI}
                         </option>
                       ))}
                     </optgroup>
                     <optgroup label="Theo Trạng Thái">
                       {codeAccountStatus.map((item) => (
-                        <option key={item.Code} value={`accountstatus-${item.Code}`}>
+                        <option key={item.Code} value={`AccountStatus-${item.Code}`}>
                           {item.CodeValueVI}
                         </option>
                       ))}
@@ -1112,7 +1112,7 @@ class Admin extends Component {
                         label: type.Type,
                       })),
                     ]}
-                    value={filterValue === 'ALL' ? { value: 'ALL', label: 'Tất cả' } : codeTypeFilter.find((type) => `type-${type.Type}` === filterValue) ? { value: filterValue, label: codeTypeFilter.find((type) => `type-${type.Type}` === filterValue).Type } : null}
+                    value={filterValue === 'ALL' ? { value: 'ALL', label: 'Tất cả' } : codeTypeFilter.find((type) => `Type-${type.Type}` === filterValue) ? { value: filterValue, label: codeTypeFilter.find((type) => `Type-${type.Type}` === filterValue).Type } : null}
                     onChange={(selectedOption) => this.handleFilter(selectedOption ? selectedOption.value : 'ALL', 2)}
                     placeholder="Chọn loại"
                     isClearable
@@ -1226,19 +1226,19 @@ class Admin extends Component {
                   >
                     <option value="ALL">Tất cả</option>
                     <optgroup label="Theo Giá">
-                      <option value="price-LOW">Dưới 100,000 VNĐ</option>
-                      <option value="price-MED">100,000 - 500,000 VNĐ</option>
-                      <option value="price-HIGH">Trên 500,000 VNĐ</option>
+                      <option value="Price-LOW">Dưới 100,000 VNĐ</option>
+                      <option value="Price-MED">100,000 - 500,000 VNĐ</option>
+                      <option value="Price-HIGH">Trên 500,000 VNĐ</option>
                     </optgroup>
                     <optgroup label="Theo Thời Gian">
-                      <option value="duration-SHORT">Dưới 30 phút</option>
-                      <option value="duration-MED">30 - 60 phút</option>
-                      <option value="duration-LONG">Trên 60 phút</option>
+                      <option value="Duration-SHORT">Dưới 30 phút</option>
+                      <option value="Duration-MED">30 - 60 phút</option>
+                      <option value="Duration-LONG">Trên 60 phút</option>
                     </optgroup>
                     <optgroup label="Theo Trạng Thái">
-                      {codeServiceStatus.map((status) => (
-                        <option key={status.Code} value={`status-${status.Code}`}>
-                          {status.CodeValueVI}
+                      {codeServiceStatus.map((servicestatus) => (
+                        <option key={servicestatus.Code} value={`ServiceStatus-${servicestatus.Code}`}>
+                          {servicestatus.CodeValueVI}
                         </option>
                       ))}
                     </optgroup>

@@ -1,10 +1,10 @@
 import axios from '../axios';
 
-const handleAddToCartApi = (accountid, cartInfo) => {
-  return axios.post('/api/add-to-cart', { accountid, cartInfo });
+const handleAddToCartApi = (AccountID, cartInfo) => {
+  return axios.post('/api/add-to-cart', { AccountID, cartInfo });
 };
-const handleGetCartApi = (accountid) => {
-  return axios.get(`/api/get-cart?accountid=${accountid}`);
+const handleGetCartApi = (AccountID) => {
+  return axios.get(`/api/get-cart?AccountID=${AccountID}`);
 };
 
 const handleGetCartDetailApi = (cartInfo) => {
@@ -15,20 +15,20 @@ const handleGetDetailListApi = (cartInfo) => {
   return axios.get(`/api/get-detaillist?cartInfo=${cartInfo}`);
 };
 
-const handleUpdateQuantityApi = (accountid, productid, productdetailid, quantity) => {
-  return axios.put('/api/update-quantity', { accountid, productid, productdetailid, quantity });
+const handleUpdateQuantityApi = (AccountID, ProductID, ProductDetailID, Quantity) => {
+  return axios.put('/api/update-quantity', { AccountID, ProductID, ProductDetailID, Quantity });
 };
 
-const handleRemoveFromCartApi = (accountid, productid, productdetailid) => {
-  return axios.delete('/api/remove-from-cart', { data: { accountid, productid, productdetailid } });
+const handleRemoveFromCartApi = (AccountID, ProductID, ProductDetailID) => {
+  return axios.delete('/api/remove-from-cart', { data: { AccountID, ProductID, ProductDetailID } });
 };
 
-const handleUpdateCartDetailApi = (accountid, productid, productdetailid1, productdetailid2) => {
-  return axios.put('/api/update-cart-detail', { accountid, productid, productdetailid1, productdetailid2 });
+const handleUpdateCartDetailApi = (AccountID, ProductID, ProductDetailID1, ProductDetailID2) => {
+  return axios.put('/api/update-cart-detail', { AccountID, ProductID, ProductDetailID1, ProductDetailID2 });
 };
 
-const handleMergeCartDetailApi = (accountid, productid, productdetailid1, productdetailid2, quantity) => {
-  return axios.put('/api/merge-cart-detail', { accountid, productid, productdetailid1, productdetailid2, quantity });
+const handleMergeCartDetailApi = (AccountID, ProductID, ProductDetailID1, ProductDetailID2, Quantity) => {
+  return axios.put('/api/merge-cart-detail', { AccountID, ProductID, ProductDetailID1, ProductDetailID2, Quantity });
 };
 
 export { handleAddToCartApi, handleGetCartApi, handleGetCartDetailApi, handleGetDetailListApi, handleUpdateQuantityApi, handleRemoveFromCartApi, handleUpdateCartDetailApi, handleMergeCartDetailApi };

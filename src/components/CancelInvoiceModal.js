@@ -50,21 +50,21 @@ class CancelInvoiceModal extends Component {
 
   handleConfirm = async () => {
     const { selectedReason, customReason, codeCancelReason } = this.state;
-    let cancelReason = '';
+    let CancelReason = '';
     if (selectedReason === 'OTHER') {
       if (!customReason.trim()) {
         toast.error('Vui lòng nhập lý do hủy đơn hàng!');
         return;
       }
-      cancelReason = customReason;
+      CancelReason = customReason;
     } else if (selectedReason) {
       const selectedCode = codeCancelReason.find((reason) => reason.Code === selectedReason);
-      cancelReason = selectedCode ? selectedCode.CodeValueVI : '';
+      CancelReason = selectedCode ? selectedCode.CodeValueVI : '';
     } else {
       toast.error('Vui lòng chọn hoặc nhập lý do hủy đơn hàng!');
       return;
     }
-    await this.props.handleCancelInvoiceFromModal(this.props.selectedCancelInvoiceID, cancelReason);
+    await this.props.handleCancelInvoiceFromModal(this.props.selectedCancelInvoiceID, CancelReason);
   };
 
   toggle = () => {

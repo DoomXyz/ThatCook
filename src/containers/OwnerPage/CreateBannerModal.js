@@ -23,12 +23,12 @@ class CreateBannerModal extends Component {
       codePetType: [],
       codeBannerStatus: [],
       imageInfo: null,
-      hiddenat: null,
-      bannerstatus: '',
-      productid: '',
-      productname: '',
-      producttype: 'ALL',
-      pettype: [],
+      HiddenAt: null,
+      BannerStatus: '',
+      ProductID: '',
+      ProductName: '',
+      ProductType: 'ALL',
+      PetType: [],
       isUploading: false,
       loadedProductInfo: [],
       disabledButtons: {
@@ -63,7 +63,7 @@ class CreateBannerModal extends Component {
         }
         newState[`code${type}`] = response.data;
         if (hasDefault.includes(type)) {
-          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
       this.setState(newState);
@@ -77,12 +77,12 @@ class CreateBannerModal extends Component {
     const { codeBannerStatus } = this.state
     this.setState({
       imageInfo: null,
-      hiddenat: null,
-      bannerstatus: codeBannerStatus.length > 0 ? codeBannerStatus[0].Code : '',
-      productid: '',
-      productname: '',
-      producttype: 'ALL',
-      pettype: [],
+      HiddenAt: null,
+      BannerStatus: codeBannerStatus.length > 0 ? codeBannerStatus[0].Code : '',
+      ProductID: '',
+      ProductName: '',
+      ProductType: 'ALL',
+      PetType: [],
       isUploading: false,
       loadedProductInfo: [],
     });
@@ -93,8 +93,8 @@ class CreateBannerModal extends Component {
   };
   handleLoadFilteredProductInfo = async () => {
     try {
-      const { producttype, pettype } = this.state;
-      const response = await handleLoadFilteredProductInfoApi(producttype, JSON.stringify(pettype), '');
+      const { ProductType, PetType } = this.state;
+      const response = await handleLoadFilteredProductInfoApi(ProductType, JSON.stringify(PetType), '');
       if (response && response.errCode === 0) {
         this.setState({ loadedProductInfo: response.data });
       } else {
@@ -107,7 +107,7 @@ class CreateBannerModal extends Component {
   };
   handleSelectChange = (e, field) => {
     this.setState({ [field]: e.target.value }, () => {
-      if (field === 'producttype') {
+      if (field === 'ProductType') {
         this.handleLoadFilteredProductInfo();
       }
     });
@@ -117,16 +117,16 @@ class CreateBannerModal extends Component {
     const isChecked = e.target.checked;
     this.setState(
       (prevState) => {
-        const updatedPetTypes = isChecked ? [...prevState.pettype, petType] : prevState.pettype.filter((type) => type !== petType);
-        return { pettype: updatedPetTypes };
+        const updatedPetTypes = isChecked ? [...prevState.PetType, petType] : prevState.PetType.filter((type) => type !== petType);
+        return { PetType: updatedPetTypes };
       },
       () => this.handleLoadFilteredProductInfo()
     );
   };
   handleProductChange = (selectedOption) => {
     this.setState({
-      productid: selectedOption ? selectedOption.value : '',
-      productname: selectedOption ? selectedOption.label : '',
+      ProductID: selectedOption ? selectedOption.value : '',
+      ProductName: selectedOption ? selectedOption.label : '',
     });
   };
   handleAddImage = (e) => {
@@ -154,11 +154,11 @@ class CreateBannerModal extends Component {
     });
   };
   handleCreateBanner = async () => {
-    const { imageInfo, hiddenat, bannerstatus } = this.state;
+    const { imageInfo, HiddenAt, BannerStatus } = this.state;
     const bannerInfo = {
       BannerImage: imageInfo?.Image,
-      HiddenAt: hiddenat ? hiddenat.toISOString().split('T')[0] : null,
-      BannerStatus: bannerstatus,
+      HiddenAt: HiddenAt ? HiddenAt.toISOString().split('T')[0] : null,
+      BannerStatus,
     };
     const isValidateInput = await validateBannerInput(bannerInfo);
     if (!isValidateInput.valid) {
@@ -205,20 +205,20 @@ class CreateBannerModal extends Component {
     }
     this.setState({ isUploading: true });
     try {
-      let bannerImage = null;
+      let BannerImage = null;
       if (this.state.imageInfo) {
         const uploadResult = await uploadImages([this.state.imageInfo]);
         if (!uploadResult.status) {
           toast.error(uploadResult.error || 'Tải ảnh thất bại!');
           return;
         }
-        bannerImage = uploadResult.images[0].Image;
+        BannerImage = uploadResult.images[0].Image;
       }
       const bannerInfo = {
-        BannerImage: bannerImage,
-        HiddenAt: this.state.hiddenat ? this.state.hiddenat.toISOString().split('T')[0] : null,
-        BannerStatus: this.state.bannerstatus,
-        ProductID: this.state.productid,
+        BannerImage,
+        HiddenAt: this.state.HiddenAt ? this.state.HiddenAt.toISOString().split('T')[0] : null,
+        BannerStatus: this.state.BannerStatus,
+        ProductID: this.state.ProductID,
       };
       await this.props.handleCreateBannerFromModal(bannerInfo);
     } catch (e) {
@@ -229,7 +229,7 @@ class CreateBannerModal extends Component {
     }
   };
   render() {
-    const { codeBannerStatus, codePetType, codeProductType, imageInfo, hiddenat, bannerstatus, producttype, pettype, loadedProductInfo, productid, productname, disabledButtons } = this.state;
+    const { codeBannerStatus, codePetType, codeProductType, imageInfo, HiddenAt, BannerStatus, ProductType, PetType, loadedProductInfo, ProductID, ProductName, disabledButtons } = this.state;
 
     const productOptions = loadedProductInfo.map((product) => ({
       value: product.ProductID,
@@ -268,7 +268,7 @@ class CreateBannerModal extends Component {
               <div className="f">
                 <div className="modal-content-add-category f">
                   <p>Loại sản phẩm:</p>
-                  <select value={producttype} onChange={(e) => this.handleSelectChange(e, 'producttype')}>
+                  <select value={ProductType} onChange={(e) => this.handleSelectChange(e, 'ProductType')}>
                     <option value="ALL">Tất cả</option>
                     {codeProductType.map((type) => (
                       <option key={type.Code} value={type.Code}>
@@ -277,12 +277,12 @@ class CreateBannerModal extends Component {
                     ))}
                   </select>
                 </div>
-                <div className="modal-content-add-pettype f">
+                <div className="modal-content-add-PetType f">
                   <p>Loại thú cưng:</p>
-                  <div className="pettype-checkboxes f">
+                  <div className="PetType-checkboxes f">
                     {codePetType.map((type) => (
-                      <label key={type.Code} className="pettype-checkbox f">
-                        <input type="checkbox" className="custom-checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
+                      <label key={type.Code} className="PetType-checkbox f">
+                        <input type="checkbox" className="custom-checkbox" value={type.Code} checked={PetType.includes(type.Code)} onChange={this.handlePetTypeChange} />
                         <p>{type.CodeValueVI}</p>
                       </label>
                     ))}
@@ -291,14 +291,14 @@ class CreateBannerModal extends Component {
               </div>
               <div className="modal-content-add-product-select">
                 <p>Sản phẩm:</p>
-                <Select className="product-select" options={productOptions} value={productid ? { value: productid, label: productname } : null} onChange={this.handleProductChange} placeholder="Chọn sản phẩm" isClearable />
+                <Select className="product-select" options={productOptions} value={ProductID ? { value: ProductID, label: ProductName } : null} onChange={this.handleProductChange} placeholder="Chọn sản phẩm" isClearable />
               </div>
             </div>
             <div className="modal-content-add-dates">
               <p>Ngày ẩn (tùy chọn):</p>
               <DatePicker
-                selected={hiddenat}
-                onChange={(date) => this.setState({ hiddenat: date })}
+                selected={HiddenAt}
+                onChange={(date) => this.setState({ HiddenAt: date })}
                 dateFormat="dd/MM/yyyy"
                 placeholderText="dd/mm/yyyy"
                 className="date-picker"
@@ -306,7 +306,7 @@ class CreateBannerModal extends Component {
             </div>
             <div className="modal-content-add-status">
               <p>Trạng thái banner:</p>
-              <select value={bannerstatus} onChange={(e) => this.handleSelectChange(e, 'bannerstatus')}>
+              <select value={BannerStatus} onChange={(e) => this.handleSelectChange(e, 'BannerStatus')}>
                 {codeBannerStatus.map((status) => (
                   <option key={status.Code} value={status.Code}>
                     {status.CodeValueVI}

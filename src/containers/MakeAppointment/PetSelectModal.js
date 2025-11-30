@@ -14,7 +14,7 @@ class PetSelectModal extends Component {
     super(props);
     this.state = {
       loadedPetInfo: [],
-      accountid: '',
+      AccountID: '',
       codePetGender: [],
       codePetType: [],
       isEditingPet: null,
@@ -34,7 +34,7 @@ class PetSelectModal extends Component {
   async componentDidUpdate(prevProps) {
     if (this.props.isOpen && !prevProps.isOpen) {
       await this.handleLoadPetInfo();
-      this.setState({ accountid: this.props.accountID || '' }, this.handleLoadPetInfo);
+      this.setState({ AccountID: this.props.AccountID || '' }, this.handleLoadPetInfo);
     }
   }
   handleLoadCode = async (codeTypes) => {
@@ -215,11 +215,11 @@ class PetSelectModal extends Component {
   handleSavePet = async (index) => {
     const petInfo = this.state.loadedPetInfo[index]
     const newPetInfo = {
-      petname: petInfo.PetName,
-      pettype: petInfo.PetType,
-      petgender: petInfo.PetGender,
-      petweight: petInfo.PetWeight,
-      age: petInfo.Age
+      PetName: petInfo.PetName,
+      PetType: petInfo.PetType,
+      PetGender: petInfo.PetGender,
+      PetWeight: petInfo.PetWeight,
+      Age: petInfo.Age
     }
     const isValidatePetInput = await validatePetInput(newPetInfo);
     if (!isValidatePetInput.valid) {
@@ -265,19 +265,19 @@ class PetSelectModal extends Component {
     try {
       const pet = this.state.loadedPetInfo[index];
       const petInfo = {
-        petname: pet.PetName.trim(),
-        pettype: pet.PetType,
-        petgender: pet.PetGender,
-        age: parseInt(pet.Age),
-        petweight: parseFloat(pet.PetWeight),
+        PetName: pet.PetName.trim(),
+        PetType: pet.PetType,
+        PetGender: pet.PetGender,
+        Age: parseInt(pet.Age),
+        PetWeight: parseFloat(pet.PetWeight),
       };
       let response;
       if (this.state.isAddingPet) {
-        response = await handleSavePetInfoApi(this.state.accountid, petInfo);
+        response = await handleSavePetInfoApi(this.state.AccountID, petInfo);
       } else {
         response = await handleChangePetInfoApi(pet.PetID, petInfo);
       }
-
+      console.log(response)
       if (response && response.errCode === 0) {
         toast.success(this.state.isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
         await this.handleLoadPetInfo();
@@ -294,7 +294,7 @@ class PetSelectModal extends Component {
       toast.error(`Lỗi khi ${this.state.isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
     }
   };
-  handleDeletePet = async (petid) => {
+  handleDeletePet = async (PetID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: true } });
     const confirmDelete = () =>
       new Promise((resolve) => {
@@ -331,7 +331,7 @@ class PetSelectModal extends Component {
     const isConfirmed = await confirmDelete();
     if (isConfirmed) {
       try {
-        const response = await handleRemovePetApi(petid);
+        const response = await handleRemovePetApi(PetID);
         if (response && response.errCode === 0) {
           toast.success('Xóa thú cưng thành công!');
           await this.handleLoadPetInfo();
@@ -346,9 +346,9 @@ class PetSelectModal extends Component {
     }
   };
   handleLoadPetInfo = async () => {
-    const { accountid } = this.state;
+    const { AccountID } = this.state;
     try {
-      const response = await handleGetAccountPetInfoApi(accountid);
+      const response = await handleGetAccountPetInfoApi(AccountID);
       if (response && response.errCode === 0) {
         this.setState({
           loadedPetInfo: response.data || [],
@@ -359,8 +359,8 @@ class PetSelectModal extends Component {
       this.setState({ loadedPetInfo: [] });
     }
   };
-  handleSelectPet = (petID) => {
-    this.props.handleSelectPetFromModal(petID);
+  handleSelectPet = (PetID) => {
+    this.props.handleSelectPetFromModal(PetID);
     this.resetState();
     this.props.toggleFromModal();
   };

@@ -395,11 +395,11 @@ class Owner extends Component {
   getPieData = () => {
     const data = this.state.loadedTopProducts;
     return {
-      labels: data.map((item) => item.productName),
+      labels: data.map((item) => item.ProductName),
       datasets: [
         {
           label: 'Số lượng bán',
-          data: data.map((item) => item.totalSold),
+          data: data.map((item) => item.TotalSold),
           backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'],
         },
       ],
@@ -591,7 +591,7 @@ class Owner extends Component {
     }
   };
   //form action
-  handleConfirmPayment = async (invoiceid) => {
+  handleConfirmPayment = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmPayment: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -631,7 +631,7 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'PaymentStatus', 'PAID', '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'PaymentStatus', 'PAID', '');
       if (response && response.errCode === 0) {
         toast.success('Xác nhận thanh toán thành công!');
         await this.handleLoadInvoiceInfo();
@@ -644,7 +644,7 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleConfirmDelivery = async (invoiceid) => {
+  handleConfirmDelivery = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, confirmDelivery: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -684,7 +684,7 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'DELI', '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'DELI', '');
       if (response && response.errCode === 0) {
         toast.success('Xác nhận giao hàng thành công!');
         await this.handleLoadInvoiceInfo();
@@ -697,7 +697,7 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleAcceptCancelInvoice = async (invoiceid) => {
+  handleAcceptCancelInvoice = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, acceptCancelInvoice: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -737,7 +737,7 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'CANCELED', '');
       if (response && response.errCode === 0) {
         toast.success('Hủy hóa đơn thành công!');
         await this.handleLoadInvoiceInfo();
@@ -750,7 +750,7 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleDenyCancelInvoice = async (invoiceid) => {
+  handleDenyCancelInvoice = async (InvoiceID) => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, denyCancelInvoice: true } });
     const confirmAction = () =>
       new Promise((resolve) => {
@@ -791,7 +791,7 @@ class Owner extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'PEND', '');
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'PEND', '');
       if (response && response.errCode === 0) {
         toast.success('Tiếp tục hóa đơn thành công!');
         await this.handleLoadInvoiceInfo();
@@ -842,27 +842,27 @@ class Owner extends Component {
     });
   };
   //modal input
-  handleSelectedProduct = (productid) => {
+  handleSelectedProduct = (ProductID) => {
     this.setState({
-      selectedProduct: productid,
+      selectedProduct: ProductID,
       isShowEditProductModal: true,
     });
   };
-  handleSelectedInvoice = (invoiceid) => {
+  handleSelectedInvoice = (InvoiceID) => {
     this.setState({
-      selectedInvoice: invoiceid,
+      selectedInvoice: InvoiceID,
       isShowViewInvoiceModal: true,
     });
   };
-  handleSelectedCancelInvoice = (invoiceid) => {
+  handleSelectedCancelInvoice = (InvoiceID) => {
     this.setState({
-      selectedCancelInvoice: invoiceid,
+      selectedCancelInvoice: InvoiceID,
       isShowCancelInvoiceModal: true,
     });
   };
-  handleSelectedBanner = (bannerid) => {
+  handleSelectedBanner = (BannerID) => {
     this.setState({
-      selectedBanner: bannerid,
+      selectedBanner: BannerID,
       isShowEditBannerModal: true,
     });
   };
@@ -947,10 +947,10 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
-  handleCancelInvoiceFromModal = async (invoiceid, cancelreason) => {
+  handleCancelInvoiceFromModal = async (InvoiceID, CancelReason) => {
     this.setState({ isLoading: true });
     try {
-      const response = await handleChangeInvoiceStatusApi(invoiceid, 'ShippingStatus', 'CANCELED', cancelreason);
+      const response = await handleChangeInvoiceStatusApi(InvoiceID, 'ShippingStatus', 'CANCELED', CancelReason);
       if (response && response.errCode === 0) {
         toast.success('Hủy hóa đơn thành công!');
         await this.handleLoadInvoiceInfo();
@@ -1015,16 +1015,16 @@ class Owner extends Component {
   handleSaveCoupon = async (index) => {
     const couponInfo = this.state.loadedCouponInfo[index];
     const newCouponInfo = {
-      couponid: couponInfo.CouponID,
-      couponcode: couponInfo.CouponCode.trim(),
-      coupondescription: couponInfo.CouponDescription ? couponInfo.CouponDescription.trim() : null,
-      minordervalue: couponInfo.MinOrderValue ? parseFloat(couponInfo.MinOrderValue).toFixed(2) : null,
-      discountvalue: parseFloat(couponInfo.DiscountValue).toFixed(2),
-      maxdiscount: couponInfo.MaxDiscount ? parseFloat(couponInfo.MaxDiscount).toFixed(2) : null,
-      discounttype: couponInfo.DiscountType,
-      startdate: couponInfo.StartDate ? new Date(couponInfo.StartDate).toISOString().split('T')[0] : null,
-      enddate: couponInfo.EndDate ? new Date(couponInfo.EndDate).toISOString().split('T')[0] : null,
-      couponstatus: couponInfo.CouponStatus,
+      CouponID: couponInfo.CouponID,
+      CouponCode: couponInfo.CouponCode.trim(),
+      CouponDescription: couponInfo.CouponDescription ? couponInfo.CouponDescription.trim() : null,
+      MinOrderValue: couponInfo.MinOrderValue ? parseFloat(couponInfo.MinOrderValue).toFixed(2) : null,
+      DiscountValue: parseFloat(couponInfo.DiscountValue).toFixed(2),
+      MaxDiscount: couponInfo.MaxDiscount ? parseFloat(couponInfo.MaxDiscount).toFixed(2) : null,
+      DiscountType: couponInfo.DiscountType,
+      StartDate: couponInfo.StartDate ? new Date(couponInfo.StartDate).toISOString().split('T')[0] : null,
+      EndDate: couponInfo.EndDate ? new Date(couponInfo.EndDate).toISOString().split('T')[0] : null,
+      CouponStatus: couponInfo.CouponStatus,
     };
 
     const isValidateInput = await validateCouponInput(newCouponInfo);
@@ -1222,7 +1222,7 @@ class Owner extends Component {
                         {codeProductType && codeProductType.length > 0 && (
                           <optgroup label="Loại sản phẩm">
                             {codeProductType.map((item) => (
-                              <option key={`producttype-${item.Code}`} value={`producttype-${item.Code}`}>
+                              <option key={`ProductType-${item.Code}`} value={`ProductType-${item.Code}`}>
                                 {item.CodeValueVI}
                               </option>
                             ))}
@@ -1231,7 +1231,7 @@ class Owner extends Component {
                         {codePetType && codePetType.length > 0 && (
                           <optgroup label="Sản phẩm cho thú cưng">
                             {codePetType.map((item) => (
-                              <option key={`pettype-${item.Code}`} value={`pettype-${item.Code}`}>
+                              <option key={`PetType-${item.Code}`} value={`PetType-${item.Code}`}>
                                 {item.CodeValueVI}
                               </option>
                             ))}
@@ -1339,7 +1339,7 @@ class Owner extends Component {
                       {codePaymentStatus && codePaymentStatus.length > 0 && (
                         <optgroup label="Tình trạng thanh toán">
                           {codePaymentStatus.map((item) => (
-                            <option key={`paymentstatus-${item.Code}`} value={`paymentstatus-${item.Code}`}>
+                            <option key={`PaymentStatus-${item.Code}`} value={`PaymentStatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
                           ))}
@@ -1348,17 +1348,17 @@ class Owner extends Component {
                       {codeShippingStatus && codeShippingStatus.length > 0 && (
                         <optgroup label="Tình trạng giao hàng">
                           {codeShippingStatus.map((item) => (
-                            <option key={`shippingstatus-${item.Code}`} value={`shippingstatus-${item.Code}`}>
+                            <option key={`ShippingStatus-${item.Code}`} value={`ShippingStatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
                           ))}
                         </optgroup>
                       )}
                       <optgroup label="Tổng thanh toán">
-                        <option value="totalpayment-0">500.000 - 1.000.000 VNĐ</option>
-                        <option value="totalpayment-1">1.000.000 - 1.500.000 VNĐ</option>
-                        <option value="totalpayment-2">1.500.000 - 2.000.000 VNĐ</option>
-                        <option value="totalpayment-3">Trên 2.000.000 VNĐ</option>
+                        <option value="TotalPayment-0">500.000 - 1.000.000 VNĐ</option>
+                        <option value="TotalPayment-1">1.000.000 - 1.500.000 VNĐ</option>
+                        <option value="TotalPayment-2">1.500.000 - 2.000.000 VNĐ</option>
+                        <option value="TotalPayment-3">Trên 2.000.000 VNĐ</option>
                       </optgroup>
                     </select>
                   </div>
@@ -1518,7 +1518,7 @@ class Owner extends Component {
                       {codeBannerStatus && codeBannerStatus.length > 0 && (
                         <optgroup label="Trạng thái">
                           {codeBannerStatus.map((item) => (
-                            <option key={`bannerstatus-${item.Code}`} value={`bannerstatus-${item.Code}`}>
+                            <option key={`BannerStatus-${item.Code}`} value={`BannerStatus-${item.Code}`}>
                               {item.CodeValueVI}
                             </option>
                           ))}
@@ -1594,19 +1594,19 @@ class Owner extends Component {
                           <td>
                             {item.CreatedAt
                               ? new Date(item.CreatedAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'N/A'}
                           </td>
                           <td>
                             {item.HiddenAt
                               ? new Date(item.HiddenAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
                               : 'Vô thời hạn'}
                           </td>
                           <td onClick={(e) => e.stopPropagation()}>
@@ -1668,7 +1668,7 @@ class Owner extends Component {
                         {codeCouponStatus && codeCouponStatus.length > 0 && (
                           <optgroup label="Trạng thái">
                             {codeCouponStatus.map((item) => (
-                              <option key={`couponstatus-${item.Code}`} value={`couponstatus-${item.Code}`}>
+                              <option key={`CouponStatus-${item.Code}`} value={`CouponStatus-${item.Code}`}>
                                 {item.CodeValueVI}
                               </option>
                             ))}
@@ -1677,17 +1677,17 @@ class Owner extends Component {
                         {codeDiscountType && codeDiscountType.length > 0 && (
                           <optgroup label="Loại giảm giá">
                             {codeDiscountType.map((item) => (
-                              <option key={`discounttype-${item.Code}`} value={`discounttype-${item.Code}`}>
+                              <option key={`DiscountType-${item.Code}`} value={`DiscountType-${item.Code}`}>
                                 {item.CodeValueVI}
                               </option>
                             ))}
                           </optgroup>
                         )}
                         <optgroup label="Giảm giá tối đa">
-                          <option value="maxdiscountfixed-0">0 - 20.000 VNĐ</option>
-                          <option value="maxdiscountfixed-1">20.000 - 50.000 VNĐ</option>
-                          <option value="maxdiscountfixed-2">50.000 - 100.000 VNĐ</option>
-                          <option value="maxdiscountfixed-3">Trên 100.000 VNĐ</option>
+                          <option value="MaxDiscountFixed-0">0 - 20.000 VNĐ</option>
+                          <option value="MaxDiscountFixed-1">20.000 - 50.000 VNĐ</option>
+                          <option value="MaxDiscountFixed-2">50.000 - 100.000 VNĐ</option>
+                          <option value="MaxDiscountFixed-3">Trên 100.000 VNĐ</option>
                         </optgroup>
                       </select>
                     </div>

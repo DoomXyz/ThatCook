@@ -47,12 +47,12 @@ class ShowService extends Component {
     }
   };
 
-  handleBookAppointment = (serviceId) => {
-    if (!serviceId) {
+  handleBookAppointment = (ServiceID) => {
+    if (!ServiceID) {
       toast.error('Dịch vụ không hợp lệ!');
       return;
     }
-    this.props.savePreselectInfo('Service', serviceId);
+    this.props.savePreselectInfo('Service', ServiceID);
     this.props.navigate('/makeappointment');
   };
 

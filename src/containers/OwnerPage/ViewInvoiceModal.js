@@ -19,7 +19,7 @@ class ViewInvoiceModal extends Component {
       codePaymentType: [],
       codeShippingMethod: [],
       codeShippingStatus: [],
-      email: '',
+      Email: '',
     };
   }
   async componentDidMount() {
@@ -54,16 +54,16 @@ class ViewInvoiceModal extends Component {
   };
   resetState = () => {
     this.setState({
-      email: '',
+      Email: '',
     });
   };
   toggle = () => {
     this.resetState();
     this.props.toggleFromModal();
   };
-  handleLoadInvoiceDetails = async (invoiceid) => {
+  handleLoadInvoiceDetails = async (InvoiceID) => {
     try {
-      const response = await handleGetInvoiceDetailInfoApi(invoiceid);
+      const response = await handleGetInvoiceDetailInfoApi(InvoiceID);
       if (response && response.errCode === 0) {
         this.setState({ loadedInvoiceDetails: response.data });
       } else {
@@ -74,8 +74,8 @@ class ViewInvoiceModal extends Component {
       toast.error('Lỗi khi tải thông tin hóa đơn: ' + e.message);
     }
   };
-  getShippingFee = (shippingMethod) => {
-    const method = this.state.codeShippingMethod.find((item) => item.Code === shippingMethod);
+  getShippingFee = (ShippingMethod) => {
+    const method = this.state.codeShippingMethod.find((item) => item.Code === ShippingMethod);
     return method ? parseFloat(method.ExtraValue) || 0 : 0;
   };
   handleGeneratePDF = (data) => {
@@ -85,34 +85,34 @@ class ViewInvoiceModal extends Component {
     }
     generateInvoicePDF(data);
   };
-  handleSendEmail = async (billid) => {
-    const { email } = this.state;
-    if (!email) {
+  handleSendEmail = async (BillID) => {
+    const { Email } = this.state;
+    if (!Email) {
       toast.info('Hãy nhập Email để gửi hóa đơn!');
       return;
     }
     try {
       this.setState({ isLoading: true });
       const sendInfo = {
-        billid,
-        email,
+        BillID,
+        Email,
       };
       const response = await handleSendInvoiceEmailApi(sendInfo);
       if (response && response.errCode === 0) {
-        toast.success('Gửi email thành công!');
+        toast.success('Gửi Email thành công!');
         this.setState({ actionPage: 0 });
       } else {
-        toast.error(response?.errMessage || 'Gửi email thất bại!');
+        toast.error(response?.errMessage || 'Gửi Email thất bại!');
       }
     } catch (e) {
-      console.log('Lỗi khi gửi email:', e);
-      toast.error('Lỗi khi gửi email!');
+      console.log('Lỗi khi gửi Email:', e);
+      toast.error('Lỗi khi gửi Email!');
     }
     this.setState({ isLoading: false });
   };
 
   render() {
-    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus, email } = this.state;
+    const { loadedInvoiceDetails, codePaymentType, codeShippingMethod, codeShippingStatus, Email } = this.state;
     const { selectedInvoiceID } = this.props;
 
     return (
@@ -137,13 +137,13 @@ class ViewInvoiceModal extends Component {
                         Thời gian:{' '}
                         {loadedInvoiceDetails.CreatedAt
                           ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })
                           : 'N/A'}
                       </p>
                     </div>
@@ -267,7 +267,7 @@ class ViewInvoiceModal extends Component {
           </div>
           <div className="view-invoice-modal-footer">
             <div className="send-mail sb">
-              <input type="text" value={email} placeholder="Hãy nhập email để gửi hóa đơn" onChange={(e) => this.setState({ email: e.target.value })} />
+              <input type="text" value={Email} placeholder="Hãy nhập Email để gửi hóa đơn" onChange={(e) => this.setState({ Email: e.target.value })} />
               <Button className="mail" variant="primary" onClick={() => this.handleSendEmail(loadedInvoiceDetails?.InvoiceID)}>
                 Gửi qua mail
               </Button>

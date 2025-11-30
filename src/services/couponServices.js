@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const handleCheckCouponApi = async (couponcode, price) => {
-    return axios.get(`/api/check-coupon?couponcode=${couponcode}&price=${price}`);
+const handleCheckCouponApi = async (CouponCode, Price) => {
+    return axios.get(`/api/check-coupon?CouponCode=${CouponCode}&Price=${Price}`);
 };
 
-const handleGetCouponApi = async (couponcode) => {
-    return axios.get(`/api/get-couponinfo?couponcode=${couponcode}`);
+const handleGetCouponApi = async (CouponCode) => {
+    return axios.get(`/api/get-couponinfo?CouponCode=${CouponCode}`);
 };
 
 const handleLoadCouponInfoApi = (page, limit, search, filter, sort, date) => {

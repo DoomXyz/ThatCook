@@ -18,11 +18,11 @@ class CreateProductModal extends Component {
       codeProductType: [],
       codeDetailStatus: [],
       codePetType: [],
-      productname: '',
-      producttype: '',
-      pettype: [],
-      productprice: '',
-      productdescription: '',
+      ProductName: '',
+      ProductType: '',
+      PetType: [],
+      ProductPrice: '',
+      ProductDescription: '',
       allImages: [],
       productDetailInfo: [],
       isUploading: false,
@@ -60,7 +60,7 @@ class CreateProductModal extends Component {
         }
         newState[`code${type}`] = response.data;
         if (hasDefault.includes(type)) {
-          newState[type.toLowerCase()] = response.data.length > 0 ? response.data[0].Code : '';
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
         }
       });
       this.setState(newState);
@@ -73,11 +73,11 @@ class CreateProductModal extends Component {
   resetState = () => {
     const { codeProductType } = this.state;
     this.setState({
-      productname: '',
-      producttype: codeProductType.length > 0 ? codeProductType[0].Code : '',
-      pettype: [],
-      productprice: '',
-      productdescription: '',
+      ProductName: '',
+      ProductType: codeProductType.length > 0 ? codeProductType[0].Code : '',
+      PetType: [],
+      ProductPrice: '',
+      ProductDescription: '',
       allImages: [],
       productDetailInfo: [],
       isUploading: false,
@@ -96,8 +96,8 @@ class CreateProductModal extends Component {
     const petType = e.target.value;
     const isChecked = e.target.checked;
     this.setState((prevState) => {
-      const updatedPetTypes = isChecked ? [...prevState.pettype, petType] : prevState.pettype.filter((type) => type !== petType);
-      return { pettype: updatedPetTypes };
+      const updatedPetTypes = isChecked ? [...prevState.PetType, petType] : prevState.PetType.filter((type) => type !== petType);
+      return { PetType: updatedPetTypes };
     });
   };
   handleAddImage = (e) => {
@@ -123,20 +123,20 @@ class CreateProductModal extends Component {
       this.fileInputRef.current.value = null;
     }
   };
-  handleRemoveImage = (imageID) => {
+  handleRemoveImage = (ImageID) => {
     this.setState((prevState) => ({
-      allImages: prevState.allImages.filter((img) => img.ImageID !== imageID),
+      allImages: prevState.allImages.filter((img) => img.ImageID !== ImageID),
     }));
   };
   handleSaveProduct = async () => {
     this.setState({ disabledButtons: { ...this.state.disabledButtons, saveProduct: true } });
-    const { productname, producttype, productprice, allImages, productdescription, pettype, productDetailInfo } = this.state;
+    const { ProductName, ProductType, ProductPrice, allImages, ProductDescription, PetType, productDetailInfo } = this.state;
     const productInfo = {
-      ProductName: productname,
-      ProductType: producttype,
-      ProductPrice: productprice,
-      ProductDescription: productdescription,
-      PetType: pettype,
+      ProductName,
+      ProductType,
+      ProductPrice,
+      ProductDescription,
+      PetType,
       Image: allImages,
     };
     const isValidateProduct = await validateProductInput(productInfo);
@@ -190,7 +190,7 @@ class CreateProductModal extends Component {
     }
     this.setState({ isUploading: true });
     try {
-      const { allImages, productname, producttype, pettype, productprice, productdescription, productDetailInfo } = this.state;
+      const { allImages, ProductName, ProductType, PetType, ProductPrice, ProductDescription, productDetailInfo } = this.state;
       const uploadedImages = [];
       if (allImages.length > 0) {
         if (allImages.length > 5) {
@@ -212,12 +212,12 @@ class CreateProductModal extends Component {
         return;
       }
       const productInfo = {
-        ProductName: productname,
-        ProductPrice: parseFloat(productprice).toFixed(2),
+        ProductName,
+        ProductPrice: parseFloat(ProductPrice).toFixed(2),
         ProductImage: uploadedImages[0].Image,
-        ProductType: producttype,
-        ProductDescription: productdescription,
-        PetType: pettype,
+        ProductType,
+        ProductDescription,
+        PetType,
         ProductDetail: productDetailInfo.map((item) => ({
           ProductDetailID: item.ProductDetailID,
           DetailName: item.DetailName,
@@ -398,7 +398,7 @@ class CreateProductModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { productname, producttype, productprice, productdescription, allImages, codeProductType, codePetType, pettype, productDetailInfo, isEditingDetail, codeDetailStatus, isAddingDetail } = this.state;
+    const { ProductName, ProductType, ProductPrice, ProductDescription, allImages, codeProductType, codePetType, PetType, productDetailInfo, isEditingDetail, codeDetailStatus, isAddingDetail } = this.state;
     return (
       <Modal show={isOpen} onHide={this.toggle} centered backdrop="static" className="create-product-modal">
         <Modal.Header closeButton>
@@ -429,12 +429,12 @@ class CreateProductModal extends Component {
             </div>
             <div className="modal-content-add-name">
               <p>Tên sản phẩm:</p>
-              <input type="text" placeholder="Nhập tên sản phẩm" value={productname} onChange={(e) => this.handleInputChange(e, 'productname')} />
+              <input type="text" placeholder="Nhập tên sản phẩm" value={ProductName} onChange={(e) => this.handleInputChange(e, 'ProductName')} />
             </div>
             <div className="f">
               <div className="modal-content-add-category">
                 <p>Loại sản phẩm:</p>
-                <select value={producttype} onChange={(e) => this.handleInputChange(e, 'producttype')}>
+                <select value={ProductType} onChange={(e) => this.handleInputChange(e, 'ProductType')}>
                   {codeProductType.map((type) => (
                     <option key={type.Code} value={type.Code}>
                       {type.CodeValueVI}
@@ -446,7 +446,7 @@ class CreateProductModal extends Component {
               <div className="modal-content-add-main-price">
                 <p>Giá cơ bản:</p>
                 <div className="f">
-                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(productprice)) ? '' : parseFloat(productprice)} onChange={(e) => this.handleInputChange(e, 'productprice')} />
+                  <input type="number" placeholder="Nhập giá" value={isNaN(parseFloat(ProductPrice)) ? '' : parseFloat(ProductPrice)} onChange={(e) => this.handleInputChange(e, 'ProductPrice')} />
                   <p>vnđ</p>
                 </div>
               </div>
@@ -455,7 +455,7 @@ class CreateProductModal extends Component {
                 <div className="pettype-checkboxes f">
                   {codePetType.map((type) => (
                     <label key={type.Code} className="pettype-checkbox f">
-                      <input type="checkbox" className="custom-checkbox" value={type.Code} checked={pettype.includes(type.Code)} onChange={this.handlePetTypeChange} />
+                      <input type="checkbox" className="custom-checkbox" value={type.Code} checked={PetType.includes(type.Code)} onChange={this.handlePetTypeChange} />
                       <p>{type.CodeValueVI}</p>
                     </label>
                   ))}
@@ -535,7 +535,7 @@ class CreateProductModal extends Component {
             </div>
             <div className="modal-content-add-info">
               <p>Mô tả sản phẩm:</p>
-              <textarea placeholder="Nhập mô tả sản phẩm" value={productdescription} onChange={(e) => this.handleInputChange(e, 'productdescription')} />
+              <textarea placeholder="Nhập mô tả sản phẩm" value={ProductDescription} onChange={(e) => this.handleInputChange(e, 'ProductDescription')} />
             </div>
           </div>
         </Modal.Body>

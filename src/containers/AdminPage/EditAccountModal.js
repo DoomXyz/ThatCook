@@ -20,16 +20,16 @@ class EditAccountModal extends Component {
     this.state = {
       loadedAccountInfo: null,
       selectedAccountID: null,
-      accountname: '',
-      email: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: '',
-      accounttype: '',
-      bio: '',
-      specialization: '',
-      workingstatus: '',
+      AccountName: '',
+      Email: '',
+      UserName: '',
+      Phone: '',
+      Address: '',
+      Gender: '',
+      AccountType: '',
+      Bio: '',
+      Specialization: '',
+      WorkingStatus: '',
       codeGender: [],
       codeAccountType: [],
       codeWorkingStatus: [],
@@ -91,16 +91,16 @@ class EditAccountModal extends Component {
   resetState = async () => {
     const { codeGender, codeAccountType, codeWorkingStatus } = this.state
     this.setState({
-      accountname: '',
-      email: '',
-      username: '',
-      phone: '',
-      address: '',
-      gender: codeGender.length > 0 ? codeGender[0].Code : '',
-      accounttype: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
-      bio: '',
-      specialization: '',
-      workingstatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
+      AccountName: '',
+      Email: '',
+      UserName: '',
+      Phone: '',
+      Address: '',
+      Gender: codeGender.length > 0 ? codeGender[0].Code : '',
+      AccountType: codeAccountType.length > 0 ? codeAccountType[0].Code : '',
+      Bio: '',
+      Specialization: '',
+      WorkingStatus: codeWorkingStatus.length > 0 ? codeWorkingStatus[0].Code : '',
       selectedServices: [],
     });
   };
@@ -115,28 +115,29 @@ class EditAccountModal extends Component {
       ...copyState,
     });
   };
-  loadAccountInfo = async (accountid) => {
+  loadAccountInfo = async (AccountID) => {
     try {
       const [accountResponse, vetResponse] = await Promise.all([
-        handleGetAccountInfoApi(accountid),
-        handleGetVeterinarianInfoApi(accountid)
+        handleGetAccountInfoApi(AccountID),
+        handleGetVeterinarianInfoApi(AccountID)
       ]);
       if (accountResponse && accountResponse.errCode === 0) {
         const accountInfo = accountResponse.data;
+        const { AccountID, AccountType, AccountName, Email, UserName, Phone, Address, Gender } = accountInfo
         const vetInfo = vetResponse && vetResponse.errCode === 0 ? vetResponse.data : null;
         this.setState({
           loadedAccountInfo: accountInfo,
-          selectedAccountID: accountInfo.AccountID,
-          accounttype: accountInfo.AccountType,
-          accountname: accountInfo.AccountName,
-          email: accountInfo.Email,
-          username: accountInfo.UserName,
-          phone: accountInfo.Phone,
-          address: accountInfo.Address,
-          gender: accountInfo.Gender,
-          bio: vetInfo ? vetInfo.Bio || '' : '',
-          specialization: vetInfo ? vetInfo.Specialization || '' : '',
-          workingstatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
+          selectedAccountID: AccountID,
+          AccountType,
+          AccountName,
+          Email,
+          UserName,
+          Phone,
+          Address,
+          Gender,
+          Bio: vetInfo ? vetInfo.Bio || '' : '',
+          Specialization: vetInfo ? vetInfo.Specialization || '' : '',
+          WorkingStatus: vetInfo ? vetInfo.WorkingStatus || '' : '',
           selectedServices: vetResponse && vetResponse.errCode === 0 && vetResponse.data.services ? vetResponse.data.services.map((service) => service.ServiceID) : [],
         });
       } else {
@@ -187,22 +188,22 @@ class EditAccountModal extends Component {
       });
     const isConfirmed = await confirmAction();
     if (isConfirmed) {
-      const { selectedAccountID, accountname, email, password, username, phone, address, gender, accounttype, confirmPassword, bio, specialization, workingstatus, selectedServices } = this.state;
-      if (password !== confirmPassword) {
+      const { selectedAccountID, AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType, confirmPassword, Bio, Specialization, WorkingStatus, selectedServices } = this.state;
+      if (Password !== confirmPassword) {
         toast.error('Mật khẩu không trùng khớp!');
         this.setState({ isLoading: false });
         return;
       }
       const userInfo = {
-        accountid: selectedAccountID,
-        accountname,
-        email,
-        password,
-        username,
-        phone,
-        address,
-        gender,
-        accounttype,
+        AccountID: selectedAccountID,
+        AccountName,
+        Email,
+        Password,
+        UserName,
+        Phone,
+        Address,
+        Gender,
+        AccountType,
       };
       const isValidateAccountInput = await validateAccountInput(userInfo, "EDIT");
       if (!isValidateAccountInput.valid) {
@@ -210,11 +211,11 @@ class EditAccountModal extends Component {
         this.setState({ isLoading: false });
         return;
       }
-      if (accounttype === 'V') {
+      if (AccountType === 'V') {
         userInfo.veterinarianInfo = {
-          bio: bio || null,
-          specialization: specialization || null,
-          workingstatus: workingstatus || null,
+          Bio: Bio || null,
+          Specialization: Specialization || null,
+          WorkingStatus: WorkingStatus || null,
           selectedServicesList: selectedServices,
         };
         const isValidateVeterinarianInput = await validateVeterinarianInput(userInfo.veterinarianInfo);
@@ -229,7 +230,7 @@ class EditAccountModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { loadedAccountInfo, email, accounttype, username, phone, accountname, gender, address, bio, specialization, workingstatus,
+    const { loadedAccountInfo, Email, AccountType, UserName, Phone, AccountName, Gender, Address, Bio, Specialization, WorkingStatus,
       codeGender, codeAccountType, codeWorkingStatus, loadedServiceInfo, selectedServices, disabledButtons } = this.state;
     if (!loadedAccountInfo) {
       return (
@@ -247,11 +248,11 @@ class EditAccountModal extends Component {
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={mailOutline}></IonIcon>
-              <input type="email" placeholder="" value={email} disabled />
+              <input type="email" placeholder="" value={Email} disabled />
               <label>Email</label>
             </div>
             <div className="selectbox">
-              <select value={accounttype} onChange={(event) => this.handleOnChangeInput(event, 'accounttype')}>
+              <select value={AccountType} onChange={(event) => this.handleOnChangeInput(event, 'AccountType')}>
                 {codeAccountType.length > 0 ? (
                   codeAccountType.map((item) => (
                     <option key={item.Code} value={item.Code}>
@@ -265,17 +266,17 @@ class EditAccountModal extends Component {
               <IonIcon icon={lockClosedOutline}></IonIcon>
             </div>
           </div>
-          {accounttype === 'V' && (
+          {AccountType === 'V' && (
             <div className="R2 veterinarian-info">
               <div className="f">
                 <div className="inputbox-2">
                   <IonIcon icon={briefcaseOutline}></IonIcon>
-                  <input type="text" placeholder="" value={specialization} onChange={(event) => this.handleOnChangeInput(event, 'specialization')} />
+                  <input type="text" placeholder="" value={Specialization} onChange={(event) => this.handleOnChangeInput(event, 'Specialization')} />
                   <label>Chuyên khoa</label>
                 </div>
                 <div className="selectbox">
                   <label>Trạng thái làm việc</label>
-                  <select value={workingstatus} onChange={(event) => this.handleOnChangeInput(event, 'workingstatus')}>
+                  <select value={WorkingStatus} onChange={(event) => this.handleOnChangeInput(event, 'WorkingStatus')}>
                     {codeWorkingStatus.length > 0 ? (
                       codeWorkingStatus.map((item) => (
                         <option key={item.Code} value={item.Code}>
@@ -291,7 +292,7 @@ class EditAccountModal extends Component {
               </div>
               <div className="inputbox-1">
                 <IonIcon icon={informationCircleOutline}></IonIcon>
-                <textarea placeholder="" value={bio} onChange={(event) => this.handleOnChangeInput(event, 'bio')} className={bio ? 'filled' : ''} />
+                <textarea placeholder="" value={Bio} onChange={(event) => this.handleOnChangeInput(event, 'Bio')} className={Bio ? 'filled' : ''} />
                 <label>Tiểu sử</label>
               </div>
               <div className="selectbox-service">
@@ -320,24 +321,24 @@ class EditAccountModal extends Component {
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={person}></IonIcon>
-              <input type="text" placeholder="" value={username} onChange={(event) => this.handleOnChangeInput(event, 'username')} />
+              <input type="text" placeholder="" value={UserName} onChange={(event) => this.handleOnChangeInput(event, 'UserName')} />
               <label>Họ Tên</label>
             </div>
             <div className="inputbox">
               <IonIcon icon={call}></IonIcon>
-              <input type="tel" placeholder="" value={phone} onChange={(event) => this.handleOnChangeInput(event, 'phone')} />
+              <input type="tel" placeholder="" value={Phone} onChange={(event) => this.handleOnChangeInput(event, 'Phone')} />
               <label>Số điện thoại</label>
             </div>
           </div>
           <div className="R1">
             <div className="inputbox">
               <IonIcon icon={keyOutline}></IonIcon>
-              <input type="text" placeholder="" value={accountname} onChange={(event) => this.handleOnChangeInput(event, 'accountname')} />
+              <input type="text" placeholder="" value={AccountName} onChange={(event) => this.handleOnChangeInput(event, 'AccountName')} />
               <label>Tên tài khoản</label>
             </div>
             <div className="selectbox">
               <label>Giới tính</label>
-              <select value={gender} onChange={(event) => this.handleOnChangeInput(event, 'gender')}>
+              <select value={Gender} onChange={(event) => this.handleOnChangeInput(event, 'Gender')}>
                 {codeGender.length > 0 ? (
                   codeGender.map((item) => (
                     <option key={item.Code} value={item.Code}>
@@ -354,7 +355,7 @@ class EditAccountModal extends Component {
           <div className="R2">
             <div className="inputbox-address">
               <IonIcon icon={location}></IonIcon>
-              <input type="text" placeholder="" value={address} onChange={(event) => this.handleOnChangeInput(event, 'address')} />
+              <input type="text" placeholder="" value={Address} onChange={(event) => this.handleOnChangeInput(event, 'Address')} />
               <label>Địa chỉ</label>
             </div>
           </div>
