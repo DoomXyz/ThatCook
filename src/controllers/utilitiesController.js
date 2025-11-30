@@ -11,7 +11,7 @@ const handleError = (res, e) => {
 
 let handleGetAllCodes = async (req, res) => {
   try {
-    let response = await utilitiesService.getAllCodes(req.query.type);
+    let response = await utilitiesService.getAllCodes(req.query.Type);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);

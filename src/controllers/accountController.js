@@ -9,17 +9,15 @@ const handleError = (res, e) => {
     data: null,
   });
 };
-
 let handleVerifyToken = async (req, res) => {
   try {
-    let token = req.cookies.token;
-    let response = await accountService.verifyToken(token);
+    let Token = req.cookies.Token;
+    let response = await accountService.verifyToken(Token);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleRegister = async (req, res) => {
   try {
     let response = await accountService.userRegister(req.body);
@@ -28,16 +26,16 @@ let handleRegister = async (req, res) => {
     return handleError(res, e);
   }
 };
-
 let handleLogin = async (req, res) => {
   try {
     let response = await accountService.userLogin(req.body);
     if (response.errCode === 0) {
-      let jwtToken = createJWT(response.data, req.body.rememberLogin);
-      response.token = jwtToken;
-      res.cookie('token', jwtToken, {
+      const isRememberLogin = req.body.rememberLogin
+      let jwtToken = createJWT(response.data, isRememberLogin);
+      response.Token = jwtToken;
+      res.cookie('Token', jwtToken, {
         httpOnly: true,
-        maxAge: req.body.rememberLogin ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
+        maxAge: isRememberLogin ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
       });
     }
     return res.status(200).json(response);
@@ -45,37 +43,34 @@ let handleLogin = async (req, res) => {
     return handleError(res, e);
   }
 };
-
 let handleLogout = async (req, res) => {
   try {
-    let token = req.cookies.token;
-    if (!token) {
-      res.clearCookie('token');
+    let Token = req.cookies.Token;
+    if (!Token) {
+      res.clearCookie('Token');
       return res.status(200).json({
         errCode: -1,
         errMessage: 'Không có token để đăng xuất!',
         data: null,
       });
     }
-    let data = verifyJWT(token);
-    let response = await accountService.userLogout(token, data);
-    res.clearCookie('token');
+    let data = verifyJWT(Token);
+    let response = await accountService.userLogout(Token, data);
+    res.clearCookie('Token');
     return res.status(200).json(response);
   } catch (e) {
-    res.clearCookie('token');
+    res.clearCookie('Token');
     return handleError(res, e);
   }
 };
-
 let handleGetAccountInfo = async (req, res) => {
   try {
-    let response = await accountService.getAccountInfo(req.query.accountid);
+    let response = await accountService.getAccountInfo(req.query.AccountID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleLoadAccountInfo = async (req, res) => {
   try {
     const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
@@ -89,7 +84,6 @@ let handleLoadAccountInfo = async (req, res) => {
     return handleError(res, e);
   }
 };
-
 let handleChangeAccountInfo = async (req, res) => {
   try {
     let response = await accountService.changeAccountInfo(req.body);
@@ -98,53 +92,47 @@ let handleChangeAccountInfo = async (req, res) => {
     return handleError(res, e);
   }
 };
-
 let handleSendForgotToken = async (req, res) => {
   try {
-    let response = await accountService.sendForgotToken(req.body.email);
+    let response = await accountService.sendForgotToken(req.body.Email);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleVerifyForgotToken = async (req, res) => {
   try {
-    let response = await accountService.verifyForgotToken(req.body.accountid, req.body.token);
+    let response = await accountService.verifyForgotToken(req.body.AccountID, req.body.Token);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleChangePassword = async (req, res) => {
   try {
-    const { accountid, password, newpassword } = req.body;
-    let response = await accountService.changePassword(accountid, password, newpassword);
+    const { AccountID, Password, newPassword } = req.body;
+    let response = await accountService.changePassword(AccountID, Password, newPassword);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleChangeAccountStatus = async (req, res) => {
   try {
-    let response = await accountService.changeAccountStatus(req.body.accountid, req.body.accountstatus);
+    let response = await accountService.changeAccountStatus(req.body.AccountID, req.body.AccountStatus);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleGetVeterinarianInfo = async (req, res) => {
   try {
-    let response = await accountService.getVeterinarianInfo(req.query.accountid);
+    let response = await accountService.getVeterinarianInfo(req.query.VeterinarianID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 let handleLoadVeterinarianInfo = async (req, res) => {
   try {
     const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
@@ -158,17 +146,15 @@ let handleLoadVeterinarianInfo = async (req, res) => {
     return handleError(res, e);
   }
 };
-
 let handleChangeWorkingStatus = async (req, res) => {
   try {
-    const { accountid, workingstatus } = req.body;
-    let response = await accountService.changeWorkingStatus(accountid, workingstatus);
+    const { VeterinarianID, WorkingStatus } = req.body;
+    let response = await accountService.changeWorkingStatus(VeterinarianID, WorkingStatus);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
   }
 };
-
 module.exports = {
   handleRegister,
   handleLogin,

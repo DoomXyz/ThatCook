@@ -18,9 +18,8 @@ let validateProductInput = async (productInfo) => {
       data: null,
     };
   } else {
-    const productName = ProductName.trim();
     const productNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,100}$/;
-    if (!productNameRegex.test(productName)) {
+    if (!productNameRegex.test(ProductName.trim())) {
       return {
         errCode: 1,
         errMessage: 'Tên sản phẩm không hợp lệ!',
@@ -51,8 +50,8 @@ let validateProductInput = async (productInfo) => {
       data: null,
     };
   } else {
-    const price = parseFloat(ProductPrice);
-    if (isNaN(price) || price <= 0) {
+    const Price = parseFloat(ProductPrice);
+    if (isNaN(Price) || Price <= 0) {
       return {
         errCode: 1,
         errMessage: 'Giá sản phẩm phải lớn hơn 0!',
@@ -61,8 +60,8 @@ let validateProductInput = async (productInfo) => {
     }
   }
   if (ProductDescription) {
-    const description = ProductDescription.trim();
-    if (!description || description.length > 65535) {
+    const Description = ProductDescription.trim();
+    if (!Description || Description.length > 65535) {
       return {
         errCode: 1,
         errMessage: 'Mô tả sản phẩm không hợp lệ hoặc vượt quá giới hạn ký tự!',
@@ -190,10 +189,10 @@ let validateProductInput = async (productInfo) => {
   return null;
 };
 
-let checkProductNameExist = (productName, excludeProductId) => {
+let checkProductNameExist = (ProductName, excludeProductId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!productName) {
+      if (!ProductName) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tên sản phẩm để kiểm tra!',
@@ -201,7 +200,7 @@ let checkProductNameExist = (productName, excludeProductId) => {
         });
         return;
       }
-      const where = { ProductName: productName.trim() };
+      const where = { ProductName };
       if (excludeProductId) {
         where.ProductID = { [Op.ne]: excludeProductId };
       }
@@ -218,13 +217,13 @@ let checkProductNameExist = (productName, excludeProductId) => {
   });
 };
 
-let updateOutOfStock = (productid) => {
+let updateOutOfStock = (ProductID) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
       let where = { Stock: 0 };
-      if (productid) {
-        where.ProductID = productid;
+      if (ProductID) {
+        where.ProductID = ProductID;
       }
 
       // Cập nhật DetailStatus thành 'OUT' cho các ProductDetail có Stock = 0
@@ -250,10 +249,10 @@ let updateOutOfStock = (productid) => {
   });
 };
 
-let getSaleProductInfo = (productid) => {
+let getSaleProductInfo = (ProductID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!productid) {
+      if (!ProductID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -265,7 +264,7 @@ let getSaleProductInfo = (productid) => {
       await updateOutOfStock();
 
       let data = null;
-      if (productid === 'ALL') {
+      if (ProductID === 'ALL') {
         const products = await db.Product.findAll({
           attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
           raw: true,
@@ -312,7 +311,7 @@ let getSaleProductInfo = (productid) => {
         );
       } else {
         const product = await db.Product.findOne({
-          where: { ProductID: productid },
+          where: { ProductID },
           attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
           raw: true,
         });
@@ -434,7 +433,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
           where.ProductID = { [Op.in]: productIds };
         } else {
           const [field, value] = filter.split('-');
-          if (field === 'producttype') {
+          if (field === 'ProductType') {
             const validProductType = await checkValidAllCode('ProductType', value);
             if (!validProductType) {
               resolve({
@@ -445,7 +444,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
               return;
             }
             where.ProductType = value;
-          } else if (field === 'pettype') {
+          } else if (field === 'PetType') {
             const validPetType = await checkValidAllCode('PetType', value);
             if (!validPetType) {
               resolve({
@@ -548,11 +547,11 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
           if (!detail) {
             return null;
           }
-          const price = (parseFloat(item.ProductPrice) + parseFloat(detail.ExtraPrice)) * (1 - parseFloat(detail.Promotion) / 100);
+          const Price = (parseFloat(item.ProductPrice) + parseFloat(detail.ExtraPrice)) * (1 - parseFloat(detail.Promotion) / 100);
           return {
             ProductID: item.ProductID,
             ProductName: item.ProductName,
-            ItemPrice: price.toFixed(2),
+            ItemPrice: Price.toFixed(2),
             ProductImage: item.ProductImage,
             ProductDetailID: detail.ProductDetailID,
             DetailName: detail.DetailName,
@@ -578,10 +577,10 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
   });
 };
 
-let getProductInfo = (productid) => {
+let getProductInfo = (ProductID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!productid) {
+      if (!ProductID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -591,7 +590,7 @@ let getProductInfo = (productid) => {
       }
       await updateOutOfStock();
       let data = null;
-      if (productid === 'ALL') {
+      if (ProductID === 'ALL') {
         const products = await db.Product.findAll({
           attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
           raw: true,
@@ -637,7 +636,7 @@ let getProductInfo = (productid) => {
         );
       } else {
         const product = await db.Product.findOne({
-          where: { ProductID: productid },
+          where: { ProductID },
           attributes: ['ProductID', 'ProductName', 'ProductDescription', 'ProductPrice', 'ProductImage', 'ProductType'],
           raw: true,
         });
@@ -734,7 +733,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
 
       if (filter !== 'ALL' && filter !== 'PROMOTION') {
         const [field, value] = filter.split('-');
-        if (field === 'producttype') {
+        if (field === 'ProductType') {
           const validProductType = await checkValidAllCode('ProductType', value);
           if (!validProductType) {
             resolve({
@@ -745,7 +744,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
             return;
           }
           where.ProductType = value;
-        } else if (field === 'pettype') {
+        } else if (field === 'PetType') {
           const validPetType = await checkValidAllCode('PetType', value);
           if (!validPetType) {
             resolve({
@@ -888,10 +887,10 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
   });
 };
 
-let getProductDetailInfo = (productid, productdetailid) => {
+let getProductDetailInfo = (ProductID, ProductDetailID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!productid || !productdetailid) {
+      if (!ProductID || !ProductDetailID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -903,13 +902,13 @@ let getProductDetailInfo = (productid, productdetailid) => {
       await updateOutOfStock();
 
       const product = await db.Product.findOne({
-        where: { ProductID: productid },
+        where: { ProductID },
         attributes: ['ProductID', 'ProductName', 'ProductType', 'ProductPrice', 'ProductImage'],
         raw: true,
       });
 
       const detail = await db.ProductDetail.findOne({
-        where: { ProductID: productid, ProductDetailID: productdetailid },
+        where: { ProductID, ProductDetailID: ProductDetailID },
         attributes: ['ProductDetailID', 'DetailName', 'Stock', 'SoldCount', 'ExtraPrice', 'Promotion', 'CreatedAt', 'DetailStatus'],
         raw: true,
       });
@@ -992,11 +991,11 @@ let createProduct = (productInfo) => {
         resolve(productIdResult);
         return;
       }
-      const productId = productIdResult.data;
+      const ProductID = productIdResult.data;
 
-      const createdAt = new Date();
+      const CreatedAt = new Date();
       await db.Product.create({
-        ProductID: productId,
+        ProductID,
         ProductType: productInfo.ProductType,
         ProductName: productInfo.ProductName.trim(),
         ProductPrice: productInfo.ProductPrice,
@@ -1011,14 +1010,14 @@ let createProduct = (productInfo) => {
           SoldCount: parseInt(detail.SoldCount) || 0,
           ExtraPrice: detail.ExtraPrice,
           Promotion: detail.Promotion,
-          CreatedAt: createdAt,
+          CreatedAt: CreatedAt,
           DetailStatus: detail.DetailStatus,
-          ProductID: productId,
+          ProductID,
         }, { transaction });
       }
       for (const petType of productInfo.PetType) {
         await db.ProductPetType.create({
-          ProductID: productId,
+          ProductID,
           PetType: petType,
         }, { transaction });
       }
@@ -1027,7 +1026,7 @@ let createProduct = (productInfo) => {
           await db.Image.create({
             Image: image.Image.trim().substring(0, 2048),
             ReferenceType: 'Product',
-            ReferenceID: productId,
+            ReferenceID,
           }, { transaction });
         }
       }
@@ -1035,7 +1034,7 @@ let createProduct = (productInfo) => {
       resolve({
         errCode: 0,
         errMessage: 'Tạo sản phẩm thành công!',
-        data: { ProductID: productId },
+        data: { ProductID },
       });
     } catch (e) {
       await transaction.rollback();
@@ -1129,7 +1128,7 @@ let changeProductInfo = (productInfo) => {
         isUpdated = true;
       }
       if (productInfo.ProductDetail) {
-        const createdAt = new Date();
+        const CreatedAt = new Date();
         for (const detail of productInfo.ProductDetail) {
           if (detail.ProductDetailID) {
             const existingDetail = await db.ProductDetail.findOne({
@@ -1156,7 +1155,7 @@ let changeProductInfo = (productInfo) => {
                 SoldCount: parseInt(detail.SoldCount) || 0,
                 ExtraPrice: detail.ExtraPrice,
                 Promotion: detail.Promotion,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 DetailStatus: detail.DetailStatus,
                 ProductID: productInfo.ProductID,
               }, { transaction });

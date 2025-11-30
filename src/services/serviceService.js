@@ -50,11 +50,11 @@ let validateServiceInput = (serviceInfo) => {
     return null;
 };
 
-let getVeterinarianService = (accountid) => {
+let getVeterinarianService = (AccountID) => {
     return new Promise(async (resolve, reject) => {
         try {
             const services = await db.VeterinarianService.findAll({
-                where: { VeterinarianID: accountid },
+                where: { VeterinarianID: AccountID },
                 include: [
                     {
                         model: db.Service,
@@ -91,10 +91,10 @@ let getVeterinarianService = (accountid) => {
     });
 };
 
-let getServiceInfo = (serviceid) => {
+let getServiceInfo = (ServiceID) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!serviceid) {
+            if (!ServiceID) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu tham số!',
@@ -103,7 +103,7 @@ let getServiceInfo = (serviceid) => {
                 return;
             }
             let data = null;
-            if (serviceid === 'ALL') {
+            if (ServiceID === 'ALL') {
                 const services = await db.Service.findAll({
                     where: { ServiceStatus: 'VALID' },
                     attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
@@ -120,7 +120,7 @@ let getServiceInfo = (serviceid) => {
                 data = services;
             } else {
                 const service = await db.Service.findOne({
-                    where: { ServiceID: serviceid, ServiceStatus: 'VALID' },
+                    where: { ServiceID, ServiceStatus: 'VALID' },
                     attributes: ['ServiceID', 'ServiceName', 'Price', 'Duration', 'Description'],
                     raw: true,
                 });
@@ -191,7 +191,7 @@ let loadServiceInfo = (page, limit, search, filter, sort) => {
 
             if (filter !== 'ALL') {
                 const [field, value] = filter.split('-');
-                if (field === 'price') {
+                if (field === 'Price') {
                     if (value === 'LOW') where.Price = { [Op.lte]: 100000 };
                     else if (value === 'MED') where.Price = { [Op.between]: [100000, 500000] };
                     else if (value === 'HIGH') where.Price = { [Op.gte]: 500000 };
@@ -203,7 +203,7 @@ let loadServiceInfo = (page, limit, search, filter, sort) => {
                         });
                         return;
                     }
-                } else if (field === 'duration') {
+                } else if (field === 'Duration') {
                     if (value === 'SHORT') where.Duration = { [Op.lte]: 30 };
                     else if (value === 'MED') where.Duration = { [Op.between]: [30, 60] };
                     else if (value === 'LONG') where.Duration = { [Op.gte]: 60 };
@@ -215,7 +215,7 @@ let loadServiceInfo = (page, limit, search, filter, sort) => {
                         });
                         return;
                     }
-                } else if (field === 'status') {
+                } else if (field === 'ServiceStatus') {
                     const validStatus = await checkValidAllCode('ServiceStatus', value);
                     if (!validStatus) {
                         resolve({
@@ -434,11 +434,11 @@ let changeServiceInfo = (serviceInfo) => {
     });
 };
 
-let changeServiceStatus = (serviceID, newStatus) => {
+let changeServiceStatus = (ServiceID, newStatus) => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
         try {
-            if (!serviceID || !newStatus) {
+            if (!ServiceID || !newStatus) {
                 await transaction.rollback();
                 resolve({
                     errCode: -1,
@@ -458,7 +458,7 @@ let changeServiceStatus = (serviceID, newStatus) => {
                 return;
             }
             const service = await db.Service.findOne({
-                where: { ServiceID: serviceID },
+                where: { ServiceID },
                 transaction,
             });
             if (!service) {
@@ -481,7 +481,7 @@ let changeServiceStatus = (serviceID, newStatus) => {
             }
             await db.Service.update(
                 { ServiceStatus: newStatus },
-                { where: { ServiceID: serviceID }, transaction }
+                { where: { ServiceID }, transaction }
             );
             await transaction.commit();
             resolve({

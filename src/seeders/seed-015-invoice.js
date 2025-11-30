@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 
 module.exports = {
     up: async (queryInterface) => {
-        const createdAt = new Date();
+        const CreatedAt = new Date();
 
         // Lấy danh sách khách hàng từ bảng Account
         const accounts = await queryInterface.sequelize.query(
@@ -38,21 +38,21 @@ module.exports = {
         for (let i = 0; i < 10; i++) {
             const numItems = Math.floor(Math.random() * 16) + 5; // 5-20 sản phẩm
             const selectedItems = products.sort(() => 0.5 - Math.random()).slice(0, numItems);
-            let totalQuantity = 0;
-            let totalPrice = 0;
+            let TotalQuantity = 0;
+            let TotalPrice = 0;
 
             // Tạo chi tiết hóa đơn
             selectedItems.forEach((item, index) => {
                 const quantity = Math.floor(Math.random() * 5) + 1; // Số lượng ngẫu nhiên 1-5
-                const itemPrice = (parseFloat(item.ProductPrice) + parseFloat(item.ExtraPrice)) * (1 - parseFloat(item.Promotion) / 100);
-                totalQuantity += quantity;
-                totalPrice += itemPrice * quantity;
+                const ItemPrice = (parseFloat(item.ProductPrice) + parseFloat(item.ExtraPrice)) * (1 - parseFloat(item.Promotion) / 100);
+                TotalQuantity += quantity;
+                TotalPrice += ItemPrice * quantity;
 
                 invoiceDetails.push({
                     InvoiceID: `DH00000${i + 1}`,
                     ProductID: item.ProductID,
                     ProductDetailID: item.ProductDetailID,
-                    ItemPrice: itemPrice.toFixed(2),
+                    ItemPrice: ItemPrice.toFixed(2),
                     ItemQuantity: quantity,
                 });
             });
@@ -64,11 +64,11 @@ module.exports = {
                 ReceiverName: `Khách hàng ${i + 1}`,
                 ReceiverPhone: `09010000${String(i + 1).padStart(2, '0')}`,
                 ReceiverAddress: `Địa chỉ ${i + 1}, TP.HCM`,
-                TotalQuantity: totalQuantity,
-                TotalPrice: totalPrice.toFixed(2),
+                TotalQuantity: TotalQuantity,
+                TotalPrice: TotalPrice.toFixed(2),
                 DiscountAmount: '0.00',
-                TotalPayment: totalPrice.toFixed(2),
-                CreatedAt: createdAt,
+                TotalPayment: TotalPrice.toFixed(2),
+                CreatedAt: CreatedAt,
                 CanceledAt: null,
                 CancelReason: null,
                 PaymentStatus: 'PAID',

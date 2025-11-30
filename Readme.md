@@ -192,6 +192,53 @@ WHERE
 ALTER TABLE appointment DROP FOREIGN KEY appointment_ibfk_3;
 ALTER TABLE appointment DROP INDEX appointment_ibfk_3;
 DROP TABLE pet;
+--------------CHẠY TỪNG ĐOẠN 1 CHO CHẮC (LIỀU THÌ CHẠY HẾT)---------------------------
+CREATE TABLE Room (
+    RoomID          INT AUTO_INCREMENT PRIMARY KEY,
+    RoomName        VARCHAR(30) NOT NULL,
+    LastMessage     TEXT NOT NULL,
+    LastMessageTime DATETIME NULL,
+    CreatedAt       DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE Message (
+    MessageID    INT AUTO_INCREMENT PRIMARY KEY,
+    MessageType  VARCHAR(20) NOT NULL,
+    MessageText  TEXT NOT NULL,
+    SentAt       DATETIME NOT NULL,
+    RoomID       INT NOT NULL,
+    AccountID    VARCHAR(42) NOT NULL,
+    INDEX idx_room (RoomID),
+    INDEX idx_account (AccountID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE RoomMember (
+    RoomMemberID INT AUTO_INCREMENT PRIMARY KEY,
+    AccountID    VARCHAR(42) NOT NULL,
+    RoomID       INT NOT NULL,
+    UNIQUE KEY unique_member_per_room (RoomID, AccountID),
+    INDEX idx_account (AccountID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE Message
+ADD CONSTRAINT fk_message_room 
+    FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE Message
+ADD CONSTRAINT fk_message_account 
+    FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE RoomMember
+ADD CONSTRAINT fk_roommember_room 
+    FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE RoomMember
+ADD CONSTRAINT fk_roommember_account 
+    FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+    ON DELETE CASCADE ON UPDATE CASCADE;
 -----------------------------------------------------------------------
 api.js fix xong lỗi track:
 import express from 'express';

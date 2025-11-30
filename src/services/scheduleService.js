@@ -60,10 +60,10 @@ let cancelExpiredSchedules = () => {
     });
 };
 
-const rejectSchedule = async (scheduleid, transaction) => {
+const rejectSchedule = async (ScheduleID, transaction) => {
     try {
         const schedule = await db.Schedule.findOne({
-            where: { ScheduleID: scheduleid },
+            where: { ScheduleID },
             attributes: ['ScheduleID', 'AppointmentID', 'VeterinarianID', 'Date', 'StartTime', 'EndTime'],
             transaction,
         });
@@ -109,7 +109,7 @@ const rejectSchedule = async (scheduleid, transaction) => {
             }
         }
         await db.Schedule.destroy({
-            where: { ScheduleID: scheduleid },
+            where: { ScheduleID },
             transaction,
         });
         return {
@@ -121,10 +121,10 @@ const rejectSchedule = async (scheduleid, transaction) => {
     }
 };
 
-let loadSchedule = (veterinarianid, startDate) => {
+let loadSchedule = (VeterinarianID, StartDate) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!veterinarianid || !startDate) {
+            if (!VeterinarianID || !StartDate) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu tham số!',
@@ -133,7 +133,7 @@ let loadSchedule = (veterinarianid, startDate) => {
                 return;
             }
             await cancelExpiredSchedules();
-            const start = new Date(startDate);
+            const start = new Date(StartDate);
             if (isNaN(start.getTime())) {
                 resolve({
                     errCode: 1,
@@ -146,7 +146,7 @@ let loadSchedule = (veterinarianid, startDate) => {
             end.setDate(end.getDate() + 6);
             end.setHours(23, 59, 59, 999);
             const where = {
-                VeterinarianID: veterinarianid,
+                VeterinarianID,
                 Date: { [Op.between]: [start, end] },
             };
             const rows = await db.Schedule.findAll({
@@ -183,11 +183,11 @@ let loadSchedule = (veterinarianid, startDate) => {
             for (const row of rows) {
                 if (row.Appointment && row.Appointment.PetID && row.Appointment.AccountID) {
                     const petResult = await getPetInfo(row.Appointment.AccountID, row.Appointment.PetID);
-                    row.Appointment.dataValues.PetName = petResult.errCode === 0 && petResult.data?.PetStatus === 'VALID'
-                        ? petResult.data.PetName
+                    row.Appointment.PetName = petResult.errCode === 0 && petResult.data?.petStatus === 'VALID'
+                        ? petResult.data.petName
                         : 'Thú cưng đã xóa';
                 } else {
-                    row.Appointment.dataValues.PetName = 'Không xác định';
+                    row.Appointment.PetName = 'Không xác định';
                 }
             }
             const data = rows.map(row => ({
@@ -197,7 +197,7 @@ let loadSchedule = (veterinarianid, startDate) => {
                 EndTime: row.EndTime.slice(0, 5),
                 CustomerName: row.Appointment.CustomerName,
                 ServiceName: row.Appointment.Service.ServiceName,
-                PetName: row.Appointment.dataValues.PetName,
+                PetName: row.Appointment.PetName,
                 AppointmentID: row.AppointmentID,
                 AppointmentType: row.Appointment.AppointmentType,
                 AppointmentStatus: row.Appointment.AppointmentStatus,
@@ -219,11 +219,11 @@ let loadSchedule = (veterinarianid, startDate) => {
     });
 };
 
-const changeScheduleStatus = (scheduleid, schedulestatus) => {
+const changeScheduleStatus = (ScheduleID, ScheduleStatus) => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
         try {
-            if (!scheduleid || !schedulestatus) {
+            if (!ScheduleID || !ScheduleStatus) {
                 await transaction.rollback();
                 resolve({
                     errCode: -1,
@@ -232,7 +232,7 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                 });
                 return;
             }
-            const validScheduleStatus = await checkValidAllCode('ScheduleStatus', schedulestatus);
+            const validScheduleStatus = await checkValidAllCode('ScheduleStatus', ScheduleStatus);
             if (!validScheduleStatus) {
                 await transaction.rollback();
                 resolve({
@@ -243,7 +243,7 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                 return;
             }
             const schedule = await db.Schedule.findOne({
-                where: { ScheduleID: scheduleid },
+                where: { ScheduleID },
                 transaction,
             });
             if (!schedule) {
@@ -255,7 +255,7 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                 });
                 return;
             }
-            if (schedulestatus === 'CANCELED') {
+            if (ScheduleStatus === 'CANCELED') {
                 const currentDateTime = new Date();
                 const scheduleDate = new Date(schedule.Date);
                 const scheduleStart = new Date(`${scheduleDate.toISOString().split('T')[0]}T${schedule.StartTime}+07:00`);
@@ -270,7 +270,7 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                     });
                     return;
                 }
-                const result = await rejectSchedule(scheduleid, transaction);
+                const result = await rejectSchedule(ScheduleID, transaction);
                 if (result.errCode !== 0) {
                     await transaction.rollback();
                     resolve(result);
@@ -278,8 +278,8 @@ const changeScheduleStatus = (scheduleid, schedulestatus) => {
                 }
             } else {
                 await db.Schedule.update(
-                    { ScheduleStatus: schedulestatus },
-                    { where: { ScheduleID: scheduleid }, transaction }
+                    { ScheduleStatus },
+                    { where: { ScheduleID }, transaction }
                 );
             }
             await transaction.commit();

@@ -2,17 +2,17 @@ import jwt from 'jsonwebtoken';
 require('dotenv').config();
 
 const createJWT = (data, rememberMe) => {
-  let token = null;
+  let Token = null;
   if (data) {
     let payload = data;
     let key = process.env.JWT_SECRET;
     try {
       if (rememberMe === true) {
-        token = jwt.sign(payload, key, {
+        Token = jwt.sign(payload, key, {
           expiresIn: process.env.JWT_EXPIRES_IN_LONG,
         });
       } else {
-        token = jwt.sign(payload, key, {
+        Token = jwt.sign(payload, key, {
           expiresIn: process.env.JWT_EXPIRES_IN,
         });
       }
@@ -20,14 +20,14 @@ const createJWT = (data, rememberMe) => {
       console.log(e);
     }
   }
-  return token;
+  return Token;
 };
 
-const verifyJWT = (token) => {
+const verifyJWT = (Token) => {
   let key = process.env.JWT_SECRET;
   let decoded = null;
   try {
-    decoded = jwt.verify(token, key);
+    decoded = jwt.verify(Token, key);
   } catch (e) {
     console.log(e);
   }
@@ -35,8 +35,8 @@ const verifyJWT = (token) => {
 };
 
 const clearCookie = (req, res) => {
-  if (req.cookies && req.cookies.token) {
-    res.clearCookie('token');
+  if (req.cookies && req.cookies.Token) {
+    res.clearCookie('Token');
     return res.status(200).json({
       errCode: 0,
       message: 'Cookie has been cleared successfully!',
@@ -51,10 +51,10 @@ const clearCookie = (req, res) => {
 
 const checkAdminJWT = (req, res, next) => {
   let cookies = req.cookies;
-  if (cookies && cookies.token) {
-    // let token = cookies.token;
-    let token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-    let decoded = verifyJWT(token);
+  if (cookies && cookies.Token) {
+    // let Token = cookies.Token;
+    let Token = req.cookies?.Token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    let decoded = verifyJWT(Token);
     if (decoded) {
       if (decoded.AccountType && decoded.AccountType === 'A') {
         next();
@@ -80,10 +80,10 @@ const checkAdminJWT = (req, res, next) => {
 
 const checkOwnerJWT = (req, res, next) => {
   let cookies = req.cookies;
-  if (cookies && cookies.token) {
-    // let token = cookies.token;
-    let token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-    let decoded = verifyJWT(token);
+  if (cookies && cookies.Token) {
+    // let Token = cookies.Token;
+    let Token = req.cookies?.Token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    let decoded = verifyJWT(Token);
     if (decoded) {
       if (decoded.AccountType && decoded.AccountType === 'O') {
         next();
@@ -96,23 +96,23 @@ const checkOwnerJWT = (req, res, next) => {
     } else {
       return res.status(401).json({
         errCode: -2,
-        errMessage: 'Invalid token!',
+        errMessage: 'Invalid Token!',
       });
     }
   } else {
     return res.status(401).json({
       errCode: -3,
-      errMessage: 'No token provided!',
+      errMessage: 'No Token provided!',
     });
   }
 };
 
 const checkVeterinarianJWT = (req, res, next) => {
   let cookies = req.cookies;
-  if (cookies && cookies.token) {
-    // let token = cookies.token;
-    let token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-    let decoded = verifyJWT(token);
+  if (cookies && cookies.Token) {
+    // let Token = cookies.Token;
+    let Token = req.cookies?.Token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    let decoded = verifyJWT(Token);
     if (decoded) {
       if (decoded.AccountType && decoded.AccountType === 'V') {
         next();
@@ -125,13 +125,13 @@ const checkVeterinarianJWT = (req, res, next) => {
     } else {
       return res.status(401).json({
         errCode: -2,
-        errMessage: 'Invalid token!',
+        errMessage: 'Invalid Token!',
       });
     }
   } else {
     return res.status(401).json({
       errCode: -3,
-      errMessage: 'No token provided!',
+      errMessage: 'No Token provided!',
     });
   }
 };

@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const querystring = require('qs');
 
-let sendInvoiceEmail = async (invoiceid, email) => {
+let sendInvoiceEmail = async (InvoiceID, Email) => {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -16,7 +16,7 @@ let sendInvoiceEmail = async (invoiceid, email) => {
       },
     });
     const invoice = await db.Invoice.findOne({
-      where: { InvoiceID: invoiceid },
+      where: { InvoiceID },
       attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalQuantity', 'TotalPrice', 'DiscountAmount', 'TotalPayment', 'CreatedAt', 'PaymentType', 'ShippingMethod', 'ShippingStatus'],
       raw: true,
     });
@@ -25,7 +25,7 @@ let sendInvoiceEmail = async (invoiceid, email) => {
       return false;
     }
     const invoiceDetails = await db.InvoiceDetail.findAll({
-      where: { InvoiceID: invoiceid },
+      where: { InvoiceID },
       attributes: ['ProductID', 'ProductDetailID', 'ItemQuantity', 'ItemPrice'],
       raw: true,
     });
@@ -47,24 +47,24 @@ let sendInvoiceEmail = async (invoiceid, email) => {
         `);
       }
     }
-    const paymentType = await db.AllCodes.findOne({
+    const PaymentType = await db.AllCodes.findOne({
       where: { Type: 'PaymentType', Code: invoice.PaymentType },
       attributes: ['CodeValueVI'],
       raw: true,
     });
-    const shippingMethod = await db.AllCodes.findOne({
+    const ShippingMethod = await db.AllCodes.findOne({
       where: { Type: 'ShippingMethod', Code: invoice.ShippingMethod },
       attributes: ['CodeValueVI'],
       raw: true,
     });
-    const shippingStatus = await db.AllCodes.findOne({
+    const ShippingStatus = await db.AllCodes.findOne({
       where: { Type: 'ShippingStatus', Code: invoice.ShippingStatus },
       attributes: ['CodeValueVI'],
       raw: true,
     });
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: email,
+      to: Email,
       subject: `Hóa đơn #${invoice.InvoiceID} - Xác nhận đơn hàng`,
       text: `
         Kính gửi Quý khách,
@@ -79,9 +79,9 @@ let sendInvoiceEmail = async (invoiceid, email) => {
         ${productList.join('')}
         Tổng sản phẩm: ${invoice.TotalQuantity}
         Tổng thanh toán: ${invoice.TotalPayment.toLocaleString()} VND
-        Phương thức thanh toán: ${paymentType?.CodeValueVI || invoice.PaymentType}
-        Phương thức giao hàng: ${shippingMethod?.CodeValueVI || invoice.ShippingMethod}
-        Trạng thái giao hàng: ${shippingStatus?.CodeValueVI || invoice.ShippingStatus}
+        Phương thức thanh toán: ${PaymentType?.CodeValueVI || invoice.PaymentType}
+        Phương thức giao hàng: ${ShippingMethod?.CodeValueVI || invoice.ShippingMethod}
+        Trạng thái giao hàng: ${ShippingStatus?.CodeValueVI || invoice.ShippingStatus}
         Ngày tạo: ${new Date(invoice.CreatedAt).toLocaleString()}
 
         Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
@@ -106,31 +106,31 @@ let validateInvoiceInput = async (invoiceInfo) => {
       data: null,
     };
   }
-  const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid } = invoiceInfo;
-  if (!receivername?.trim()) {
+  const { AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, cartItems, TotalQuantity, TotalPrice, DiscountAmount, TotalPayment, PaymentStatus, ShippingStatus, PaymentType, ShippingMethod, CouponID } = invoiceInfo;
+  if (!ReceiverName?.trim()) {
     return {
       errCode: -1,
       errMessage: 'Tên người nhận không được để trống!',
       data: null,
     };
   }
-  const userName = receivername.trim();
+  const UserName = ReceiverName.trim();
   const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-  if (!userNameRegex.test(userName)) {
+  if (!userNameRegex.test(UserName)) {
     return {
       errCode: 1,
       errMessage: 'Tên người nhận hàng sai định dạng!',
       data: null,
     };
   }
-  if (!receiverphone?.trim()) {
+  if (!ReceiverPhone?.trim()) {
     return {
       errCode: -1,
       errMessage: 'Số điện thoại không được để trống!',
       data: null,
     };
   } else {
-    const phoneNumber = receiverphone.trim();
+    const phoneNumber = ReceiverPhone.trim();
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(phoneNumber)) {
       return {
@@ -140,7 +140,7 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (!receiveraddress?.trim() || receiveraddress.trim().length > 255) {
+  if (!ReceiverAddress?.trim() || ReceiverAddress.trim().length > 255) {
     return {
       errCode: -1,
       errMessage: 'Địa chỉ nhận hàng trống hoặc vượt quá 255 ký tự!',
@@ -156,21 +156,21 @@ let validateInvoiceInput = async (invoiceInfo) => {
   }
   for (let i = 0; i < cartItems.length; i++) {
     const item = cartItems[i];
-    if (!item.productid || !item.productdetailid || !item.itemquantity || !item.itemprice) {
+    if (!item.ProductID || !item.ProductDetailID || !item.ItemQuantity || !item.ItemPrice) {
       return {
         errCode: -1,
         errMessage: `Thiếu thông tin sản phẩm tại dòng ${i + 1}!`,
         data: null,
       };
     }
-    if (isNaN(item.itemquantity) || item.itemquantity <= 0) {
+    if (isNaN(item.ItemQuantity) || item.ItemQuantity <= 0) {
       return {
         errCode: 1,
         errMessage: `Số lượng sản phẩm tại dòng ${i + 1} không hợp lệ!`,
         data: null,
       };
     }
-    if (isNaN(item.itemprice) || item.itemprice < 0) {
+    if (isNaN(item.ItemPrice) || item.ItemPrice < 0) {
       return {
         errCode: 1,
         errMessage: `Giá sản phẩm tại dòng ${i + 1} không hợp lệ!`,
@@ -178,26 +178,26 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
     const validProduct = await db.Product.findOne({
-      where: { ProductID: item.productid },
+      where: { ProductID: item.ProductID },
     });
     if (!validProduct) {
       return {
         errCode: 2,
-        errMessage: `Sản phẩm ${item.productid} tại dòng ${i + 1} không tồn tại!`,
+        errMessage: `Sản phẩm ${item.ProductID} tại dòng ${i + 1} không tồn tại!`,
         data: null,
       };
     }
     const validDetail = await db.ProductDetail.findOne({
-      where: { ProductDetailID: item.productdetailid },
+      where: { ProductDetailID: item.ProductDetailID },
     });
     if (!validDetail) {
       return {
         errCode: 2,
-        errMessage: `Chi tiết sản phẩm ${item.productdetailid} tại dòng ${i + 1} không tồn tại!`,
+        errMessage: `Chi tiết sản phẩm ${item.ProductDetailID} tại dòng ${i + 1} không tồn tại!`,
         data: null,
       };
     }
-    if (validDetail.Stock < item.itemquantity) {
+    if (validDetail.Stock < item.ItemQuantity) {
       return {
         errCode: 2,
         errMessage: `Sản phẩm ${validProduct.ProductName} (${validDetail.DetailName}) tại dòng ${i + 1} không đủ tồn kho!`,
@@ -205,42 +205,42 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (!totalquantity || isNaN(totalquantity) || totalquantity <= 0) {
+  if (!TotalQuantity || isNaN(TotalQuantity) || TotalQuantity <= 0) {
     return {
       errCode: -1,
       errMessage: 'Tổng số lượng sản phẩm không hợp lệ!',
       data: null,
     };
   }
-  if (!totalprice || isNaN(totalprice) || totalprice < 0) {
+  if (!TotalPrice || isNaN(TotalPrice) || TotalPrice < 0) {
     return {
       errCode: -1,
       errMessage: 'Tổng giá trị đơn hàng không hợp lệ!',
       data: null,
     };
   }
-  if (discountamount && (isNaN(discountamount) || discountamount < 0)) {
+  if (DiscountAmount && (isNaN(DiscountAmount) || DiscountAmount < 0)) {
     return {
       errCode: -1,
       errMessage: 'Số tiền giảm giá không hợp lệ!',
       data: null,
     };
   }
-  if (!totalpayment || isNaN(totalpayment) || totalpayment < 0) {
+  if (!TotalPayment || isNaN(TotalPayment) || TotalPayment < 0) {
     return {
       errCode: -1,
       errMessage: 'Tổng thanh toán không hợp lệ!',
       data: null,
     };
   }
-  if (!paymentstatus) {
+  if (!PaymentStatus) {
     return {
       errCode: -1,
       errMessage: 'Trạng thái thanh toán không được để trống!',
       data: null,
     };
   } else {
-    const validPaymentStatus = await checkValidAllCode('PaymentStatus', paymentstatus);
+    const validPaymentStatus = await checkValidAllCode('PaymentStatus', PaymentStatus);
     if (!validPaymentStatus) {
       return {
         errCode: 1,
@@ -249,14 +249,14 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (!shippingstatus) {
+  if (!ShippingStatus) {
     return {
       errCode: -1,
       errMessage: 'Trạng thái giao hàng không được để trống!',
       data: null,
     };
   } else {
-    const validShippingStatus = await checkValidAllCode('ShippingStatus', shippingstatus);
+    const validShippingStatus = await checkValidAllCode('ShippingStatus', ShippingStatus);
     if (!validShippingStatus) {
       return {
         errCode: 1,
@@ -265,14 +265,14 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (!paymenttype) {
+  if (!PaymentType) {
     return {
       errCode: -1,
       errMessage: 'Phương thức thanh toán không được để trống!',
       data: null,
     };
   } else {
-    const validPaymentType = await checkValidAllCode('PaymentType', paymenttype);
+    const validPaymentType = await checkValidAllCode('PaymentType', PaymentType);
     if (!validPaymentType) {
       return {
         errCode: 1,
@@ -281,14 +281,14 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (!shippingmethod) {
+  if (!ShippingMethod) {
     return {
       errCode: -1,
       errMessage: 'Phương thức giao hàng không được để trống!',
       data: null,
     };
   } else {
-    const validShippingMethod = await checkValidAllCode('ShippingMethod', shippingmethod);
+    const validShippingMethod = await checkValidAllCode('ShippingMethod', ShippingMethod);
     if (!validShippingMethod) {
       return {
         errCode: 1,
@@ -297,8 +297,8 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (accountid) {
-    const check = await checkAccountExist(accountid);
+  if (AccountID) {
+    const check = await checkAccountExist(AccountID);
     if (!check) {
       return {
         errCode: 1,
@@ -307,8 +307,8 @@ let validateInvoiceInput = async (invoiceInfo) => {
       };
     }
   }
-  if (couponid) {
-    const check = await checkCouponExist(couponid);
+  if (CouponID) {
+    const check = await checkCouponExist(CouponID);
     if (!check) {
       return {
         errCode: 1,
@@ -320,10 +320,10 @@ let validateInvoiceInput = async (invoiceInfo) => {
   return null;
 };
 
-let checkAccountExist = (accountID) => {
+let checkAccountExist = (AccountID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountID) {
+      if (!AccountID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu mã tài khoản để kiểm tra!',
@@ -332,24 +332,24 @@ let checkAccountExist = (accountID) => {
         return;
       }
       let exist = await db.Account.findOne({
-        where: { AccountID: accountID },
+        where: { AccountID },
       });
       resolve(exist ? true : false);
     } catch (e) {
       console.log('Error in checkAccountExist: ', e);
       resolve({
         errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra accountid: ' + e.message,
+        errMessage: 'Lỗi khi kiểm tra AccountID: ' + e.message,
         data: null,
       });
     }
   });
 };
 
-let checkCouponExist = (couponID) => {
+let checkCouponExist = (CouponID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!couponID) {
+      if (!CouponID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu mã giảm giá để kiểm tra!',
@@ -358,24 +358,24 @@ let checkCouponExist = (couponID) => {
         return;
       }
       let exist = await db.Coupon.findOne({
-        where: { CouponID: couponID },
+        where: { CouponID },
       });
       resolve(exist ? true : false);
     } catch (e) {
       console.log('Error in checkCouponExist: ', e);
       resolve({
         errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra couponid: ' + e.message,
+        errMessage: 'Lỗi khi kiểm tra CouponID: ' + e.message,
         data: null,
       });
     }
   });
 };
 
-let getAccountInvoiceInfo = (accountid) => {
+let getAccountInvoiceInfo = (AccountID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountid) {
+      if (!AccountID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -383,7 +383,7 @@ let getAccountInvoiceInfo = (accountid) => {
         });
         return;
       }
-      const accountExists = await checkAccountExist(accountid);
+      const accountExists = await checkAccountExist(AccountID);
       if (!accountExists) {
         resolve({
           errCode: 2,
@@ -393,7 +393,7 @@ let getAccountInvoiceInfo = (accountid) => {
         return;
       }
       const data = await db.Invoice.findAll({
-        where: { AccountID: accountid },
+        where: { AccountID },
         attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalQuantity', 'TotalPayment', 'CreatedAt', 'CanceledAt', 'PaymentStatus', 'ShippingStatus'],
         order: [['CreatedAt', 'DESC']],
         raw: true,
@@ -477,10 +477,10 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
           [Op.lte]: endOfDay,
         };
       }
-      // Lọc theo paymentstatus, shippingstatus hoặc totalpayment
+      // Lọc theo PaymentStatus, ShippingStatus hoặc TotalPayment
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        if (field === 'paymentstatus') {
+        if (field === 'PaymentStatus') {
           const validPaymentStatus = await checkValidAllCode('PaymentStatus', value);
           if (!validPaymentStatus) {
             resolve({
@@ -491,7 +491,7 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
             return;
           }
           where.PaymentStatus = value;
-        } else if (field === 'shippingstatus') {
+        } else if (field === 'ShippingStatus') {
           const validShippingStatus = await checkValidAllCode('ShippingStatus', value);
           if (!validShippingStatus) {
             resolve({
@@ -502,7 +502,7 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
             return;
           }
           where.ShippingStatus = value;
-        } else if (field === 'totalpayment') {
+        } else if (field === 'TotalPayment') {
           switch (value) {
             case '0': // 500k-1m
               where.TotalPayment = { [Op.between]: [500000, 1000000] };
@@ -596,10 +596,10 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
   });
 };
 
-let getInvoiceDetailInfo = (invoiceid) => {
+let getInvoiceDetailInfo = (InvoiceID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!invoiceid) {
+      if (!InvoiceID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -608,7 +608,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
         return;
       }
       const invoice = await db.Invoice.findOne({
-        where: { InvoiceID: invoiceid },
+        where: { InvoiceID },
         attributes: ['InvoiceID', 'TotalQuantity', 'ReceiverName', 'ReceiverPhone', 'ReceiverAddress', 'TotalPrice', 'DiscountAmount', 'TotalPayment', 'CreatedAt', 'PaymentType', 'ShippingStatus', 'ShippingMethod', 'PaymentStatus', 'CancelReason'],
         raw: true,
       });
@@ -621,7 +621,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
         return;
       }
       const invoiceDetails = await db.InvoiceDetail.findAll({
-        where: { InvoiceID: invoiceid },
+        where: { InvoiceID },
         attributes: ['ProductID', 'ProductDetailID', 'ItemQuantity', 'ItemPrice'],
         raw: true,
       });
@@ -648,7 +648,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
         ShippingStatus: invoice.ShippingStatus,
         PaymentStatus: invoice.PaymentStatus,
         CancelReason: invoice.CancelReason,
-        ProductList: [],
+        productList: [],
       };
       for (const detail of invoiceDetails) {
         const product = await db.Product.findOne({
@@ -669,7 +669,7 @@ let getInvoiceDetailInfo = (invoiceid) => {
           });
           return;
         }
-        data.ProductList.push({
+        data.productList.push({
           ProductName: product.ProductName,
           DetailName: productDetail.DetailName,
           ProductImage: product.ProductImage,
@@ -693,27 +693,26 @@ let getInvoiceDetailInfo = (invoiceid) => {
   });
 };
 
-let createInvoice = (accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow, req) => {
+let createInvoice = (AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, cartItems, TotalQuantity, TotalPrice, DiscountAmount, TotalPayment, PaymentStatus, ShippingStatus, PaymentType, ShippingMethod, CouponID, Email, isBuyNow, req) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
       const invoiceInfo = {
-        accountid,
-        receivername,
-        receiverphone,
-        receiveraddress,
+        AccountID,
+        ReceiverName,
+        ReceiverPhone,
+        ReceiverAddress,
         cartItems,
-        totalquantity,
-        totalprice,
-        discountamount,
-        totalpayment,
-        paymentstatus,
-        shippingstatus,
-        paymenttype,
-        shippingmethod,
-        couponid,
+        TotalQuantity,
+        TotalPrice,
+        DiscountAmount,
+        TotalPayment,
+        PaymentStatus,
+        ShippingStatus,
+        PaymentType,
+        ShippingMethod,
+        CouponID,
       };
-
       const isValidateInput = await validateInvoiceInput(invoiceInfo);
       if (isValidateInput) {
         await transaction.rollback();
@@ -721,28 +720,27 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         return;
       }
       const invoiceData = {
-        accountid,
-        receivername: receivername.trim(),
-        receiverphone: receiverphone.trim(),
-        receiveraddress: receiveraddress.trim(),
+        AccountID,
+        ReceiverName: ReceiverName.trim(),
+        ReceiverPhone: ReceiverPhone.trim(),
+        ReceiverAddress: ReceiverAddress.trim(),
         cartItems: cartItems.map((item) => ({
-          productid: item.productid,
-          productdetailid: item.productdetailid,
-          itemprice: item.itemprice,
-          itemquantity: parseInt(item.itemquantity),
+          ProductID: item.ProductID,
+          ProductDetailID: item.ProductDetailID,
+          ItemPrice: item.ItemPrice,
+          ItemQuantity: parseInt(item.ItemQuantity),
         })),
-        totalquantity: parseInt(totalquantity),
-        totalprice,
-        discountamount: discountamount || '0.00',
-        totalpayment,
-        paymentstatus,
-        shippingstatus,
-        paymenttype,
-        shippingmethod,
-        couponid: couponid || null,
-        email,
+        TotalQuantity: parseInt(TotalQuantity),
+        TotalPrice,
+        DiscountAmount: DiscountAmount || '0.00',
+        TotalPayment,
+        PaymentStatus,
+        ShippingStatus,
+        PaymentType,
+        ShippingMethod,
+        CouponID: CouponID || null,
+        Email,
       };
-      let AccountID = invoiceData.accountid;
       if (!AccountID) {
         const guestIdResult = await generateID('G', 9, 'Account', 'AccountID');
         if (guestIdResult.errCode !== 0) {
@@ -763,21 +761,21 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         {
           InvoiceID,
           AccountID,
-          ReceiverName: invoiceData.receivername,
-          ReceiverPhone: invoiceData.receiverphone,
-          ReceiverAddress: invoiceData.receiveraddress,
-          TotalQuantity: invoiceData.totalquantity,
-          TotalPrice: invoiceData.totalprice,
-          DiscountAmount: invoiceData.discountamount,
-          TotalPayment: invoiceData.totalpayment,
+          ReceiverName: invoiceData.ReceiverName,
+          ReceiverPhone: invoiceData.ReceiverPhone,
+          ReceiverAddress: invoiceData.ReceiverAddress,
+          TotalQuantity: invoiceData.TotalQuantity,
+          TotalPrice: invoiceData.TotalPrice,
+          DiscountAmount: invoiceData.DiscountAmount,
+          TotalPayment: invoiceData.TotalPayment,
           CreatedAt: new Date(),
           CanceledAt: null,
           CancelReason: null,
-          PaymentStatus: invoiceData.paymentstatus,
-          ShippingStatus: invoiceData.shippingstatus,
-          PaymentType: invoiceData.paymenttype,
-          ShippingMethod: invoiceData.shippingmethod,
-          CouponID: invoiceData.couponid,
+          PaymentStatus: invoiceData.PaymentStatus,
+          ShippingStatus: invoiceData.ShippingStatus,
+          PaymentType: invoiceData.PaymentType,
+          ShippingMethod: invoiceData.ShippingMethod,
+          CouponID: invoiceData.CouponID,
         },
         { transaction }
       );
@@ -785,42 +783,42 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         await db.InvoiceDetail.create(
           {
             InvoiceID,
-            ProductID: item.productid,
-            ProductDetailID: item.productdetailid,
-            ItemPrice: item.itemprice,
-            ItemQuantity: item.itemquantity,
+            ProductID: item.ProductID,
+            ProductDetailID: item.ProductDetailID,
+            ItemPrice: item.ItemPrice,
+            ItemQuantity: item.ItemQuantity,
           },
           { transaction }
         );
         await db.ProductDetail.update(
           {
-            Stock: literal(`Stock - ${item.itemquantity}`),
+            Stock: literal(`Stock - ${item.ItemQuantity}`),
           },
           {
-            where: { ProductDetailID: item.productdetailid },
+            where: { ProductDetailID: item.ProductDetailID },
             transaction,
           }
         );
       }
-      if (invoiceData.accountid && !isBuyNow) {
+      if (invoiceData.AccountID && !isBuyNow) {
         await db.CartItem.destroy({
-          where: { AccountID: invoiceData.accountid },
+          where: { AccountID: invoiceData.AccountID },
           transaction,
         });
       }
       await transaction.commit();
-      console.log(`[DEBUG] Tạo đơn hàng ${InvoiceID} thành công! PaymentType: ${paymenttype}`);
+      console.log(`[DEBUG] Tạo đơn hàng ${InvoiceID} thành công! PaymentType: ${PaymentType}`);
       //Phân loại thanh toán để thông báo 
-      if (accountid && paymenttype === 'CASH') {
+      if (AccountID && PaymentType === 'CASH') {
         const owner = await db.Account.findOne({
           where: { AccountType: 'O' },
           attributes: ['AccountID'],
           raw: true,
         });
         if (owner?.AccountID) {
-          console.log(`[DEBUG] Gửi ORDER_CONFIRM cho chủ shop từ khách ${accountid}`);
+          console.log(`[DEBUG] Gửi ORDER_CONFIRM cho chủ shop từ khách ${AccountID}`);
           await sendNotification(
-            accountid,     // người gửi (khách hàng)
+            AccountID,     // người gửi (khách hàng)
             null,          // không gửi cho người cụ thể
             'O',           // gửi cho tất cả chủ shop
             'ORDER_CONFIRM',
@@ -829,39 +827,39 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
         } else {
           console.log('[ERROR] Không tìm thấy chủ cửa hàng (AccountType=O) trong DB!');
         }
-        if (accountid) {
+        if (AccountID) {
           try {
             await sendNotification(
-              accountid,
-              accountid,
+              AccountID,
+              AccountID,
               null,
               'ORDER_SUCCESS',
               InvoiceID
             );
-            console.log(`[NOTIF SUCCESS] Đã gửi ORDER_SUCCESS cho khách ${accountid}`);
+            console.log(`[NOTIF SUCCESS] Đã gửi ORDER_SUCCESS cho khách ${AccountID}`);
           } catch (err) {
             console.log('[NOTIF ERROR] Gửi ORDER_SUCCESS thất bại:', err);
           }
         }
       }
       let vnpayUrl = null;
-      if (paymenttype === 'QR' || paymenttype === 'CARD') {
+      if (PaymentType === 'QR' || PaymentType === 'CARD') {
         const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '127.0.0.1';
-        const bankCode = paymenttype === 'QR' ? 'VNPAYQR' : ''; // Rỗng cho card form
-        const vnpayResponse = await generateVnpayUrl(InvoiceID, totalpayment, ipAddr, bankCode); // Thêm bankCode param
+        const bankCode = PaymentType === 'QR' ? 'VNPAYQR' : ''; // Rỗng cho card form
+        const vnpayResponse = await generateVnpayUrl(InvoiceID, TotalPayment, ipAddr, bankCode); // Thêm bankCode param
         if (vnpayResponse.errCode === 0) {
           vnpayUrl = vnpayResponse.data;
         }
       }
 
       let emailSent = true;
-      if (invoiceData.email) {
-        emailSent = await sendInvoiceEmail(InvoiceID, invoiceData.email);
+      if (invoiceData.Email) {
+        emailSent = await sendInvoiceEmail(InvoiceID, invoiceData.Email);
       }
-      if (!emailSent && invoiceData.email) {
+      if (!emailSent && invoiceData.Email) {
         resolve({
           errCode: 0,
-          errMessage: 'Tạo đơn hàng thành công, nhưng gửi email thất bại!',
+          errMessage: 'Tạo đơn hàng thành công, nhưng gửi Email thất bại!',
           data: { InvoiceID, vnpayUrl },
         });
         return;
@@ -883,11 +881,11 @@ let createInvoice = (accountid, receivername, receiverphone, receiveraddress, ca
   });
 };
 
-let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
+let changeInvoiceStatus = (InvoiceID, Type, Status, CancelReason) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!invoiceid || !type || !status) {
+      if (!InvoiceID || !Type || !Status) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -897,7 +895,7 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         return;
       }
       const invoice = await db.Invoice.findOne({
-        where: { InvoiceID: invoiceid },
+        where: { InvoiceID },
         raw: false,
         transaction,
       });
@@ -910,7 +908,7 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         });
         return;
       }
-      if (!['PaymentStatus', 'ShippingStatus'].includes(type)) {
+      if (!['PaymentStatus', 'ShippingStatus'].includes(Type)) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -919,8 +917,8 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         });
         return;
       }
-      const currentStatus = type === 'PaymentStatus' ? invoice.PaymentStatus : invoice.ShippingStatus;
-      if (currentStatus === status) {
+      const currentStatus = Type === 'PaymentStatus' ? invoice.PaymentStatus : invoice.ShippingStatus;
+      if (currentStatus === Status) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -929,18 +927,18 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         });
         return;
       }
-      const validStatus = await checkValidAllCode(type === 'PaymentStatus' ? 'PaymentStatus' : 'ShippingStatus', status);
+      const validStatus = await checkValidAllCode(Type === 'PaymentStatus' ? 'PaymentStatus' : 'ShippingStatus', Status);
       if (!validStatus) {
         await transaction.rollback();
         resolve({
           errCode: 1,
-          errMessage: `Trạng thái ${type === 'PaymentStatus' ? 'thanh toán' : 'giao hàng'} không hợp lệ!`,
+          errMessage: `Trạng thái ${Type === 'PaymentStatus' ? 'thanh toán' : 'giao hàng'} không hợp lệ!`,
           data: null,
         });
         return;
       }
-      if (type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(status)) {
-        if (status === 'PEND_CANCEL' && !cancelReason?.trim()) {
+      if (Type === 'ShippingStatus' && ['PEND_CANCEL', 'CANCELED'].includes(Status)) {
+        if (Status === 'PEND_CANCEL' && !CancelReason?.trim()) {
           await transaction.rollback();
           resolve({
             errCode: 1,
@@ -949,7 +947,7 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
           });
           return;
         }
-        if (status === 'CANCELED' && !cancelReason?.trim() && !invoice.CancelReason) {
+        if (Status === 'CANCELED' && !CancelReason?.trim() && !invoice.CancelReason) {
           await transaction.rollback();
           resolve({
             errCode: 1,
@@ -959,17 +957,17 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
           return;
         }
       }
-      if (type === 'PaymentStatus') {
-        invoice.PaymentStatus = status;
+      if (Type === 'PaymentStatus') {
+        invoice.PaymentStatus = Status;
       } else {
-        invoice.ShippingStatus = status;
-        if (['PEND_CANCEL', 'CANCELED'].includes(status)) {
-          invoice.CancelReason = cancelReason?.trim() || invoice.CancelReason;
+        invoice.ShippingStatus = Status;
+        if (['PEND_CANCEL', 'CANCELED'].includes(Status)) {
+          invoice.CancelReason = CancelReason?.trim() || invoice.CancelReason;
         }
-        if (status === 'CANCELED') {
+        if (Status === 'CANCELED') {
           invoice.CanceledAt = new Date();
           const invoiceDetails = await db.InvoiceDetail.findAll({
-            where: { InvoiceID: invoiceid },
+            where: { InvoiceID },
             attributes: ['ProductDetailID', 'ItemQuantity'],
             raw: true,
             transaction,
@@ -989,13 +987,13 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
       }
       await invoice.save({ transaction });
       await transaction.commit();
-      console.log(`[DEBUG] Đổi trạng thái đơn hàng ${invoiceid} thành công! Type: ${type}, Status: ${status}`);
+      console.log(`[DEBUG] Đổi trạng thái đơn hàng ${InvoiceID} thành công! Type: ${Type}, Status: ${Status}`);
       // THÊM TỪ ĐÂY ↓↓↓ - GỬI THÔNG BÁO ORDER_CANCEL CHO KHÁCH HÀNG KHI HỦY
-      if (type === 'ShippingStatus' && status === 'CANCELED') {
+      if (Type === 'ShippingStatus' && Status === 'CANCELED') {
         console.log(`[DEBUG CHANGE] Phát hiện HỦY ĐƠN - Gửi ORDER_CANCEL cho khách hàng`);
         try {
           const invoiceData = await db.Invoice.findOne({
-            where: { InvoiceID: invoiceid },
+            where: { InvoiceID },
             attributes: ['AccountID'],
             raw: true,
           });
@@ -1015,7 +1013,7 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
                 invoiceData.AccountID,        // Gửi cho: khách hàng cụ thể
                 null,                         // Không gửi theo role
                 'ORDER_CANCEL',               // Loại: hủy đơn hàng
-                invoiceid                     // Extra: mã đơn hàng
+                InvoiceID                     // Extra: mã đơn hàng
               );
               console.log(`[DEBUG CHANGE] Kết quả ORDER_CANCEL: `, cancelResult);
             } else {
@@ -1029,9 +1027,9 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
         }
       }
       // === THÊM THÔNG BÁO KHI CHUYỂN SANG PAID (admin bấm tay) ===
-      if (type === 'PaymentStatus' && status === 'PAID') {
+      if (Type === 'PaymentStatus' && Status === 'PAID') {
         const invoice = await db.Invoice.findOne({
-          where: { InvoiceID: invoiceid },
+          where: { InvoiceID },
           attributes: ['AccountID'],
           raw: true,
         });
@@ -1051,7 +1049,7 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
               null,
               'O',
               'ORDER_COMPLETE',
-              invoiceid
+              InvoiceID
             );
             // Thông báo cho khách hàng
             await sendNotification(
@@ -1059,13 +1057,13 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
               invoice.AccountID,
               null,
               'ORDER_SUCCESS',
-              invoiceid
+              InvoiceID
             );
           } else {
             console.log('[ERROR] Không tìm thấy chủ cửa hàng (AccountType=O) trong DB!');
           }
         } else {
-          console.log(`[DEBUG] Đơn hàng ${invoiceid} không có AccountID (khách vãng lai)`);
+          console.log(`[DEBUG] Đơn hàng ${InvoiceID} không có AccountID (khách vãng lai)`);
         }
       }
       resolve({
@@ -1085,34 +1083,34 @@ let changeInvoiceStatus = (invoiceid, type, status, cancelReason) => {
   });
 };
 
-const getInvoiceEmail = async (billid, email) => {
+const getInvoiceEmail = async (BillID, Email) => {
   try {
-    const emailSent = await sendInvoiceEmail(billid, email);
+    const emailSent = await sendInvoiceEmail(BillID, Email);
     if (emailSent) {
       return {
         errCode: 0,
-        errMessage: 'Gửi email hóa đơn thành công!',
+        errMessage: 'Gửi Email hóa đơn thành công!',
       };
     } else {
       return {
         errCode: 1,
-        errMessage: 'Gửi email hóa đơn thất bại!',
+        errMessage: 'Gửi Email hóa đơn thất bại!',
       };
     }
   } catch (e) {
     console.log('Error in handleSendInvoiceEmail: ', e);
     return {
       errCode: 2,
-      errMessage: 'Lỗi khi gửi email hóa đơn: ' + e.message,
+      errMessage: 'Lỗi khi gửi Email hóa đơn: ' + e.message,
     };
   }
 };
 
-const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
+const getRevenueStats = async (Type = 'monthly', StartDate, EndDate) => {
   let groupBy;
   let dateFormat;
 
-  switch (type) {
+  switch (Type) {
     case 'daily':
       groupBy = [db.sequelize.fn('DATE', db.sequelize.col('Invoice.CreatedAt'))];
       dateFormat = '%Y-%m-%d';
@@ -1126,7 +1124,7 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
       dateFormat = '%Y';
       break;
     default:
-      throw new Error('Invalid type: must be daily, monthly, or yearly');
+      throw new Error('Invalid Type: must be daily, monthly, or yearly');
   }
 
   const where = {
@@ -1134,11 +1132,11 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
     '$Invoice.CanceledAt$': null,
   };
 
-  if (startDate) {
-    where['$Invoice.CreatedAt$'] = { [Op.gte]: new Date(startDate) };
+  if (StartDate) {
+    where['$Invoice.CreatedAt$'] = { [Op.gte]: new Date(StartDate) };
   }
-  if (endDate) {
-    where['$Invoice.CreatedAt$'] = { ...where['$Invoice.CreatedAt$'], [Op.lte]: new Date(endDate) };
+  if (EndDate) {
+    where['$Invoice.CreatedAt$'] = { ...where['$Invoice.CreatedAt$'], [Op.lte]: new Date(EndDate) };
   }
 
   const revenues = await db.InvoiceDetail.findAll({
@@ -1163,21 +1161,21 @@ const getRevenueStats = async (type = 'monthly', startDate, endDate) => {
   return revenues;
 };
 
-const getTopProducts = async (type = 'monthly', startDate, endDate) => {
+const getTopProducts = async (Type = 'monthly', StartDate, EndDate) => {
   const where = {
     '$Invoice.PaymentStatus$': 'PAID',
     '$Invoice.CanceledAt$': null,
   };
 
-  if (startDate) {
-    where['$Invoice.CreatedAt$'] = { [Op.gte]: new Date(startDate) };
+  if (StartDate) {
+    where['$Invoice.CreatedAt$'] = { [Op.gte]: new Date(StartDate) };
   }
-  if (endDate) {
-    where['$Invoice.CreatedAt$'] = { ...where['$Invoice.CreatedAt$'], [Op.lte]: new Date(endDate) };
+  if (EndDate) {
+    where['$Invoice.CreatedAt$'] = { ...where['$Invoice.CreatedAt$'], [Op.lte]: new Date(EndDate) };
   }
 
   const topProducts = await db.InvoiceDetail.findAll({
-    attributes: ['ProductID', [db.sequelize.fn('SUM', db.sequelize.col('ItemQuantity')), 'totalSold']],
+    attributes: ['ProductID', [db.sequelize.fn('SUM', db.sequelize.col('ItemQuantity')), 'TotalSold']],
     include: [
       {
         model: db.Invoice,
@@ -1197,9 +1195,9 @@ const getTopProducts = async (type = 'monthly', startDate, endDate) => {
   });
 
   return topProducts.map((item) => ({
-    productID: item.ProductID,
-    productName: item['Product.ProductName'],
-    totalSold: item.totalSold,
+    ProductID: item.ProductID,
+    ProductName: item['Product.ProductName'],
+    TotalSold: item.TotalSold,
   }));
 };
 
@@ -1221,15 +1219,15 @@ function sortObject(obj) {
 }
 
 // Hàm tạo URL VNPay (thêm bankCode param)
-let generateVnpayUrl = (invoiceid, totalpayment, ipAddr, bankCode = '') => {
+let generateVnpayUrl = (InvoiceID, TotalPayment, ipAddr, bankCode = '') => {
   return new Promise(async (resolve, reject) => {
     try {
       let vnpUrl = process.env.VNP_URL;
       process.env.TZ = 'Asia/Ho_Chi_Minh';
       let date = new Date();
       let createDate = date.getFullYear().toString() + ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + date.getDate()).slice(-2) + ('0' + date.getHours()).slice(-2) + ('0' + date.getMinutes()).slice(-2) + ('0' + date.getSeconds()).slice(-2);
-      let orderId = invoiceid;
-      let amount = totalpayment * 100;
+      let orderId = InvoiceID;
+      let amount = TotalPayment * 100;
       let locale = 'vn';
       let currCode = 'VND';
       let vnp_Params = {};

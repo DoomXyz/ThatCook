@@ -204,7 +204,7 @@ let initAPIRoutes = (app) => {
         console.log('Return URL Fail: Error updating status', e);
       }
       // Redirect về FE track với success
-      res.redirect(`${process.env.URL_FRONTEND}/track?success=true&invoiceId=${orderId}`);
+      res.redirect(`${process.env.URL_FRONTEND}/track?success=true&InvoiceID=${orderId}`);
     } else {
       // Fail
       res.redirect(`${process.env.URL_FRONTEND}/checkout?error=Thanh toán thất bại&code=${rspCode}`);

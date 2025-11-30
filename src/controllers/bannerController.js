@@ -11,7 +11,7 @@ const handleError = (res, e) => {
 
 let handleGetSaleBannerInfo = async (req, res) => {
   try {
-    let response = await bannerService.getBannerSaleInfo(req.query.productid);
+    let response = await bannerService.getBannerSaleInfo(req.query.ProductID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -20,7 +20,7 @@ let handleGetSaleBannerInfo = async (req, res) => {
 
 let handleGetBannerInfo = async (req, res) => {
   try {
-    let response = await bannerService.getBannerInfo(req.query.bannerid);
+    let response = await bannerService.getBannerInfo(req.query.BannerID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);

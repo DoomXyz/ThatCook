@@ -1,9 +1,9 @@
 import db from '../models/index';
 
-let getCart = (accountid) => {
+let getCart = (AccountID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountid) {
+      if (!AccountID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -12,7 +12,7 @@ let getCart = (accountid) => {
         return;
       }
       const cartItems = await db.CartItem.findAll({
-        where: { AccountID: accountid },
+        where: { AccountID },
         attributes: ['CartItemID', 'ProductID', 'ProductDetailID', 'ItemPrice', 'ItemQuantity'],
         raw: true,
       });
@@ -199,11 +199,11 @@ let getDetailList = (cartInfo) => {
   });
 };
 
-let addToCart = (accountid, cartInfo) => {
+let addToCart = (AccountID, cartInfo) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !cartInfo || !Array.isArray(cartInfo) || cartInfo.length === 0) {
+      if (!AccountID || !cartInfo || !Array.isArray(cartInfo) || cartInfo.length === 0) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -213,7 +213,7 @@ let addToCart = (accountid, cartInfo) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { AccountID: accountid },
+        where: { AccountID },
         transaction,
       });
       if (!account) {
@@ -260,7 +260,7 @@ let addToCart = (accountid, cartInfo) => {
           return;
         }
         let cartItem = await db.CartItem.findOne({
-          where: { AccountID: accountid, ProductID, ProductDetailID },
+          where: { AccountID, ProductID, ProductDetailID },
           raw: false,
           transaction,
         });
@@ -270,7 +270,7 @@ let addToCart = (accountid, cartInfo) => {
           await cartItem.save({ transaction });
         } else {
           await db.CartItem.create({
-            AccountID: accountid,
+            AccountID,
             ProductID,
             ProductDetailID,
             ItemPrice,
@@ -296,11 +296,11 @@ let addToCart = (accountid, cartInfo) => {
   });
 };
 
-let updateQuantity = (accountid, productid, productdetailid, quantity) => {
+let updateQuantity = (AccountID, ProductID, ProductDetailID, Quantity) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !productid || !productdetailid || quantity === undefined) {
+      if (!AccountID || !ProductID || !ProductDetailID || Quantity === undefined) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -309,7 +309,7 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
         });
         return;
       }
-      if (isNaN(quantity) || quantity < 0) {
+      if (isNaN(Quantity) || Quantity < 0) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -320,9 +320,9 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
       }
       const cartItem = await db.CartItem.findOne({
         where: {
-          AccountID: accountid,
-          ProductID: productid,
-          ProductDetailID: productdetailid,
+          AccountID,
+          ProductID,
+          ProductDetailID,
         },
         raw: false,
         transaction,
@@ -338,7 +338,7 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
         return;
       }
       const productDetail = await db.ProductDetail.findOne({
-        where: { ProductID: productid, ProductDetailID: productdetailid, DetailStatus: 'AVAIL' },
+        where: { ProductID, ProductDetailID, DetailStatus: 'AVAIL' },
         attributes: ['Stock'],
         transaction,
       });
@@ -353,7 +353,7 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
         return;
       }
 
-      if (quantity > productDetail.Stock) {
+      if (Quantity > productDetail.Stock) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -363,24 +363,24 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
         return;
       }
 
-      if (quantity === 0) {
+      if (Quantity === 0) {
         await db.CartItem.destroy({
           where: {
-            AccountID: accountid,
-            ProductID: productid,
-            ProductDetailID: productdetailid,
+            AccountID,
+            ProductID,
+            ProductDetailID,
           },
           transaction,
         });
       } else {
-        cartItem.ItemQuantity = quantity;
+        cartItem.ItemQuantity = Quantity;
         await cartItem.save({ transaction });
       }
 
       await transaction.commit();
       resolve({
         errCode: 0,
-        errMessage: quantity === 0 ? 'Xóa sản phẩm khỏi giỏ hàng thành công!' : 'Cập nhật số lượng thành công!',
+        errMessage: Quantity === 0 ? 'Xóa sản phẩm khỏi giỏ hàng thành công!' : 'Cập nhật số lượng thành công!',
         data: null,
       });
     } catch (e) {
@@ -395,11 +395,11 @@ let updateQuantity = (accountid, productid, productdetailid, quantity) => {
   });
 };
 
-let updateCartDetail = (accountid, productid, productdetailid1, productdetailid2) => {
+let updateCartDetail = (AccountID, ProductID, ProductDetailID1, ProductDetailID2) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !productid || !productdetailid1 || !productdetailid2) {
+      if (!AccountID || !ProductID || !ProductDetailID1 || !ProductDetailID2) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -410,9 +410,9 @@ let updateCartDetail = (accountid, productid, productdetailid1, productdetailid2
       }
       const cartItem = await db.CartItem.findOne({
         where: {
-          AccountID: accountid,
-          ProductID: productid,
-          ProductDetailID: productdetailid1,
+          AccountID,
+          ProductID,
+          ProductDetailID: ProductDetailID1,
         },
         raw: false,
         transaction,
@@ -428,7 +428,7 @@ let updateCartDetail = (accountid, productid, productdetailid1, productdetailid2
         return;
       }
       const newDetail = await db.ProductDetail.findOne({
-        where: { ProductID: productid, ProductDetailID: productdetailid2, DetailStatus: 'AVAIL' },
+        where: { ProductID, ProductDetailID: ProductDetailID2, DetailStatus: 'AVAIL' },
         attributes: ['Stock', 'ExtraPrice', 'Promotion'],
         transaction,
       });
@@ -444,7 +444,7 @@ let updateCartDetail = (accountid, productid, productdetailid1, productdetailid2
       }
 
       const product = await db.Product.findOne({
-        where: { ProductID: productid },
+        where: { ProductID },
         attributes: ['ProductPrice'],
         transaction,
       });
@@ -465,7 +465,7 @@ let updateCartDetail = (accountid, productid, productdetailid1, productdetailid2
       }
 
       const newItemPrice = (parseFloat(product.ProductPrice) + parseFloat(newDetail.ExtraPrice)) * (1 - parseFloat(newDetail.Promotion) / 100);
-      cartItem.ProductDetailID = productdetailid2;
+      cartItem.ProductDetailID = ProductDetailID2;
       cartItem.ItemPrice = newItemPrice;
       await cartItem.save({ transaction });
 
@@ -487,11 +487,11 @@ let updateCartDetail = (accountid, productid, productdetailid1, productdetailid2
   });
 };
 
-let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2, quantity) => {
+let mergeCartDetail = (AccountID, ProductID, ProductDetailID1, ProductDetailID2, Quantity) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !productid || !productdetailid1 || !productdetailid2 || quantity === undefined) {
+      if (!AccountID || !ProductID || !ProductDetailID1 || !ProductDetailID2 || Quantity === undefined) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -500,7 +500,7 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
         });
         return;
       }
-      if (isNaN(quantity) || quantity < 0) {
+      if (isNaN(Quantity) || Quantity < 0) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -511,21 +511,21 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
       }
 
       const detail1 = await db.CartItem.findOne({
-        where: { AccountID: accountid, ProductID: productid, ProductDetailID: productdetailid1 },
+        where: { AccountID, ProductID, ProductDetailID: ProductDetailID1 },
         attributes: ['CartItemID', 'ItemQuantity', 'ItemPrice'],
         raw: false,
         transaction,
       });
 
       const detail2 = await db.CartItem.findOne({
-        where: { AccountID: accountid, ProductID: productid, ProductDetailID: productdetailid2 },
+        where: { AccountID, ProductID, ProductDetailID: ProductDetailID2 },
         attributes: ['CartItemID', 'ItemQuantity', 'ItemPrice'],
         raw: false,
         transaction,
       });
 
       const productDetail = await db.ProductDetail.findOne({
-        where: { ProductID: productid, ProductDetailID: productdetailid2, DetailStatus: 'AVAIL' },
+        where: { ProductID, ProductDetailID: ProductDetailID2, DetailStatus: 'AVAIL' },
         attributes: ['ProductDetailID', 'Stock', 'ExtraPrice', 'Promotion'],
         transaction,
       });
@@ -541,7 +541,7 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
       }
 
       const product = await db.Product.findOne({
-        where: { ProductID: productid },
+        where: { ProductID },
         attributes: ['ProductPrice'],
         transaction,
       });
@@ -557,7 +557,7 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
       }
 
       const newItemPrice = (parseFloat(product.ProductPrice) + parseFloat(productDetail.ExtraPrice)) * (1 - parseFloat(productDetail.Promotion) / 100);
-      const totalQuantity = Math.min(quantity, productDetail.Stock);
+      const TotalQuantity = Math.min(Quantity, productDetail.Stock);
 
       if (!detail1 && !detail2) {
         await transaction.rollback();
@@ -570,17 +570,17 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
       }
 
       if (detail2) {
-        detail2.ItemQuantity = totalQuantity;
+        detail2.ItemQuantity = TotalQuantity;
         detail2.ItemPrice = newItemPrice;
         await detail2.save({ transaction });
       } else {
         await db.CartItem.create(
           {
-            AccountID: accountid,
-            ProductID: productid,
-            ProductDetailID: productdetailid2,
+            AccountID,
+            ProductID,
+            ProductDetailID: ProductDetailID2,
             ItemPrice: newItemPrice,
-            ItemQuantity: totalQuantity,
+            ItemQuantity: TotalQuantity,
           },
           { transaction }
         );
@@ -588,7 +588,7 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
 
       if (detail1) {
         await db.CartItem.destroy({
-          where: { AccountID: accountid, ProductID: productid, ProductDetailID: productdetailid1 },
+          where: { AccountID, ProductID, ProductDetailID: ProductDetailID1 },
           transaction,
         });
       }
@@ -611,11 +611,11 @@ let mergeCartDetail = (accountid, productid, productdetailid1, productdetailid2,
   });
 };
 
-let removeFromCart = (accountid, productid, productdetailid) => {
+let removeFromCart = (AccountID, ProductID, ProductDetailID) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !productid || !productdetailid) {
+      if (!AccountID || !ProductID || !ProductDetailID) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -626,9 +626,9 @@ let removeFromCart = (accountid, productid, productdetailid) => {
       }
       const cartItem = await db.CartItem.findOne({
         where: {
-          AccountID: accountid,
-          ProductID: productid,
-          ProductDetailID: productdetailid,
+          AccountID,
+          ProductID,
+          ProductDetailID,
         },
         transaction,
       });
@@ -644,9 +644,9 @@ let removeFromCart = (accountid, productid, productdetailid) => {
 
       await db.CartItem.destroy({
         where: {
-          AccountID: accountid,
-          ProductID: productid,
-          ProductDetailID: productdetailid,
+          AccountID,
+          ProductID,
+          ProductDetailID,
         },
         transaction,
       });

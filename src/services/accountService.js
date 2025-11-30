@@ -8,23 +8,23 @@ import { ethers } from 'ethers';
 const keys = require('../../keys.json');
 //bcrypt
 let saltRounds = 10;
-let hashPassword = (userPassword) => {
-  if (!userPassword || typeof userPassword !== 'string') {
+let hashPassword = (Password) => {
+  if (!Password || typeof Password !== 'string') {
     return { errCode: -1, errMessage: 'Mật khẩu không hợp lệ!', data: null, };
   }
   try {
     let salt = bcrypt.genSaltSync(saltRounds);
-    return bcrypt.hashSync(userPassword, salt);
+    return bcrypt.hashSync(Password, salt);
   } catch (e) {
     console.log(e);
     return { errCode: 3, errMessage: 'Lỗi khi mã hóa mật khẩu: ' + e.message, data: null, };
   }
 };
-let firstNavigate = (accountType) => {
-  if (!accountType) {
+let firstNavigate = (AccountType) => {
+  if (!AccountType) {
     return '/login';
   }
-  switch (accountType) {
+  switch (AccountType) {
     case 'A':
       return '/user/admin';
     case 'O':
@@ -45,17 +45,16 @@ let validateAccountInput = async (userInfo) => {
       data: null,
     };
   }
-  const { accountname, email, password, username, phone, address, gender, accounttype } = userInfo;
-  if (!accountname) {
+  const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType } = userInfo;
+  if (!AccountName) {
     return {
       errCode: -1,
       errMessage: 'Tên tài khoản không được để trống!',
       data: null,
     };
   } else {
-    const accountName = accountname.trim();
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    if (!accountNameRegex.test(accountName)) {
+    if (!accountNameRegex.test(AccountName.trim())) {
       return {
         errCode: 1,
         errMessage: 'Tên tài khoản sai định dạng!',
@@ -63,16 +62,15 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!email) {
+  if (!Email) {
     return {
       errCode: -1,
       errMessage: 'Email không được để trống!',
       data: null,
     };
   } else {
-    const emailTrimmed = email.trim();
     const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailTrimmed)) {
+    if (!emailRegex.test(Email.trim())) {
       return {
         errCode: 1,
         errMessage: 'Email sai định dạng!',
@@ -80,17 +78,16 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!password) {
+  if (!Password) {
     return {
       errCode: -1,
       errMessage: 'Mật khẩu không được để trống!',
       data: null,
     };
   } else {
-    const passwordTrimmed = password.trim();
     const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;  //cần ít nhất 8 ký tự
-    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,}$/; //cần ít nhất 8 ký tự, bao gồm chữ cái và số để tăng tính bảo mật
-    if (!passwordRegex.test(passwordTrimmed)) {
+    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,}$/; //cần ít nhất 8 ký tự, bao gồm chữ cái và số
+    if (!passwordRegex.test(Password.trim())) {
       return {
         errCode: 1,
         errMessage: 'Mật khẩu không hợp lệ! (Cần ít nhất 8 ký tự)',
@@ -98,16 +95,15 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!username) {
+  if (!UserName) {
     return {
       errCode: -1,
       errMessage: 'Tên người dùng không được để trống!',
       data: null,
     };
   } else {
-    const userName = username.trim();
     const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    if (!userNameRegex.test(userName)) {
+    if (!userNameRegex.test(UserName.trim())) {
       return {
         errCode: 1,
         errMessage: 'Tên người dùng không hợp lệ!',
@@ -115,16 +111,15 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!phone) {
+  if (!Phone) {
     return {
       errCode: -1,
       errMessage: 'Số điện thoại không được để trống!',
       data: null,
     };
   } else {
-    const phoneNumber = phone.trim();
     const phoneRegex = /^[0-9]{10,11}$/;
-    if (!phoneRegex.test(phoneNumber)) {
+    if (!phoneRegex.test(Phone.trim())) {
       return {
         errCode: 1,
         errMessage: 'Số điện thoại không hợp lệ!',
@@ -132,21 +127,21 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!address || address.trim().length === 0 || address.trim().length > 100) {
+  if (!Address || Address.trim().length === 0 || Address.trim().length > 100) {
     return {
       errCode: -1,
       errMessage: 'Địa chỉ không hợp lệ hoặc vượt quá 100 ký tự!',
       data: null,
     };
   }
-  if (!gender) {
+  if (!Gender) {
     return {
       errCode: -1,
       errMessage: 'Giới tính không được để trống!',
       data: null,
     };
   } else {
-    const validGender = await checkValidAllCode('Gender', gender);
+    const validGender = await checkValidAllCode('Gender', Gender);
     if (!validGender) {
       return {
         errCode: 1,
@@ -155,14 +150,14 @@ let validateAccountInput = async (userInfo) => {
       };
     }
   }
-  if (!accounttype) {
+  if (!AccountType) {
     return {
       errCode: -1,
       errMessage: 'Quyền hạn không được để trống!',
       data: null,
     };
   } else {
-    const validAccountType = await checkValidAllCode('AccountType', accounttype);
+    const validAccountType = await checkValidAllCode('AccountType', AccountType);
     if (!validAccountType) {
       return {
         errCode: 1,
@@ -181,34 +176,34 @@ let validateVeterinarianInput = async (veterinarianInfo) => {
       data: null,
     };
   }
-  const { bio, specialization, workingstatus } = veterinarianInfo;
-  if (bio) {
-    if (bio.trim().length > 65535) {
+  const { Bio, Specialization, WorkingStatus } = veterinarianInfo;
+  if (Bio) {
+    if (Bio.trim().length > 65535) {
       return {
         errCode: 1,
-        errMessage: 'Bio vượt quá độ dài tối đa (65535 ký tự)!',
+        errMessage: 'Bio vượt quá độ dài ký tự tối đa!',
         data: null,
       };
     }
   }
-  if (specialization) {
+  if (Specialization) {
     const specializationRegex = /^[A-Za-zÀ-ỹ0-9\s]{1,50}$/;
-    if (!specializationRegex.test(specialization.trim())) {
+    if (!specializationRegex.test(Specialization.trim())) {
       return {
         errCode: 1,
-        errMessage: 'Chuyên khoa không hợp lệ hoặc vượt quá 50 ký tự!',
+        errMessage: 'Chuyên khoa không hợp lệ!',
         data: null,
       };
     }
   }
-  if (!workingstatus) {
+  if (!WorkingStatus) {
     return {
       errCode: -1,
       errMessage: 'Trạng thái làm việc không được để trống!',
       data: null,
     };
   } else {
-    const validStatus = await checkValidAllCode('WorkingStatus', workingstatus);
+    const validStatus = await checkValidAllCode('WorkingStatus', WorkingStatus);
     if (!validStatus) {
       return {
         errCode: 1,
@@ -227,11 +222,10 @@ let validateAccountEdit = async (userInfo) => {
       data: null,
     };
   }
-  const { accountname, username, phone, address, gender, accounttype } = userInfo;
-  if (accountname) {
-    const accountName = accountname.trim();
+  const { AccountName, UserName, Phone, Address, Gender, AccountType } = userInfo;
+  if (AccountName) {
     const accountNameRegex = /^[a-zA-Z0-9_]{5,50}$/;
-    if (!accountNameRegex.test(accountName)) {
+    if (!accountNameRegex.test(AccountName.trim())) {
       return {
         errCode: 1,
         errMessage: 'Tên tài khoản sai định dạng!',
@@ -239,10 +233,9 @@ let validateAccountEdit = async (userInfo) => {
       };
     }
   }
-  if (username) {
-    const userName = username.trim();
+  if (UserName) {
     const userNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-    if (!userNameRegex.test(userName)) {
+    if (!userNameRegex.test(UserName.trim())) {
       return {
         errCode: 1,
         errMessage: 'Tên người dùng không hợp lệ!',
@@ -250,10 +243,9 @@ let validateAccountEdit = async (userInfo) => {
       };
     }
   }
-  if (phone) {
-    const phoneNumber = phone.trim();
+  if (Phone) {
     const phoneRegex = /^[0-9]{10,11}$/;
-    if (!phoneRegex.test(phoneNumber)) {
+    if (!phoneRegex.test(Phone.trim())) {
       return {
         errCode: 1,
         errMessage: 'Số điện thoại không hợp lệ!',
@@ -261,8 +253,8 @@ let validateAccountEdit = async (userInfo) => {
       };
     }
   }
-  if (address) {
-    if (address.trim().length === 0 || address.trim().length > 100) {
+  if (Address) {
+    if (Address.trim().length === 0 || Address.trim().length > 100) {
       return {
         errCode: 1,
         errMessage: 'Địa chỉ không hợp lệ hoặc vượt quá 100 ký tự!',
@@ -270,8 +262,8 @@ let validateAccountEdit = async (userInfo) => {
       };
     }
   }
-  if (gender) {
-    const validGender = await checkValidAllCode('Gender', gender);
+  if (Gender) {
+    const validGender = await checkValidAllCode('Gender', Gender);
     if (!validGender) {
       return {
         errCode: 1,
@@ -280,8 +272,8 @@ let validateAccountEdit = async (userInfo) => {
       };
     }
   }
-  if (accounttype) {
-    const validAccountType = await checkValidAllCode('AccountType', accounttype);
+  if (AccountType) {
+    const validAccountType = await checkValidAllCode('AccountType', AccountType);
     if (!validAccountType) {
       return {
         errCode: 1,
@@ -292,35 +284,35 @@ let validateAccountEdit = async (userInfo) => {
   }
   return null;
 };
-let checkEmailExist = (userEmail) => {
+let checkExistEmail = (Email) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!userEmail) {
+      if (!Email) {
         resolve({
           errCode: -1,
-          errMessage: 'Thiếu email để kiểm tra!',
+          errMessage: 'Thiếu Email để kiểm tra!',
           data: null,
         });
         return;
       }
-      let exist = await db.Account.findOne({
-        where: { Email: userEmail },
+      let existEmail = await db.Account.findOne({
+        where: { Email },
       });
-      resolve(exist ? true : false);
+      resolve(existEmail ? true : false);
     } catch (e) {
       console.log(e);
       resolve({
         errCode: 3,
-        errMessage: 'Lỗi khi kiểm tra email: ' + e.message,
+        errMessage: 'Lỗi khi kiểm tra Email: ' + e.message,
         data: null,
       });
     }
   });
 };
-let checkAccountNameExist = (userAccountName) => {
+let checkExistAccountName = (AccountName) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!userAccountName) {
+      if (!AccountName) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tên tài khoản để kiểm tra!',
@@ -328,10 +320,10 @@ let checkAccountNameExist = (userAccountName) => {
         });
         return;
       }
-      let exist = await db.Account.findOne({
-        where: { AccountName: userAccountName },
+      let existAccountName = await db.Account.findOne({
+        where: { AccountName },
       });
-      resolve(exist ? true : false);
+      resolve(existAccountName ? true : false);
     } catch (e) {
       console.log(e);
       resolve({
@@ -342,10 +334,10 @@ let checkAccountNameExist = (userAccountName) => {
     }
   });
 };
-let checkPhoneExist = (userPhone) => {
+let checkExistPhone = (Phone) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!userPhone) {
+      if (!Phone) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu số điện thoại để kiểm tra!',
@@ -353,10 +345,10 @@ let checkPhoneExist = (userPhone) => {
         });
         return;
       }
-      let exist = await db.Account.findOne({
-        where: { Phone: userPhone },
+      let existPhone = await db.Account.findOne({
+        where: { Phone },
       });
-      resolve(exist ? true : false);
+      resolve(existPhone ? true : false);
     } catch (e) {
       console.log(e);
       resolve({
@@ -367,7 +359,7 @@ let checkPhoneExist = (userPhone) => {
     }
   });
 };
-let sendVerificationEmail = async (email, code) => {
+let sendVerificationEmail = async (Email, Code) => {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -378,9 +370,31 @@ let sendVerificationEmail = async (email, code) => {
     });
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: email,
+      to: Email,
       subject: 'Mã xác nhận đặt lại mật khẩu',
-      text: `Mã xác nhận của bạn là: ${code}. Mã này có hiệu lực trong 30 phút.`,
+      text: `Mã xác nhận của bạn là: ${Code}. Mã này có hiệu lực trong 30 phút.`,
+    };
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (e) {
+    console.log('Error in sendVerificationEmail: ', e);
+    return false;
+  }
+};
+let sendPrivateKeyEmail = async (Email, privateKey) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: Email,
+      subject: 'KHÔNG CHIA SẼ CHO BẤT KỲ AI!',
+      text: `PrivateKey ví điện tử của bạn là: ${privateKey}. Hãy nhập ví vào Metamask để có thể sử dụng dịch vụ của chúng tôi.`,
     };
     await transporter.sendMail(mailOptions);
     return true;
@@ -390,10 +404,10 @@ let sendVerificationEmail = async (email, code) => {
   }
 };
 //kiểm tra tính hợp lệ của token
-let verifyToken = (token) => {
+let verifyToken = (Token) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!token) {
+      if (!Token) {
         resolve({
           errCode: -1,
           errMessage: 'Không có token!',
@@ -402,7 +416,7 @@ let verifyToken = (token) => {
         return;
       }
       const isBlacklisted = await db.BlacklistToken.findOne({
-        where: { Token: token },
+        where: { Token },
       });
       if (isBlacklisted) {
         resolve({
@@ -412,7 +426,7 @@ let verifyToken = (token) => {
         });
         return;
       }
-      const data = verifyJWT(token);
+      const data = verifyJWT(Token);
       if (data) {
         resolve({
           errCode: 0,
@@ -456,7 +470,8 @@ let userRegister = (userInfo) => {
         resolve(isValidateInput);
         return;
       }
-      const isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
+      const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType } = userInfo;
+      const isAccountNameExist = await checkExistAccountName(AccountName);
       if (isAccountNameExist) {
         await transaction.rollback();
         resolve({
@@ -466,7 +481,7 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      const isEmailExist = await checkEmailExist(userInfo.email);
+      const isEmailExist = await checkExistEmail(Email);
       if (isEmailExist) {
         await transaction.rollback();
         resolve({
@@ -476,7 +491,7 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-      const isPhoneExist = await checkPhoneExist(userInfo.phone);
+      const isPhoneExist = await checkExistPhone(Phone);
       if (isPhoneExist) {
         await transaction.rollback();
         resolve({
@@ -486,10 +501,8 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-
       // Kết nối tới Ganache
       const provider = new ethers.JsonRpcProvider('http://127.0.0.1:7545');
-
       // Lấy danh sách tài khoản từ Ganache
       const accounts = await provider.send('eth_accounts', []);
       if (!accounts || accounts.length === 0) {
@@ -501,7 +514,6 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-
       // Tìm tài khoản chưa sử dụng
       let selectedAccount = null;
       let privateKey = null;
@@ -519,7 +531,6 @@ let userRegister = (userInfo) => {
           break;
         }
       }
-
       if (!selectedAccount || !privateKey) {
         await transaction.rollback();
         resolve({
@@ -529,39 +540,37 @@ let userRegister = (userInfo) => {
         });
         return;
       }
-
-      const accountID = selectedAccount; // Sử dụng address từ Ganache
-
-      const hashedPassword = hashPassword(userInfo.password);
+      const AccountID = selectedAccount;
+      const hashedPassword = hashPassword(Password);
       if (typeof hashedPassword === 'object' && hashedPassword.errCode) {
         await transaction.rollback();
         resolve(hashedPassword);
         return;
       }
-      const createdAt = new Date();
+      const defaultUserImage = "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg";
+      const CreatedAt = new Date();
       await db.Account.create({
-        AccountID: accountID,
-        AccountName: userInfo.accountname,
-        Email: userInfo.email,
+        AccountID,
+        AccountName,
+        Email,
         Password: hashedPassword,
-        UserName: userInfo.username,
-        UserImage: "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg",
-        Phone: userInfo.phone,
-        Address: userInfo.address,
-        Gender: userInfo.gender,
+        UserName,
+        UserImage: defaultUserImage,
+        Phone,
+        Address,
+        Gender,
         LoginAttempt: 0,
         LockUntil: null,
-        CreatedAt: createdAt,
+        CreatedAt,
         AccountStatus: 'ACT',
-        AccountType: userInfo.accounttype || 'C',
+        AccountType,
       }, { transaction });
-
-      if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
-        const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
+      if (userInfo.AccountType === 'V' && userInfo.veterinarianInfo) {
+        const { Bio, Specialization, WorkingStatus, selectedServicesList } = userInfo.veterinarianInfo;
         const veterinarianInfo = {
-          bio,
-          specialization,
-          workingstatus
+          Bio,
+          Specialization,
+          WorkingStatus
         };
         const isValidateInput = await validateVeterinarianInput(veterinarianInfo);
         if (isValidateInput) {
@@ -596,24 +605,25 @@ let userRegister = (userInfo) => {
           return;
         }
         await db.VeterinarianInfo.create({
-          AccountID: accountID,
-          Bio: bio || null,
-          Specialization: specialization || null,
-          WorkingStatus: workingstatus,
+          AccountID,
+          Bio,
+          Specialization,
+          WorkingStatus,
         }, { transaction });
-        for (const serviceid of selectedServicesList) {
+        for (const ServiceID of selectedServicesList) {
           await db.VeterinarianService.create({
-            VeterinarianID: accountID,
-            ServiceID: serviceid,
+            VeterinarianID: AccountID,
+            ServiceID,
           }, { transaction });
         }
       }
       await transaction.commit();
-      console.log("Private key vừa tạo", privateKey)
+      await sendPrivateKeyEmail(Email, privateKey)
+      console.log("Private key của tài khoản vừa tạo", privateKey)
       resolve({
         errCode: 0,
         errMessage: 'Đăng ký người dùng thành công!',
-        data: { AccountID: accountID, privateKey }, // Trả về private key để người dùng import
+        data: { AccountID },
       });
     } catch (e) {
       await transaction.rollback();
@@ -626,6 +636,7 @@ let userRegister = (userInfo) => {
     }
   });
 };
+//hàm đăng ký khi chưa có blockchain
 // let userRegister = (userInfo) => {
 //   return new Promise(async (resolve, reject) => {
 //     const transaction = await db.sequelize.transaction();
@@ -645,7 +656,7 @@ let userRegister = (userInfo) => {
 //         resolve(isValidateInput);
 //         return;
 //       }
-//       const isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
+//       const isAccountNameExist = await checkExistAccountName(userInfo.accountname);
 //       if (isAccountNameExist) {
 //         await transaction.rollback();
 //         resolve({
@@ -655,7 +666,7 @@ let userRegister = (userInfo) => {
 //         });
 //         return;
 //       }
-//       const isEmailExist = await checkEmailExist(userInfo.email);
+//       const isEmailExist = await checkExistEmail(userInfo.Email);
 //       if (isEmailExist) {
 //         await transaction.rollback();
 //         resolve({
@@ -665,7 +676,7 @@ let userRegister = (userInfo) => {
 //         });
 //         return;
 //       }
-//       const isPhoneExist = await checkPhoneExist(userInfo.phone);
+//       const isPhoneExist = await checkExistPhone(userInfo.phone);
 //       if (isPhoneExist) {
 //         await transaction.rollback();
 //         resolve({
@@ -693,11 +704,11 @@ let userRegister = (userInfo) => {
 //         resolve(hashedPassword);
 //         return;
 //       }
-//       const createdAt = new Date();
+//       const CreatedAt = new Date();
 //       await db.Account.create({
 //         AccountID: accountID,
 //         AccountName: userInfo.accountname,
-//         Email: userInfo.email,
+//         Email: userInfo.Email,
 //         Password: hashedPassword,
 //         UserName: userInfo.username,
 //         UserImage: "https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/tgx7fjbmpulisg3emlts.jpg",
@@ -706,7 +717,7 @@ let userRegister = (userInfo) => {
 //         Gender: userInfo.gender,
 //         LoginAttempt: 0,
 //         LockUntil: null,
-//         CreatedAt: createdAt,
+//         CreatedAt: CreatedAt,
 //         AccountStatus: 'ACT',
 //         AccountType: userInfo.accounttype || 'C',
 //       }, { transaction });
@@ -794,8 +805,8 @@ let userLogin = (userInfo) => {
         });
         return;
       }
-      const { accountname, password } = userInfo;
-      if (!accountname || !password) {
+      const { AccountName, Password } = userInfo;
+      if (!AccountName || !Password) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -804,9 +815,10 @@ let userLogin = (userInfo) => {
         });
         return;
       }
+      console.log(userInfo)
       const existedAccount = await db.Account.findOne({
         attributes: ['AccountID', 'AccountName', 'Password', 'UserName', 'UserImage', 'LoginAttempt', 'LockUntil', 'AccountStatus', 'AccountType'],
-        where: { AccountName: accountname },
+        where: { AccountName },
         raw: true,
         transaction,
       });
@@ -829,12 +841,12 @@ let userLogin = (userInfo) => {
         });
         return;
       }
-      const isPasswordValid = bcrypt.compareSync(password, existedAccount.Password);
+      const isPasswordValid = bcrypt.compareSync(Password, existedAccount.Password);
       if (isPasswordValid && existedAccount.AccountStatus === 'ACT') {
         delete existedAccount.Password;
         await db.Account.update(
           { LoginAttempt: 0, LockUntil: null },
-          { where: { AccountName: accountname }, transaction }
+          { where: { AccountName }, transaction }
         );
         await transaction.commit();
         resolve({
@@ -854,7 +866,7 @@ let userLogin = (userInfo) => {
         }
         await db.Account.update(
           { LoginAttempt: newLoginAttempts, LockUntil: lockUntilTime },
-          { where: { AccountName: accountname }, transaction }
+          { where: { AccountName }, transaction }
         );
         await transaction.commit();
         resolve({
@@ -878,11 +890,11 @@ let userLogin = (userInfo) => {
   });
 };
 //đăng xuất
-let userLogout = (token, decoded) => {
+let userLogout = (Token, decoded) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!token) {
+      if (!Token) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -899,11 +911,11 @@ let userLogout = (token, decoded) => {
         },
         transaction,
       });
-      const expiredAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const ExpiredAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 24 * 60 * 60 * 1000);
       await db.BlacklistToken.create({
-        Token: token,
+        Token,
         CreatedAt: new Date(),
-        ExpiredAt: expiredAt,
+        ExpiredAt,
       }, { transaction });
       await transaction.commit();
       resolve({
@@ -922,11 +934,11 @@ let userLogout = (token, decoded) => {
     }
   });
 };
-//lấy thông tin tài khoản = accountid; lấy hết danh sách = ALL
-let getAccountInfo = (accountid) => {
+//lấy thông tin tài khoản = AccountID; lấy hết danh sách = ALL
+let getAccountInfo = (AccountID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountid) {
+      if (!AccountID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -935,7 +947,7 @@ let getAccountInfo = (accountid) => {
         return;
       }
       let userData = null;
-      if (accountid === 'ALL') {
+      if (AccountID === 'ALL') {
         userData = await db.Account.findAll({
           attributes: {
             exclude: ['Password', 'LoginAttempt'],
@@ -952,7 +964,7 @@ let getAccountInfo = (accountid) => {
         }
       } else {
         userData = await db.Account.findOne({
-          where: { AccountID: accountid },
+          where: { AccountID },
           attributes: {
             exclude: ['Password', 'LoginAttempt'],
           },
@@ -973,7 +985,6 @@ let getAccountInfo = (accountid) => {
         data: userData,
       });
     } catch (e) {
-      console.log(e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
@@ -1025,12 +1036,8 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
       // Lọc
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        const fieldMap = {
-          accounttype: 'AccountType',
-          gender: 'Gender',
-          accountstatus: 'AccountStatus',
-        };
-        if (!fieldMap[field]) {
+        const validFields = ['AccountType', 'Gender', 'AccountStatus'];
+        if (!validFields.includes(field)) {
           resolve({
             errCode: 1,
             errMessage: 'Tham số filter không hợp lệ!',
@@ -1038,16 +1045,16 @@ let loadAccountInfo = (page, limit, search, filter, sort) => {
           });
           return;
         }
-        const validCode = await checkValidAllCode(fieldMap[field], value);
+        const validCode = await checkValidAllCode(field, value);
         if (!validCode) {
           resolve({
             errCode: 1,
-            errMessage: `${fieldMap[field]} không hợp lệ!`,
+            errMessage: `${field} không hợp lệ!`,
             data: null,
           });
           return;
         }
-        where[fieldMap[field]] = value;
+        where[field] = value;
       }
       // Sắp xếp
       switch (sort) {
@@ -1105,7 +1112,8 @@ let changeAccountInfo = (userInfo) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!userInfo || !userInfo.accountid) {
+      const { AccountID, AccountName, UserName, Phone, Address, Gender, AccountType, UserImage } = userInfo;
+      if (!userInfo || !AccountID) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -1121,7 +1129,7 @@ let changeAccountInfo = (userInfo) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { AccountID: userInfo.accountid },
+        where: { AccountID },
         transaction,
       });
       if (!account) {
@@ -1133,8 +1141,8 @@ let changeAccountInfo = (userInfo) => {
         });
         return;
       }
-      if (userInfo.accountname && userInfo.accountname !== account.AccountName) {
-        const isAccountNameExist = await checkAccountNameExist(userInfo.accountname);
+      if (AccountName && AccountName !== account.AccountName) {
+        const isAccountNameExist = await checkExistAccountName(AccountName);
         if (typeof isAccountNameExist === 'object' && isAccountNameExist.errCode !== 0) {
           resolve(isAccountNameExist);
           return;
@@ -1149,8 +1157,8 @@ let changeAccountInfo = (userInfo) => {
           return;
         }
       }
-      if (userInfo.phone && userInfo.phone !== account.Phone) {
-        const isPhoneExist = await checkPhoneExist(userInfo.phone);
+      if (Phone && Phone !== account.Phone) {
+        const isPhoneExist = await checkExistPhone(Phone);
         if (typeof isPhoneExist === 'object' && isPhoneExist.errCode !== 0) {
           resolve(isPhoneExist);
           return;
@@ -1166,31 +1174,31 @@ let changeAccountInfo = (userInfo) => {
         }
       }
       let isUpdated = false;
-      if (userInfo.accountname) {
-        account.AccountName = userInfo.accountname;
+      if (AccountName) {
+        account.AccountName = AccountName;
         isUpdated = true;
       }
-      if (userInfo.username) {
-        account.UserName = userInfo.username;
+      if (UserName) {
+        account.UserName = UserName;
         isUpdated = true;
       }
-      if (userInfo.gender) {
-        account.Gender = userInfo.gender;
+      if (Gender) {
+        account.Gender = Gender;
         isUpdated = true;
       }
-      if (userInfo.phone) {
-        account.Phone = userInfo.phone;
+      if (Phone) {
+        account.Phone = Phone;
         isUpdated = true;
       }
-      if (userInfo.address) {
-        account.Address = userInfo.address;
+      if (Address) {
+        account.Address = Address;
         isUpdated = true;
       }
-      if ('userimage' in userInfo) {
-        if (userInfo.userimage === null) {
+      if ('UserImage' in userInfo) {
+        if (UserImage === null) {
           account.UserImage = null;
           isUpdated = true;
-        } else if (!userInfo.userimage?.secure_url || userInfo.userimage.secure_url.length > 2048) {
+        } else if (!UserImage?.secure_url || UserImage.secure_url.length > 2048) {
           await transaction.rollback();
           resolve({
             errCode: 1,
@@ -1199,20 +1207,20 @@ let changeAccountInfo = (userInfo) => {
           });
           return;
         } else {
-          account.UserImage = userInfo.userimage.secure_url;
+          account.UserImage = UserImage.secure_url;
           isUpdated = true;
         }
       }
-      if (userInfo.accounttype) {
-        account.AccountType = userInfo.accounttype;
+      if (AccountType) {
+        account.AccountType = AccountType;
         isUpdated = true;
       }
-      if (userInfo.accounttype === 'V' && userInfo.veterinarianInfo) {
-        const { bio, specialization, workingstatus, selectedServicesList } = userInfo.veterinarianInfo;
+      if (AccountType === 'V' && userInfo.veterinarianInfo) {
+        const { Bio, Specialization, WorkingStatus, selectedServicesList } = userInfo.veterinarianInfo;
         const veterinarianInfo = {
-          bio,
-          specialization,
-          workingstatus
+          Bio,
+          Specialization,
+          WorkingStatus
         }
         const isValidateInput = await validateVeterinarianInput(veterinarianInfo);
         if (isValidateInput) {
@@ -1246,34 +1254,34 @@ let changeAccountInfo = (userInfo) => {
           return;
         }
         const vetInfo = await db.VeterinarianInfo.findOne({
-          where: { AccountID: userInfo.accountid },
+          where: { AccountID },
           transaction,
         });
         if (vetInfo) {
           await db.VeterinarianInfo.update(
             {
-              Bio: bio?.trim() || vetInfo.Bio,
-              Specialization: specialization?.trim() || vetInfo.Specialization,
-              WorkingStatus: workingstatus.trim(),
+              Bio: Bio?.trim() || vetInfo.Bio,
+              Specialization: Specialization?.trim() || vetInfo.Specialization,
+              WorkingStatus: WorkingStatus.trim(),
             },
-            { where: { AccountID: userInfo.accountid }, transaction }
+            { where: { AccountID }, transaction }
           );
         } else {
           await db.VeterinarianInfo.create({
-            AccountID: userInfo.accountid,
-            Bio: bio?.trim() || null,
-            Specialization: specialization?.trim() || null,
-            WorkingStatus: workingstatus.trim(),
+            AccountID,
+            Bio: Bio?.trim() || null,
+            Specialization: Specialization?.trim() || null,
+            WorkingStatus: WorkingStatus.trim(),
           }, { transaction });
         }
         await db.VeterinarianService.destroy({
-          where: { VeterinarianID: userInfo.accountid },
+          where: { VeterinarianID: AccountID },
           transaction,
         });
-        for (const serviceid of selectedServicesList) {
+        for (const ServiceID of selectedServicesList) {
           await db.VeterinarianService.create({
-            VeterinarianID: userInfo.accountid,
-            ServiceID: serviceid,
+            VeterinarianID: AccountID,
+            ServiceID,
           }, { transaction });
         }
         isUpdated = true;
@@ -1287,18 +1295,15 @@ let changeAccountInfo = (userInfo) => {
         });
         return;
       }
-      await db.Account.update(
-        {
-          AccountName: account.AccountName,
-          UserName: account.UserName,
-          Gender: account.Gender,
-          Phone: account.Phone,
-          Address: account.Address,
-          UserImage: account.UserImage,
-          AccountType: account.AccountType,
-        },
-        { where: { AccountID: userInfo.accountid }, transaction }
-      );
+      await db.Account.update({
+        AccountName: account.AccountName,
+        UserName: account.UserName,
+        Phone: account.Phone,
+        Address: account.Address,
+        Gender: account.Gender,
+        UserImage: account.UserImage,
+        AccountType: account.AccountType,
+      }, { where: { AccountID }, transaction });
       await transaction.commit();
       resolve({
         errCode: 0,
@@ -1307,7 +1312,6 @@ let changeAccountInfo = (userInfo) => {
       });
     } catch (e) {
       await transaction.rollback();
-      console.log(e);
       resolve({
         errCode: 3,
         errMessage: 'Lỗi khi cập nhật thông tin: ' + e.message,
@@ -1317,11 +1321,11 @@ let changeAccountInfo = (userInfo) => {
   });
 };
 //gửi mã xác minh quên mật khẩu
-let sendForgotToken = (email) => {
+let sendForgotToken = (Email) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!email) {
+      if (!Email) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -1334,14 +1338,13 @@ let sendForgotToken = (email) => {
         await transaction.rollback();
         resolve({
           errCode: 3,
-          errMessage: 'Cấu hình email không hợp lệ!',
+          errMessage: 'Cấu hình Email không hợp lệ!',
           data: null,
         });
         return;
       }
-      const emailTrimmed = email.trim();
       const emailRegex = /^(?=.{5,100}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailTrimmed)) {
+      if (!emailRegex.test(Email.trim())) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -1351,7 +1354,7 @@ let sendForgotToken = (email) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { Email: emailTrimmed },
+        where: { Email },
         attributes: ['AccountID'],
         raw: true,
         transaction,
@@ -1376,28 +1379,28 @@ let sendForgotToken = (email) => {
           data: null
         });
       }
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const currentTime = new Date();
-      const expiredAt = new Date(currentTime.getTime() + 30 * 60 * 1000);
+      const Token = Math.floor(100000 + Math.random() * 900000).toString();
+      const CreatedAt = new Date();
+      const ExpiredAt = new Date(CreatedAt.getTime() + 30 * 60 * 1000);
       await db.BlacklistToken.destroy({
         where: {
           ExtraValue: account.AccountID,
-          ExpiredAt: { [Op.lt]: currentTime },
+          ExpiredAt: { [Op.lt]: CreatedAt },
         },
         transaction,
       });
       await db.BlacklistToken.create({
-        Token: code,
+        Token,
         ExtraValue: account.AccountID,
-        CreatedAt: currentTime,
-        ExpiredAt: expiredAt,
+        CreatedAt,
+        ExpiredAt,
       }, { transaction });
-      const emailSent = await sendVerificationEmail(emailTrimmed, code);
+      const emailSent = await sendVerificationEmail(Email, Token);
       if (!emailSent) {
         await transaction.rollback();
         resolve({
           errCode: 3,
-          errMessage: 'Lỗi khi gửi email xác nhận!',
+          errMessage: 'Lỗi khi gửi Email xác nhận!',
           data: null,
         });
         return;
@@ -1413,18 +1416,18 @@ let sendForgotToken = (email) => {
       console.log('Error in sendForgotToken: ', e);
       resolve({
         errCode: 3,
-        errMessage: 'Lỗi khi xử lý email: ' + e.message,
+        errMessage: 'Lỗi khi xử lý Email: ' + e.message,
         data: null,
       });
     }
   });
 };
 //xác nhận mã xác minh
-let verifyForgotToken = (accountid, token) => {
+let verifyForgotToken = (AccountID, Token) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !token) {
+      if (!AccountID || !Token) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -1433,11 +1436,10 @@ let verifyForgotToken = (accountid, token) => {
         });
         return;
       }
-      const currentTime = new Date();
       const tokenRecord = await db.BlacklistToken.findOne({
         where: {
-          Token: token,
-          ExtraValue: accountid,
+          Token,
+          ExtraValue: AccountID,
         },
         transaction,
       });
@@ -1450,6 +1452,7 @@ let verifyForgotToken = (accountid, token) => {
         });
         return;
       }
+      const currentTime = new Date();
       if (tokenRecord.ExpiredAt < currentTime) {
         await transaction.rollback();
         resolve({
@@ -1460,7 +1463,7 @@ let verifyForgotToken = (accountid, token) => {
         return;
       }
       await db.BlacklistToken.destroy({
-        where: { ExtraValue: accountid },
+        where: { ExtraValue: AccountID },
         transaction,
       });
       await transaction.commit();
@@ -1481,11 +1484,11 @@ let verifyForgotToken = (accountid, token) => {
   });
 };
 //thay đổi mật khẩu
-let changePassword = (accountid, password, newpassword) => {
+let changePassword = (AccountID, Password, newPassword) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !newpassword) {
+      if (!AccountID || !newPassword) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -1495,7 +1498,7 @@ let changePassword = (accountid, password, newpassword) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { AccountID: accountid },
+        where: { AccountID },
         transaction,
       });
       if (!account) {
@@ -1507,8 +1510,8 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      if (password !== 'forgot_password') {
-        const isPasswordValid = bcrypt.compareSync(password, account.Password);
+      if (Password !== 'forgot_password') {
+        const isPasswordValid = bcrypt.compareSync(Password, account.Password);
         if (!isPasswordValid) {
           await transaction.rollback();
           resolve({
@@ -1519,9 +1522,8 @@ let changePassword = (accountid, password, newpassword) => {
           return;
         }
       }
-      const newPasswordTrimmed = newpassword.trim();
       const passwordRegex = /^[A-Za-z\d!@#$%^&*]{8,}$/;
-      if (!passwordRegex.test(newPasswordTrimmed)) {
+      if (!passwordRegex.test(newPassword.trim())) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -1530,7 +1532,7 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      if (password !== 'forgot_password' && bcrypt.compareSync(newpassword, account.Password)) {
+      if (Password !== 'forgot_password' && bcrypt.compareSync(newPassword, account.Password)) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -1539,7 +1541,7 @@ let changePassword = (accountid, password, newpassword) => {
         });
         return;
       }
-      const hashedPassword = await hashPassword(newPasswordTrimmed);
+      const hashedPassword = await hashPassword(newPassword);
       if (typeof hashedPassword === 'object' && hashedPassword.errCode) {
         await transaction.rollback();
         resolve(hashedPassword);
@@ -1547,7 +1549,7 @@ let changePassword = (accountid, password, newpassword) => {
       }
       await db.Account.update(
         { Password: hashedPassword },
-        { where: { AccountID: accountid }, transaction }
+        { where: { AccountID }, transaction }
       );
       await transaction.commit();
       resolve({
@@ -1567,11 +1569,11 @@ let changePassword = (accountid, password, newpassword) => {
   });
 };
 //chuyển trạng thái của tài khoản
-let changeAccountStatus = (accountid, accountstatus) => {
+let changeAccountStatus = (AccountID, AccountStatus) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !accountstatus) {
+      if (!AccountID || !AccountStatus) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -1580,7 +1582,7 @@ let changeAccountStatus = (accountid, accountstatus) => {
         });
         return;
       }
-      const validAccountStatus = await checkValidAllCode('AccountStatus', accountstatus);
+      const validAccountStatus = await checkValidAllCode('AccountStatus', AccountStatus);
       if (!validAccountStatus) {
         await transaction.rollback();
         resolve({
@@ -1591,7 +1593,7 @@ let changeAccountStatus = (accountid, accountstatus) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { AccountID: accountid },
+        where: { AccountID },
         transaction,
       });
       if (!account) {
@@ -1603,7 +1605,7 @@ let changeAccountStatus = (accountid, accountstatus) => {
         });
         return;
       }
-      if (account.AccountStatus === accountstatus) {
+      if (account.AccountStatus === AccountStatus) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -1613,8 +1615,8 @@ let changeAccountStatus = (accountid, accountstatus) => {
         return;
       }
       await db.Account.update(
-        { AccountStatus: accountstatus },
-        { where: { AccountID: accountid }, transaction }
+        { AccountStatus },
+        { where: { AccountID }, transaction }
       );
       await transaction.commit();
       resolve({
@@ -1634,10 +1636,10 @@ let changeAccountStatus = (accountid, accountstatus) => {
   });
 };
 //lấy thông tin thêm của tài khoản bác sĩ thú y
-let getVeterinarianInfo = (accountid) => {
+let getVeterinarianInfo = (VeterinarianID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountid) {
+      if (!VeterinarianID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -1646,7 +1648,7 @@ let getVeterinarianInfo = (accountid) => {
         return;
       }
       const account = await db.Account.findOne({
-        where: { AccountID: accountid, AccountType: 'V' },
+        where: { AccountID: VeterinarianID, AccountType: 'V' },
         attributes: ['AccountID'],
       });
       if (!account) {
@@ -1658,11 +1660,10 @@ let getVeterinarianInfo = (accountid) => {
         return;
       }
       const vetInfo = await db.VeterinarianInfo.findOne({
-        where: { AccountID: accountid },
+        where: { AccountID: VeterinarianID },
         attributes: ['Bio', 'Specialization', 'WorkingStatus'],
         raw: true,
       });
-
       if (!vetInfo) {
         return resolve({
           errCode: 2,
@@ -1671,7 +1672,7 @@ let getVeterinarianInfo = (accountid) => {
         });
       }
       const servicesRaw = await db.VeterinarianService.findAll({
-        where: { VeterinarianID: accountid },
+        where: { VeterinarianID },
         attributes: ['ServiceID'],
         include: [
           {
@@ -1682,10 +1683,11 @@ let getVeterinarianInfo = (accountid) => {
         raw: true,
         nest: true,
       });
+      const { Bio, Specialization, WorkingStatus } = vetInfo
       const formattedData = {
-        Bio: vetInfo.Bio || null,
-        Specialization: vetInfo.Specialization || null,
-        WorkingStatus: vetInfo.WorkingStatus || null,
+        Bio,
+        Specialization,
+        WorkingStatus,
         services: servicesRaw.map((vs) => ({
           ServiceID: vs.ServiceID,
           ServiceName: vs.Service?.ServiceName || null,
@@ -1751,7 +1753,7 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
       }
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        if (field === 'service') {
+        if (field === 'Service') {
           const validService = await db.Service.findOne({
             where: { ServiceID: value },
           });
@@ -1853,11 +1855,11 @@ let loadVeterinarianInfo = (page, limit, search, filter, sort) => {
     }
   });
 };
-let changeWorkingStatus = (accountid, workingstatus) => {
+let changeWorkingStatus = (VeterinarianID, WorkingStatus) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !workingstatus) {
+      if (!VeterinarianID || !WorkingStatus) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -1866,7 +1868,7 @@ let changeWorkingStatus = (accountid, workingstatus) => {
         });
         return;
       }
-      const validWorkingStatus = await checkValidAllCode('WorkingStatus', workingstatus);
+      const validWorkingStatus = await checkValidAllCode('WorkingStatus', WorkingStatus);
       if (!validWorkingStatus) {
         await transaction.rollback();
         resolve({
@@ -1877,7 +1879,7 @@ let changeWorkingStatus = (accountid, workingstatus) => {
         return;
       }
       const account = await db.VeterinarianInfo.findOne({
-        where: { AccountID: accountid },
+        where: { AccountID: VeterinarianID },
         transaction,
       });
       if (!account) {
@@ -1889,7 +1891,7 @@ let changeWorkingStatus = (accountid, workingstatus) => {
         });
         return;
       }
-      if (account.WorkingStatus === workingstatus) {
+      if (account.WorkingStatus === WorkingStatus) {
         await transaction.rollback();
         resolve({
           errCode: 1,
@@ -1899,8 +1901,8 @@ let changeWorkingStatus = (accountid, workingstatus) => {
         return;
       }
       await db.VeterinarianInfo.update(
-        { WorkingStatus: workingstatus },
-        { where: { AccountID: accountid }, transaction }
+        { WorkingStatus },
+        { where: { AccountID: VeterinarianID }, transaction }
       );
       await transaction.commit();
       resolve({

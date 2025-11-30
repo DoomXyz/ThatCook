@@ -5,9 +5,9 @@ module.exports = {
     up: async (queryInterface) => {
         const saltRounds = 10;
         const defaultPassword = await bcrypt.hash('Vet123456', saltRounds); // Mật khẩu mặc định cho tất cả bác sĩ
-        const accountType = 'V'; // Veterinarian
-        const accountStatus = 'ACT'; // Active
-        const createdAt = new Date();
+        const AccountType = 'V'; // Veterinarian
+        const AccountStatus = 'ACT'; // Active
+        const CreatedAt = new Date();
 
         // Tạo 10 tài khoản bác sĩ
         const accounts = Array.from({ length: 10 }, (_, index) => ({
@@ -22,9 +22,9 @@ module.exports = {
             Gender: index % 2 === 0 ? 'M' : 'F', // Ngẫu nhiên nam/nữ
             LoginAttempt: 0,
             LockUntil: null,
-            CreatedAt: createdAt,
-            AccountStatus: accountStatus,
-            AccountType: accountType,
+            CreatedAt: CreatedAt,
+            AccountStatus,
+            AccountType,
         }));
 
         await queryInterface.bulkInsert('Account', accounts, {});

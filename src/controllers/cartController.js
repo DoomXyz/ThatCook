@@ -11,7 +11,7 @@ const handleError = (res, e) => {
 
 let handleGetCart = async (req, res) => {
   try {
-    let response = await cartService.getCart(req.query.accountid);
+    let response = await cartService.getCart(req.query.AccountID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -38,7 +38,7 @@ let handleGetDetailList = async (req, res) => {
 
 let handleAddToCart = async (req, res) => {
   try {
-    let response = await cartService.addToCart(req.body.accountid, req.body.cartInfo);
+    let response = await cartService.addToCart(req.body.AccountID, req.body.cartInfo);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -47,8 +47,8 @@ let handleAddToCart = async (req, res) => {
 
 let handleUpdateQuantity = async (req, res) => {
   try {
-    const { accountid, productid, productdetailid, quantity } = req.body;
-    let response = await cartService.updateQuantity(accountid, productid, productdetailid, quantity);
+    const { AccountID, ProductID, ProductDetailID, Quantity } = req.body;
+    let response = await cartService.updateQuantity(AccountID, ProductID, ProductDetailID, Quantity);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -57,8 +57,8 @@ let handleUpdateQuantity = async (req, res) => {
 
 let handleUpdateCartDetail = async (req, res) => {
   try {
-    const { accountid, productid, productdetailid1, productdetailid2 } = req.body;
-    let response = await cartService.updateCartDetail(accountid, productid, productdetailid1, productdetailid2);
+    const { AccountID, ProductID, ProductDetailID1, ProductDetailID2 } = req.body;
+    let response = await cartService.updateCartDetail(AccountID, ProductID, ProductDetailID1, ProductDetailID2);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -67,8 +67,8 @@ let handleUpdateCartDetail = async (req, res) => {
 
 let handleMergeCartDetail = async (req, res) => {
   try {
-    const { accountid, productid, productdetailid1, productdetailid2, quantity } = req.body;
-    let response = await cartService.mergeCartDetail(accountid, productid, productdetailid1, productdetailid2, quantity);
+    const { AccountID, ProductID, ProductDetailID1, ProductDetailID2, Quantity } = req.body;
+    let response = await cartService.mergeCartDetail(AccountID, ProductID, ProductDetailID1, ProductDetailID2, Quantity);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -77,8 +77,8 @@ let handleMergeCartDetail = async (req, res) => {
 
 let handleRemoveFromCart = async (req, res) => {
   try {
-    const { accountid, productid, productdetailid } = req.body;
-    let response = await cartService.removeFromCart(accountid, productid, productdetailid);
+    const { AccountID, ProductID, ProductDetailID } = req.body;
+    let response = await cartService.removeFromCart(AccountID, ProductID, ProductDetailID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);

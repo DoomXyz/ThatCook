@@ -36,15 +36,6 @@ contract PetRegistry {
         require(petWeight > 0, "Weight must be positive");
         require(age >= 0, "Age cannot be negative");
 
-        // Đếm số lượng thú cưng VALID
-        uint256 validCount = 0;
-        for (uint256 i = 0; i < pets[msg.sender].length; i++) {
-            if (keccak256(bytes(pets[msg.sender][i].petStatus)) == keccak256(bytes("VALID"))) {
-                validCount++;
-            }
-        }
-        require(validCount < 3, "Maximum 3 VALID pets allowed per account");
-
         pets[msg.sender].push(Pet(petId, petName, petType, petGender, petWeight, age, petStatus, petImage));
         emit PetAdded(msg.sender, petId);
     }

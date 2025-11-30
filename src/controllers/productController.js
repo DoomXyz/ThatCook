@@ -11,7 +11,7 @@ const handleError = (res, e) => {
 
 let handleGetSaleProductInfo = async (req, res) => {
   try {
-    let response = await productService.getSaleProductInfo(req.query.productid);
+    let response = await productService.getSaleProductInfo(req.query.ProductID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -34,7 +34,7 @@ let handleLoadSaleProductInfo = async (req, res) => {
 
 let handleGetProductInfo = async (req, res) => {
   try {
-    let response = await productService.getProductInfo(req.query.productid);
+    let response = await productService.getProductInfo(req.query.ProductID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -57,8 +57,8 @@ let handleLoadProductInfo = async (req, res) => {
 
 let handleGetProductDetailInfo = async (req, res) => {
   try {
-    const { productid, productdetailid } = req.query;
-    let response = await productService.getProductDetailInfo(productid, productdetailid);
+    const { ProductID, ProductDetailID } = req.query;
+    let response = await productService.getProductDetailInfo(ProductID, ProductDetailID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);

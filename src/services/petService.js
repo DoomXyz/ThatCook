@@ -90,10 +90,10 @@ const abi = [
 ];
 const contract = new ethers.Contract(contractAddress, abi, provider);
 
-let getAccountPetInfo = (accountid) => {
+let getAccountPetInfo = (AccountID) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!accountid) {
+            if (!AccountID) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu tham số!',
@@ -103,7 +103,7 @@ let getAccountPetInfo = (accountid) => {
             }
             let petData = [];
             try {
-                petData = await contract.getPets(accountid);
+                petData = await contract.getPets(AccountID);
             } catch (e) {
                 petData = [];
             }
@@ -125,17 +125,17 @@ let getAccountPetInfo = (accountid) => {
         } catch (e) {
             resolve({
                 errCode: 3,
-                errMessage: `Lỗi khi lấy thông tin pet: ${e.message}`,
+                errMessage: `Lỗi khi lấy thông tin thú cưng: ${e.message}`,
                 data: null,
             });
         }
     });
 };
 
-let getPetInfo = (accountid, petid) => {
+let getPetInfo = (AccountID, PetID) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!accountid || !petid) {
+            if (!AccountID || !PetID) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu tham số!',
@@ -145,31 +145,31 @@ let getPetInfo = (accountid, petid) => {
             }
             let pets = [];
             try {
-                pets = await contract.getPets(accountid);
+                pets = await contract.getPets(AccountID);
             } catch (e) {
                 resolve({
                     errCode: 3,
-                    errMessage: `Lỗi khi lấy danh sách thú cưng của chủ sở hữu: ${e.message}`,
+                    errMessage: `Lỗi khi lấy danh sách thú cưng: ${e.message}`,
                     data: null,
                 });
                 return;
             }
-            const pet = pets.find(p => p.petId === petid);
+            const pet = pets.find(p => p.petId === PetID);
             if (pet) {
-                const mappedPet = {
+                const petInfo = {
                     PetID: pet.petId,
                     PetName: pet.petName,
                     PetType: pet.petType,
                     PetGender: pet.petGender,
                     PetWeight: Number(pet.petWeight),
                     Age: Number(pet.age),
-                    petStatus: pet.petStatus,
-                    petImage: pet.petImage
+                    PetStatus: pet.petStatus,
+                    PetImage: pet.petImage
                 };
                 resolve({
                     errCode: 0,
                     errMessage: 'Lấy thông tin thú cưng thành công!',
-                    data: mappedPet,
+                    data: petInfo,
                 });
                 return;
             }
@@ -182,102 +182,18 @@ let getPetInfo = (accountid, petid) => {
             console.log('Error in getPetInfo: ', e);
             resolve({
                 errCode: 3,
-                errMessage: `Lỗi khi lấy thông tin pet: ${e.message}`,
+                errMessage: `Lỗi khi lấy thông tin thú cưng: ${e.message}`,
                 data: null,
             });
         }
     });
 };
 
-//hàm giao dịch trên fe
-// let savePetInfo = (accountid, petInfo) => {
-//     return new Promise(async (resolve) => {
-//         try {
-//             if (!petInfo) {
-//                 resolve({
-//                     errCode: -1,
-//                     errMessage: 'Thiếu thông tin thú cưng!',
-//                     data: null,
-//                 });
-//                 return;
-//             }
-//             const petId = `P${Date.now()}`;
-//             resolve({
-//                 errCode: 0,
-//                 errMessage: 'Lưu thông tin thú cưng thành công!',
-//                 data: { PetID: petId },
-//             });
-//         } catch (e) {
-//             console.log('Error in savePetInfo: ', e);
-//             resolve({
-//                 errCode: 3,
-//                 errMessage: `Lỗi khi lưu thú cưng: ${e.message}`,
-//                 data: null,
-//             });
-//         }
-//     });
-// };
-// let changePetInfo = (petid, petInfo) => {
-//     return new Promise(async (resolve) => {
-//         try {
-//             if (!petid || !petInfo) {
-//                 resolve({
-//                     errCode: -1,
-//                     errMessage: 'Thiếu tham số!',
-//                     data: null,
-//                 });
-//                 return;
-//             }
-//             resolve({
-//                 errCode: 0,
-//                 errMessage: 'Cập nhật thông tin thú cưng thành công!',
-//                 data: null,
-//             });
-//         } catch (e) {
-//             console.log('Error in changePetInfo: ', e);
-//             resolve({
-//                 errCode: 3,
-//                 errMessage: `Lỗi khi cập nhật thông tin: ${e.message}`,
-//                 data: null,
-//             });
-//         }
-//     });
-// };
-// let removePet = (petid) => {
-//     return new Promise(async (resolve) => {
-//         try {
-//             if (!petid) {
-//                 resolve({
-//                     errCode: -1,
-//                     errMessage: 'Thiếu mã thú cưng!',
-//                     data: null,
-//                 });
-//                 return;
-//             }
-//             resolve({
-//                 errCode: 0,
-//                 errMessage: 'Xóa thú cưng thành công!',
-//                 data: null,
-//             });
-//         } catch (e) {
-//             console.log('Error in removePet: ', e);
-//             resolve({
-//                 errCode: 3,
-//                 errMessage: `Lỗi khi xóa thú cưng: ${e.message}`,
-//                 data: null,
-//             });
-//         }
-//     });
-// };
-
 module.exports = {
     getAccountPetInfo,
     getPetInfo,
-    // savePetInfo,
-    // changePetInfo,
-    // removePet,
 };
-//code cũ
+//code cũ khi pet còn trong db
 // import db from '../models/index';
 // import { generateID, checkValidAllCode } from './utilitiesService';
 
@@ -425,9 +341,9 @@ module.exports = {
 //             data: null,
 //         };
 //     } else {
-//         const petName = petname.trim();
-//         const petNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
-//         if (!petNameRegex.test(petName)) {
+//         const PetName = petname.trim();
+//         const PetNameRegex = /^[A-Za-zÀ-ỹ0-9\s]{2,50}$/;
+//         if (!PetNameRegex.test(PetName)) {
 //             return {
 //                 errCode: 1,
 //                 errMessage: 'Tên thú cưng không hợp lệ!',
@@ -625,13 +541,13 @@ module.exports = {
 //                     return;
 //                 }
 //             }
-//             const petIdResult = await generateID('P', 9, 'Pet', 'PetID');
-//             if (petIdResult.errCode !== 0) {
+//             const PetIDResult = await generateID('P', 9, 'Pet', 'PetID');
+//             if (PetIDResult.errCode !== 0) {
 //                 await transaction.rollback();
-//                 resolve(petIdResult);
+//                 resolve(PetIDResult);
 //                 return;
 //             }
-//             const petID = petIdResult.data;
+//             const petID = PetIDResult.data;
 //             await db.Pet.create(
 //                 {
 //                     PetID: petID,

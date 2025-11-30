@@ -94,10 +94,10 @@ let updateHideBanner = () => {
   });
 };
 
-let getBannerSaleInfo = (productid) => {
+let getBannerSaleInfo = (ProductID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!productid) {
+      if (!ProductID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -105,11 +105,9 @@ let getBannerSaleInfo = (productid) => {
         });
         return;
       }
-
       await updateHideBanner();
-
       let data = null;
-      if (productid === 'ALL') {
+      if (ProductID === 'ALL') {
         data = await db.Banner.findAll({
           where: { BannerStatus: 'SHOW' },
           attributes: ['BannerID', 'BannerImage', 'ProductID'],
@@ -140,7 +138,7 @@ let getBannerSaleInfo = (productid) => {
       } else {
         data = await db.Banner.findOne({
           where: {
-            ProductID: productid,
+            ProductID: ProductID,
             BannerStatus: 'SHOW',
           },
           attributes: ['BannerID', 'BannerImage', 'ProductID'],
@@ -186,10 +184,10 @@ let getBannerSaleInfo = (productid) => {
   });
 };
 
-let getBannerInfo = (bannerid) => {
+let getBannerInfo = (BannerID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!bannerid) {
+      if (!BannerID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -198,7 +196,7 @@ let getBannerInfo = (bannerid) => {
         return;
       }
       const banner = await db.Banner.findOne({
-        where: { BannerID: bannerid },
+        where: { BannerID: BannerID },
         attributes: ['BannerID', 'BannerImage', 'CreatedAt', 'HiddenAt', 'BannerStatus', 'ProductID'],
         include: [
           {
@@ -330,10 +328,7 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
 
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        const fieldMap = {
-          bannerstatus: 'BannerStatus',
-        };
-        if (!fieldMap[field]) {
+        if (!field) {
           resolve({
             errCode: 1,
             errMessage: 'Tham số filter không hợp lệ!',
@@ -341,16 +336,16 @@ let loadBannerInfo = (page, limit, search, filter, sort, date) => {
           });
           return;
         }
-        const validCode = await checkValidAllCode(fieldMap[field], value);
+        const validCode = await checkValidAllCode(field, value);
         if (!validCode) {
           resolve({
             errCode: 1,
-            errMessage: `${fieldMap[field]} không hợp lệ!`,
+            errMessage: `${field} không hợp lệ!`,
             data: null,
           });
           return;
         }
-        where[fieldMap[field]] = value;
+        where[field] = value;
       }
 
       switch (sort) {

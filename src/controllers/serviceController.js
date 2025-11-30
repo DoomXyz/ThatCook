@@ -11,7 +11,7 @@ const handleError = (res, e) => {
 
 let handleGetVeterinarianService = async (req, res) => {
     try {
-        let response = await serviceService.getVeterinarianService(req.query.accountid);
+        let response = await serviceService.getVeterinarianService(req.query.AccountID);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);
@@ -20,8 +20,8 @@ let handleGetVeterinarianService = async (req, res) => {
 
 let handleGetServiceInfo = async (req, res) => {
     try {
-        const { serviceid } = req.query;
-        let response = await serviceService.getServiceInfo(serviceid);
+        const { ServiceID } = req.query;
+        let response = await serviceService.getServiceInfo(ServiceID);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);
@@ -62,8 +62,8 @@ let handleChangeServiceInfo = async (req, res) => {
 
 let handleChangeServiceStatus = async (req, res) => {
     try {
-        const { serviceID, newStatus } = req.body;
-        let response = await serviceService.changeServiceStatus(serviceID, newStatus);
+        const { ServiceID, newStatus } = req.body;
+        let response = await serviceService.changeServiceStatus(ServiceID, newStatus);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);

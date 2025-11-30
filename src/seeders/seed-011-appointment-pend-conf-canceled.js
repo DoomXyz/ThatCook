@@ -5,7 +5,7 @@ module.exports = {
     up: async (queryInterface) => {
         const saltRounds = 10;
         const defaultPassword = await bcrypt.hash('User123456', saltRounds);
-        const createdAt = new Date();
+        const CreatedAt = new Date();
 
         // Tạo 3 tài khoản khách hàng
         const accounts = [
@@ -21,7 +21,7 @@ module.exports = {
                 Gender: 'M',
                 LoginAttempt: 0,
                 LockUntil: null,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AccountStatus: 'ACT',
                 AccountType: 'C',
             },
@@ -37,7 +37,7 @@ module.exports = {
                 Gender: 'F',
                 LoginAttempt: 0,
                 LockUntil: null,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AccountStatus: 'ACT',
                 AccountType: 'C',
             },
@@ -53,7 +53,7 @@ module.exports = {
                 Gender: 'M',
                 LoginAttempt: 0,
                 LockUntil: null,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AccountStatus: 'ACT',
                 AccountType: 'C',
             },
@@ -137,7 +137,7 @@ module.exports = {
                 VeterinarianID: vet[0].AccountID,
                 ServiceID: service[0].ServiceID,
                 PetID: 'P00000007',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AppointmentStatus: 'CANCELED',
                 AppointmentType: 'FIRST',
                 PrevAppointmentID: null,
@@ -155,7 +155,7 @@ module.exports = {
                 VeterinarianID: vet[0].AccountID,
                 ServiceID: service[0].ServiceID,
                 PetID: 'P00000008',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AppointmentStatus: 'CANCELED',
                 AppointmentType: 'FIRST',
                 PrevAppointmentID: null,
@@ -173,7 +173,7 @@ module.exports = {
                 VeterinarianID: vet[0].AccountID,
                 ServiceID: service[0].ServiceID,
                 PetID: 'P00000009',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AppointmentStatus: 'CANCELED',
                 AppointmentType: 'FIRST',
                 PrevAppointmentID: null,

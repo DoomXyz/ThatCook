@@ -5,7 +5,7 @@ module.exports = {
     up: async (queryInterface) => {
         const saltRounds = 10;
         const defaultPassword = await bcrypt.hash('User123456', saltRounds);
-        const createdAt = new Date();
+        const CreatedAt = new Date();
 
         // Tạo 3 tài khoản khách hàng
         const accounts = [
@@ -21,7 +21,7 @@ module.exports = {
                 Gender: 'F',
                 LoginAttempt: 0,
                 LockUntil: null,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AccountStatus: 'ACT',
                 AccountType: 'C',
             },
@@ -37,7 +37,7 @@ module.exports = {
                 Gender: 'M',
                 LoginAttempt: 0,
                 LockUntil: null,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AccountStatus: 'ACT',
                 AccountType: 'C',
             },
@@ -53,7 +53,7 @@ module.exports = {
                 Gender: 'F',
                 LoginAttempt: 0,
                 LockUntil: null,
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AccountStatus: 'ACT',
                 AccountType: 'C',
             },
@@ -137,7 +137,7 @@ module.exports = {
                 VeterinarianID: vet[0].AccountID,
                 ServiceID: service[0].ServiceID,
                 PetID: 'P00000010',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AppointmentStatus: 'COMP',
                 AppointmentType: 'FIRST',
                 PrevAppointmentID: null,
@@ -155,7 +155,7 @@ module.exports = {
                 VeterinarianID: vet[0].AccountID,
                 ServiceID: service[0].ServiceID,
                 PetID: 'P00000011',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AppointmentStatus: 'COMP',
                 AppointmentType: 'FIRST',
                 PrevAppointmentID: null,
@@ -173,7 +173,7 @@ module.exports = {
                 VeterinarianID: vet[0].AccountID,
                 ServiceID: service[0].ServiceID,
                 PetID: 'P00000012',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
                 AppointmentStatus: 'COMP',
                 AppointmentType: 'FIRST',
                 PrevAppointmentID: null,
@@ -225,7 +225,7 @@ module.exports = {
                 TotalPayment: 250000,
                 MedicalImage: 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/sample.jpg',
                 MedicalNotes: 'Khám tổng quát, kê đơn thuốc',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
             },
             {
                 AppointmentBillID: 'LH0000002',
@@ -235,7 +235,7 @@ module.exports = {
                 TotalPayment: 325000,
                 MedicalImage: 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/sample.jpg',
                 MedicalNotes: 'Khám sức khỏe, tiêm ngừa',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
             },
             {
                 AppointmentBillID: 'LH0000003',
@@ -245,7 +245,7 @@ module.exports = {
                 TotalPayment: 180000,
                 MedicalImage: 'https://res.cloudinary.com/dqblg6ont/image/upload/v1744579137/sample.jpg',
                 MedicalNotes: 'Khám định kỳ, bổ sung vitamin',
-                CreatedAt: createdAt,
+                CreatedAt: CreatedAt,
             },
         ];
 

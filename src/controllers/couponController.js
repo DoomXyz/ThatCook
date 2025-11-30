@@ -11,7 +11,7 @@ const handleError = (res, e) => {
 
 let handleGetCouponInfo = async (req, res) => {
     try {
-        let response = await couponService.getCouponInfo(req.query.couponcode);
+        let response = await couponService.getCouponInfo(req.query.CouponCode);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);
@@ -44,8 +44,8 @@ let handleCreateCoupon = async (req, res) => {
 
 let handleCheckCoupon = async (req, res) => {
     try {
-        const { couponcode, price } = req.query;
-        let response = await couponService.checkCoupon(couponcode, price);
+        const { CouponCode, Price } = req.query;
+        let response = await couponService.checkCoupon(CouponCode, Price);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);

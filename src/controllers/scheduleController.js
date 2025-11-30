@@ -11,9 +11,9 @@ const handleError = (res, e) => {
 
 let handleLoadSchedule = async (req, res) => {
     try {
-        const veterinarianid = req.query.veterinarianid || ''
-        const startDate = req.query.startDate || '';
-        let response = await scheduleService.loadSchedule(veterinarianid, startDate);
+        const VeterinarianID = req.query.VeterinarianID || ''
+        const StartDate = req.query.StartDate || '';
+        let response = await scheduleService.loadSchedule(VeterinarianID, StartDate);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);
@@ -22,8 +22,8 @@ let handleLoadSchedule = async (req, res) => {
 
 let handleChangeScheduleStatus = async (req, res) => {
     try {
-        const { scheduleid, schedulestatus } = req.body
-        let response = await scheduleService.changeScheduleStatus(scheduleid, schedulestatus);
+        const { ScheduleID, ScheduleStatus } = req.body
+        let response = await scheduleService.changeScheduleStatus(ScheduleID, ScheduleStatus);
         return res.status(200).json(response);
     } catch (e) {
         return handleError(res, e);

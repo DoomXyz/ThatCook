@@ -10,18 +10,18 @@ let validateCouponInput = async (couponInfo) => {
             data: null,
         };
     }
-    const { couponcode, coupondescription, minordervalue, discountvalue, discounttype, maxdiscount, startdate, enddate, couponstatus } = couponInfo;
-    if (!couponcode) {
+    const { CouponCode, CouponDescription, MinOrderValue, DiscountValue, DiscountType, MaxDiscount, StartDate, EndDate, CouponStatus } = couponInfo;
+    if (!CouponCode) {
         return { errCode: -1, errMessage: 'Vui lòng nhập mã giảm giá!' };
     } else {
         const couponCodeRegex = /^[a-zA-Z0-9]{5,20}$/;
-        if (!couponCodeRegex.test(couponcode.trim())) {
+        if (!couponCodeRegex.test(CouponCode.trim())) {
             return { errCode: 1, errMessage: 'Mã giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!', data: null, };
         }
     }
-    if (coupondescription) {
-        const description = coupondescription.trim();
-        if (!description || description.length > 65535) {
+    if (CouponDescription) {
+        const Description = CouponDescription.trim();
+        if (!Description || Description.length > 65535) {
             return {
                 errCode: 1,
                 errMessage: 'Mô tả giảm giá không hợp lệ hoặc vượt quá giới hạn ký tự!',
@@ -29,13 +29,13 @@ let validateCouponInput = async (couponInfo) => {
             };
         }
     }
-    if (minordervalue && minordervalue < 0) {
+    if (MinOrderValue && MinOrderValue < 0) {
         return { errCode: -1, errMessage: 'Giá trị mua ít nhất không được bé hơn 0!', data: null };
     }
-    if (!discounttype) {
+    if (!DiscountType) {
         return { errCode: -1, errMessage: 'Loại giảm giá không được để trống!', data: null };
     } else {
-        const validDiscountType = await checkValidAllCode('DiscountType', discounttype);
+        const validDiscountType = await checkValidAllCode('DiscountType', DiscountType);
         if (!validDiscountType) {
             return {
                 errCode: 1,
@@ -44,41 +44,41 @@ let validateCouponInput = async (couponInfo) => {
             };
         }
     }
-    if (!discountvalue) {
+    if (!DiscountValue) {
         return { errCode: -1, errMessage: 'Giá trị giảm không được để trống!', data: null };
     } else {
-        if (discounttype === 'PERC' && discountvalue > 100 || discountvalue < 0) { return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!', data: null }; }
-        else if (discounttype === 'FIXED' && discountvalue < 0) {
+        if (DiscountType === 'PERC' && DiscountValue > 100 || DiscountValue < 0) { return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!', data: null }; }
+        else if (DiscountType === 'FIXED' && DiscountValue < 0) {
             return { errCode: 1, errMessage: 'Giá trị giảm không hợp lệ!', data: null };
         }
     }
-    if (maxdiscount) {
-        if (maxdiscount < 0) { return { errCode: 1, errMessage: 'Gỉảm giá tối đa phải lớn hơn 0!', data: null }; }
-    } else if (discounttype === 'FIXED' && maxdiscount > discountvalue) {
+    if (MaxDiscount) {
+        if (MaxDiscount < 0) { return { errCode: 1, errMessage: 'Gỉảm giá tối đa phải lớn hơn 0!', data: null }; }
+    } else if (DiscountType === 'FIXED' && MaxDiscount > DiscountValue) {
         return { errCode: -1, errMessage: 'Gỉảm giá tối đa không được lớn hơn giá trị giảm ban đầu!', data: null };
     }
-    if (!startdate) {
+    if (!StartDate) {
         return { errCode: -1, errMessage: 'Ngày bắt đầu không được để trống!', data: null };
     }
 
-    if (enddate) {
-        const startCheck = new Date(enddate);
-        const dateCheck = new Date(enddate);
+    if (EndDate) {
+        const startCheck = new Date(EndDate);
+        const dateCheck = new Date(EndDate);
         if (isNaN(dateCheck.getTime())) return { errCode: 1, errMessage: 'Ngày hết hiệu lực không hợp lệ!', data: null };
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        const starttime = `${hours}:${minutes}`;
-        const [hoursCheck, minutesCheck] = starttime.split(':').map(Number);
+        const StartTime = `${hours}:${minutes}`;
+        const [hoursCheck, minutesCheck] = StartTime.split(':').map(Number);
         dateCheck.setHours(hoursCheck, minutesCheck, 0, 0);
         startCheck.setHours(hoursCheck, minutesCheck, 0, 0);
         if (dateCheck < now) return { errCode: 1, errMessage: 'Ngày hết hiệu lực phải trong tương lai', data: null };
         if (dateCheck < startCheck) return { errCode: 1, errMessage: 'Thời gian hết hiệu lực phải lớn hơn thời gian quá khứ', data: null };
     }
-    if (!couponstatus) {
+    if (!CouponStatus) {
         return { errCode: -1, errMessage: 'Trạng thái giảm giá không được để trống!', data: null };
     } else {
-        const validCouponStatus = await checkValidAllCode('CouponStatus', couponstatus);
+        const validCouponStatus = await checkValidAllCode('CouponStatus', CouponStatus);
         if (!validCouponStatus) {
             return {
                 errCode: 1,
@@ -90,10 +90,10 @@ let validateCouponInput = async (couponInfo) => {
     return null
 };
 
-let checkCouponCodeExist = (couponcode) => {
+let checkCouponCodeExist = (CouponCode) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!couponcode) {
+            if (!CouponCode) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu mã giảm giá để kiểm tra!',
@@ -102,7 +102,7 @@ let checkCouponCodeExist = (couponcode) => {
                 return;
             }
             let exist = await db.Coupon.findOne({
-                where: { CouponCode: couponcode },
+                where: { CouponCode },
             });
             resolve(exist ? true : false);
         } catch (e) {
@@ -116,10 +116,10 @@ let checkCouponCodeExist = (couponcode) => {
     });
 };
 
-let getCouponInfo = (couponcode) => {
+let getCouponInfo = (CouponCode) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!couponcode) {
+            if (!CouponCode) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu tham số!',
@@ -128,13 +128,13 @@ let getCouponInfo = (couponcode) => {
                 return;
             }
             let couponData = null;
-            if (couponcode === 'ALL') {
+            if (CouponCode === 'ALL') {
                 couponData = await db.Coupon.findAll({
                     attributes: ['CouponCode', 'MinOrderValue', 'DiscountValue', 'MaxDiscount', 'StartDate', 'EndDate', 'DiscountType', 'CouponStatus'],
                 });
             } else {
                 couponData = await db.Coupon.findOne({
-                    where: { CouponCode: couponcode },
+                    where: { CouponCode },
                     attributes: ['CouponCode', 'MinOrderValue', 'DiscountValue', 'MaxDiscount', 'StartDate', 'EndDate', 'DiscountType', 'CouponStatus'],
                 });
             }
@@ -222,10 +222,10 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                     },
                 ];
             }
-            // Lọc theo couponstatus, discounttype, maxdiscountfixed, hoặc maxdiscountperc
+            // Lọc theo CouponStatus, DiscountType, MaxDiscountfixed, hoặc MaxDiscountperc
             if (filter !== 'ALL') {
                 const [field, value] = filter.split('-');
-                if (field === 'couponstatus') {
+                if (field === 'CouponStatus') {
                     const validCouponStatus = await checkValidAllCode('CouponStatus', value);
                     if (!validCouponStatus) {
                         resolve({
@@ -236,7 +236,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                         return;
                     }
                     where.CouponStatus = value;
-                } else if (field === 'discounttype') {
+                } else if (field === 'DiscountType') {
                     const validDiscountType = await checkValidAllCode('DiscountType', value);
                     if (!validDiscountType) {
                         resolve({
@@ -247,7 +247,7 @@ let loadCouponInfo = (page, limit, search, filter, sort, date) => {
                         return;
                     }
                     where.DiscountType = value;
-                } else if (field === 'maxdiscountfixed') {
+                } else if (field === 'MaxDiscountFixed') {
                     where.DiscountType = 'FIXED';
                     switch (value) {
                         case '0':
@@ -372,7 +372,7 @@ let createCoupon = (couponInfo) => {
                 resolve(isValidateInput);
                 return;
             }
-            const isCouponCodeExist = await checkCouponCodeExist(couponInfo.couponcode);
+            const isCouponCodeExist = await checkCouponCodeExist(couponInfo.CouponCode);
             if (isCouponCodeExist) {
                 await transaction.rollback();
                 resolve({
@@ -383,16 +383,16 @@ let createCoupon = (couponInfo) => {
                 return;
             }
             await db.Coupon.create({
-                CouponCode: couponInfo.couponcode,
-                CouponDescription: couponInfo.coupondescription,
-                MinOrderValue: couponInfo.minordervalue ? couponInfo.minordervalue : 0,
-                DiscountValue: couponInfo.discountvalue,
-                MaxDiscount: couponInfo.maxdiscount,
-                DiscountType: couponInfo.discounttype,
-                StartDate: new Date(couponInfo.startdate).toISOString(),
-                EndDate: couponInfo.endate ? new Date(couponInfo.enddate).toISOString() : null,
+                CouponCode: couponInfo.CouponCode,
+                CouponDescription: couponInfo.CouponDescription,
+                MinOrderValue: couponInfo.MinOrderValue ? couponInfo.MinOrderValue : 0,
+                DiscountValue: couponInfo.DiscountValue,
+                MaxDiscount: couponInfo.MaxDiscount,
+                DiscountType: couponInfo.DiscountType,
+                StartDate: new Date(couponInfo.StartDate).toISOString(),
+                EndDate: couponInfo.endate ? new Date(couponInfo.EndDate).toISOString() : null,
                 CreatedAt: new Date(),
-                CouponStatus: couponInfo.couponstatus,
+                CouponStatus: couponInfo.CouponStatus,
             }, { transaction });
             await transaction.commit();
             resolve({
@@ -416,11 +416,11 @@ let changeCouponInfo = (couponInfo) => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
         try {
-            if (!couponInfo || !couponInfo.couponid) {
+            if (!couponInfo || !couponInfo.CouponID) {
                 await transaction.rollback();
                 resolve({
                     errCode: -1,
-                    errMessage: 'Thiếu tham số hoặc couponid!',
+                    errMessage: 'Thiếu tham số hoặc CouponID!',
                     data: null,
                 });
                 return;
@@ -432,7 +432,7 @@ let changeCouponInfo = (couponInfo) => {
                 return;
             }
             const coupon = await db.Coupon.findOne({
-                where: { CouponID: couponInfo.couponid },
+                where: { CouponID: couponInfo.CouponID },
                 transaction,
             });
             if (!coupon) {
@@ -445,55 +445,55 @@ let changeCouponInfo = (couponInfo) => {
                 return;
             }
             let isUpdated = false;
-            if (couponInfo.couponcode && couponInfo.couponcode.trim() !== coupon.CouponCode) {
-                coupon.CouponCode = couponInfo.couponcode.trim();
+            if (couponInfo.CouponCode && couponInfo.CouponCode.trim() !== coupon.CouponCode) {
+                coupon.CouponCode = couponInfo.CouponCode.trim();
                 isUpdated = true;
             }
-            if (couponInfo.coupondescription !== undefined && couponInfo.coupondescription?.trim() !== (coupon.CouponDescription || '')) {
-                coupon.CouponDescription = couponInfo.coupondescription ? couponInfo.coupondescription.trim() : null;
+            if (couponInfo.CouponDescription !== undefined && couponInfo.CouponDescription?.trim() !== (coupon.CouponDescription || '')) {
+                coupon.CouponDescription = couponInfo.CouponDescription ? couponInfo.CouponDescription.trim() : null;
                 isUpdated = true;
             }
-            if (couponInfo.minordervalue !== undefined) {
-                const newMinOrderValue = couponInfo.minordervalue ? parseFloat(couponInfo.minordervalue).toFixed(2) : null;
+            if (couponInfo.MinOrderValue !== undefined) {
+                const newMinOrderValue = couponInfo.MinOrderValue ? parseFloat(couponInfo.MinOrderValue).toFixed(2) : null;
                 if (newMinOrderValue !== (coupon.MinOrderValue || null)) {
                     coupon.MinOrderValue = newMinOrderValue;
                     isUpdated = true;
                 }
             }
-            if (couponInfo.discountvalue !== undefined) {
-                const newDiscountValue = parseFloat(couponInfo.discountvalue);
+            if (couponInfo.DiscountValue !== undefined) {
+                const newDiscountValue = parseFloat(couponInfo.DiscountValue);
                 if (newDiscountValue !== coupon.DiscountValue) {
                     coupon.DiscountValue = newDiscountValue;
                     isUpdated = true;
                 }
             }
-            if (couponInfo.maxdiscount !== undefined) {
-                const newMaxDiscount = couponInfo.maxdiscount ? parseFloat(couponInfo.maxdiscount).toFixed(2) : null;
+            if (couponInfo.MaxDiscount !== undefined) {
+                const newMaxDiscount = couponInfo.MaxDiscount ? parseFloat(couponInfo.MaxDiscount).toFixed(2) : null;
                 if (newMaxDiscount !== (coupon.MaxDiscount || null)) {
                     coupon.MaxDiscount = newMaxDiscount;
                     isUpdated = true;
                 }
             }
-            if (couponInfo.discounttype && couponInfo.discounttype !== coupon.DiscountType) {
-                coupon.DiscountType = couponInfo.discounttype;
+            if (couponInfo.DiscountType && couponInfo.DiscountType !== coupon.DiscountType) {
+                coupon.DiscountType = couponInfo.DiscountType;
                 isUpdated = true;
             }
-            if (couponInfo.startdate !== undefined) {
-                const newStartDate = couponInfo.startdate ? new Date(couponInfo.startdate).toISOString() : null;
+            if (couponInfo.StartDate !== undefined) {
+                const newStartDate = couponInfo.StartDate ? new Date(couponInfo.StartDate).toISOString() : null;
                 if (newStartDate !== coupon.StartDate) {
                     coupon.StartDate = newStartDate;
                     isUpdated = true;
                 }
             }
-            if (couponInfo.enddate !== undefined) {
-                const newEndDate = couponInfo.enddate ? new Date(couponInfo.enddate).toISOString() : null;
+            if (couponInfo.EndDate !== undefined) {
+                const newEndDate = couponInfo.EndDate ? new Date(couponInfo.EndDate).toISOString() : null;
                 if (newEndDate !== coupon.EndDate) {
                     coupon.EndDate = newEndDate;
                     isUpdated = true;
                 }
             }
-            if (couponInfo.couponstatus && couponInfo.couponstatus !== coupon.CouponStatus) {
-                coupon.CouponStatus = couponInfo.couponstatus;
+            if (couponInfo.CouponStatus && couponInfo.CouponStatus !== coupon.CouponStatus) {
+                coupon.CouponStatus = couponInfo.CouponStatus;
                 isUpdated = true;
             }
             if (!isUpdated) {
@@ -518,7 +518,7 @@ let changeCouponInfo = (couponInfo) => {
                     CouponStatus: coupon.CouponStatus
                 },
                 {
-                    where: { CouponID: couponInfo.couponid },
+                    where: { CouponID: couponInfo.CouponID },
                     transaction
                 }
             );
@@ -541,10 +541,10 @@ let changeCouponInfo = (couponInfo) => {
 };
 
 
-let checkCoupon = (couponcode, price) => {
+let checkCoupon = (CouponCode, Price) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!couponcode || !price) {
+            if (!CouponCode || !Price) {
                 resolve({
                     errCode: -1,
                     errMessage: 'Thiếu tham số!',
@@ -554,7 +554,7 @@ let checkCoupon = (couponcode, price) => {
             }
             let discountAmout = 0;
             const couponInfo = await db.Coupon.findOne({
-                where: { CouponCode: couponcode, CouponStatus: 'ACTIVE' },
+                where: { CouponCode, CouponStatus: 'ACTIVE' },
                 attributes: ['DiscountType', 'DiscountValue', 'MaxDiscount', 'MinOrderValue', 'StartDate', 'EndDate'],
             });
             if (!couponInfo) {
@@ -582,7 +582,7 @@ let checkCoupon = (couponcode, price) => {
                 });
                 return;
             }
-            if (parseFloat(price) < parseFloat(couponInfo.MinOrderValue)) {
+            if (parseFloat(Price) < parseFloat(couponInfo.MinOrderValue)) {
                 resolve({
                     errCode: 2,
                     errMessage: 'Không thể áp dụng mã giảm giá!',
@@ -590,17 +590,17 @@ let checkCoupon = (couponcode, price) => {
                 });
                 return;
             }
-            let discountValue = 0;
+            let DiscountValue = 0;
             if (couponInfo.DiscountType === 'FIXED') {
-                discountValue = parseFloat(couponInfo.DiscountValue);
+                DiscountValue = parseFloat(couponInfo.DiscountValue);
             } else {
-                discountValue = price * (parseFloat(couponInfo.DiscountValue) / 100);
+                DiscountValue = Price * (parseFloat(couponInfo.DiscountValue) / 100);
             }
-            discountValue = price - discountValue > couponInfo.MaxDiscount ? couponInfo.MaxDiscount : discountValue;
+            DiscountValue = Price - DiscountValue > couponInfo.MaxDiscount ? couponInfo.MaxDiscount : DiscountValue;
             resolve({
                 errCode: 0,
                 errMessage: 'Kiểm tra giảm giá thành công!',
-                data: discountValue,
+                data: DiscountValue,
             });
         } catch (e) {
             console.log(e);

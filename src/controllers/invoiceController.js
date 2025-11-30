@@ -13,7 +13,7 @@ const handleError = (res, e) => {
 
 let handleGetAccountInvoiceInfo = async (req, res) => {
   try {
-    let response = await invoiceService.getAccountInvoiceInfo(req.query.accountid);
+    let response = await invoiceService.getAccountInvoiceInfo(req.query.AccountID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -37,7 +37,7 @@ let handleLoadInvoiceInfo = async (req, res) => {
 
 let handleGetInvoiceDetailInfo = async (req, res) => {
   try {
-    let response = await invoiceService.getInvoiceDetailInfo(req.query.invoiceid);
+    let response = await invoiceService.getInvoiceDetailInfo(req.query.InvoiceID);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -46,8 +46,8 @@ let handleGetInvoiceDetailInfo = async (req, res) => {
 
 let handleCreateInvoice = async (req, res) => {
   try {
-    const { accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow } = req.body;
-    let response = await invoiceService.createInvoice(accountid, receivername, receiverphone, receiveraddress, cartItems, totalquantity, totalprice, discountamount, totalpayment, paymentstatus, shippingstatus, paymenttype, shippingmethod, couponid, email, isBuyNow, req); // Thêm req ở cuối
+    const { AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, cartItems, TotalQuantity, TotalPrice, DiscountAmount, TotalPayment, PaymentStatus, ShippingStatus, PaymentType, ShippingMethod, CouponID, Email, isBuyNow } = req.body;
+    let response = await invoiceService.createInvoice(AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, cartItems, TotalQuantity, TotalPrice, DiscountAmount, TotalPayment, PaymentStatus, ShippingStatus, PaymentType, ShippingMethod, CouponID, Email, isBuyNow, req); // Thêm req ở cuối
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -56,8 +56,8 @@ let handleCreateInvoice = async (req, res) => {
 
 let handleChangeInvoiceStatus = async (req, res) => {
   try {
-    const { invoiceid, type, status, cancelReason } = req.body;
-    let response = await invoiceService.changeInvoiceStatus(invoiceid, type, status, cancelReason);
+    const { InvoiceID, Type, Status, CancelReason } = req.body;
+    let response = await invoiceService.changeInvoiceStatus(InvoiceID, Type, Status, CancelReason);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -67,8 +67,8 @@ let handleChangeInvoiceStatus = async (req, res) => {
 
 let handleGetInvoiceEmail = async (req, res) => {
   try {
-    const { billid, email } = req.body;
-    let response = await invoiceService.getInvoiceEmail(billid, email);
+    const { BillID, Email } = req.body;
+    let response = await invoiceService.getInvoiceEmail(BillID, Email);
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -77,8 +77,8 @@ let handleGetInvoiceEmail = async (req, res) => {
 
 let handleLoadRevenueStats = async (req, res) => {
   try {
-    const { type, startDate, endDate } = req.query; // Lấy params từ query (daily/monthly/yearly, dates)
-    const data = await getRevenueStats(type, startDate, endDate); // Gọi service
+    const { Type, StartDate, EndDate } = req.query; // Lấy params từ query (daily/monthly/yearly, dates)
+    const data = await getRevenueStats(Type, StartDate, EndDate); // Gọi service
     return res.status(200).json({ errCode: 0, errMessage: 'OK', data });
   } catch (e) {
     console.log(e);
@@ -88,8 +88,8 @@ let handleLoadRevenueStats = async (req, res) => {
 
 let handleLoadTopProducts = async (req, res) => {
   try {
-    const { type, startDate, endDate } = req.query;
-    const data = await getTopProducts(type, startDate, endDate);
+    const { Type, StartDate, EndDate } = req.query;
+    const data = await getTopProducts(Type, StartDate, EndDate);
     return res.status(200).json({ errCode: 0, errMessage: 'OK', data });
   } catch (e) {
     console.log(e);

@@ -65,10 +65,10 @@ let validateCodeInput = (codeInfo) => {
   return null;
 };
 
-let checkValidAllCode = (type, code) => {
+let checkValidAllCode = (Type, Code) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!type || !code) {
+      if (!Type || !Code) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu dữ liệu để kiểm tra!',
@@ -78,13 +78,13 @@ let checkValidAllCode = (type, code) => {
       }
       let exist = await db.AllCodes.findOne({
         where: {
-          Type: type,
-          Code: code,
+          Type,
+          Code,
         },
       });
       resolve(exist ? true : false);
     } catch (e) {
-      console.log(`Error in checkValidAllCode (${type}, ${code}): `, e);
+      console.log(`Error in checkValidAllCode (${Type}, ${Code}): `, e);
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi kiểm tra mã: ${e.message}`,
@@ -162,10 +162,10 @@ let generateID = (prefix, digitCount, tableName, columnName) => {
   });
 };
 
-let getAllCodes = (type) => {
+let getAllCodes = (Type) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!type) {
+      if (!Type) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu tham số!',
@@ -174,9 +174,9 @@ let getAllCodes = (type) => {
         return;
       }
       let allCodes
-      if (type !== "ALL") {
+      if (Type !== "ALL") {
         allCodes = await db.AllCodes.findAll({
-          where: { Type: type },
+          where: { Type },
           attributes: ['Code', 'CodeValueVI', 'ExtraValue'],
           raw: true,
         });
@@ -244,7 +244,7 @@ let loadAllCodesInfo = (page, limit, search, filter, sort) => {
 
       if (filter !== 'ALL') {
         const [field, value] = filter.split('-');
-        if (field === 'type') {
+        if (field === 'Type') {
           where.Type = value;
         } else {
           resolve({
@@ -311,10 +311,11 @@ let createCode = (codeInfo) => {
         resolve(isValidateInput);
         return;
       }
+      const { Type, Code, CodeValueVI, ExtraValue } = codeInfo
       const isCodeExist = await db.AllCodes.findOne({
         where: {
-          Type: codeInfo.Type.trim(),
-          Code: codeInfo.Code.trim(),
+          Type,
+          Code,
         },
         transaction,
       });
@@ -327,13 +328,12 @@ let createCode = (codeInfo) => {
         });
         return;
       }
-      const newCode = await db.AllCodes.create(
-        {
-          Type: codeInfo.Type.trim(),
-          Code: codeInfo.Code.trim(),
-          CodeValueVI: codeInfo.CodeValueVI.trim(),
-          ExtraValue: codeInfo.ExtraValue ? parseFloat(codeInfo.ExtraValue).toFixed(2) : null,
-        },
+      await db.AllCodes.create({
+        Type,
+        Code,
+        CodeValueVI,
+        ExtraValue: ExtraValue ? parseFloat(ExtraValue).toFixed(2) : null,
+      },
         { transaction }
       );
       await transaction.commit();
@@ -358,7 +358,8 @@ let changeCodeInfo = (codeInfo) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!codeInfo || !codeInfo.CodeID) {
+      const { CodeID, Type, Code, CodeValueVI, ExtraValue } = codeInfo
+      if (!codeInfo || !CodeID) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -374,7 +375,7 @@ let changeCodeInfo = (codeInfo) => {
         return;
       }
       const code = await db.AllCodes.findOne({
-        where: { CodeID: codeInfo.CodeID },
+        where: { CodeID },
         transaction,
       });
       if (!code) {
@@ -387,18 +388,17 @@ let changeCodeInfo = (codeInfo) => {
         return;
       }
       let isUpdated = false;
-      if (codeInfo.CodeValueVI && codeInfo.CodeValueVI.trim() !== code.CodeValueVI) {
-        code.CodeValueVI = codeInfo.CodeValueVI.trim();
+      if (CodeValueVI && CodeValueVI !== code.CodeValueVI) {
+        code.CodeValueVI = CodeValueVI;
         isUpdated = true;
       }
-      if (codeInfo.ExtraValue !== undefined) {
-        const newExtraValue = codeInfo.ExtraValue ? parseFloat(codeInfo.ExtraValue).toFixed(2) : null;
-        if (newExtraValue !== code.ExtraValue) {
+      if (ExtraValue !== undefined) {
+        const newExtraValue = ExtraValue ? parseFloat(ExtraValue).toFixed(2) : null;
+        if (newExtraValue !== ExtraValue) {
           code.ExtraValue = newExtraValue;
           isUpdated = true;
         }
       }
-
       if (!isUpdated) {
         await transaction.rollback();
         resolve({
@@ -413,7 +413,7 @@ let changeCodeInfo = (codeInfo) => {
           CodeValueVI: code.CodeValueVI,
           ExtraValue: code.ExtraValue,
         },
-        { where: { CodeID: codeInfo.CodeID }, transaction }
+        { where: { CodeID: CodeID }, transaction }
       );
       await transaction.commit();
       resolve({
@@ -432,11 +432,11 @@ let changeCodeInfo = (codeInfo) => {
     }
   });
 };
-
-let checkAccountExist = (accountID) => {
+//thông báo chưa sửa
+let checkAccountExist = (AccountID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!accountID) {
+      if (!AccountID) {
         resolve({
           errCode: -1,
           errMessage: 'Thiếu mã tài khoản để kiểm tra!',
@@ -445,7 +445,7 @@ let checkAccountExist = (accountID) => {
         return;
       }
       let exist = await db.Account.findOne({
-        where: { AccountID: accountID },
+        where: { AccountID },
       });
       resolve(exist ? true : false);
     } catch (e) {
@@ -458,12 +458,11 @@ let checkAccountExist = (accountID) => {
     }
   });
 };
-
-let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extravalue) => {
+let sendNotification = (AccountID, ReceiveNotifID, RoleReceive, NotifType, ExtraValue) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!accountid || !notiftype || !extravalue) {
+      if (!AccountID || !NotifType || !ExtraValue) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -472,7 +471,7 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
         });
         return;
       }
-      if (!receivenotifid && !rolereceive) {
+      if (!ReceiveNotifID && !RoleReceive) {
         await transaction.rollback();
         resolve({
           errCode: -1,
@@ -481,7 +480,7 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
         });
         return;
       }
-      const validNotifType = await checkValidAllCode('NotifType', notiftype);
+      const validNotifType = await checkValidAllCode('NotifType', NotifType);
       if (!validNotifType) {
         await transaction.rollback();
         resolve({
@@ -491,7 +490,7 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
         });
         return;
       }
-      const isSenderExist = await checkAccountExist(accountid);
+      const isSenderExist = await checkAccountExist(AccountID);
       if (!isSenderExist) {
         await transaction.rollback();
         resolve({
@@ -501,8 +500,8 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
         });
         return;
       }
-      if (rolereceive) {
-        const validAccountType = await checkValidAllCode('AccountType', rolereceive);
+      if (RoleReceive) {
+        const validAccountType = await checkValidAllCode('AccountType', RoleReceive);
         if (!validAccountType) {
           await transaction.rollback();
           resolve({
@@ -513,7 +512,7 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
           return;
         }
       } else {
-        const isReceiverExist = await checkAccountExist(receivenotifid);
+        const isReceiverExist = await checkAccountExist(ReceiveNotifID);
         if (!isReceiverExist) {
           await transaction.rollback();
           resolve({
@@ -526,55 +525,55 @@ let sendNotification = (accountid, receivenotifid, rolereceive, notiftype, extra
       }
       const account = await db.Account.findOne({
         attributes: ['AccountID', 'UserName'],
-        where: { AccountID: accountid },
+        where: { AccountID },
         raw: true,
         transaction,
       });
-      let notifdescription = 'UIA';
-      switch (notiftype) {
+      let NotifDescription = 'UIA';
+      switch (NotifType) {
         case 'ORDER_COMPLETE':
-          notifdescription = `Đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> đã được khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đặt và thanh toán thành công!`;
+          NotifDescription = `Đơn hàng <strong style="color:#e74c3c;">${ExtraValue}</strong> đã được khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đặt và thanh toán thành công!`;
           break;
         case 'ORDER_CONFIRM':
-          notifdescription = `Khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đã đặt đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> và đang chờ xác nhận.`;
+          NotifDescription = `Khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đã đặt đơn hàng <strong style="color:#e74c3c;">${ExtraValue}</strong> và đang chờ xác nhận.`;
           break;
         case 'ORDER_SUCCESS':
-          notifdescription = `Bạn đã đặt đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> thành công. Cảm ơn bạn đã mua sắm!`;
+          NotifDescription = `Bạn đã đặt đơn hàng <strong style="color:#e74c3c;">${ExtraValue}</strong> thành công. Cảm ơn bạn đã mua sắm!`;
           break;
         case 'ORDER_CANCEL':
-          notifdescription = `Đơn hàng <strong style="color:#e74c3c;">${extravalue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
+          NotifDescription = `Đơn hàng <strong style="color:#e74c3c;">${ExtraValue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
           break;
         case 'APM_SUCCESS':
-          notifdescription = `Bạn đã đặt lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> thành công! Chúng tôi sẽ sớm xác nhận. Cảm ơn bạn! ❤️`;
+          NotifDescription = `Bạn đã đặt lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> thành công! Chúng tôi sẽ sớm xác nhận. Cảm ơn bạn! ❤️`;
           break;
         case 'APM_WAIT':
-          notifdescription = `Khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đã đặt lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> và đang chờ bạn xác nhận.`;
+          NotifDescription = `Khách hàng <strong style="color:#e74c3c;">${account.UserName}</strong> đã đặt lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> và đang chờ bạn xác nhận.`;
           break;
         case 'APM_CONFIRM':
-          notifdescription = `Lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> đã được bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> xác nhận.`;
+          NotifDescription = `Lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> đã được bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> xác nhận.`;
           break;
         case 'APM_REFUSE':
-          notifdescription = `Lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> đã bị bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> từ chối.`;
+          NotifDescription = `Lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> đã bị bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> từ chối.`;
           break;
         case 'APM_COMPLETE':
-          notifdescription = `Lịch khám <strong style="color:#27ae60;">${extravalue}</strong> đã được hoàn thành.`;
+          NotifDescription = `Lịch khám <strong style="color:#27ae60;">${ExtraValue}</strong> đã được hoàn thành.`;
           break;
         case 'APM_CANCEL':
-          notifdescription = `Lịch khám <strong style="color:#e74c3c;">${extravalue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
+          NotifDescription = `Lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> đã bị hủy bởi <strong style="color:#e74c3c;">${account.UserName}</strong>.`;
           break;
         default:
-          notifdescription = 'UIA';
+          NotifDescription = 'UIA';
       }
-      const createdAt = new Date();
+      const CreatedAt = new Date();
       await db.Notification.create(
         {
-          NotifDescription: notifdescription,
-          CreatedAt: createdAt,
-          ExtraValue: extravalue,
-          ReceiveNotifID: receivenotifid,
-          AccountID: accountid,
-          RoleReceive: rolereceive,
-          NotifType: notiftype,
+          NotifDescription,
+          CreatedAt,
+          ExtraValue,
+          ReceiveNotifID,
+          AccountID,
+          RoleReceive,
+          NotifType,
           NotifStatus: 'UNREAD',
         },
         { transaction }

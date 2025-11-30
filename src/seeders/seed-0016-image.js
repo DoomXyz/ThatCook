@@ -233,14 +233,14 @@ module.exports = {
 
     // Thêm ảnh cho Appointment từ L00000001 đến L00000024
     for (let i = 1; i <= 24; i++) {
-      const referenceID = `L${String(i).padStart(8, '0')}`;
+      const ReferenceID = `L${String(i).padStart(8, '0')}`;
       const imageCount = getRandomImageCount();
 
       for (let j = 0; j < imageCount; j++) {
         images.push({
           Image: getRandomImage(),
           ReferenceType: 'Appointment',
-          ReferenceID: referenceID,
+          ReferenceID,
         });
       }
     }
