@@ -3,6 +3,7 @@ import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
+import QRCode from 'qrcode';
 
 import { eyeOutline, eyeOffOutline, chevronBackOutline, pencil } from 'ionicons/icons';
 import { ethers } from 'ethers';
@@ -17,8 +18,8 @@ import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, h
 import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices';
 import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi, handleSendAppointmentBillEmailApi } from '../../services/appointmentServices';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
-import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi } from '../../services/petServices';
-
+import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi, handleGetPetInfoApi } from '../../services/petServices';
+import { uploadImageToCloudinaryApi } from '../../services/utilitiesServices'
 import { checkLoginStatus, getAllCodes, uploadImages, validatePetInput, generateInvoicePDF, generateAppointmentBillPDF } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
 
@@ -715,7 +716,7 @@ class User extends Component {
       PetGender: pet.PetGender,
       PetWeight: parseFloat(pet.PetWeight),
       Age: parseInt(pet.Age),
-      PetImage: 'https://fastcdn.hoyoverse.com/mi18n/hkrpg_global/m12021633011271/upload/ca25afaf19673f9faeb4ba91570d8666_1989960374012270022.png'
+      PetImage: 'https://res.cloudinary.com/dcwpbdmvx/image/upload/v1748457706/z6649336972368_9714d5c9935f99b35708504f5a5eb8ab_jzvmnx.jpg'
     };
     const isValidatePetInput = await validatePetInput(newPetInfo);
     if (!isValidatePetInput.valid) {
@@ -785,6 +786,111 @@ class User extends Component {
       }
     }
     this.setState({ isLoading: false });
+  };
+  printPetQRCode = async (PetID) => {
+    try {
+      const petResponse = await handleGetPetInfoApi(this.state.AccountID, PetID);
+      const accountResponse = await handleGetAccountInfoApi(this.state.AccountID)
+      if (petResponse && accountResponse && petResponse.errCode === 0 && accountResponse.errCode === 0) {
+        const { Age, PetGender, PetImage, PetName, PetType, PetWeight } = petResponse.data;
+        const { UserName, Phone } = accountResponse.data
+        const qrData = {
+          UserName,
+          Phone,
+          Age,
+          PetGender,
+          PetImage,
+          PetName,
+          PetType,
+          PetWeight,
+        };
+        // Hàm tạo hình ảnh bằng Canvas
+        const createPetInfoImage = async () => {
+          return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 550;
+            const ctx = canvas.getContext('2d');
+            // Vẽ nền trắng
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Vẽ viền
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(10, 10, 380, 630);
+            // Vẽ tên thú cưng (trên cùng, giữa)
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 24px Arial';
+            const petNameWidth = ctx.measureText(qrData.PetName).width;
+            ctx.fillText(qrData.PetName, (canvas.width - petNameWidth) / 2, 50);
+            // Tải ảnh thú cưng
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = qrData.PetImage;
+            img.onload = () => {
+              // Vẽ ảnh thú cưng (giữa)
+              ctx.drawImage(img, 50, 80, 300, 300);
+              // Vẽ thông tin chủ sở hữu và SĐT
+              ctx.font = '16px Arial';
+              ctx.fillText(`Chủ sở hữu: ${qrData.UserName}`, 50, 410);
+              ctx.fillText(`SĐT: ${qrData.Phone}`, 50, 430);
+              // Vẽ 4 trường còn lại, chia 2 cột
+              ctx.font = '14px Arial';
+              // Cột trái
+              ctx.fillText(`Giống: ${qrData.PetType}`, 50, 460);
+              ctx.fillText(`${qrData.Age} tháng tuổi`, 50, 480);
+              // Cột phải
+              const genderText = this.state.codePetGender.find((gender) => gender.Code === qrData.PetGender)?.CodeValueVI || qrData.PetGender;
+              ctx.fillText(`Giới tính: ${genderText}`, 220, 460);
+              ctx.fillText(`Cân nặng: ${qrData.PetWeight / 10} kg`, 220, 480);
+              // Chuyển canvas thành File
+              canvas.toBlob((blob) => {
+                const file = new File([blob], `pet_info_${PetID}.png`, { type: 'image/png' });
+                resolve(file);
+              }, 'image/png');
+            };
+            img.onerror = () => {
+              console.error('Lỗi tải ảnh thú cưng');
+              resolve(null);
+            };
+          });
+        };
+        // Tạo hình ảnh
+        const imageFile = await createPetInfoImage();
+        if (!imageFile) {
+          console.error('Không thể tạo hình ảnh');
+          return;
+        }
+        // Tải hình ảnh lên Cloudinary
+        try {
+          const uploadResult = await uploadImageToCloudinaryApi(imageFile);
+          if (uploadResult.errCode === 0) {
+            const imageUrl = uploadResult.data.secure_url; // URL hình ảnh từ Cloudinary
+            // Tạo mã QR chứa URL hình ảnh
+            const qrCodeDataUrl = await QRCode.toDataURL(imageUrl, {
+              width: 300,
+              margin: 2,
+              errorCorrectionLevel: 'H',
+            });
+            // Tạo link tải xuống mã QR
+            const downloadLink = document.createElement('a');
+            downloadLink.href = qrCodeDataUrl;
+            downloadLink.download = `PetQR_${PetID}.png`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+          } else {
+            console.error('Tải ảnh thất bại:', uploadResult.errMessage);
+          }
+        } catch (error) {
+          console.error('Lỗi tải ảnh lên Cloudinary:', error);
+        }
+      } else {
+        console.error('Lỗi lấy thông tin:', accountResponse ? accountResponse.errMessage : petResponse.errMessage);
+      }
+    } catch (error) {
+      console.error('Lỗi tạo QR code:', error);
+    }
   };
   //search, filter, sort
   handleSearchChange = (event, type) => {
@@ -1345,10 +1451,7 @@ class User extends Component {
                   <div className="change-info-button" onSubmit={this.handleChangeAccountInfo}>
                     <button> Cập nhật </button>
                   </div>
-
                 </div>
-
-
               </div>
               <div className="user-content-right">
                 <div className="user-content-right-img-content">
@@ -2126,6 +2229,9 @@ class User extends Component {
                             </button>
                             <button type="button" className="delete-pet" onClick={() => this.handleDeletePet(pet.PetID)} disabled={this.state.disabledButtons.deletePet}>
                               <b>X</b>
+                            </button>
+                            <button type="button" className="print-pet-qr" onClick={() => this.printPetQRCode(pet.PetID)}>
+                              <b>QR</b>
                             </button>
                           </>
                         )}
