@@ -384,13 +384,6 @@ class PetSelectModal extends Component {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {loadedPetInfo.length < limitPetCount && !isAddingPet && isEditingPet === null && (
-            <div className="pet-select-add">
-              <button className="btn btn-success btn-sm" onClick={this.handleAddPet}>
-                Thêm Thú Cưng
-              </button>
-            </div>
-          )}
           <div className="pet-select-table">
             <table className="table table-bordered">
               <thead>
@@ -451,12 +444,12 @@ class PetSelectModal extends Component {
                             <button className="btn btn-primary btn-sm" onClick={() => this.handleSelectPet(pet.PetID)}>
                               Chọn
                             </button>
-                            <button className="btn btn-warning btn-sm" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
+                            {/* <button className="btn btn-warning btn-sm" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
                               Sửa
                             </button>
                             <button className="btn btn-danger btn-sm" onClick={() => this.handleDeletePet(pet.PetID)} disabled={isEditingPet !== null || isAddingPet || disabledButtons.deletePet}>
                               Xóa
-                            </button>
+                            </button> */}
                           </>
                         )}
                       </td>

@@ -670,7 +670,7 @@ class MakeAppointment extends Component {
                   <button onClick={this.togglePetSelectModal}>Chọn thú cưng</button>
                 </div>
               )}
-              {!isLoggedIn || loadedPetList.length === 0 || selectedPetID !== '' || Type === 'FOLLOW_UP' ? (
+              {selectedPetID !== '' || Type === 'FOLLOW_UP' ? (
                 <div className="makeappointment-content-pet-info">
                   <b>*Thông tin Thú cưng</b>
                   <p>Tên thú cưng:</p>
@@ -717,15 +717,23 @@ class MakeAppointment extends Component {
                 </div>
               ) : (
                 <p style={{ marginLeft: '5rem' }}>
-                  <u>*Chưa chọn thú cưng</u>
+                  <u>Chưa có thú cưng được chọn</u>
                 </p>
               )}
-              {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && Type !== 'FOLLOW_UP' && (
+              {isLoggedIn && loadedPetList.length === 0 ?
+                (
+                  <p style={{ marginLeft: '5rem' }}>
+                    <u>Hãy đăng ký thú cưng của bạn<button onClick={() => this.props.navigate('/user/customer')}>Tại đây</button></u>
+                  </p>
+                ) :
+                (<p></p>)
+              }
+              {/* {(!isLoggedIn || (isLoggedIn && loadedPetList.length === 0)) && Type !== 'FOLLOW_UP' && (
                 <div className="makeappointment-save-petinfo-button">
                   <button onClick={this.handleSavePetInfo}>Lưu</button>
                   <div className="stra"></div>
                 </div>
-              )}
+              )} */}
               <b className="doctor-info">*Thông tin đặt lịch</b>
               <div className="makeappointment-content-doctor">
                 <div className="f">
@@ -837,7 +845,8 @@ class MakeAppointment extends Component {
             </div>
             <Footer />
           </div>
-        )}
+        )
+        }
       </div>
     );
   }
