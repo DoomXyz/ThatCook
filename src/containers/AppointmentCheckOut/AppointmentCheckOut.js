@@ -28,6 +28,7 @@ class AppointmentCheckOut extends Component {
       MedicalNotes: '',
       MedicalPrice: '',
       TotalPayment: '',
+      PaymentType: 'CASH',
     };
   }
   async componentDidMount() {
@@ -116,6 +117,9 @@ class AppointmentCheckOut extends Component {
     if (type === 'MedicalPrice') {
       copyState.MedicalPrice = parseFloat(value || 0);
     }
+    if (type === 'PaymentType') {
+      copyState.PaymentType = value;
+    }
     copyState.TotalPayment = this.handleCalculateTotalPayment(copyState.MedicalPrice);
     this.setState(copyState);
   };
@@ -160,7 +164,7 @@ class AppointmentCheckOut extends Component {
   handleCreateAppointmentBill = async () => {
     try {
       this.setState({ isLoading: true });
-      const { VeterinarianID, MedicalNotes, MedicalPrice, loadedAppointmentDetail, image, isUploading } = this.state;
+      const { VeterinarianID, MedicalNotes, MedicalPrice, loadedAppointmentDetail, image, isUploading, PaymentType } = this.state;
       const isValidateInput = this.checkValidateInput();
       if (isValidateInput.errCode !== 0) {
         toast.error(isValidateInput.errMessage, {
@@ -202,55 +206,60 @@ class AppointmentCheckOut extends Component {
         MedicalPrice,
         MedicalImage,
         MedicalNotes,
+        PaymentType,
       };
       const response = await handleCreateAppointmentBillApi(appointmentBillInfo);
       if (response && response.errCode === 0) {
-        toast.success(
-          <div>
-            Hoàn tất thanh toán!
-            <div style={{ marginTop: '10px' }}>
-              <button
-                onClick={() => {
-                  this.props.saveFuAppointmentInfo({ AppointmentID: response.data.AppointmentID });
-                  this.props.clearAppointmentCheckout();
-                  this.props.navigate('/makeappointment');
-                }}
-                style={{
-                  marginRight: '10px',
-                  color: 'blue',
-                  textDecoration: 'underline',
-                  background: 'none',
-                  border: 'none',
-                }}
-              >
-                Tạo lịch tái khám
-              </button>
-              <button
-                onClick={() => {
-                  this.props.saveTrackInfo({ BillID: response.data.AppointmentBillID, BillType: 3 });
-                  this.props.clearAppointmentCheckout();
-                  this.props.navigate('/track');
-                }}
-                style={{
-                  color: 'blue',
-                  textDecoration: 'underline',
-                  background: 'none',
-                  border: 'none',
-                }}
-              >
-                Xem hóa đơn
-              </button>
-            </div>
-          </div>,
-          {
-            autoClose: 2000,
-            closeOnClick: false,
-            onClose: () => {
-              this.props.clearAppointmentCheckout();
-              this.props.navigate('/user/veterinarian');
-            },
-          }
-        );
+        if (response.data.vnpayUrl) {
+          window.location.href = response.data.vnpayUrl;
+        } else {
+          toast.success(
+            <div>
+              Hoàn tất thanh toán!
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  onClick={() => {
+                    this.props.saveFuAppointmentInfo({ AppointmentID: response.data.AppointmentID });
+                    this.props.clearAppointmentCheckout();
+                    this.props.navigate('/makeappointment');
+                  }}
+                  style={{
+                    marginRight: '10px',
+                    color: 'blue',
+                    textDecoration: 'underline',
+                    background: 'none',
+                    border: 'none',
+                  }}
+                >
+                  Tạo lịch tái khám
+                </button>
+                <button
+                  onClick={() => {
+                    this.props.saveTrackInfo({ BillID: response.data.AppointmentBillID, BillType: 3 });
+                    this.props.clearAppointmentCheckout();
+                    this.props.navigate('/track');
+                  }}
+                  style={{
+                    color: 'blue',
+                    textDecoration: 'underline',
+                    background: 'none',
+                    border: 'none',
+                  }}
+                >
+                  Xem hóa đơn
+                </button>
+              </div>
+            </div>,
+            {
+              autoClose: 2000,
+              closeOnClick: false,
+              onClose: () => {
+                this.props.clearAppointmentCheckout();
+                this.props.navigate('/user/veterinarian');
+              },
+            }
+          );
+        }
       } else {
         this.setState({ isLoading: false });
         toast.error(response.errMessage, {
@@ -261,15 +270,18 @@ class AppointmentCheckOut extends Component {
       }
     } catch (e) {
       this.setState({ isLoading: false });
-      toast.error(`Lỗi khi tải ảnh: ${e.message}`, {
+      // Sửa catch: Handle AxiosError an toàn hơn
+      const errorMessage = e.response?.data?.errMessage || e.message || 'Lỗi kết nối mạng hoặc server không phản hồi. Vui lòng kiểm tra backend!';
+      toast.error(`Lỗi khi tạo hóa đơn: ${errorMessage}`, {
         position: 'top-right',
         autoClose: 1000,
         closeOnClick: true,
       });
+      console.error('Chi tiết lỗi Axios:', e); // Log chi tiết để debug
     }
   };
   render() {
-    const { isLoading, image, isUploading, loadedAppointmentDetail } = this.state;
+    const { isLoading, image, isUploading, loadedAppointmentDetail, PaymentType } = this.state;
     if (!loadedAppointmentDetail) {
       return <Spinner />;
     }
@@ -369,6 +381,21 @@ class AppointmentCheckOut extends Component {
               </div>
             </div>
             <div className="appointment-check-out-content-bottom">
+              <div className="payment-methods">
+                <p style={{ fontWeight: 'bold' }}>Phương thức thanh toán:</p>
+                <div>
+                  <input type="radio" id="CASH" name="PaymentType" value="CASH" checked={PaymentType === 'CASH'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
+                  <label htmlFor="CASH">Thanh toán tiền mặt</label>
+                </div>
+                <div>
+                  <input type="radio" id="CARD" name="PaymentType" value="CARD" checked={PaymentType === 'CARD'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
+                  <label htmlFor="CARD">Thanh toán bằng thẻ (VNPay)</label>
+                </div>
+                <div>
+                  <input type="radio" id="QR" name="PaymentType" value="QR" checked={PaymentType === 'QR'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
+                  <label htmlFor="QR">Quét QR (VNPay)</label>
+                </div>
+              </div>
               <button onClick={this.handleCreateAppointmentBill} disabled={isUploading}>
                 Xác nhận
               </button>

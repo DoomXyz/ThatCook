@@ -8,7 +8,4 @@ const handleChangeScheduleStatusApi = (ScheduleID, ScheduleStatus) => {
     return axios.put('/api/change-ScheduleStatus', { ScheduleID, ScheduleStatus });
 };
 
-export {
-    handleLoadScheduleApi,
-    handleChangeScheduleStatusApi
-}
+export { handleLoadScheduleApi, handleChangeScheduleStatusApi };

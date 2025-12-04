@@ -18,6 +18,7 @@ import ShowDoctor from '../containers/ShowDoctor/ShowDoctor';
 import ShowService from '../containers/ShowService/ShowService';
 import DoctorPage from '../containers/DoctorPage/Doctor';
 import AppointmentCheckOut from '../containers/AppointmentCheckOut/AppointmentCheckOut';
+import Pet from '../containers/Pet/Pet';
 // class AppRoutes extends Component {
 //     render() {
 //         const { navigate } = this.props; // Nhận navigate từ props
@@ -53,6 +54,7 @@ const AppRoutes = () => {
       <Route path="/user/owner" element={<OwnerPage navigate={navigate} />} />
       <Route path="/user/veterinarian" element={<DoctorPage navigate={navigate} />} />
       <Route path="/appointmentcheckout" element={<AppointmentCheckOut navigate={navigate} />} />
+      <Route path="/pet" element={<Pet navigate={navigate} />} />
     </Routes>
   );
 };

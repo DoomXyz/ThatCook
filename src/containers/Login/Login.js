@@ -1,56 +1,68 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
-import { IonIcon } from '@ionic/react'; //import thư viện icon
+import { IonIcon } from '@ionic/react';
 
-import { home, keyOutline, eyeOffOutline, eyeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
+import { home, keyOutline, eyeOffOutline, eyeOutline, mailOutline, call, person, maleFemaleOutline, location, personOutline } from 'ionicons/icons';
 
-import './Login.scss'; //import scss
+import './Login.scss'; // Import the new SCSS file for combined styles
 import Spinner from '../../components/Spinner';
 
 import { handleLoginApi, handleLogoutApi } from '../../services/accountServices';
 import { handleAddToCartApi } from '../../services/cartServices';
+import { handleRegisterApi } from '../../services/accountServices';
 
 import { checkLoginStatus } from '../../utils/pakage';
+import { getAllCodes, validateAccountInput } from '../../utils/pakage';
+
 import { userLogin, userLogout, clearCart, clearCheckOutCart, clearNotification } from '../../store/actions';
 
-class Login extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      AccountName: '',
-      Password: '',
-      isTogglePassword: false,
-      rememberLogin: false,
-      isLoading: true,
-    };
-  }
-  async componentDidMount() {
-    const message = this.props.pageNotification;
+import logo from '../../assets/images/logo.png';
+
+const LoginForm = connect(
+  (state) => ({
+    userInfo: state.user.userInfo,
+    cartItems: state.cart.cartItems,
+    pageNotification: state.pagenotification.notification,
+  }),
+  (dispatch) => ({
+    userLogin: (userInfo) => dispatch(userLogin(userInfo)),
+    userLogout: () => dispatch(userLogout()),
+    clearCart: () => dispatch(clearCart()),
+    clearCheckOutCart: () => dispatch(clearCheckOutCart()),
+    clearNotification: () => dispatch(clearNotification()),
+  })
+)((props) => {
+  const [state, setState] = useState({
+    AccountName: '',
+    Password: '',
+    isTogglePassword: false,
+    rememberLogin: false,
+    isLoading: true,
+  });
+
+  const updateState = (updates) => setState((prev) => ({ ...prev, ...updates }));
+
+  React.useEffect(() => {
+    const message = props.pageNotification;
     setTimeout(() => {
       if (message) {
         toast.info(message);
       }
-      this.props.clearNotification();
+      props.clearNotification();
     }, 100);
-    await this.handleIsLogin();
-  }
-  handleOnChangeInput = (event, type) => {
-    let copyState = { ...this.state };
-    copyState[type] = event.target.value;
-    this.setState({
-      ...copyState,
-    });
+    handleIsLogin();
+  }, []);
+
+  const handleOnChangeInput = (event, type) => {
+    updateState({ [type]: event.target.value });
   };
-  //quản lý state ẩn hiện Password
-  handleTogglePassword = () => {
-    this.setState({
-      //khi ấn vào thì chuyển state thành state đối nghịch
-      isTogglePassword: !this.state.isTogglePassword,
-    });
+
+  const handleTogglePassword = () => {
+    updateState({ isTogglePassword: !state.isTogglePassword });
   };
-  //kiểm tra xem có đang đăng nhập không
-  handleIsLogin = async () => {
+
+  const handleIsLogin = async () => {
     const navigateMap = {
       A: '/user/admin',
       O: '/user/owner',
@@ -60,48 +72,41 @@ class Login extends Component {
     try {
       const { status, accountInfo } = await checkLoginStatus();
       if (status && accountInfo) {
-        if (!this.props.userInfo) {
-          this.props.userLogin(accountInfo);
+        if (!props.userInfo) {
+          props.userLogin(accountInfo);
         }
         const path = navigateMap[accountInfo.AccountType] || '/login';
         setTimeout(() => {
-          this.props.navigate(path);
+          props.navigate(path);
         }, 0);
       } else {
         await handleLogoutApi();
-        this.props.userLogout();
+        props.userLogout();
       }
     } catch (e) {
-      this.props.navigate('/login');
+      props.navigate('/login');
     }
-    this.setState({
-      isLoading: false,
-    });
+    updateState({ isLoading: false });
   };
-  //state khi ấn nút đăng nhập
-  handleLogin = async (e) => {
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    this.setState({
-      isLoading: true,
-    });
+    updateState({ isLoading: true });
     try {
-      //gọi api login ở backend, truyển email và Password đi để kiểm tra
-      //biến data dùng để lưu thông tin trả về từ api
-      const { AccountName, Password, rememberLogin } = this.state;
+      const { AccountName, Password, rememberLogin } = state;
       let response = await handleLoginApi(AccountName, Password, rememberLogin);
-      // nếu nhận được thông tin từ backend với mã lỗi khác 0 -> các trường hợp sai mail, sai pass,...
       if (response && response.errCode !== 0) {
         toast.error(response.errMessage);
       } else {
         const { AccountID, AccountName, AccountType, UserImage, UserName, navigate } = response.data;
-        if (this.props.cartItems.length !== 0) {
-          const responseCart = await handleAddToCartApi(AccountID, this.props.cartItems);
+        if (props.cartItems.length !== 0) {
+          const responseCart = await handleAddToCartApi(AccountID, props.cartItems);
           if (responseCart) {
-            this.props.clearCart();
+            props.clearCart();
           }
         }
-        this.props.clearCheckOutCart();
-        this.props.userLogin({
+        props.clearCheckOutCart();
+        props.userLogin({
           AccountID,
           AccountName,
           AccountType,
@@ -110,109 +115,296 @@ class Login extends Component {
         });
         toast.success('Đăng nhập thành công!');
         setTimeout(() => {
-          this.props.navigate(navigate);
+          props.navigate(navigate);
         }, 501);
       }
     } catch (e) {
       toast.error('Đã xảy ra lỗi không xác định!');
     }
-    this.setState({
-      isLoading: false,
-    });
+    updateState({ isLoading: false });
   };
-  render() {
-    const { AccountName, Password, rememberLogin, isLoading } = this.state;
-    return (
-      <div className="login-background">
-        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
-        {isLoading ? (
-          <Spinner />
-        ) : (
-          <div className="login-container">
-            <div className="login-content">
-              <div className="home-button">
-                <a href="/home">
-                  <IonIcon icon={home}></IonIcon>
-                </a>
+
+  const { AccountName, Password, rememberLogin, isLoading, isTogglePassword } = state;
+
+  return (
+    <>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <div className="home-button">
+            <a href="/home">
+              <IonIcon icon={home} />
+            </a>
+          </div>
+          <img src={logo} alt="logo" className="logo-img" />
+          <h1 className="text-login">ĐĂNG NHẬP</h1>
+          <form onSubmit={handleLogin}>
+            <div className="inputbox">
+              <IonIcon icon={personOutline} />
+              <input type="text" placeholder="" value={AccountName} onChange={(event) => handleOnChangeInput(event, 'AccountName')} required />
+              <label>Tên đăng nhập</label>
+            </div>
+            <div className="inputbox">
+              <div className="toggle-password" onClick={handleTogglePassword}>
+                <IonIcon icon={isTogglePassword ? eyeOutline : eyeOffOutline} />
               </div>
-              <div className="text-login">ĐĂNG NHẬP</div>
-              <form onSubmit={this.handleLogin}>
-                <div className="inputbox">
-                  <IonIcon icon={keyOutline}></IonIcon>
-                  <input
-                    type="text"
-                    placeholder=""
-                    //set value của ô input bằng dữ liệu của state
-                    value={AccountName}
-                    //quản lý event khi thay đổi thì gọi hàm handleOnChangeEmail để chuyển state
-                    onChange={(event) => this.handleOnChangeInput(event, 'AccountName')}
-                    required
-                  />
-                  <label>Tên đăng nhập</label>
-                </div>
-                <div className="inputbox">
-                  <div
-                    className="toggle-password"
-                    //quản lý event khi click vào thì gọi hàm để chuyển state
-                    onClick={() => this.handleTogglePassword()}
-                  >
-                    <IonIcon
-                      //biến icon của IonIcon, icon sẽ dựa vào state isTogglePassword true hoặc false để đổi icon tương ứng
-                      icon={this.state.isTogglePassword ? eyeOutline : eyeOffOutline}
-                    ></IonIcon>
-                  </div>
-                  <input
-                    //các state hoạt động như email
-                    type={this.state.isTogglePassword ? 'text' : 'password'}
-                    id="password"
-                    placeholder=""
-                    value={Password}
-                    onChange={(event) => this.handleOnChangeInput(event, 'Password')}
-                    required
-                  />
-                  <label>Mật khẩu</label>
-                </div>
-                <div className="password-util">
-                  <div className="remember-me">
-                    <input type="checkbox" id="rememberLogin" checked={rememberLogin} onChange={(event) => this.setState({ rememberLogin: event.target.checked })} />
-                    <label htmlFor="rememberLogin">Ghi nhớ đăng nhập</label>
-                  </div>
-                  <a href="/forgotpassword" className="forgot-password">
-                    Quên mật khẩu?
-                  </a>
-                </div>
-                <button type="submit" className="login-button">
-                  <p>Đăng nhập</p>
-                </button>
-              </form>
-              <div className="signin">
-                <p>
-                  Không có tài khoản?
-                  <a href="/register"> Đăng ký ngay!</a>
-                </p>
+              <IonIcon icon={keyOutline} />
+              <input type={isTogglePassword ? 'text' : 'password'} placeholder="" value={Password} onChange={(event) => handleOnChangeInput(event, 'Password')} required />
+              <label>Mật khẩu</label>
+            </div>
+            <div className="password-util">
+              <div className="remember-me">
+                <input type="checkbox" id="rememberLogin" checked={rememberLogin} onChange={(event) => updateState({ rememberLogin: event.target.checked })} />
+                <label htmlFor="rememberLogin">Ghi nhớ đăng nhập</label>
               </div>
+              <a href="/forgotpassword" className="forgot-password">
+                Quên mật khẩu?
+              </a>
+            </div>
+            <button type="submit" className="login-button">
+              <p>Đăng nhập</p>
+            </button>
+          </form>
+        </>
+      )}
+    </>
+  );
+});
+
+const RegisterForm = (props) => {
+  const [state, setState] = useState({
+    AccountName: '',
+    Email: '',
+    Password: '',
+    UserName: '',
+    Phone: '',
+    Address: '',
+    Gender: '',
+    AccountType: 'C',
+    confirmPassword: '',
+    isTogglePassword1: false,
+    isTogglePassword2: false,
+    codeGender: [],
+    isLoading: true,
+  });
+
+  const updateState = (updates) => setState((prev) => ({ ...prev, ...updates }));
+
+  React.useEffect(() => {
+    handleLoadCode(['Gender']);
+  }, []);
+
+  const handleLoadCode = async (codeTypeFilter) => {
+    try {
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
+      const newState = { isLoading: false };
+      const hasDefault = ['Gender'];
+      codeTypeFilter.forEach((type, index) => {
+        const response = responses[index];
+        if (!response.status || response.data.length === 0) {
+          toast.error(`Không thể tải danh sách ${type}!`);
+        }
+        newState[`code${type}`] = response.data;
+        if (hasDefault.includes(type)) {
+          newState[type] = response.data.length > 0 ? response.data[0].Code : '';
+        }
+      });
+      updateState(newState);
+    } catch (error) {
+      console.error('Error loading codes:', error);
+      toast.error('Lỗi khi tải dữ liệu!');
+      updateState({ isLoading: false });
+    }
+  };
+
+  const handleTogglePassword = (type) => {
+    let value;
+    switch (type) {
+      case 1:
+        value = 'isTogglePassword1';
+        break;
+      case 2:
+        value = 'isTogglePassword2';
+        break;
+      default:
+        break;
+    }
+    updateState({ [value]: !state[value] });
+  };
+
+  const handleOnChangeInput = (event, type) => {
+    updateState({ [type]: event.target.value });
+  };
+
+  const handleRegister = async () => {
+    updateState({ isLoading: true });
+    const { AccountName, Email, Password, UserName, Phone, Address, Gender, AccountType, confirmPassword } = state;
+    if (Password !== confirmPassword) {
+      toast.error('Mật khẩu không trùng khớp!');
+      updateState({ isLoading: false });
+      return;
+    }
+    const userInfo = {
+      AccountName,
+      Email,
+      Password,
+      UserName,
+      Phone,
+      Address,
+      Gender,
+      AccountType,
+    };
+    const isValidateInput = await validateAccountInput(userInfo, 'REG');
+    if (!isValidateInput.valid) {
+      toast.error(isValidateInput.errMessage);
+      updateState({ isLoading: false });
+      return;
+    }
+    try {
+      const response = await handleRegisterApi(userInfo);
+      if (response && response.errCode === 0) {
+        toast.success('Đăng ký tài khoản thành công!');
+        setTimeout(() => props.navigate('/login'), 501);
+      } else {
+        const errMessage = response?.errMessage || 'Đăng ký tài khoản thất bại!';
+        toast.error(errMessage);
+      }
+    } catch (e) {
+      console.error('Register:', e);
+      toast.error('Xảy ra lỗi khi đăng ký, vui lòng thử lại!');
+    }
+    updateState({ isLoading: false });
+  };
+
+  const { AccountName, Email, Password, UserName, Phone, Address, Gender, confirmPassword, isTogglePassword1, isTogglePassword2, codeGender, isLoading } = state;
+
+  return (
+    <>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <div className="home-button">
+            <a href="/home">
+              <IonIcon icon={home} />
+            </a>
+          </div>
+          <h1 className="text-register">ĐĂNG KÝ</h1>
+          <div className="single">
+            <div className="inputbox">
+              <IonIcon icon={mailOutline} />
+              <input type="email" placeholder="" value={Email} onChange={(event) => handleOnChangeInput(event, 'Email')} />
+              <label>Email</label>
             </div>
           </div>
-        )}
+          <div className="R1">
+            <div className="inputbox">
+              <IonIcon icon={person} />
+              <input type="text" placeholder="" value={UserName} onChange={(event) => handleOnChangeInput(event, 'UserName')} />
+              <label>Họ Tên</label>
+            </div>
+            <div className="inputbox">
+              <IonIcon icon={call} />
+              <input type="tel" placeholder="" value={Phone} onChange={(event) => handleOnChangeInput(event, 'Phone')} />
+              <label>Số điện thoại</label>
+            </div>
+          </div>
+          <div className="R1">
+            <div className="inputbox">
+              <IonIcon icon={personOutline} />
+              <input type="text" placeholder="" value={AccountName} onChange={(event) => handleOnChangeInput(event, 'AccountName')} />
+
+              <label>Tên tài khoản</label>
+            </div>
+            <div className="inputbox">
+              <div className="toggle-password">
+                <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={() => handleTogglePassword(1)} />
+              </div>
+              <IonIcon icon={keyOutline} />
+              <input type={isTogglePassword1 ? 'text' : 'password'} placeholder="" value={Password} onChange={(event) => handleOnChangeInput(event, 'Password')} />
+              <label>Mật khẩu</label>
+            </div>
+          </div>
+          <div className="R1">
+            <div className="selectbox">
+              <select value={Gender} onChange={(event) => handleOnChangeInput(event, 'Gender')}>
+                {codeGender.length > 0 ? (
+                  codeGender.map((item) => (
+                    <option key={item.Code} value={item.Code}>
+                      {item.CodeValueVI}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Không có dữ liệu giới tính</option>
+                )}
+              </select>
+              <IonIcon icon={maleFemaleOutline} />
+            </div>
+            <div className="inputbox">
+              <div className="toggle-password">
+                <IonIcon icon={isTogglePassword2 ? eyeOutline : eyeOffOutline} onClick={() => handleTogglePassword(2)} />
+              </div>
+              <IonIcon icon={keyOutline} />
+              <input type={isTogglePassword2 ? 'text' : 'password'} placeholder="" value={confirmPassword} onChange={(event) => handleOnChangeInput(event, 'confirmPassword')} />
+              <label>Xác nhận mật khẩu</label>
+            </div>
+          </div>
+          <div className="single">
+            <div className="inputbox">
+              <IonIcon icon={location} />
+              <input type="text" placeholder="" value={Address} onChange={(event) => handleOnChangeInput(event, 'Address')} />
+              <label>Địa chỉ</label>
+            </div>
+          </div>
+          <button className="register-button" onClick={handleRegister}>
+            <p>Đăng ký</p>
+          </button>
+        </>
+      )}
+    </>
+  );
+};
+
+const Auth = (props) => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const toggle = () => setIsSignUp(!isSignUp);
+
+  return (
+    <div className="auth-background">
+      <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
+
+      <div className={`container ${isSignUp ? 'right-panel-active' : ''}`}>
+        <div className="form-container sign-up-container">
+          <RegisterForm toggle={toggle} navigate={props.navigate} />
+        </div>
+        <div className="form-container sign-in-container">
+          <LoginForm toggle={toggle} navigate={props.navigate} />
+        </div>
+
+        <div className="overlay-container">
+          <div className="overlay">
+            <div className="overlay-panel overlay-left">
+              <h1>Chào mừng trở lại với Shop!</h1>
+              <p>Để tiếp tục mua sắm, vui lòng đăng nhập bằng thông tin cá nhân của bạn</p>
+              <button className="ghost" onClick={toggle}>
+                Đăng nhập
+              </button>
+              <p className="p-address">Địa chỉ shop: 136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
+            </div>
+            <div className="overlay-panel overlay-right">
+              <h1>Shop Mincow xin chào!</h1>
+              <p>Hãy tạo tài khoản để nhập thêm nhiều ưu đãi và thông báo về khuyến mãi ngay nào !</p>
+              <button className="ghost" onClick={toggle}>
+                Đăng ký
+              </button>
+              <p className="p-address">Địa chỉ shop: 136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
+            </div>
+          </div>
+        </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-// Map state từ Redux store vào props (nếu cần lấy dữ liệu từ store)
-const mapStateToProps = (state) => ({
-  userInfo: state.user.userInfo,
-  cartItems: state.cart.cartItems,
-  pageNotification: state.pagenotification.notification,
-});
-
-// Map dispatch để gửi action lên store
-const mapDispatchToProps = (dispatch) => ({
-  userLogin: (userInfo) => dispatch(userLogin(userInfo)),
-  userLogout: () => dispatch(userLogout()),
-  clearCart: () => dispatch(clearCart()),
-  clearCheckOutCart: () => dispatch(clearCheckOutCart()),
-  clearNotification: () => dispatch(clearNotification()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default Auth;

@@ -1,0 +1,333 @@
+.f {
+  display: flex;
+}
+.pet-container {
+  max-width: 87rem;
+  margin: auto;
+  .pet-header {
+    display: flex;
+    justify-content: space-between;
+    b {
+      font-size: 1.8rem;
+    }
+    ion-icon {
+      font-size: 1.3rem;
+      margin-right: 0.2rem;
+    }
+    button {
+      margin-top: 0.2rem;
+      height: 2.2rem;
+      width: 2.2rem;
+      border-radius: 0.3rem;
+
+      b {
+        font-size: 1.2rem;
+        color: white;
+      }
+      background-color: rgb(0, 204, 0);
+      border: none;
+    }
+  }
+  .pet-main-content {
+    position: relative;
+    // Tăng width để lấp đầy hơn, giảm không gian trống hai bên
+    margin-bottom: 0rem;
+
+    background-color: #f4f7fa; // Nền nhẹ nhàng, không trắng chói
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); // Shadow mạnh hơn cho chiều sâu
+    height: 43rem; // Đảm bảo chiều cao đầy màn hình để phần dưới không trống
+    .pet-main-content-add {
+      margin-top: 1rem;
+      margin-left: 1.7rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      width: 72rem;
+      height: 12rem;
+      border-radius: 1rem;
+      .pet-main-content-add-img {
+        margin-left: 1rem;
+        margin-top: 0.5rem;
+        button {
+          border: none;
+
+          border-radius: 1rem;
+          width: 11rem;
+          height: 11rem;
+          b {
+            font-size: 2.5rem;
+          }
+        }
+        img {
+          border-radius: 1rem;
+          width: 11rem;
+          height: 11rem;
+        }
+        .pet-main-content-pet-img-del {
+          position: absolute;
+          top: 0.3rem;
+          right: 0.3rem;
+          button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.8rem;
+            height: 1.8rem;
+            background-color: red;
+            border: none;
+            border-radius: 50%; // Làm tròn để nhìn đẹp, "border 1 xíu" có thể ám chỉ border-radius nhẹ
+            cursor: pointer;
+            b {
+              color: white;
+              font-size: 1.2rem;
+              line-height: 1;
+              margin-bottom: 0.2rem;
+            }
+          }
+        }
+      }
+      .pet-main-content-add-info {
+        margin-top: 3rem;
+        div {
+          margin-left: 2rem;
+          input,
+          select {
+            margin-top: 0.3rem;
+            border-radius: 0.3rem;
+            border: 1px solid black;
+          }
+          select {
+            height: 2.2rem;
+          }
+          input {
+            height: 2.2rem;
+            padding: 0.5rem;
+          }
+        }
+        .pet-main-content-add-info-name {
+          input {
+            width: 18rem;
+          }
+        }
+        .pet-main-content-add-info-gender {
+          select {
+            width: 4rem;
+          }
+        }
+      }
+    }
+    .pet-main-content-add-button-list {
+      margin-top: 1rem;
+      margin-left: 1rem;
+      width: 10.5rem;
+      height: 6.7rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border-radius: 1rem;
+
+      .pet-main-content-confirm-button,
+      .pet-main-content-cancel-button {
+        margin-left: 0.5rem;
+        margin-top: 0.42rem;
+        width: 9.5rem;
+        height: 2.7rem;
+        border-radius: 0.7rem;
+        border: none;
+        color: white;
+      }
+      .pet-main-content-confirm-button {
+        background-color: rgb(0, 188, 0);
+      }
+      .pet-main-content-cancel-button {
+        background-color: rgb(220, 0, 0);
+      }
+      ion-icon {
+        margin-right: 0.5rem;
+        font-weight: bold;
+        margin-bottom: -0.15rem;
+      }
+    }
+    .pet-main-content-pet-list {
+      .pet-main-content {
+        padding: 0 3rem;
+        margin-top: 1rem;
+        margin-left: 1.7rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        width: 72rem;
+        height: 12rem;
+        border-radius: 1rem;
+        justify-content: space-between;
+        .pet-main-content-pet-img {
+          position: relative;
+          margin-left: 1rem;
+          margin-top: 0.5rem;
+          button {
+            border: none;
+            border-radius: 1rem;
+            width: 11rem;
+            height: 11rem;
+            b {
+              font-size: 2.5rem;
+            }
+          }
+          img {
+            border-radius: 1rem;
+            width: 11rem;
+            height: 11rem;
+          }
+          .pet-main-content-pet-img-del {
+            position: absolute;
+            top: 0.3rem;
+            right: 0.3rem;
+            button {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 1.8rem;
+              height: 1.8rem;
+              background-color: red;
+              border: none;
+              border-radius: 50%; // Làm tròn để nhìn đẹp, "border 1 xíu" có thể ám chỉ border-radius nhẹ
+              cursor: pointer;
+              b {
+                color: white;
+                font-size: 1.2rem;
+                line-height: 1;
+                margin-bottom: 0.2rem;
+              }
+            }
+          }
+          // .pet-main-content-pet-img-qr {
+          //   position: absolute;
+          //   top: 0.3rem;
+          //   left: 0.3rem;
+          //   display: flex;
+          //   align-items: center;
+          //   justify-content: center;
+          //   width: 1.8rem;
+          //   height: 1.8rem;
+          //   background-color: rgb(0, 123, 255);
+          //   border: none;
+          //   border-radius: 0.5rem;
+          //   cursor: pointer;
+          //   ion-icon {
+          //     color: white;
+          //     font-size: 1.2rem;
+          //   }
+          // }
+        }
+        .pet-main-content-pet-info {
+          margin-top: 1rem;
+          display: flex;
+          flex-direction: column;
+          width: 55rem; // Điều chỉnh chiều rộng để phù hợp với space-between
+
+          div {
+            margin-top: 0.45rem;
+            margin-right: 6rem;
+
+            input,
+            select {
+              margin-top: 0.3rem;
+              border-radius: 0.3rem;
+              border: 1px solid black;
+            }
+            select {
+              height: 2.2rem;
+            }
+            input {
+              height: 2.2rem;
+              padding: 0.5rem;
+            }
+            p {
+              max-width: 15rem;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+
+          .pet-main-content-pet-info-name {
+            input {
+              width: 18rem;
+            }
+          }
+          .pet-main-content-pet-info-gender {
+            select {
+              width: 4rem;
+            }
+          }
+        }
+      }
+      .pet-main-content-pet-button-list {
+        margin-top: 1rem;
+        margin-left: 1rem;
+        width: 10.5rem;
+        height: 9.7rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border-radius: 1rem;
+
+        .pet-main-content-edit-button,
+        .pet-main-content-delete-button,
+        .pet-main-content-save-button,
+        .pet-main-content-cancel-edit-button,
+        .pet-main-content-qr-button {
+          margin-left: 0.5rem;
+          margin-top: 0.42rem;
+          width: 9.5rem;
+          height: 2.7rem;
+          border-radius: 0.7rem;
+          border: none;
+          color: white;
+        }
+        .pet-main-content-edit-button {
+          background-color: rgb(231, 177, 0);
+        }
+        .pet-main-content-delete-button {
+          background-color: rgb(220, 0, 0);
+        }
+        .pet-main-content-save-button {
+          background-color: rgb(0, 188, 0);
+        }
+        .pet-main-content-cancel-edit-button {
+          background-color: rgb(220, 0, 0);
+        }
+        .pet-main-content-qr-button {
+          background-color: rgb(0, 123, 255);
+        }
+        ion-icon {
+          margin-right: 0.5rem;
+          font-weight: bold;
+          margin-bottom: -0.15rem;
+        }
+      }
+    }
+    .pet-main-content-bottom {
+      width: 100%;
+      border-top: 0.1rem solid #000000;
+
+      position: absolute;
+      bottom: 2.4rem;
+      margin-bottom: 0.3rem;
+      b,
+      button {
+        position: absolute;
+        right: 0;
+      }
+      b {
+        padding-top: 0.3rem;
+        font-size: 1.3rem;
+        margin-right: 3rem;
+        padding: auto;
+      }
+      button {
+        margin-right: 0.4rem;
+        margin-top: 0.2rem;
+        border-radius: 0.25rem;
+        width: 2.2rem;
+        height: 2.2rem;
+        ion-icon {
+          padding-top: 0.1rem;
+          font-size: 1.8rem;
+        }
+      }
+    }
+  }
+}
