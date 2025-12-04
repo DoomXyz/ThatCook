@@ -2,7 +2,7 @@ import db from '../models/index';
 import { Op } from 'sequelize';
 import { checkValidAllCode } from './utilitiesService';
 import { getAccountPetInfo, getPetInfo } from './petService';
-
+import { sendNotification } from './utilitiesService';
 let cancelExpiredSchedules = () => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
@@ -108,6 +108,13 @@ const rejectSchedule = async (ScheduleID, transaction) => {
                 );
             }
         }
+        await sendNotification(
+            schedule.VeterinarianID,
+            appointment.AccountID,
+            null,
+            'APM_CANCEL',
+            appointment.AppointmentID,
+        );
         await db.Schedule.destroy({
             where: { ScheduleID },
             transaction,

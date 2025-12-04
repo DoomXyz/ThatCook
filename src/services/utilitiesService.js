@@ -578,12 +578,32 @@ let sendNotification = (AccountID, ReceiveNotifID, RoleReceive, NotifType, Extra
         },
         { transaction }
       );
+      if (global.io) {
+        const payload = {
+          NotifType,
+          NotifDescription,
+          ExtraValue,
+          CreatedAt,
+        };
+
+        // Gửi riêng cho người nhận cụ thể (nếu có)
+        if (ReceiveNotifID) {
+          global.io.to(ReceiveNotifID).emit('new-notification', payload);
+        }
+
+        // Gửi theo role (V: bác sĩ, O: chủ shop)
+        if (RoleReceive) {
+          const roomName = `role_${RoleReceive}`; // 'role_V' hoặc 'role_O'
+          global.io.to(roomName).emit('new-notification', payload);
+        }
+      }
       await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Gửi thông báo thành công!',
         data: null,
       });
+
     } catch (e) {
       await transaction.rollback();
       console.log('Error in sendNotification: ', e);

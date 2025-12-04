@@ -807,7 +807,6 @@ let createInvoice = (AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, ca
         });
       }
       await transaction.commit();
-      console.log(`[DEBUG] Tạo đơn hàng ${InvoiceID} thành công! PaymentType: ${PaymentType}`);
       //Phân loại thanh toán để thông báo 
       if (AccountID && PaymentType === 'CASH') {
         const owner = await db.Account.findOne({
@@ -816,7 +815,6 @@ let createInvoice = (AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, ca
           raw: true,
         });
         if (owner?.AccountID) {
-          console.log(`[DEBUG] Gửi ORDER_CONFIRM cho chủ shop từ khách ${AccountID}`);
           await sendNotification(
             AccountID,     // người gửi (khách hàng)
             null,          // không gửi cho người cụ thể
@@ -836,7 +834,6 @@ let createInvoice = (AccountID, ReceiverName, ReceiverPhone, ReceiverAddress, ca
               'ORDER_SUCCESS',
               InvoiceID
             );
-            console.log(`[NOTIF SUCCESS] Đã gửi ORDER_SUCCESS cho khách ${AccountID}`);
           } catch (err) {
             console.log('[NOTIF ERROR] Gửi ORDER_SUCCESS thất bại:', err);
           }
@@ -987,26 +984,20 @@ let changeInvoiceStatus = (InvoiceID, Type, Status, CancelReason) => {
       }
       await invoice.save({ transaction });
       await transaction.commit();
-      console.log(`[DEBUG] Đổi trạng thái đơn hàng ${InvoiceID} thành công! Type: ${Type}, Status: ${Status}`);
       // THÊM TỪ ĐÂY ↓↓↓ - GỬI THÔNG BÁO ORDER_CANCEL CHO KHÁCH HÀNG KHI HỦY
       if (Type === 'ShippingStatus' && Status === 'CANCELED') {
-        console.log(`[DEBUG CHANGE] Phát hiện HỦY ĐƠN - Gửi ORDER_CANCEL cho khách hàng`);
         try {
           const invoiceData = await db.Invoice.findOne({
             where: { InvoiceID },
             attributes: ['AccountID'],
             raw: true,
           });
-          console.log(`[DEBUG CHANGE] Invoice AccountID (khách hàng): ${invoiceData ? invoiceData.AccountID : 'KHÔNG CÓ'}`);
-
           if (invoiceData?.AccountID) {
             const owner = await db.Account.findOne({
               where: { AccountType: 'O' },
               attributes: ['AccountID'],
               raw: true,
             });
-            console.log(`[DEBUG CHANGE] Chủ shop: ${owner ? owner.AccountID : 'KHÔNG TÌM THẤY'}`);
-
             if (owner?.AccountID) {
               const cancelResult = await sendNotification(
                 owner.AccountID,              // Người gửi: chủ cửa hàng
@@ -1015,7 +1006,6 @@ let changeInvoiceStatus = (InvoiceID, Type, Status, CancelReason) => {
                 'ORDER_CANCEL',               // Loại: hủy đơn hàng
                 InvoiceID                     // Extra: mã đơn hàng
               );
-              console.log(`[DEBUG CHANGE] Kết quả ORDER_CANCEL: `, cancelResult);
             } else {
               console.log('[ERROR CHANGE] KHÔNG TÌM THẤY CHỦ SHOP!');
             }
@@ -1042,7 +1032,6 @@ let changeInvoiceStatus = (InvoiceID, Type, Status, CancelReason) => {
           });
 
           if (owner?.AccountID) {
-            console.log(`[DEBUG] Gửi ORDER_COMPLETE cho chủ shop và ORDER_SUCCESS cho khách ${invoice.AccountID}`);
             // Thông báo cho chủ shop
             await sendNotification(
               invoice.AccountID,
@@ -1051,14 +1040,14 @@ let changeInvoiceStatus = (InvoiceID, Type, Status, CancelReason) => {
               'ORDER_COMPLETE',
               InvoiceID
             );
-            // Thông báo cho khách hàng
-            await sendNotification(
-              owner.AccountID,
-              invoice.AccountID,
-              null,
-              'ORDER_SUCCESS',
-              InvoiceID
-            );
+            // Thông báo cho khách hàng (Sai)
+            //await sendNotification(
+            //  owner.AccountID,
+            //  invoice.AccountID,
+            //  null,
+            //  'ORDER_SUCCESS',.
+            //   InvoiceID
+            // );
           } else {
             console.log('[ERROR] Không tìm thấy chủ cửa hàng (AccountType=O) trong DB!');
           }
@@ -1310,7 +1299,7 @@ let handleVnpayIpn = (query) => {
             });
 
             if (owner?.AccountID) {
-              console.log(`[DEBUG] Gửi ORDER_COMPLETE cho chủ shop và ORDER_SUCCESS cho khách ${invoice.AccountID}`);
+
               await sendNotification(invoice.AccountID, null, 'O', 'ORDER_COMPLETE', orderId);
               await sendNotification(owner.AccountID, invoice.AccountID, null, 'ORDER_SUCCESS', orderId);
             } else {

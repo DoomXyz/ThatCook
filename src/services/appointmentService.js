@@ -139,7 +139,7 @@ let sendAppointmentBillEmail = async (AppointmentBillID, Email) => {
             'AppointmentStatus',
             'ServiceID',
             'PetID',
-            , 'VeterinarianID',
+            'VeterinarianID',
             'AccountID'
           ],
           include: [
@@ -1518,12 +1518,9 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
         }
       }
       await transaction.commit();
-      console.log(`[DEBUG] Tạo lịch khám ${appointmentIdResult.data} thành công!`);
-
       // === THÊM THÔNG BÁO APM_SUCCESS CHO KHÁCH HÀNG ===
       if (AccountID) {
         try {
-          console.log(`[DEBUG] Gửi APM_SUCCESS cho khách hàng ${AccountID}`);
           await sendNotification(
             AccountID,            // Người gửi: hệ thống
             AccountID,             // Gửi riêng cho khách hàng
@@ -1538,7 +1535,6 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
 
       // === THÊM THÔNG BÁO APM_WAIT CHO BÁC SĨ ===
       try {
-        console.log(`[DEBUG] Gửi APM_WAIT cho bác sĩ`);
         if (VeterinarianID) {
           // Trường hợp chọn bác sĩ cụ thể → gửi riêng
           await sendNotification(
@@ -1648,7 +1644,26 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
         },
         { where: { AppointmentID }, transaction }
       );
+      const customerinfo = await db.Appointment.findOne({
+        where: { AppointmentID },
+        attributes: ['AccountID', 'AppointmentStatus'],
+        transaction,
+      });
+
       await transaction.commit();
+      if (customerinfo) {
+        const CustomerID = customerinfo.AccountID;
+        const AppointmentStatus = customerinfo.AppointmentStatus;
+        if (AppointmentStatus === 'COMP' && CustomerID) {
+          await sendNotification(
+            VeterinarianID || 'SYSTEM',
+            CustomerID,
+            null,
+            'APM_COMPLETE',
+            AppointmentID
+          );
+        }
+      }
       let emailSent = true;
       if (appointment.CustomerEmail) {
         emailSent = await sendAppointmentBillEmail(AppointmentBillID, appointment.CustomerEmail);
@@ -1661,6 +1676,7 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
         });
         return;
       }
+
       resolve({
         errCode: 0,
         errMessage: 'Tạo hóa đơn lịch hẹn thành công!',
@@ -1728,12 +1744,11 @@ let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID)
         return;
       }
       const customerId = appointment.AccountID;
-      const vetId = appointment.VeterinarianID;
+      const vetId = VeterinarianID;
       // Bác sĩ đang thực hiện hành động
       if (AppointmentStatus === 'CONF') {
         // Gọi hàm xác nhận
         const result = await confirmAppointment(AppointmentID, VeterinarianID, transaction);
-        console.log(`[DEBUG] Gửi APM_CONFIRM cho khách hàng ${customerId}`);
         await sendNotification(
           vetId,                 // Người gửi: bác sĩ
           customerId,            // Gửi riêng cho khách hàng
@@ -1758,7 +1773,6 @@ let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID)
           where: { AppointmentID },
           transaction,
         });
-        console.log(`[DEBUG] Gửi APM_REFUSE cho khách hàng ${customerId}`);
         await sendNotification(
           vetId,                 // Người gửi: bác sĩ
           customerId,            // Gửi riêng cho khách hàng
@@ -1766,7 +1780,6 @@ let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID)
           'APM_REFUSE',          // Loại: từ chối lịch khám
           AppointmentID          // ExtraValue: mã lịch khám
         );
-
         await transaction.commit();
         resolve({
           errCode: 0,

@@ -63,11 +63,7 @@ let handleGetUserNotifications = async (req, res) => {
       });
     }
 
-    console.log(`[API DEBUG] Gọi /get-user-notifications cho receiveId: ${receiveId}`);
-
     let response = await utilitiesService.getUserNotifications(receiveId);
-
-    console.log(`[API DEBUG] Response từ service: errCode=${response.errCode}, Số thông báo: ${response.data.length}`);
 
     return res.status(200).json(response);
   } catch (e) {
