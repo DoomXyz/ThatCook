@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 import io from 'socket.io-client';
-import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline } from 'ionicons/icons';
+import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline, pawOutline } from 'ionicons/icons';
 
 import './HomeHeader.scss';
 import '../styles/ToastifyOverride.scss';
