@@ -193,7 +193,7 @@ let loadSchedule = (VeterinarianID, StartDate) => {
             for (const row of rows) {
                 if (row.Appointment && row.Appointment.PetID && row.Appointment.AccountID) {
                     const petResult = await getPetInfo(row.Appointment.AccountID, row.Appointment.PetID);
-                    row.Appointment.PetName = PetResult.errCode === 0 && petResult.data?.PetStatus === 'VALID' ? petResult.data.PetName : 'Thú cưng đã xóa';
+                    row.Appointment.PetName = petResult.errCode === 0 && petResult.data?.PetStatus === 'VALID' ? petResult.data.PetName : 'Thú cưng đã xóa';
                 } else {
                     row.Appointment.PetName = 'Không xác định';
                 }
