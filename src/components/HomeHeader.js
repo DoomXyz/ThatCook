@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 
-import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline } from 'ionicons/icons';
+import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline, pawOutline } from 'ionicons/icons';
 
 import './HomeHeader.scss';
 import '../styles/ToastifyOverride.scss';
@@ -102,13 +102,9 @@ class HomeHeader extends Component {
             console.log('[NOTIF] Đánh dấu đã đọc thành công:', notif.NotifID);
 
             // Cập nhật UI ngay lập tức
-            this.setState(prevState => ({
+            this.setState((prevState) => ({
               notifCount: Math.max(0, prevState.notifCount - 1),
-              notifications: prevState.notifications.map(n =>
-                n.NotifID === notif.NotifID
-                  ? { ...n, NotifStatus: 'READ' }
-                  : n
-              ),
+              notifications: prevState.notifications.map((n) => (n.NotifID === notif.NotifID ? { ...n, NotifStatus: 'READ' } : n)),
             }));
           } else {
             console.log('[NOTIF] Backend lỗi:', response?.data?.errMessage);
@@ -121,15 +117,13 @@ class HomeHeader extends Component {
       // Dùng đúng Redux action bạn đã setup
       this.props.saveTrackInfo({
         BillID: InvoiceID,
-        BillType: 1
+        BillType: 1,
       });
       // Đóng dropdown thông báo
       this.setState({ isNotifOpen: false });
 
       // Chuyển hướng đến trang track
       this.props.navigate('/track', { replace: true, state: { refresh: Date.now() } });
-
-
     } else if (apmTypes.includes(notif.NotifType) && notif.ExtraValue) {
       const AppointmentID = notif.ExtraValue;
 
@@ -138,11 +132,9 @@ class HomeHeader extends Component {
         try {
           const response = await NotifiStatusChange(notif.NotifID, 'READ');
           if (response?.data?.errCode === 0) {
-            this.setState(prevState => ({
+            this.setState((prevState) => ({
               notifCount: Math.max(0, prevState.notifCount - 1),
-              notifications: prevState.notifications.map(n =>
-                n.NotifID === notif.NotifID ? { ...n, NotifStatus: 'READ' } : n
-              ),
+              notifications: prevState.notifications.map((n) => (n.NotifID === notif.NotifID ? { ...n, NotifStatus: 'READ' } : n)),
             }));
           }
         } catch (err) {
@@ -151,8 +143,7 @@ class HomeHeader extends Component {
       }
       this.props.saveTrackInfo({
         BillID: AppointmentID,
-        BillType: 2
-
+        BillType: 2,
       });
       console.log('DEBUG: Chuyển đến trang lịch khám với ID:', AppointmentID);
       // Đóng dropdown và chuyển trang lịch khám (tuỳ chỉnh theo route của bạn)
@@ -202,7 +193,7 @@ class HomeHeader extends Component {
   handleLoadService = async () => {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
-      const response = responseApi.data
+      const response = responseApi.data;
       if (response.errCode !== 0 || !response.data || response.data.length === 0) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!');
         this.setState({ codeService: [] });
@@ -294,7 +285,9 @@ class HomeHeader extends Component {
           {
             autoClose: 2000,
             closeOnClick: false,
-            onClose: () => { this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } }); },
+            onClose: () => {
+              this.setState({ disabledButtons: { ...this.state.disabledButtons, logout: false } });
+            },
           }
         );
       });
@@ -326,7 +319,7 @@ class HomeHeader extends Component {
       this.setState({
         notifications: [],
         notifCount: 0,
-        isLoadingNotif: false
+        isLoadingNotif: false,
       });
       return;
     }
@@ -339,13 +332,13 @@ class HomeHeader extends Component {
         console.log('[FRONT DEBUG] API trả về:', {
           errCode: response.errCode,
           soThongBao: response.data.length,
-          thongBaoDauTien: response.data[0] || 'Trống'
+          thongBaoDauTien: response.data[0] || 'Trống',
         });
 
         if (response.errCode === 0) {
           this.setState({
             notifications: response.data,
-            notifCount: response.data.filter(item => item.NotifStatus === 'UNREAD').length,
+            notifCount: response.data.filter((item) => item.NotifStatus === 'UNREAD').length,
           });
         } else {
           console.log('[FRONT ERROR] API lỗi:', response.errMessage);
@@ -361,18 +354,18 @@ class HomeHeader extends Component {
       const response = axiosResponse.data;
       if (response && response.errCode === 0) {
         const notifications = response.data || [];
-        const notifCount = notifications.filter(n => n.NotifStatus === 'UNREAD').length;
+        const notifCount = notifications.filter((n) => n.NotifStatus === 'UNREAD').length;
 
         this.setState({
           notifications,
           notifCount,
-          isLoadingNotif: false
+          isLoadingNotif: false,
         });
       } else {
         this.setState({
           notifications: [],
           notifCount: 0,
-          isLoadingNotif: false
+          isLoadingNotif: false,
         });
       }
     } catch (e) {
@@ -382,7 +375,7 @@ class HomeHeader extends Component {
   };
   // Mở/đóng dropdown
   toggleNotifDropdown = () => {
-    this.setState(prev => ({ isNotifOpen: !prev.isNotifOpen }));
+    this.setState((prev) => ({ isNotifOpen: !prev.isNotifOpen }));
   };
 
   // Đóng khi click ra ngoài
@@ -435,16 +428,14 @@ class HomeHeader extends Component {
                 </ul>
               </li>
               <li>
-                <button type="button" className="link-button">Dịch vụ</button>
+                <button type="button" className="link-button">
+                  Dịch vụ
+                </button>
                 <ul className="sub-menu-2">
                   {codeService.length > 0 ? (
                     codeService.map((service) => (
                       <li key={service.ServiceID}>
-                        <button
-                          type="button"
-                          className="link-button"
-                          onClick={() => this.handleServiceNavigate(service.ServiceID)}
-                        >
+                        <button type="button" className="link-button" onClick={() => this.handleServiceNavigate(service.ServiceID)}>
                           {service.ServiceName}
                         </button>
                       </li>
@@ -457,52 +448,32 @@ class HomeHeader extends Component {
                 </ul>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => this.props.navigate('/makeappointment')}
-                >
+                <button type="button" className="link-button" onClick={() => this.props.navigate('/makeappointment')}>
                   Đặt lịch
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => this.props.navigate('/showdoctor')}
-                >
+                <button type="button" className="link-button" onClick={() => this.props.navigate('/showdoctor')}>
                   Bác sĩ
                 </button>
               </li>
               {isLoggedIn && accountInfo ? (
                 accountInfo.AccountType === 'C' ? (
                   <li>
-                    <button
-                      type="button"
-                      className="link-button"
-                      onClick={() => this.props.navigate('/track')}
-                    >
+                    <button type="button" className="link-button" onClick={() => this.props.navigate('/track')}>
                       Tra cứu
                     </button>
                   </li>
                 ) : (
                   <li>
-                    <button
-                      type="button"
-                      className="link-button"
-                      onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}
-                    >
+                    <button type="button" className="link-button" onClick={() => this.handleAccountTypeNavigate(accountInfo.AccountType)}>
                       Nghiệp vụ
                     </button>
                   </li>
                 )
               ) : (
                 <li>
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => this.props.navigate('/track')}
-                  >
+                  <button type="button" className="link-button" onClick={() => this.props.navigate('/track')}>
                     Tra cứu
                   </button>
                 </li>
@@ -522,26 +493,25 @@ class HomeHeader extends Component {
                     <p>{UserName}</p>
                     <ul className="sub-menu">
                       <li>
-                        <div className="f" >
+                        <div className="f">
                           <IonIcon icon={informationCircleOutline}></IonIcon>
-                          <button
-                            type="button"
-                            className="link-button"
-                            onClick={() => this.props.navigate('/user/customer')}
-                          >
+                          <button type="button" className="link-button" onClick={() => this.props.navigate('/user/customer')}>
                             Thông tin người dùng
                           </button>
                         </div>
                       </li>
                       <li>
                         <div className="f">
+                          <IonIcon icon={pawOutline}></IonIcon>
+                          <button type="button" className="link-button" onClick={() => this.props.navigate('/pet')}>
+                            Danh sách thú cưng
+                          </button>
+                        </div>
+                      </li>
+                      <li>
+                        <div className="f">
                           <IonIcon icon={logOutOutline}></IonIcon>
-                          <button
-                            type="button"
-                            className="link-button"
-                            onClick={this.handleLogout}
-                            disabled={disabledButtons.logout}
-                          >
+                          <button type="button" className="link-button" onClick={this.handleLogout} disabled={disabledButtons.logout}>
                             Đăng xuất
                           </button>
                         </div>
@@ -552,86 +522,57 @@ class HomeHeader extends Component {
                   <div className="user-none" id="user-icon">
                     <div className="f">
                       <IonIcon icon={person}></IonIcon>
-                      <button
-                        type="button"
-                        className="link-button"
-                        onClick={() => this.props.navigate('/login')}
-                      >
+                      <button type="button" className="link-button" onClick={() => this.props.navigate('/login')}>
                         Đăng nhập
                       </button>
                       <p> | </p>
-                      <button
-                        type="button"
-                        className="link-button"
-                        onClick={() => this.props.navigate('/register')}
-                      >
+                      <button type="button" className="link-button" onClick={() => this.props.navigate('/register')}>
                         Đăng ký
                       </button>
                     </div>
                   </div>
                 )}
               </li>
-              <li>{isLoggedIn ? (
-                <div className="notification-wrapper">
-                  <button
-                    type="button"
-                    className="notification-bell link-button"
-                    onClick={this.toggleNotifDropdown}
-                  >
-                    <IonIcon icon={notificationsOutline} />
-                    {notifCount > 0 &&
-                      <span className="notif-badge">
-                        {notifCount > 99 ? '99+' : notifCount}
-                      </span>
-                    }
-                  </button>
+              <li>
+                {isLoggedIn ? (
+                  <div className="notification-wrapper">
+                    <button type="button" className="notification-bell link-button" onClick={this.toggleNotifDropdown}>
+                      <IonIcon icon={notificationsOutline} />
+                      {notifCount > 0 && <span className="notif-badge">{notifCount > 99 ? '99+' : notifCount}</span>}
+                    </button>
 
-                  {isNotifOpen && (
-                    <div className="notification-dropdown">
-                      <div className="notif-header">
-                        <h4>Thông báo</h4>
-                        {notifCount > 0 && <span>{notifCount} chưa đọc</span>}
+                    {isNotifOpen && (
+                      <div className="notification-dropdown">
+                        <div className="notif-header">
+                          <h4>Thông báo</h4>
+                          {notifCount > 0 && <span>{notifCount} chưa đọc</span>}
+                        </div>
+
+                        <div className="notif-body">
+                          {isLoadingNotif ? (
+                            <div className="notif-loading">Đang tải...</div>
+                          ) : notifications.length > 0 ? (
+                            notifications.map((item) => (
+                              <div key={item.NotifID} className={`notif-item ${item.NotifStatus === 'UNREAD' ? 'unread' : ''}`} onClick={() => this.handleNotificationClick(item)}>
+                                <p className="notif-desc" dangerouslySetInnerHTML={{ __html: item.NotifDescription }} />
+                                <span className="notif-time">{new Date(item.CreatedAt).toLocaleString('vi-VN')}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="notif-empty">Không có thông báo</div>
+                          )}
+                        </div>
+
+                        <div className="notif-footer">
+                          <button type="button" className="link-button" onClick={() => this.props.navigate('/notifications')}></button>
+                        </div>
                       </div>
-
-                      <div className="notif-body">
-                        {isLoadingNotif ? (
-                          <div className="notif-loading">Đang tải...</div>
-                        ) : notifications.length > 0 ? (
-                          notifications.map((item) => (
-                            <div
-                              key={item.NotifID}
-                              className={`notif-item ${item.NotifStatus === 'UNREAD' ? 'unread' : ''}`}
-                              onClick={() => this.handleNotificationClick(item)}
-                            >
-                              <p
-                                className="notif-desc"
-                                dangerouslySetInnerHTML={{ __html: item.NotifDescription }}
-                              />
-                              <span className="notif-time">
-                                {new Date(item.CreatedAt).toLocaleString('vi-VN')}
-                              </span>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="notif-empty">Không có thông báo</div>
-                        )}
-                      </div>
-
-                      <div className="notif-footer">
-                        <button
-                          type="button"
-                          className="link-button"
-                          onClick={() => this.props.navigate('/notifications')}
-                        >
-
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className='notifi'></div>
-              )}</li>
+                    )}
+                  </div>
+                ) : (
+                  <div className="notifi"></div>
+                )}
+              </li>
             </div>
           </div>
         </div>

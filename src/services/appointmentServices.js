@@ -24,8 +24,8 @@ const handleChangeAppointmentStatusApi = (AppointmentID, AppointmentStatus, Acco
   return axios.put('/api/change-AppointmentStatus', { AppointmentID, AppointmentStatus, AccountID });
 };
 
-const handleCreateAppointmentBillApi = (appointmenttrackData) => {
-  return axios.post('/api/create-appointmentbill', appointmenttrackData);
+const handleCreateAppointmentBillApi = (appointmentBillInfo) => {
+  return axios.post('/api/create-appointmentbill', appointmentBillInfo);
 };
 
 const handleGetAppointmentBillDetailApi = (AppointmentBillID) => {
@@ -40,15 +40,4 @@ const handleSendAppointmentBillEmailApi = (sendInfo) => {
   return axios.post('/api/get-appointmentbill-email', sendInfo);
 };
 
-export {
-  handleCreateAppointmentApi,
-  handleGetAvailableTimesApi,
-  handleLoadAppointmentsApi,
-  handleLoadAppointmentInfoApi,
-  handleLoadAppointmentDetailsApi,
-  handleChangeAppointmentStatusApi,
-  handleCreateAppointmentBillApi,
-  handleGetAppointmentBillDetailApi,
-  handleSendAppointmentEmailApi,
-  handleSendAppointmentBillEmailApi,
-};
+export { handleCreateAppointmentApi, handleGetAvailableTimesApi, handleLoadAppointmentsApi, handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleCreateAppointmentBillApi, handleGetAppointmentBillDetailApi, handleSendAppointmentEmailApi, handleSendAppointmentBillEmailApi };
