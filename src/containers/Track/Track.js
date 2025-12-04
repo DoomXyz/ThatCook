@@ -569,8 +569,8 @@ class Track extends Component {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {(loadedInvoiceDetails.ProductList || []).length > 0 ? (
-                                      loadedInvoiceDetails.ProductList.map((item, index) => (
+                                    {(loadedInvoiceDetails.productList || []).length > 0 ? (
+                                      loadedInvoiceDetails.productList.map((item, index) => (
                                         <tr key={index} className="view-invoice-modal-content-mid-item">
                                           <td>
                                             <img src={item.ProductImage || ''} alt={item.ProductName || 'Sản phẩm'} style={{ width: '50px', height: '50px' }} />

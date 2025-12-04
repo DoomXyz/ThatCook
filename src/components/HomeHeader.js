@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
-
+import io from 'socket.io-client';
 import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline } from 'ionicons/icons';
 
 import './HomeHeader.scss';
@@ -62,10 +62,37 @@ class HomeHeader extends Component {
     }, 0);
     window.addEventListener('scroll', this.handleScroll, { passive: true });
     this.handleScroll();
+    this.socket = io(process.env.REACT_APP_BACKEND_URL || 'http://localhost:9999');
+
+    // Join room theo AccountID
+    if (this.props.userInfo?.AccountID) {
+      this.socket.emit('join-user', this.props.userInfo.AccountID);
+    }
+
+    // Join role room nếu là bác sĩ/chủ shop
+    if (this.props.userInfo?.AccountType === 'V') {
+      this.socket.emit('join-role', 'V');
+    }
+    if (this.props.userInfo?.AccountType === 'O') {
+      this.socket.emit('join-role', 'O');
+    }
+
+    // LẮNG NGHE THÔNG BÁO MỚI
+    this.socket.on('new-notification', (notif) => {
+      console.log('[REAL-TIME] Nhận thông báo mới:', notif);
+
+      this.setState(prevState => ({
+        notifications: [notif, ...prevState.notifications],
+        notifCount: prevState.notifCount + 1,
+      }));
+    });
   }
 
   componentWillUnmount() {
     window.removeEventListener('scroll', this.handleScroll, { passive: true });
+    if (this.socket) {
+      this.socket.disconnect();
+    }
   }
   async componentDidUpdate(prevProps) {
     if (prevProps.userInfo !== this.props.userInfo) {
@@ -89,7 +116,7 @@ class HomeHeader extends Component {
   }
   handleNotificationClick = async (notif) => {
     const orderTypes = ['ORDER_SUCCESS', 'ORDER_CANCEL', 'ORDER_COMPLETE', 'ORDER_CONFIRM'];
-    const apmTypes = ['APM_SUCCESS', 'APM_WAIT', 'APM_CONFIRM', 'APM_REFUSE'];
+    const apmTypes = ['APM_SUCCESS', 'APM_WAIT', 'APM_CONFIRM', 'APM_REFUSE', 'APM_COMPLETE', 'APM_CANCEL'];
     if (orderTypes.includes(notif.NotifType) && notif.ExtraValue) {
       const InvoiceID = notif.ExtraValue;
       if (notif.NotifStatus === 'UNREAD') {

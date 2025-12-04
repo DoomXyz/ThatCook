@@ -1214,7 +1214,7 @@ class User extends Component {
         actionPage: 4,
         selectedInvoiceID: InvoiceID,
         loadedInvoiceDetail: invoiceDetail,
-        totalPages: Math.ceil((invoiceDetail.ProductList?.length || 0) / this.state.limitProductPerQuery),
+        totalPages: Math.ceil((invoiceDetail.productList?.length || 0) / this.state.limitProductPerQuery),
         currentPage: 1,
         tempCurrentPage: '1',
       });
@@ -1742,8 +1742,8 @@ class User extends Component {
               </div>
             </div>
             <div className="user-cart-form-info-list-item">
-              {loadedInvoiceDetail?.ProductList?.length > 0 ? (
-                loadedInvoiceDetail.ProductList.map((item, index) => (
+              {loadedInvoiceDetail?.productList?.length > 0 ? (
+                loadedInvoiceDetail.productList.map((item, index) => (
                   <div key={index} className="user-cart-form-info-list-item-row">
                     <div className="user-cart-form-info-list-item-left">
                       <div className="img-product">{item?.ProductImage && <img src={item.ProductImage} alt="Product" style={{ width: '100px', height: '100px' }} />}</div>

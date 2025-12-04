@@ -1420,14 +1420,24 @@ class Doctor extends Component {
 
 
                         {loadedAppointmentDetail.ScheduleID && loadedAppointmentDetail.ScheduleStatus === 'PEND' && (
-                          <button
-                            type="button"
-                            className="action-button-cancel-button"
-                            onClick={() => this.handleChangeScheduleStatus(loadedAppointmentDetail.ScheduleID, 'CANCELED')}
-                            disabled={disabledButtons.changeSchedule}
-                          >
-                            Hủy khám
-                          </button>
+                          <div>
+                            <button
+                              type="button"
+                              className="action-button-complete-button"
+                              onClick={() => this.handleAppointmentCheckOut(loadedAppointmentDetail.AppointmentID)}
+                              disabled={disabledButtons.appointmentCheckout}
+                            >
+                              Hoàn thành
+                            </button>
+                            <button
+                              type="button"
+                              className="action-button-cancel-button"
+                              onClick={() => this.handleChangeScheduleStatus(loadedAppointmentDetail.ScheduleID, 'CANCELED')}
+                              disabled={disabledButtons.changeSchedule}
+                            >
+                              Hủy khám
+                            </button>
+                          </div>
                         )}
                       </>
                     )}

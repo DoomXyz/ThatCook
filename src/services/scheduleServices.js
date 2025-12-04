@@ -1,7 +1,7 @@
 import axios from '../axios';
 
-const handleLoadScheduleApi = (VeterinarianID, startDate) => {
-    return axios.get(`/api/load-schedule?VeterinarianID=${VeterinarianID}&startDate=${startDate}`);
+const handleLoadScheduleApi = (VeterinarianID, StartDate) => {
+    return axios.get(`/api/load-schedule?VeterinarianID=${VeterinarianID}&StartDate=${StartDate}`);
 };
 
 const handleChangeScheduleStatusApi = (ScheduleID, ScheduleStatus) => {

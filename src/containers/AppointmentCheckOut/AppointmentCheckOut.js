@@ -207,7 +207,7 @@ class AppointmentCheckOut extends Component {
       if (response && response.errCode === 0) {
         toast.success(
           <div>
-            Hoàn tất thanh đoán!
+            Hoàn tất thanh toán!
             <div style={{ marginTop: '10px' }}>
               <button
                 onClick={() => {
