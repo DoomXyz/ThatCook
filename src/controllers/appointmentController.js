@@ -21,7 +21,7 @@ let handleGetAvailableTimes = async (req, res) => {
 
 let handleLoadAppointmentInfo = async (req, res) => {
   try {
-    const AccountID = req.query.AccountID || ''
+    const AccountID = req.query.AccountID || '';
     const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
     const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
     const search = req.query.search || '';
@@ -38,7 +38,7 @@ let handleLoadAppointmentInfo = async (req, res) => {
 
 let handleLoadAppointments = async (req, res) => {
   try {
-    const VeterinarianID = req.query.VeterinarianID || ''
+    const VeterinarianID = req.query.VeterinarianID || '';
     const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
     const limit = isNaN(parseInt(req.query.limit)) ? 20 : parseInt(req.query.limit);
     const search = req.query.search || '';
@@ -85,8 +85,8 @@ let handleCreateAppointment = async (req, res) => {
 
 let handleCreateAppointmentBill = async (req, res) => {
   try {
-    const { VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes } = req.body;
-    let response = await appointmentService.createAppointmentBill(VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes);
+    const { VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes, PaymentType } = req.body; // Thêm PaymentType ở đây
+    let response = await appointmentService.createAppointmentBill(VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes, PaymentType); // Truyền PaymentType vào đây
     return res.status(200).json(response);
   } catch (e) {
     return handleError(res, e);
@@ -95,7 +95,7 @@ let handleCreateAppointmentBill = async (req, res) => {
 
 let handleChangeAppointmentStatus = async (req, res) => {
   try {
-    const { AppointmentID, AppointmentStatus, AccountID } = req.body
+    const { AppointmentID, AppointmentStatus, AccountID } = req.body;
     let response = await appointmentService.changeAppointmentStatus(AppointmentID, AppointmentStatus, AccountID);
     return res.status(200).json(response);
   } catch (e) {
