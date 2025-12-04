@@ -1,13 +1,11 @@
 'use strict';
 const { Model } = require('sequelize');
-
 module.exports = (sequelize, DataTypes) => {
   class AppointmentBill extends Model {
     static associate(models) {
       AppointmentBill.belongsTo(models.Appointment, { foreignKey: 'AppointmentID' });
     }
   }
-
   AppointmentBill.init(
     {
       AppointmentBillID: {
@@ -39,6 +37,17 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      PaymentType: {
+        // Thêm field mới
+        type: DataTypes.STRING(20),
+        allowNull: true, // 'CASH', 'CARD', 'QR'
+      },
+      PaymentStatus: {
+        // Thêm field mới
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: 'PEND', // 'PEND', 'PAID', 'FAIL'
+      },
       CreatedAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -49,11 +58,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'AppointmentBill',
       tableName: 'AppointmentBill',
       timestamps: false,
-      indexes: [
-        { fields: ['AppointmentID'], name: 'index_appointment_id' },
-      ],
+      indexes: [{ fields: ['AppointmentID'], name: 'index_appointment_id' }],
     }
   );
-
   return AppointmentBill;
 };

@@ -1,9 +1,27 @@
 import { Op } from 'sequelize';
 import db from '../models/index';
 import { generateID, checkValidAllCode } from './utilitiesService';
-import { getPetInfo } from './petService'
+import { getPetInfo } from './petService';
 import { sendNotification } from './utilitiesService';
+import querystring from 'qs';
+import crypto from 'crypto';
 const nodemailer = require('nodemailer');
+
+function sortObject(obj) {
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
+  }
+  return sorted;
+}
 
 let sendAppointmentEmail = async (AppointmentID, Email) => {
   try {
@@ -17,22 +35,7 @@ let sendAppointmentEmail = async (AppointmentID, Email) => {
     // Retrieve appointment details
     const appointment = await db.Appointment.findOne({
       where: { AppointmentID },
-      attributes: [
-        'AppointmentID',
-        'CustomerName',
-        'CustomerPhone',
-        'AppointmentDate',
-        'StartTime',
-        'EndTime',
-        'AppointmentStatus',
-        'AppointmentType',
-        'Notes',
-        'ServiceID',
-        'PetID',
-        'VeterinarianID',
-        'CreatedAt',
-        'AccountID'
-      ],
+      attributes: ['AppointmentID', 'CustomerName', 'CustomerPhone', 'AppointmentDate', 'StartTime', 'EndTime', 'AppointmentStatus', 'AppointmentType', 'Notes', 'ServiceID', 'PetID', 'VeterinarianID', 'CreatedAt', 'AccountID'],
       include: [
         {
           model: db.Service,
@@ -118,15 +121,7 @@ let sendAppointmentBillEmail = async (AppointmentBillID, Email) => {
     // Retrieve appointment bill details
     const appointmentBill = await db.AppointmentBill.findOne({
       where: { AppointmentBillID },
-      attributes: [
-        'AppointmentBillID',
-        'AppointmentID',
-        'ServicePrice',
-        'MedicalPrice',
-        'TotalPayment',
-        'MedicalNotes',
-        'CreatedAt',
-      ],
+      attributes: ['AppointmentBillID', 'AppointmentID', 'ServicePrice', 'MedicalPrice', 'TotalPayment', 'MedicalNotes', 'CreatedAt'],
       include: [
         {
           model: db.Appointment,
@@ -221,7 +216,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
       data: null,
     };
   }
-  const { CustomerName, CustomerEmail, CustomerPhone, AppointmentDate, StartTime, Notes, AccountID, VeterinarianID, ServiceID, PetID, Type, PrevAppointmentID } = appointmentInfo
+  const { CustomerName, CustomerEmail, CustomerPhone, AppointmentDate, StartTime, Notes, AccountID, VeterinarianID, ServiceID, PetID, Type, PrevAppointmentID } = appointmentInfo;
   if (!CustomerName) {
     return {
       errCode: -1,
@@ -261,7 +256,6 @@ let validateAppointmentInput = async (appointmentInfo) => {
       data: null,
     };
   } else {
-
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!phoneRegex.test(CustomerPhone.trim())) {
       return {
@@ -317,14 +311,13 @@ let validateAppointmentInput = async (appointmentInfo) => {
   }
   if (!AccountID) {
     return {
-
       errCode: -1,
       errMessage: 'Tài khoản không được để trống!',
       data: null,
     };
   } else {
     const validAccount = await db.Account.findOne({
-      where: { AccountID }
+      where: { AccountID },
     });
     if (!validAccount) {
       return {
@@ -354,7 +347,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
     };
   } else {
     const validService = await db.Service.findOne({
-      where: { ServiceID, ServiceStatus: 'VALID' }
+      where: { ServiceID, ServiceStatus: 'VALID' },
     });
     if (!validService) {
       return {
@@ -376,7 +369,7 @@ let validateAppointmentInput = async (appointmentInfo) => {
       return {
         errCode: 2,
         errMessage: 'Thú cưng không tồn tại hoặc đã bị xóa!',
-        data: null
+        data: null,
       };
     }
   }
@@ -398,8 +391,8 @@ let validateAppointmentInput = async (appointmentInfo) => {
   }
   if (PrevAppointmentID) {
     const validPrevAppointment = await db.Appointment.findOne({
-      where: { AppointmentID: PrevAppointmentID }
-    })
+      where: { AppointmentID: PrevAppointmentID },
+    });
     if (!validPrevAppointment) {
       return {
         errCode: 2,
@@ -418,7 +411,7 @@ let validateAppointmentBillInput = async (appointmentBillInfo) => {
       data: null,
     };
   }
-  const { VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes } = appointmentBillInfo;
+  const { VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes, PaymentType } = appointmentBillInfo;
   if (!AppointmentID) {
     return {
       errCode: -1,
@@ -489,6 +482,13 @@ let validateAppointmentBillInput = async (appointmentBillInfo) => {
       };
     }
   }
+  if (PaymentType && !['CASH', 'CARD', 'QR'].includes(PaymentType)) {
+    return {
+      errCode: 1,
+      errMessage: 'Phương thức thanh toán không hợp lệ!',
+      data: null,
+    };
+  }
   return null;
 };
 let cancelExpiredAppointments = () => {
@@ -498,13 +498,13 @@ let cancelExpiredAppointments = () => {
       const currentDateTime = new Date();
       const pendingAppointments = await db.Appointment.findAll({
         where: {
-          AppointmentStatus: 'PEND'
+          AppointmentStatus: 'PEND',
         },
         attributes: ['AppointmentID', 'AppointmentDate', 'StartTime'],
         raw: true,
         transaction,
       });
-      const expiredAppointments = pendingAppointments.filter(app => {
+      const expiredAppointments = pendingAppointments.filter((app) => {
         const dateStr = app.AppointmentDate.toISOString().split('T')[0]; // Lấy YYYY-MM-DD
         const appointmentStart = new Date(`${dateStr}T${app.StartTime}+07:00`);
         return appointmentStart < currentDateTime;
@@ -514,34 +514,34 @@ let cancelExpiredAppointments = () => {
         resolve({
           errCode: 0,
           errMessage: 'Không có lịch hẹn quá hạn để hủy!',
-          data: null
+          data: null,
         });
         return;
       }
-      const appointmentIDs = expiredAppointments.map(app => app.AppointmentID);
+      const appointmentIDs = expiredAppointments.map((app) => app.AppointmentID);
       await db.Appointment.update(
         { AppointmentStatus: 'CANCELED' },
         {
           where: { AppointmentID: { [Op.in]: appointmentIDs } },
-          transaction
+          transaction,
         }
       );
       await db.Schedule.destroy({
         where: { AppointmentID: { [Op.in]: appointmentIDs } },
-        transaction
+        transaction,
       });
       await transaction.commit();
       resolve({
         errCode: 0,
         errMessage: 'Hủy các lịch hẹn quá hạn thành công!',
-        data: { canceledCount: expiredAppointments.length }
+        data: { canceledCount: expiredAppointments.length },
       });
     } catch (e) {
       await transaction.rollback();
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi hủy lịch hẹn quá hạn: ${e.message}`,
-        data: null
+        data: null,
       });
     }
   });
@@ -558,10 +558,7 @@ const confirmAppointment = async (AppointmentID, VeterinarianID, transaction) =>
     if (appointment.VeterinarianID && appointment.VeterinarianID !== VeterinarianID) {
       throw new Error('Lịch hẹn không thuộc bác sĩ này!');
     }
-    await db.Appointment.update(
-      { AppointmentStatus: 'CONF' },
-      { where: { AppointmentID }, transaction }
-    );
+    await db.Appointment.update({ AppointmentStatus: 'CONF' }, { where: { AppointmentID }, transaction });
     const conflictingAppointments = await db.Appointment.findAll({
       where: {
         VeterinarianID,
@@ -578,24 +575,24 @@ const confirmAppointment = async (AppointmentID, VeterinarianID, transaction) =>
       const conflictingStart = new Date(`${conflictingApp.AppointmentDate.toISOString().split('T')[0]}T${conflictingApp.StartTime}`);
       const conflictingEnd = new Date(`${conflictingApp.AppointmentDate.toISOString().split('T')[0]}T${conflictingApp.EndTime}`);
       if (appointmentStart < conflictingEnd && appointmentEnd > conflictingStart) {
-        await db.Appointment.update(
-          { AppointmentStatus: 'CANCELED' },
-          { where: { AppointmentID: conflictingApp.AppointmentID }, transaction }
-        );
+        await db.Appointment.update({ AppointmentStatus: 'CANCELED' }, { where: { AppointmentID: conflictingApp.AppointmentID }, transaction });
         await db.Schedule.destroy({
           where: { AppointmentID: conflictingApp.AppointmentID },
           transaction,
         });
       }
     }
-    await db.Schedule.create({
-      VeterinarianID,
-      AppointmentID: appointment.AppointmentID,
-      Date: appointment.AppointmentDate,
-      StartTime: appointment.StartTime,
-      EndTime: appointment.EndTime,
-      ScheduleStatus: 'PEND',
-    }, { transaction });
+    await db.Schedule.create(
+      {
+        VeterinarianID,
+        AppointmentID: appointment.AppointmentID,
+        Date: appointment.AppointmentDate,
+        StartTime: appointment.StartTime,
+        EndTime: appointment.EndTime,
+        ScheduleStatus: 'PEND',
+      },
+      { transaction }
+    );
     return {
       errCode: 0,
       errMessage: 'Xác nhận lịch hẹn thành công!',
@@ -626,7 +623,7 @@ let getAvailableTimes = (AppointmentDate, VeterinarianID, ServiceID) => {
         return;
       }
       const service = await db.Service.findOne({
-        where: { ServiceID, ServiceStatus: 'VALID' }
+        where: { ServiceID, ServiceStatus: 'VALID' },
       });
       if (!service) {
         resolve({
@@ -637,12 +634,10 @@ let getAvailableTimes = (AppointmentDate, VeterinarianID, ServiceID) => {
         return;
       }
       const Duration = service.Duration;
-      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00'];
+      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00', '22:59'];
       let availableTimes = [...fixedTimes];
 
-      let vetIds = VeterinarianID && VeterinarianID !== 'ALL'
-        ? [VeterinarianID]
-        : (await db.VeterinarianInfo.findAll({ attributes: ['AccountID'], raw: true })).map(vet => vet.AccountID);
+      let vetIds = VeterinarianID && VeterinarianID !== 'ALL' ? [VeterinarianID] : (await db.VeterinarianInfo.findAll({ attributes: ['AccountID'], raw: true })).map((vet) => vet.AccountID);
 
       // Lấy lịch làm việc
       const schedules = await db.Schedule.findAll({
@@ -745,9 +740,7 @@ let loadAppointmentInfo = (AccountID, page, limit, search, filter, sort, date1, 
       let order = [];
       if (search?.trim()) {
         const searchTerm = search.trim().substring(0, 50);
-        where[Op.or] = [
-          { '$Service.ServiceName$': { [Op.like]: `%${searchTerm}%` } },
-        ];
+        where[Op.or] = [{ '$Service.ServiceName$': { [Op.like]: `%${searchTerm}%` } }];
       }
       let start = date1 ? new Date(date1) : null;
       let end = date2 ? new Date(date2) : null;
@@ -814,20 +807,7 @@ let loadAppointmentInfo = (AccountID, page, limit, search, filter, sort, date1, 
       }
       const { count, rows } = await db.Appointment.findAndCountAll({
         where,
-        attributes: ['StartTime', 'EndTime', 'ServiceID', 'CustomerName', 'Notes', 'AppointmentStatus', 'VeterinarianID', 'PetID', 'AccountID'],
-        attributes: [
-          'AppointmentID',
-          'AppointmentDate',
-          'StartTime',
-          'EndTime',
-          'ServiceID',
-          'CustomerName',
-          'Notes',
-          'AppointmentStatus',
-          'VeterinarianID',
-          'PetID',
-          'AccountID'
-        ],
+        attributes: ['AppointmentID', 'AppointmentDate', 'StartTime', 'EndTime', 'ServiceID', 'CustomerName', 'Notes', 'AppointmentStatus', 'VeterinarianID', 'PetID', 'AccountID'],
         include: [
           {
             model: db.Service,
@@ -926,10 +906,10 @@ let loadAppointments = (VeterinarianID, page, limit, search, filter, sort, date1
         });
         return;
       }
-      await cancelExpiredAppointments()
+      await cancelExpiredAppointments();
       const offset = (page - 1) * limit;
       let where = {
-        AppointmentStatus: status
+        AppointmentStatus: status,
       };
       let order = [];
       if (search?.trim()) {
@@ -993,10 +973,7 @@ let loadAppointments = (VeterinarianID, page, limit, search, filter, sort, date1
           return;
         }
       } else {
-        where[Op.or] = [
-          { VeterinarianID: null },
-          { VeterinarianID },
-        ];
+        where[Op.or] = [{ VeterinarianID: null }, { VeterinarianID }];
       }
       switch (sort) {
         case '1': // Cuộc hẹn mới nhất
@@ -1023,21 +1000,10 @@ let loadAppointments = (VeterinarianID, page, limit, search, filter, sort, date1
                WHERE s.VeterinarianID = '${VeterinarianID}'
                AND s.ScheduleStatus = 'PEND'
                AND a.AppointmentStatus = 'PEND')
-            `)
-          }
+            `),
+          },
         },
-        attributes: [
-          'AppointmentID',
-          'AppointmentDate',
-          'StartTime',
-          'EndTime',
-          'ServiceID',
-          'VeterinarianID',
-          'CustomerName',
-          'Notes',
-          'PetID',
-          'AccountID'
-        ],
+        attributes: ['AppointmentID', 'AppointmentDate', 'StartTime', 'EndTime', 'ServiceID', 'VeterinarianID', 'CustomerName', 'Notes', 'PetID', 'AccountID'],
         include: [
           {
             model: db.Service,
@@ -1065,11 +1031,9 @@ let loadAppointments = (VeterinarianID, page, limit, search, filter, sort, date1
       }
       for (const row of rows) {
         const pet = await getPetInfo(row.AccountID, row.PetID); // cần thêm AccountID vào attributes
-        row.dataValues.PetName = pet.errCode === 0 && pet.data?.PetStatus === 'VALID'
-          ? pet.data.PetName
-          : 'Thú cưng đã xóa';
+        row.dataValues.PetName = pet.errCode === 0 && pet.data?.PetStatus === 'VALID' ? pet.data.PetName : 'Thú cưng đã xóa';
       }
-      const data = rows.map(row => ({
+      const data = rows.map((row) => ({
         AppointmentID: row.AppointmentID,
         AppointmentDate: row.AppointmentDate,
         StartTime: row.StartTime,
@@ -1078,7 +1042,7 @@ let loadAppointments = (VeterinarianID, page, limit, search, filter, sort, date1
         PetName: row.dataValues.PetName,
         VeterinarianID: row.VeterinarianID,
         CustomerName: row.CustomerName,
-        Notes: row.Notes
+        Notes: row.Notes,
       }));
 
       resolve({
@@ -1110,24 +1074,7 @@ let loadAppointmentDetails = (AppointmentID) => {
       }
       const appointment = await db.Appointment.findOne({
         where: { AppointmentID },
-        attributes: [
-          'AppointmentID',
-          'CustomerName',
-          'CustomerEmail',
-          'CustomerPhone',
-          'AppointmentDate',
-          'StartTime',
-          'EndTime',
-          'Notes',
-          'AppointmentStatus',
-          'AppointmentType',
-          'PrevAppointmentID',
-          'VeterinarianID',
-          'AccountID',
-          'CreatedAt',
-          'PetID',
-          'ServiceID'
-        ],
+        attributes: ['AppointmentID', 'CustomerName', 'CustomerEmail', 'CustomerPhone', 'AppointmentDate', 'StartTime', 'EndTime', 'Notes', 'AppointmentStatus', 'AppointmentType', 'PrevAppointmentID', 'VeterinarianID', 'AccountID', 'CreatedAt', 'PetID', 'ServiceID'],
         include: [
           {
             model: db.Service,
@@ -1183,8 +1130,7 @@ let loadAppointmentDetails = (AppointmentID) => {
       }
       const petResult = await getPetInfo(appointment.AccountID, appointment.PetID);
 
-      const pet = petResult.errCode === 0 && petResult.data?.PetStatus === 'VALID'
-        ? petResult.data : { PetName: 'Thú cưng đã xóa', PetType: '', PetWeight: 0, Age: 0, PetGender: '', petImage: '' };
+      const pet = petResult.errCode === 0 && petResult.data?.PetStatus === 'VALID' ? petResult.data : { PetName: 'Thú cưng đã xóa', PetType: '', PetWeight: 0, Age: 0, PetGender: '', petImage: '' };
       const data = {
         AppointmentID: appointment.AppointmentID,
         CustomerName: appointment.CustomerName,
@@ -1255,31 +1201,12 @@ let getAppointmentBillDetail = (AppointmentBillID) => {
       }
       const appointmentBill = await db.AppointmentBill.findOne({
         where: { AppointmentBillID },
-        attributes: [
-          'AppointmentBillID',
-          'AppointmentID',
-          'ServicePrice',
-          'MedicalPrice',
-          'TotalPayment',
-          'MedicalImage',
-          'MedicalNotes',
-          'CreatedAt',
-        ],
+        attributes: ['AppointmentBillID', 'AppointmentID', 'ServicePrice', 'MedicalPrice', 'TotalPayment', 'MedicalImage', 'MedicalNotes', 'CreatedAt'],
         include: [
           {
             model: db.Appointment,
             as: 'Appointment',
-            attributes: [
-              'CustomerName',
-              'CustomerEmail',
-              'CustomerPhone',
-              'AppointmentDate',
-              'StartTime',
-              'EndTime',
-              'AppointmentStatus',
-              'VeterinarianID',
-              'ServiceID',
-            ],
+            attributes: ['CustomerName', 'CustomerEmail', 'CustomerPhone', 'AppointmentDate', 'StartTime', 'EndTime', 'AppointmentStatus', 'VeterinarianID', 'ServiceID'],
             include: [
               {
                 model: db.Service,
@@ -1308,10 +1235,7 @@ let getAppointmentBillDetail = (AppointmentBillID) => {
         });
         return;
       }
-      const petResult = await getPetInfo(
-        appointmentBill.Appointment.AccountID,
-        appointmentBill.Appointment.PetID
-      );
+      const petResult = await getPetInfo(appointmentBill.Appointment.AccountID, appointmentBill.Appointment.PetID);
       const PetName = petResult.errCode === 0 ? petResult.data.PetName : 'Thú cưng đã xóa';
       const PetType = petResult.errCode === 0 ? petResult.data.PetType : '';
       const PetGender = petResult.errCode === 0 ? petResult.data.PetGender : '';
@@ -1378,7 +1302,7 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
           errCode: 2,
           errMessage: 'Dịch vụ không tồn tại!',
           data: null,
-        })
+        });
         return;
       }
       const Duration = existService.Duration;
@@ -1417,11 +1341,7 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
         const isConflict = appointments.some((app) => {
           const appStart = new Date(`${app.AppointmentDate}T${app.StartTime}`);
           const appEnd = new Date(`${app.AppointmentDate}T${app.EndTime}`);
-          return (
-            app.VeterinarianID === finalVeterinarianID &&
-            startDateTime < appEnd &&
-            EndTime > appStart
-          );
+          return app.VeterinarianID === finalVeterinarianID && startDateTime < appEnd && EndTime > appStart;
         });
         if (isConflict) {
           resolve({
@@ -1462,33 +1382,39 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
       const AppointmentID = appointmentIdResult.data;
       const CreatedAt = new Date();
       const AppointmentStatus = Type === 'FOLLOW_UP' ? 'CONF' : 'PEND';
-      await db.Appointment.create({
-        AppointmentID,
-        CustomerName,
-        CustomerEmail,
-        CustomerPhone,
-        AppointmentDate,
-        StartTime,
-        EndTime: EndTime.toTimeString().slice(0, 5),
-        Notes,
-        AccountID,
-        VeterinarianID: finalVeterinarianID,
-        ServiceID,
-        PetID,
-        CreatedAt: CreatedAt,
-        AppointmentStatus,
-        AppointmentType: Type,
-        PrevAppointmentID,
-      }, { transaction });
-      if (Type === 'FOLLOW_UP' && finalVeterinarianID) {
-        await db.Schedule.create({
-          VeterinarianID: finalVeterinarianID,
+      await db.Appointment.create(
+        {
           AppointmentID,
-          Date: AppointmentDate,
+          CustomerName,
+          CustomerEmail,
+          CustomerPhone,
+          AppointmentDate,
           StartTime,
           EndTime: EndTime.toTimeString().slice(0, 5),
-          ScheduleStatus: 'PEND',
-        }, { transaction });
+          Notes,
+          AccountID,
+          VeterinarianID: finalVeterinarianID,
+          ServiceID,
+          PetID,
+          CreatedAt: CreatedAt,
+          AppointmentStatus,
+          AppointmentType: Type,
+          PrevAppointmentID,
+        },
+        { transaction }
+      );
+      if (Type === 'FOLLOW_UP' && finalVeterinarianID) {
+        await db.Schedule.create(
+          {
+            VeterinarianID: finalVeterinarianID,
+            AppointmentID,
+            Date: AppointmentDate,
+            StartTime,
+            EndTime: EndTime.toTimeString().slice(0, 5),
+            ScheduleStatus: 'PEND',
+          },
+          { transaction }
+        );
       }
       if (imageInfo && imageInfo.length > 0) {
         if (imageInfo.length > 3) {
@@ -1510,11 +1436,14 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
             });
             return;
           }
-          await db.Image.create({
-            Image: image.Image.trim(),
-            ReferenceType: 'Appointment',
-            ReferenceID: AppointmentID,
-          }, { transaction });
+          await db.Image.create(
+            {
+              Image: image.Image.trim(),
+              ReferenceType: 'Appointment',
+              ReferenceID: AppointmentID,
+            },
+            { transaction }
+          );
         }
       }
       await transaction.commit();
@@ -1522,11 +1451,11 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
       if (AccountID) {
         try {
           await sendNotification(
-            AccountID,            // Người gửi: hệ thống
-            AccountID,             // Gửi riêng cho khách hàng
-            null,                  // Không gửi theo role
-            'APM_SUCCESS',         // Loại: đặt lịch thành công
-            appointmentIdResult.data  // ExtraValue: mã lịch khám
+            AccountID, // Người gửi: hệ thống
+            AccountID, // Gửi riêng cho khách hàng
+            null, // Không gửi theo role
+            'APM_SUCCESS', // Loại: đặt lịch thành công
+            appointmentIdResult.data // ExtraValue: mã lịch khám
           );
         } catch (notifErr) {
           console.log('[ERROR] Gửi APM_SUCCESS thất bại:', notifErr);
@@ -1538,10 +1467,10 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
         if (VeterinarianID) {
           // Trường hợp chọn bác sĩ cụ thể → gửi riêng
           await sendNotification(
-            AccountID || 'GUEST',  // Người gửi: khách hàng (hoặc guest)
-            VeterinarianID,        // Gửi riêng cho bác sĩ đó
-            null,                  // Không gửi theo role
-            'APM_WAIT',            // Loại: lịch khám chờ xác nhận
+            AccountID || 'GUEST', // Người gửi: khách hàng (hoặc guest)
+            VeterinarianID, // Gửi riêng cho bác sĩ đó
+            null, // Không gửi theo role
+            'APM_WAIT', // Loại: lịch khám chờ xác nhận
             appointmentIdResult.data
           );
         } else {
@@ -1549,7 +1478,7 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
           await sendNotification(
             AccountID || 'GUEST',
             null,
-            'V',                   // Gửi cho toàn bộ AccountType = 'V'
+            'V', // Gửi cho toàn bộ AccountType = 'V'
             'APM_WAIT',
             appointmentIdResult.data
           );
@@ -1585,11 +1514,11 @@ let createAppointment = (CustomerName, CustomerEmail, CustomerPhone, Appointment
     }
   });
 };
-let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes) => {
+let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes, PaymentType = 'CASH') => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      const appointmentbillInfo = { VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes };
+      const appointmentbillInfo = { VeterinarianID, AppointmentID, ServicePrice, MedicalPrice, MedicalImage, MedicalNotes, PaymentType };
       let isValidateInput = await validateAppointmentBillInput(appointmentbillInfo);
       if (isValidateInput) {
         resolve(isValidateInput);
@@ -1601,49 +1530,100 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
         return;
       }
       const AppointmentBillID = appointmentBillIdResult.data;
+      const TotalPayment = parseFloat(ServicePrice) + parseFloat(MedicalPrice);
+      let PaymentStatus = 'PEND';
+      let vnpayUrl = null;
+
+      if (PaymentType === 'CARD' || PaymentType === 'QR') {
+        console.log('BE: Bắt đầu generate VNPay cho PaymentType:', PaymentType);
+        const ipAddr = '127.0.0.1';
+        const tmnCode = process.env.VNP_TMNCODE;
+        const secretKey = process.env.VNP_HASHSECRET;
+        let vnpUrl = process.env.VNP_URL;
+        const returnUrl = process.env.VNP_RETURNURL_APPOINTMENT;
+        console.log('BE: Env vars:', { tmnCode, secretKey, vnpUrl, returnUrl });
+        const date = new Date();
+        const createDate = date.getFullYear() + '' + ('0' + (date.getMonth() + 1)).slice(-2) + '' + ('0' + date.getDate()).slice(-2) + '' + ('0' + date.getHours()).slice(-2) + '' + ('0' + date.getMinutes()).slice(-2) + '' + ('0' + date.getSeconds()).slice(-2);
+        const orderId = AppointmentBillID;
+        let amount = TotalPayment * 100;
+        let bankCode = '';
+        let locale = 'vn';
+        let currCode = 'VND';
+        let vnp_Params = {};
+        vnp_Params['vnp_Version'] = '2.1.0';
+        vnp_Params['vnp_Command'] = 'pay';
+        vnp_Params['vnp_TmnCode'] = tmnCode;
+        vnp_Params['vnp_Amount'] = amount;
+        vnp_Params['vnp_CurrCode'] = currCode;
+        vnp_Params['vnp_TxnRef'] = orderId;
+        vnp_Params['vnp_OrderInfo'] = 'Thanh toan hoa don lich hen:' + orderId;
+        vnp_Params['vnp_OrderType'] = 'billpayment';
+        vnp_Params['vnp_Locale'] = locale;
+        vnp_Params['vnp_ReturnUrl'] = returnUrl;
+        vnp_Params['vnp_IpAddr'] = ipAddr;
+        vnp_Params['vnp_CreateDate'] = createDate;
+        if (PaymentType === 'CARD') {
+          vnp_Params['vnp_BankCode'] = 'NCB'; // Example
+        }
+
+        vnp_Params = sortObject(vnp_Params);
+
+        let signData = querystring.stringify(vnp_Params, { encode: false });
+        let hmac = crypto.createHmac('sha512', secretKey);
+        let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex'); // Fix deprecated: Buffer.from thay new Buffer
+        vnp_Params['vnp_SecureHash'] = signed;
+        vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+        vnpayUrl = vnpUrl;
+        console.log('BE: Generated vnpayUrl:', vnpayUrl);
+      } else {
+        console.log('BE: Không generate VNPay vì PaymentType:', PaymentType);
+      }
+
       await db.AppointmentBill.create(
         {
           AppointmentBillID,
           AppointmentID,
           ServicePrice,
           MedicalPrice,
-          TotalPayment: parseFloat(ServicePrice) + parseFloat(MedicalPrice),
+          TotalPayment,
           MedicalImage,
           MedicalNotes,
+          PaymentType,
+          PaymentStatus,
           CreatedAt: new Date(),
         },
         { transaction }
       );
-      const schedule = await db.Schedule.findOne({
-        where: { AppointmentID },
-        transaction,
-      });
-      if (schedule) {
-        await db.Schedule.update(
-          { ScheduleStatus: 'COMP' },
+
+      if (PaymentType === 'CASH') {
+        const schedule = await db.Schedule.findOne({
+          where: { AppointmentID },
+          transaction,
+        });
+        if (schedule) {
+          await db.Schedule.update({ ScheduleStatus: 'COMP' }, { where: { AppointmentID }, transaction });
+        }
+        const appointment = await db.Appointment.findOne({
+          where: { AppointmentID },
+          transaction,
+        });
+        if (!appointment) {
+          await transaction.rollback();
+          resolve({
+            errCode: 2,
+            errMessage: 'Lịch hẹn không tồn tại!',
+            data: null,
+          });
+          return;
+        }
+        await db.Appointment.update(
+          {
+            VeterinarianID: appointment.VeterinarianID || VeterinarianID,
+            AppointmentStatus: 'COMP',
+          },
           { where: { AppointmentID }, transaction }
         );
       }
-      const appointment = await db.Appointment.findOne({
-        where: { AppointmentID },
-        transaction,
-      });
-      if (!appointment) {
-        await transaction.rollback();
-        resolve({
-          errCode: 2,
-          errMessage: 'Lịch hẹn không tồn tại!',
-          data: null,
-        });
-        return;
-      }
-      await db.Appointment.update(
-        {
-          VeterinarianID: appointment.VeterinarianID || VeterinarianID,
-          AppointmentStatus: 'COMP',
-        },
-        { where: { AppointmentID }, transaction }
-      );
       const customerinfo = await db.Appointment.findOne({
         where: { AppointmentID },
         attributes: ['AccountID', 'AppointmentStatus'],
@@ -1665,6 +1645,7 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
         }
       }
       let emailSent = true;
+      let appointment = await db.Appointment.findOne({ where: { AppointmentID } });
       if (appointment.CustomerEmail) {
         emailSent = await sendAppointmentBillEmail(AppointmentBillID, appointment.CustomerEmail);
       }
@@ -1672,7 +1653,7 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
         resolve({
           errCode: 0,
           errMessage: 'Tạo hóa đơn lịch hẹn thành công, nhưng gửi Email thất bại!',
-          data: { AppointmentID },
+          data: { AppointmentID, AppointmentBillID, vnpayUrl },
         });
         return;
       }
@@ -1680,7 +1661,7 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
       resolve({
         errCode: 0,
         errMessage: 'Tạo hóa đơn lịch hẹn thành công!',
-        data: { AppointmentID },
+        data: { AppointmentID, AppointmentBillID, vnpayUrl },
       });
     } catch (e) {
       await transaction.rollback();
@@ -1693,6 +1674,7 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
     }
   });
 };
+
 let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
@@ -1750,11 +1732,11 @@ let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID)
         // Gọi hàm xác nhận
         const result = await confirmAppointment(AppointmentID, VeterinarianID, transaction);
         await sendNotification(
-          vetId,                 // Người gửi: bác sĩ
-          customerId,            // Gửi riêng cho khách hàng
+          vetId, // Người gửi: bác sĩ
+          customerId, // Gửi riêng cho khách hàng
           null,
-          'APM_CONFIRM',         // Loại: xác nhận lịch khám
-          AppointmentID          // ExtraValue: mã lịch khám
+          'APM_CONFIRM', // Loại: xác nhận lịch khám
+          AppointmentID // ExtraValue: mã lịch khám
         );
         await transaction.commit();
         resolve({
@@ -1764,21 +1746,18 @@ let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID)
         });
       } else {
         // Cập nhật trạng thái không phải CONF
-        await db.Appointment.update(
-          { AppointmentStatus },
-          { where: { AppointmentID }, transaction }
-        );
+        await db.Appointment.update({ AppointmentStatus }, { where: { AppointmentID }, transaction });
         // Xóa bản ghi Schedule
         await db.Schedule.destroy({
           where: { AppointmentID },
           transaction,
         });
         await sendNotification(
-          vetId,                 // Người gửi: bác sĩ
-          customerId,            // Gửi riêng cho khách hàng
+          vetId, // Người gửi: bác sĩ
+          customerId, // Gửi riêng cho khách hàng
           null,
-          'APM_REFUSE',          // Loại: từ chối lịch khám
-          AppointmentID          // ExtraValue: mã lịch khám
+          'APM_REFUSE', // Loại: từ chối lịch khám
+          AppointmentID // ExtraValue: mã lịch khám
         );
         await transaction.commit();
         resolve({
@@ -1787,7 +1766,6 @@ let changeAppointmentStatus = (AppointmentID, AppointmentStatus, VeterinarianID)
           data: null,
         });
       }
-
     } catch (e) {
       await transaction.rollback();
       console.log(e);
@@ -1846,6 +1824,93 @@ const getAppointmentBillEmail = async (BillID, Email) => {
   }
 };
 
+let handleVnpayIpn = (params) => {
+  return new Promise(async (resolve, reject) => {
+    let secureHash = params['vnp_SecureHash'];
+    delete params['vnp_SecureHash'];
+    delete params['vnp_SecureHashType'];
+    params = sortObject(params);
+    let signData = querystring.stringify(params, { encode: false });
+    let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+    let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+    if (secureHash === signed) {
+      const transaction = await db.sequelize.transaction();
+      try {
+        await db.AppointmentBill.update({ PaymentStatus: params['vnp_ResponseCode'] === '00' ? 'PAID' : 'FAIL' }, { where: { AppointmentBillID: params['vnp_TxnRef'] }, transaction });
+        if (params['vnp_ResponseCode'] === '00') {
+          const bill = await db.AppointmentBill.findOne({
+            where: { AppointmentBillID: params['vnp_TxnRef'] },
+            attributes: ['AppointmentID'],
+            transaction,
+          });
+          const AppointmentID = bill.AppointmentID;
+          const schedule = await db.Schedule.findOne({
+            where: { AppointmentID },
+            transaction,
+          });
+          if (schedule) {
+            await db.Schedule.update({ ScheduleStatus: 'COMP' }, { where: { AppointmentID }, transaction });
+          }
+          await db.Appointment.update({ AppointmentStatus: 'COMP' }, { where: { AppointmentID }, transaction });
+        }
+        await transaction.commit();
+        resolve('OK');
+      } catch (e) {
+        await transaction.rollback();
+        console.log('IPN error:', e);
+        resolve('InputDataError');
+      }
+    } else {
+      resolve('ChecksumError');
+    }
+  });
+};
+
+let completeAppointmentAfterPayment = async (AppointmentBillID) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      const bill = await db.AppointmentBill.findOne({
+        where: { AppointmentBillID },
+        attributes: ['AppointmentID'],
+        transaction,
+      });
+      if (!bill) {
+        await transaction.rollback();
+        resolve({
+          errCode: 2,
+          errMessage: 'Không tìm thấy hóa đơn!',
+          data: null,
+        });
+        return;
+      }
+      const AppointmentID = bill.AppointmentID;
+      const schedule = await db.Schedule.findOne({
+        where: { AppointmentID },
+        transaction,
+      });
+      if (schedule) {
+        await db.Schedule.update({ ScheduleStatus: 'COMP' }, { where: { AppointmentID }, transaction });
+      }
+      await db.Appointment.update({ AppointmentStatus: 'COMP' }, { where: { AppointmentID }, transaction });
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Cập nhật trạng thái lịch hẹn thành công sau thanh toán!',
+        data: null,
+      });
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Error in completeAppointmentAfterPayment: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi cập nhật trạng thái sau thanh toán: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+};
+
 module.exports = {
   getAvailableTimes,
   loadAppointmentInfo,
@@ -1857,4 +1922,6 @@ module.exports = {
   changeAppointmentStatus,
   getAppointmentEmail,
   getAppointmentBillEmail,
+  handleVnpayIpn,
+  completeAppointmentAfterPayment, // Thêm hàm mới vào exports
 };

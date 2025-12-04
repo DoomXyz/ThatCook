@@ -143,15 +143,15 @@ ON DELETE CASCADE ON UPDATE CASCADE;
 -------------Thêm bảng Notification vào db-------------
 USE thatcookdb;
 CREATE TABLE Notification (
-    NotifID          INT AUTO_INCREMENT PRIMARY KEY,
-    AccountID        VARCHAR(42) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    ReceiveNotifID   VARCHAR(42) NULL,
-    NotifDescription TEXT COLLATE utf8mb4_bin NOT NULL,
-    CreatedAt        DATETIME NOT NULL,
-    ExtraValue       VARCHAR(10) NOT NULL,
-    RoleReceive      VARCHAR(20) NULL,
-    NotifType        VARCHAR(20) NOT NULL,
-    NotifStatus      VARCHAR(20) NOT NULL,
+NotifID INT AUTO_INCREMENT PRIMARY KEY,
+AccountID VARCHAR(42) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+ReceiveNotifID VARCHAR(42) NULL,
+NotifDescription TEXT COLLATE utf8mb4_bin NOT NULL,
+CreatedAt DATETIME NOT NULL,
+ExtraValue VARCHAR(10) NOT NULL,
+RoleReceive VARCHAR(20) NULL,
+NotifType VARCHAR(20) NOT NULL,
+NotifStatus VARCHAR(20) NOT NULL,
 
     INDEX index_accountid (AccountID),
     INDEX index_receivenotifid (ReceiveNotifID),
@@ -161,263 +161,90 @@ CREATE TABLE Notification (
         FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
         ON DELETE CASCADE
         ON UPDATE CASCADE
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -------------------------INSERT NOTIFTYPE------------------------------
 INSERT IGNORE INTO AllCodes (`Type`, `Code`, `CodeValueVI`, `ExtraValue`) VALUES
-('NotifType', 'ORDER_COMPLETE', 'đã thanh toán',                        NULL),
-('NotifType', 'ORDER_CONFIRM',  'chờ xác nhận đơn hàng',                NULL),
-('NotifType', 'ORDER_SUCCESS',  'đặt đơn hàng thành công',              NULL),
-('NotifType', 'ORDER_CANCEL',   'hủy đơn hàng',                         NULL),
-('NotifType', 'APM_SUCCESS',    'lịch khám đã được đặt',                NULL),
-('NotifType', 'APM_WAIT',       'lịch khám chờ xác nhận',               NULL),
-('NotifType', 'APM_CONFIRM',    'xác nhận lịch khám',                   NULL),
-('NotifType', 'APM_REFUSE',     'từ chối lịch khám',                    NULL),
-('NotifType', 'APM_COMPLETE',   'hoàn thành lịch khám',                 NULL),
-('NotifType', 'APM_CANCAEL',    'hủy lịch khám',                        NULL),
-('NotifStatus', 'READ',         'Đã đọc',                               NULL),
-('NotifStatus', 'UNREAD',       'Chưa đọc',                             NULL);
------------------------------------------------------------------------
-SELECT 
-    TABLE_NAME, 
-    COLUMN_NAME, 
-    CONSTRAINT_NAME, 
-    REFERENCED_TABLE_NAME, 
-    REFERENCED_COLUMN_NAME
-FROM 
-    INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-WHERE 
-    REFERENCED_TABLE_NAME = 'pet'
-    AND TABLE_SCHEMA = 'thatcookdb';
------------------------------------------------------------------------
+('NotifType', 'ORDER_COMPLETE', 'đã thanh toán', NULL),
+('NotifType', 'ORDER_CONFIRM', 'chờ xác nhận đơn hàng', NULL),
+('NotifType', 'ORDER_SUCCESS', 'đặt đơn hàng thành công', NULL),
+('NotifType', 'ORDER_CANCEL', 'hủy đơn hàng', NULL),
+('NotifType', 'APM_SUCCESS', 'lịch khám đã được đặt', NULL),
+('NotifType', 'APM_WAIT', 'lịch khám chờ xác nhận', NULL),
+('NotifType', 'APM_CONFIRM', 'xác nhận lịch khám', NULL),
+('NotifType', 'APM_REFUSE', 'từ chối lịch khám', NULL),
+('NotifType', 'APM_COMPLETE', 'hoàn thành lịch khám', NULL),
+('NotifType', 'APM_CANCAEL', 'hủy lịch khám', NULL),
+('NotifStatus', 'READ', 'Đã đọc', NULL),
+('NotifStatus', 'UNREAD', 'Chưa đọc', NULL);
+
+---
+
+SELECT
+TABLE_NAME,
+COLUMN_NAME,
+CONSTRAINT_NAME,
+REFERENCED_TABLE_NAME,
+REFERENCED_COLUMN_NAME
+FROM
+INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE
+REFERENCED_TABLE_NAME = 'pet'
+AND TABLE_SCHEMA = 'thatcookdb';
+
+---
+
 ALTER TABLE appointment DROP FOREIGN KEY appointment_ibfk_3;
 ALTER TABLE appointment DROP INDEX appointment_ibfk_3;
 DROP TABLE pet;
 --------------CHẠY TỪNG ĐOẠN 1 CHO CHẮC (LIỀU THÌ CHẠY HẾT)---------------------------
 CREATE TABLE Room (
-    RoomID          INT AUTO_INCREMENT PRIMARY KEY,
-    RoomName        VARCHAR(30) NOT NULL,
-    LastMessage     TEXT NOT NULL,
-    LastMessageTime DATETIME NULL,
-    CreatedAt       DATETIME NOT NULL
+RoomID INT AUTO_INCREMENT PRIMARY KEY,
+RoomName VARCHAR(30) NOT NULL,
+LastMessage TEXT NOT NULL,
+LastMessageTime DATETIME NULL,
+CreatedAt DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE Message (
-    MessageID    INT AUTO_INCREMENT PRIMARY KEY,
-    MessageType  VARCHAR(20) NOT NULL,
-    MessageText  TEXT NOT NULL,
-    SentAt       DATETIME NOT NULL,
-    RoomID       INT NOT NULL,
-    AccountID    VARCHAR(42) NOT NULL,
-    INDEX idx_room (RoomID),
-    INDEX idx_account (AccountID)
+MessageID INT AUTO_INCREMENT PRIMARY KEY,
+MessageType VARCHAR(20) NOT NULL,
+MessageText TEXT NOT NULL,
+SentAt DATETIME NOT NULL,
+RoomID INT NOT NULL,
+AccountID VARCHAR(42) NOT NULL,
+INDEX idx_room (RoomID),
+INDEX idx_account (AccountID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE RoomMember (
-    RoomMemberID INT AUTO_INCREMENT PRIMARY KEY,
-    AccountID    VARCHAR(42) NOT NULL,
-    RoomID       INT NOT NULL,
-    UNIQUE KEY unique_member_per_room (RoomID, AccountID),
-    INDEX idx_account (AccountID)
+RoomMemberID INT AUTO_INCREMENT PRIMARY KEY,
+AccountID VARCHAR(42) NOT NULL,
+RoomID INT NOT NULL,
+UNIQUE KEY unique_member_per_room (RoomID, AccountID),
+INDEX idx_account (AccountID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE Message
-ADD CONSTRAINT fk_message_room 
-    FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
-    ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT fk_message_room
+FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
+ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE Message
-ADD CONSTRAINT fk_message_account 
-    FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
-    ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT fk_message_account
+FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE RoomMember
-ADD CONSTRAINT fk_roommember_room 
-    FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
-    ON DELETE CASCADE ON UPDATE CASCADE;
+ADD CONSTRAINT fk_roommember_room
+FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
+ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE RoomMember
-ADD CONSTRAINT fk_roommember_account 
-    FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
-    ON DELETE CASCADE ON UPDATE CASCADE;
------------------------------------------------------------------------
-api.js fix xong lỗi track:
-import express from 'express';
-import accountController from '../controllers/accountController';
-import bannerController from '../controllers/bannerController';
-import productController from '../controllers/productController';
-import cartController from '../controllers/cartController';
-import couponController from '../controllers/couponController';
-import invoiceController from '../controllers/invoiceController';
-import petController from '../controllers/petController';
-import serviceController from '../controllers/serviceController';
-import appointmentController from '../controllers/appointmentController';
-import scheduleController from '../controllers/scheduleController';
-import utilitiesController from '../controllers/utilitiesController';
-import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
-let router = express.Router();
-
-const protectRoute = (req, res, next) => {
-const adminPaths = ['/api/load-accountinfo', '/api/change-accountstatus', '/api/load-serviceinfo', '/api/create-service', '/api/change-serviceinfo', '/api/change-servicestatus'];
-
-const ownerPaths = [
-'/api/get-bannerinfo',
-'/api/load-bannerinfo',
-'/api/create-banner',
-'/api/change-bannerinfo',
-
-    '/api/get-productinfo',
-    '/api/load-productinfo',
-    '/api/create-product',
-    '/api/change-productinfo',
-    '/api/load-filtered-productinfo',
-
-    '/api/load-couponinfo',
-    '/api/create-coupon',
-    '/api/change-couponinfo',
-
-    '/api/load-invoiceinfo',
-
-    '/api/load-revenue-stats', // Thêm dòng này nếu chưa có
-    '/api/load-top-products',
-
-];
-
-const veterinarianPaths = ['/api/change-workingstatus', '/api/load-appointments', '/api/create-appointmentbill', '/api/load-schedule', '/api/change-schedulestatus'];
-
-if (adminPaths.includes(req.path)) {
-return checkAdminJWT(req, res, next);
-}
-
-if (ownerPaths.includes(req.path)) {
-return checkOwnerJWT(req, res, next);
-}
-
-if (veterinarianPaths.includes(req.path)) {
-return checkVeterinarianJWT(req, res, next);
-}
-return next();
-};
-
-let initAPIRoutes = (app) => {
-router.use(protectRoute);
-//no protection
-router.post('/api/register', accountController.handleRegister);
-router.post('/api/login', accountController.handleLogin);
-router.get('/api/logout', accountController.handleLogout);
-router.get('/api/verify-token', accountController.handleVerifyToken);
-router.get('/api/get-accountinfo', accountController.handleGetAccountInfo);
-router.put('/api/change-accountinfo', accountController.handleChangeAccountInfo);
-router.put('/api/change-password', accountController.handleChangePassword);
-router.post('/api/send-forgot-token', accountController.handleSendForgotToken);
-router.post('/api/verify-forgot-token', accountController.handleVerifyForgotToken);
-router.get('/api/get-veterinarianinfo', accountController.handleGetVeterinarianInfo);
-router.get('/api/load-veterinarianinfo', accountController.handleLoadVeterinarianInfo);
-
-router.get('/api/get-sale-bannerinfo', bannerController.handleGetSaleBannerInfo);
-
-router.get('/api/get-sale-productinfo', productController.handleGetSaleProductInfo);
-router.get('/api/load-sale-productinfo', productController.handleLoadSaleProductInfo);
-router.get('/api/get-productdetailinfo', productController.handleGetProductDetailInfo);
-
-router.get('/api/get-cart', cartController.handleGetCart);
-router.get('/api/get-cartdetail', cartController.handleGetCartDetail);
-router.get('/api/get-detaillist', cartController.handleGetDetailList);
-router.post('/api/add-to-cart', cartController.handleAddToCart);
-router.put('/api/update-quantity', cartController.handleUpdateQuantity);
-router.put('/api/update-cart-detail', cartController.handleUpdateCartDetail);
-router.put('/api/merge-cart-detail', cartController.handleMergeCartDetail);
-router.delete('/api/remove-from-cart', cartController.handleRemoveFromCart);
-
-router.get('/api/get-couponinfo', couponController.handleGetCouponInfo);
-router.get('/api/check-coupon', couponController.handleCheckCoupon);
-
-router.get('/api/get-account-invoiceinfo', invoiceController.handleGetAccountInvoiceInfo);
-router.get('/api/get-invoicedetailinfo', invoiceController.handleGetInvoiceDetailInfo);
-router.post('/api/create-invoice', invoiceController.handleCreateInvoice);
-router.put('/api/change-invoicestatus', invoiceController.handleChangeInvoiceStatus);
-router.post('/api/get-invoice-email', invoiceController.handleGetInvoiceEmail);
-
-router.get('/api/get-account-petinfo', petController.handleGetAccountPetInfo);
-router.get('/api/get-petinfo', petController.handleGetPetInfo);
-// router.post('/api/save-petinfo', petController.handleSavePetInfo);
-// router.put('/api/change-petinfo', petController.handleChangePetInfo);
-// router.put('/api/remove-pet', petController.handleRemovePet);
-
-router.get('/api/get-veterinarianservice', serviceController.handleGetVeterinarianService);
-router.get('/api/get-serviceinfo', serviceController.handleGetServiceInfo);
-
-router.get('/api/get-available-times', appointmentController.handleGetAvailableTimes);
-router.get('/api/load-appointmentinfo', appointmentController.handleLoadAppointmentInfo);
-router.get('/api/load-appointmentdetails', appointmentController.handleLoadAppointmentDetails);
-router.get('/api/get-appointmentbilldetail', appointmentController.handleGetAppointmentBillDetail);
-router.post('/api/create-appointment', appointmentController.handleCreateAppointment);
-router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
-router.post('/api/get-appointment-email', appointmentController.handleGetAppointmentEmail);
-router.post('/api/get-appointmentbill-email', appointmentController.handleGetAppointmentBillEmail);
-//admin
-router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
-router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);
-
-router.get('/api/load-serviceinfo', serviceController.handleLoadServiceInfo);
-router.post('/api/create-service', serviceController.handleCreateService);
-router.put('/api/change-serviceinfo', serviceController.handleChangeServiceInfo);
-router.put('/api/change-servicestatus', serviceController.handleChangeServiceStatus);
-
-router.get('/api/get-allcodes', utilitiesController.handleGetAllCodes);
-router.get('/api/load-allcodesinfo', utilitiesController.handleLoadAllCodesInfo);
-router.post('/api/create-code', utilitiesController.handleCreateCode);
-router.put('/api/change-codeinfo', utilitiesController.handleChangeCodeInfo);
-//owner
-router.get('/api/get-bannerinfo', bannerController.handleGetBannerInfo);
-router.get('/api/load-bannerinfo', bannerController.handleLoadBannerInfo);
-router.post('/api/create-banner', bannerController.handleCreateBanner);
-router.put('/api/change-bannerinfo', bannerController.handleChangeBannerInfo);
-
-router.get('/api/get-productinfo', productController.handleGetProductInfo);
-router.get('/api/load-productinfo', productController.handleLoadProductInfo);
-router.post('/api/create-product', productController.handleCreateProduct);
-router.put('/api/change-productinfo', productController.handleChangeProductInfo);
-router.get('/api/load-filtered-productinfo', productController.handleLoadFilteredProductInfo);
-
-router.get('/api/load-invoiceinfo', invoiceController.handleLoadInvoiceInfo);
-
-router.get('/api/load-couponinfo', couponController.handleLoadCouponInfo);
-router.post('/api/create-coupon', couponController.handleCreateCoupon);
-router.put('/api/change-couponinfo', couponController.handleChangeCouponInfo);
-
-router.get('/api/load-revenue-stats', invoiceController.handleLoadRevenueStats);
-router.get('/api/load-top-products', invoiceController.handleLoadTopProducts);
-//veterinarian
-router.put('/api/change-workingstatus', accountController.handleChangeWorkingStatus);
-
-router.get('/api/load-appointments', appointmentController.handleLoadAppointments);
-router.post('/api/create-appointmentbill', appointmentController.handleCreateAppointmentBill);
-
-router.get('/api/load-schedule', scheduleController.handleLoadSchedule);
-router.put('/api/change-schedulestatus', scheduleController.handleChangeScheduleStatus);
-
-// Route mới cho VNPay return (GET)
-router.get('/api/vnpay_return', (req, res) => {
-console.log('VNPay Return Params:', req.query); // Log để check rspCode
-const rspCode = req.query.vnp_ResponseCode;
-if (rspCode === '00') {
-// Redirect đến FE /track với success và invoice ID (từ vnp_TxnRef)
-res.redirect(`${process.env.URL_FRONTEND}/track?success=true&invoiceId=${req.query.vnp_TxnRef}`);
-} else {
-res.redirect(`${process.env.URL_FRONTEND}/checkout?error=Thanh toán thất bại&code=${rspCode}`);
-}
-});
-
-// Route mới cho VNPay IPN (POST)
-router.post('/api/vnpay_ipn', async (req, res) => {
-console.log('VNPay IPN Callback:', req.query); // Debug
-const response = await invoiceService.handleVnpayIpn(req.query);
-res.status(200).send(response);
-});
-
-return app.use('/', router);
-};
-
-module.exports = initAPIRoutes;
+ADD CONSTRAINT fk_roommember_account
+FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+ON DELETE CASCADE ON UPDATE CASCADE;
 
 ---
+
+Thêm cột appointmentbill STRING(20) với appointmentstatus STRING(20)
