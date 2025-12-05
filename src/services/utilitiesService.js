@@ -701,23 +701,59 @@ let NotifiStatusChange = async (notificationId, status = 'READ') => {
     return { errCode: 3, errMessage: 'Lỗi server' };
   }
 };
-let createRoom = async (type, AccountID) => {
+let createRoom = async (SendID, ReceiveID) => {
   return new Promise(async (resolve, reject) => {
     const transaction = await db.sequelize.transaction();
     try {
-      if (!type || AccountID) {
+      if (!SendID || ReceiveID) {
         await transaction.rollback();
         resolve({
           errCode: -1,
-          errMessage: 'Thiếu tham so16!',
+          errMessage: 'Thiếu tham số!',
           data: null,
         });
         return;
       }
-
+      if (SendID === ReceiveID) {
+        await transaction.rollback();
+        return resolve({
+          errCode: 1,
+          errMessage: 'Không thể tạo phòng chat với chính mình!',
+          data: null,
+        });
+      }
+      const RoomID = Math.floor(Date.now() / 1000);
+      const [sender, receiver] = await Promise.all([
+        db.Account.findOne({ where: { AccountID: SendID }, attributes: ['UserName'], raw: true }),
+        db.Account.findOne({ where: { AccountID: ReceiveID }, attributes: ['UserName'], raw: true }),
+      ]);
+      const senderName = sender?.UserName || 'Người dùng';
+      const receiverName = receiver?.UserName || 'Người dùng';
+      const RoomName = `Đoạn chat của ${senderName} và ${receiverName}`;
+      await db.Room.create(
+        {
+          RoomID,
+          RoomName,
+          CreatedAt: new Date(),
+        },
+        { transaction }
+      );
+      await db.RoomMember.bulkCreate(
+        [
+          { AccountID: SendID, RoomID },
+          { AccountID: ReceiveID, RoomID },
+        ],
+        { transaction }
+      );
+      await transaction.commit();
+      resolve({
+        errCode: 0,
+        errMessage: 'Tạo phòng chat thành công!',
+        data: { RoomID },
+      });
     } catch (e) {
       await transaction.rollback();
-      console.log('Error in createCode: ', e);
+      console.log('Error in createRoom: ', e);
       resolve({
         errCode: 3,
         errMessage: `Lỗi khi tạo mã: ${e.message}`,

@@ -251,3 +251,5 @@ Thêm cột appointmentbill STRING(20) với appointmentstatus STRING(20)
 -----------Install socket-------------------------------------
 npm install socket.io(chạy ở fe và be)
 npm install socket.io-client(chạy ở fe)
+--------------------------------------------------------------
+tắt A_I ở RoomID và bật null cho LastMessage Bảng Room

@@ -87,11 +87,11 @@ let handleNotifiStatusChange = async (req, res) => {
 
 let handleCreateRoom = async (req, res) => {
   try {
-    const { type, AccountID } = req.body;
-    let response = await utilitiesService.createRoom(type, AccountID);
+    const { SendID, ReceiveID } = req.body;
+    let response = await utilitiesService.createRoom(SendID, ReceiveID);
     return res.status(200).json(response);
   } catch (e) {
-    console.log('Error handleNotifiStatusChange:', e);
+    console.log('Error handleCreateRoom:', e);
     return res.status(500).json({ errCode: 3, errMessage: 'Lỗi server' });
   }
 };
