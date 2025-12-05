@@ -194,9 +194,9 @@ ALTER TABLE appointment DROP INDEX appointment_ibfk_3;
 DROP TABLE pet;
 --------------CHẠY TỪNG ĐOẠN 1 CHO CHẮC (LIỀU THÌ CHẠY HẾT)---------------------------
 CREATE TABLE Room (
-    RoomID          INT AUTO_INCREMENT PRIMARY KEY,
+    RoomID          INT PRIMARY KEY,
     RoomName        VARCHAR(30) NOT NULL,
-    LastMessage     TEXT NOT NULL,
+    LastMessage     TEXT NULL,
     LastMessageTime DATETIME NULL,
     CreatedAt       DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

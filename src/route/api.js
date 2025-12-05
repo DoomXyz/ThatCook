@@ -89,6 +89,7 @@ let initAPIRoutes = (app) => {
   router.post('/api/verify-forgot-token', accountController.handleVerifyForgotToken);
   router.get('/api/get-veterinarianinfo', accountController.handleGetVeterinarianInfo);
   router.get('/api/load-veterinarianinfo', accountController.handleLoadVeterinarianInfo);
+  router.get('/api/get-role-account', accountController.handleLoadRoleAccount);
 
   router.get('/api/get-sale-bannerinfo', bannerController.handleGetSaleBannerInfo);
 

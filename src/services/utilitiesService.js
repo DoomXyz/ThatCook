@@ -681,6 +681,31 @@ let NotifiStatusChange = async (notificationId, status = 'READ') => {
     return { errCode: 3, errMessage: 'Lỗi server' };
   }
 };
+let createRoom = async (type, AccountID) => {
+  return new Promise(async (resolve, reject) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+      if (!type || AccountID) {
+        await transaction.rollback();
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham so16!',
+          data: null,
+        });
+        return;
+      }
+
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Error in createCode: ', e);
+      resolve({
+        errCode: 3,
+        errMessage: `Lỗi khi tạo mã: ${e.message}`,
+        data: null,
+      });
+    }
+  });
+}
 module.exports = {
   getAllCodes,
   generateID,
@@ -691,4 +716,5 @@ module.exports = {
   sendNotification,
   getUserNotifications,
   NotifiStatusChange,
+  createRoom,
 };

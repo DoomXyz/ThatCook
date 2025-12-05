@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             RoomID: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
-                autoIncrement: true,
+                autoIncrement: false,
                 allowNull: false,
             },
             RoomName: {
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
             },
             LastMessage: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             LastMessageTime: {
                 type: DataTypes.DATE,
