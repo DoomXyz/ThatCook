@@ -137,6 +137,8 @@ let initAPIRoutes = (app) => {
   //notification
   router.get('/api/get-user-notifications', utilitiesController.handleGetUserNotifications);
   router.put('/api/change-notification-status', utilitiesController.handleNotifiStatusChange);
+  //chat
+  router.post('/api/create-room', utilitiesController.handleCreateRoom);
   //admin
   router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
   router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);
