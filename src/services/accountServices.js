@@ -46,7 +46,9 @@ const handleChangeWorkingStatusApi = (VeterinarianID, WorkingStatus) => {
 const handleGetVeterinarianServicesApi = (AccountID) => {
   return axios.get(`/api/get-veterinarianservice?AccountID=${AccountID}`);
 };
-
+const handleLoadRoleAccountApi = (AccountType) => {
+  return axios.get(`/api/get-role-account?AccountType=${AccountType}`);
+};
 export {
   handleRegisterApi,
   handleLoginApi,
@@ -63,4 +65,5 @@ export {
   handleLoadVeterinarianInfoApi,
   handleChangeWorkingStatusApi,
   handleGetVeterinarianServicesApi,
+  handleLoadRoleAccountApi,
 };
