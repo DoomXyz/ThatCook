@@ -2,7 +2,7 @@ import db from '../models/index';
 import { Op } from 'sequelize';
 import { checkValidAllCode } from './utilitiesService';
 import { getAccountPetInfo, getPetInfo } from './petService';
-
+import { sendNotification } from './utilitiesService';
 let cancelExpiredSchedules = () => {
     return new Promise(async (resolve, reject) => {
         const transaction = await db.sequelize.transaction();
@@ -14,47 +14,47 @@ let cancelExpiredSchedules = () => {
             oneMonthAgo.setMonth(currentDateTime.getMonth() - 1);
             const pendingSchedules = await db.Schedule.findAll({
                 where: {
-                    ScheduleStatus: 'PEND'
+                    ScheduleStatus: 'PEND',
                 },
                 attributes: ['ScheduleID', 'Date', 'StartTime'],
                 raw: true,
                 transaction,
             });
-            const expiredSchedules = pendingSchedules.filter(schedule => {
+            const expiredSchedules = pendingSchedules.filter((schedule) => {
                 const dateStr = schedule.Date.toISOString().split('T')[0];
                 const scheduleStart = new Date(`${dateStr}T${schedule.StartTime}+07:00`);
-                return scheduleStart < oneDayAgo;;
+                return scheduleStart < oneDayAgo;
             });
             if (expiredSchedules.length > 0) {
-                const scheduleIDs = expiredSchedules.map(schedule => schedule.ScheduleID);
+                const scheduleIDs = expiredSchedules.map((schedule) => schedule.ScheduleID);
                 await db.Schedule.update(
                     { ScheduleStatus: 'CANCELED' },
                     {
                         where: { ScheduleID: { [Op.in]: scheduleIDs } },
-                        transaction
+                        transaction,
                     }
                 );
             }
             await db.Schedule.destroy({
                 where: {
                     Date: {
-                        [Op.lt]: oneMonthAgo
-                    }
+                        [Op.lt]: oneMonthAgo,
+                    },
                 },
-                transaction
+                transaction,
             });
             await transaction.commit();
             resolve({
                 errCode: 0,
                 errMessage: 'Xử lý lịch trình thành công!',
-                data: null
+                data: null,
             });
         } catch (e) {
             await transaction.rollback();
             resolve({
                 errCode: 3,
                 errMessage: `Lỗi khi hủy lịch trình quá hạn: ${e.message}`,
-                data: null
+                data: null,
             });
         }
     });
@@ -108,6 +108,13 @@ const rejectSchedule = async (ScheduleID, transaction) => {
                 );
             }
         }
+        await sendNotification(
+            schedule.VeterinarianID,
+            appointment.AccountID,
+            null,
+            'APM_CANCEL',
+            appointment.AppointmentID,
+        );
         await db.Schedule.destroy({
             where: { ScheduleID },
             transaction,
@@ -168,7 +175,10 @@ let loadSchedule = (VeterinarianID, StartDate) => {
                         ],
                     },
                 ],
-                order: [['Date', 'ASC'], ['StartTime', 'ASC']],
+                order: [
+                    ['Date', 'ASC'],
+                    ['StartTime', 'ASC'],
+                ],
                 raw: false,
                 nest: true,
             });
@@ -183,14 +193,12 @@ let loadSchedule = (VeterinarianID, StartDate) => {
             for (const row of rows) {
                 if (row.Appointment && row.Appointment.PetID && row.Appointment.AccountID) {
                     const petResult = await getPetInfo(row.Appointment.AccountID, row.Appointment.PetID);
-                    row.Appointment.PetName = petResult.errCode === 0 && petResult.data?.petStatus === 'VALID'
-                        ? petResult.data.petName
-                        : 'Thú cưng đã xóa';
+                    row.Appointment.PetName = petResult.errCode === 0 && petResult.data?.PetStatus === 'VALID' ? petResult.data.PetName : 'Thú cưng đã xóa';
                 } else {
                     row.Appointment.PetName = 'Không xác định';
                 }
             }
-            const data = rows.map(row => ({
+            const data = rows.map((row) => ({
                 ScheduleID: row.ScheduleID,
                 Date: row.Date,
                 StartTime: row.StartTime.slice(0, 5),
@@ -277,10 +285,7 @@ const changeScheduleStatus = (ScheduleID, ScheduleStatus) => {
                     return;
                 }
             } else {
-                await db.Schedule.update(
-                    { ScheduleStatus },
-                    { where: { ScheduleID }, transaction }
-                );
+                await db.Schedule.update({ ScheduleStatus }, { where: { ScheduleID }, transaction });
             }
             await transaction.commit();
             resolve({
@@ -304,5 +309,5 @@ const changeScheduleStatus = (ScheduleID, ScheduleStatus) => {
 
 module.exports = {
     loadSchedule,
-    changeScheduleStatus
+    changeScheduleStatus,
 };

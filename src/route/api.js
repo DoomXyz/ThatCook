@@ -10,6 +10,7 @@ import serviceController from '../controllers/serviceController';
 import appointmentController from '../controllers/appointmentController';
 import scheduleController from '../controllers/scheduleController';
 import utilitiesController from '../controllers/utilitiesController';
+import * as appointmentService from '../services/appointmentService'; // Sửa import: * as để named exports
 import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 import querystring from 'qs'; // Import qs for querystring
 import crypto from 'crypto'; // Import crypto
@@ -219,4 +220,50 @@ let initAPIRoutes = (app) => {
   });
   return app.use('/', router);
 };
+// Route mới cho VNPay return appointment (GET)
+router.get('/api/vnpay_appointment_return', async (req, res) => {
+  console.log('VNPay Appointment Return Params:', req.query);
+  const rspCode = req.query.vnp_ResponseCode;
+  const orderId = req.query.vnp_TxnRef;
+  let vnp_Params = req.query;
+  let secureHash = vnp_Params['vnp_SecureHash'];
+  delete vnp_Params['vnp_SecureHash'];
+  delete vnp_Params['vnp_SecureHashType'];
+  vnp_Params = sortObject(vnp_Params);
+  let signData = querystring.stringify(vnp_Params, { encode: false });
+  let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+  let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+  if (secureHash === signed && rspCode === '00') {
+    const transaction = await db.sequelize.transaction();
+    try {
+      await db.AppointmentBill.update({ PaymentStatus: 'PAID' }, { where: { AppointmentBillID: orderId }, transaction });
+      const result = await appointmentService.completeAppointmentAfterPayment(orderId); // Gọi hàm từ service
+      if (result.errCode !== 0) {
+        throw new Error(result.errMessage);
+      }
+      await transaction.commit();
+      console.log('Return URL Success: Updated AppointmentBill ' + orderId + ' to PAID and completed appointment');
+    } catch (e) {
+      await transaction.rollback();
+      console.log('Return URL Fail: Error updating status', e);
+    }
+    res.redirect(`${process.env.URL_FRONTEND}/track?success=true&AppointmentBillID=${orderId}`);
+  } else {
+    res.redirect(`${process.env.URL_FRONTEND}/appointmentcheckout?error=Thanh toán thất bại&code=${rspCode}`);
+  }
+});
+
+// Route mới cho VNPay IPN appointment (POST)
+router.post('/api/vnpay_appointment_ipn', async (req, res) => {
+  console.log('VNPay Appointment IPN Callback:', req.query);
+  const response = await appointmentService.handleVnpayIpn(req.query);
+  res.status(200).send(response);
+});
+
+// Route mới cho VNPay IPN appointment (POST)
+router.post('/api/vnpay_appointment_ipn', async (req, res) => {
+  console.log('VNPay Appointment IPN Callback:', req.query);
+  const response = await appointmentService.handleVnpayIpn(req.query);
+  res.status(200).send(response);
+});
 module.exports = initAPIRoutes;
