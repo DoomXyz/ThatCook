@@ -55,7 +55,17 @@ io.on('connection', (socket) => {
     if (role === 'O') socket.join('role_O');
     console.log(`[SOCKET] User joined role_${role}`);
   });
+  socket.on('join-chat-room', (RoomID) => {
+    if (RoomID) {
+      socket.join(RoomID);
+      console.log(`[SOCKET] User joined room ${RoomID}`);
+    }
+  });
 
+  // Leave room (nếu cần)
+  socket.on('leave-chat-room', (RoomID) => {
+    socket.leave(RoomID);
+  });
   socket.on('disconnect', () => {
   });
 });

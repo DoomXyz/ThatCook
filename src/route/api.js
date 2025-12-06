@@ -10,6 +10,7 @@ import serviceController from '../controllers/serviceController';
 import appointmentController from '../controllers/appointmentController';
 import scheduleController from '../controllers/scheduleController';
 import utilitiesController from '../controllers/utilitiesController';
+import chatController from '../controllers/chatController';
 import * as appointmentService from '../services/appointmentService'; // Sửa import: * as để named exports
 import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 import querystring from 'qs'; // Import qs for querystring
@@ -138,7 +139,10 @@ let initAPIRoutes = (app) => {
   router.get('/api/get-user-notifications', utilitiesController.handleGetUserNotifications);
   router.put('/api/change-notification-status', utilitiesController.handleNotifiStatusChange);
   //chat
-  router.post('/api/create-room', utilitiesController.handleCreateRoom);
+  router.post('/api/create-room', chatController.handleCreateRoom);
+  router.get('/api/chat/rooms', chatController.getUserRooms);
+  router.get('/api/chat/messages', chatController.getRoomMessages);
+  router.post('/api/chat/send-message', chatController.sendMessage);
   //admin
   router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
   router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);

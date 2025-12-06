@@ -821,6 +821,7 @@ let loadAppointmentInfo = (AccountID, page, limit, search, filter, sort, date1, 
             attributes: ['UserName'],
             required: false,
           },
+
         ],
         limit: parseInt(limit),
         offset,

@@ -563,10 +563,18 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
       const { count, rows } = await db.Invoice.findAndCountAll({
         where,
         attributes: ['InvoiceID', 'ReceiverName', 'ReceiverPhone', 'TotalQuantity', 'TotalPayment', 'CreatedAt', 'CanceledAt', 'PaymentStatus', 'ShippingStatus'],
+        include: [
+          {
+            model: db.Account,
+            attributes: ['AccountID', 'UserName'], // Lấy AccountID và UserName
+            required: true, // INNER JOIN để chỉ lấy hóa đơn có khách hàng
+          },
+        ],
         limit: parseInt(limit),
         offset,
         order,
         raw: true,
+        nest: true,
         distinct: true,
       });
       if (!rows || rows.length === 0) {
@@ -578,11 +586,15 @@ let loadInvoiceInfo = (page, limit, search, filter, sort, date) => {
         });
         return;
       }
-
+      const formattedRows = rows.map(invoice => ({
+        ...invoice,
+        AccountID: invoice.Account?.AccountID || null,     // ← ĐÂY LÀ THÔNG TIN BẠN CẦU CẦN
+        UserName: invoice.Account?.UserName || 'Khách lẻ',
+      }));
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách đơn hàng thành công!',
-        data: rows,
+        data: formattedRows,
         totalItems: count,
       });
     } catch (e) {

@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             RoomMember.belongsTo(models.Account, { foreignKey: 'AccountID' });
             RoomMember.belongsTo(models.Room, { foreignKey: 'RoomID' });
+            RoomMember.hasMany(models.RoomMember, { as: 'OtherMembers', foreignKey: 'RoomID', sourceKey: 'RoomID' }); // Self-join
         }
     }
 
