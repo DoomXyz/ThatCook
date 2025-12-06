@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 import DatePicker from 'react-datepicker';
-
+import Chat from '../../components/Chat';
 import { closeOutline } from 'ionicons/icons';
 
 import './MakeAppointment.scss'; //import scss
@@ -843,6 +843,7 @@ class MakeAppointment extends Component {
                 </button>
               </div>
             </div>
+            <Chat />
             <Footer />
           </div>
         )

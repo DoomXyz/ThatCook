@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
-
+import Chat from '../../components/Chat';
 import './HomeAppointment.scss';
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
@@ -270,6 +270,7 @@ class HomeAppointment extends Component {
           </div>
           <div className="bottom-bottom"></div>
         </div>
+        <Chat />
         <Footer />
       </div>
     );

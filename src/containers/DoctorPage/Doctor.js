@@ -3,6 +3,7 @@ import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
+import Chat from '../../components/Chat';
 
 import { pencil, chevronForwardOutline, chevronBackOutline, closeCircleOutline } from 'ionicons/icons';
 
@@ -72,6 +73,7 @@ class Doctor extends Component {
         viewBill: false,
       },
     };
+    this.chatRef = React.createRef(); // Ref cho Chat component
   }
   async componentDidMount() {
     await this.handleIsLogin();
@@ -332,6 +334,15 @@ class Doctor extends Component {
     } catch (e) {
       console.log('Lỗi khi gọi API:', e);
       toast.error('Lỗi hệ thống khi cập nhật trạng thái!');
+    }
+  };
+  //chat
+  handleChatUser = async (ReceiveID) => {
+    console.log('Handle chat with user:', ReceiveID);
+    if (this.chatRef.current) {
+      this.chatRef.current.openChatWithUser(ReceiveID); // Gọi method của Chat để mở chat với user
+    } else {
+      toast.error('Không thể mở chat. Vui lòng thử lại!');
     }
   };
   //search filter sort
@@ -1372,6 +1383,13 @@ class Doctor extends Component {
                     >
                       Quay lại
                     </button>
+                    <button
+                      type="button"
+                      className="back-button"
+                      onClick={() => this.handleChatUser(loadedAppointmentDetail.AccountID)}
+                    >
+                      Nhắn tin
+                    </button>
                     {fromForm === 2 && loadedAppointmentDetail.AppointmentStatus === 'PEND' && (
                       <>
                         <button
@@ -1499,6 +1517,7 @@ class Doctor extends Component {
             <div className="doctor-form">{this.renderForm()}</div>
           </div>
         )}
+        <Chat ref={this.chatRef} />
       </div>
     );
   }

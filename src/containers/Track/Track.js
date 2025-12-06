@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
-
+import Chat from '../../components/Chat';
 import { checkmarkCircleOutline, closeCircleOutline, refreshOutline, chevronBackOutline } from 'ionicons/icons';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal.js';
 
@@ -962,6 +962,7 @@ class Track extends Component {
             })()}
           </div>
         )}
+        <Chat />
       </div>
     );
   }

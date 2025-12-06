@@ -1,0 +1,376 @@
+// frontend/src/components/Chat.scss
+
+$primary-color: #0099ff;
+$primary-dark: #0077cc;
+$bg-chat: #ffffff;
+$border-radius: 16px;
+$shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+$transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+.chat-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: $primary-color;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: $shadow;
+    z-index: 999;
+    transition: $transition;
+    user-select: none;
+
+    &:hover {
+        background: $primary-dark;
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.chat-window {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    background: $bg-chat;
+    border-radius: $border-radius;
+    box-shadow: $shadow;
+    z-index: 998;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: popIn 0.4s ease-out;
+    border: 1px solid #e0e0e0;
+
+    @keyframes popIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.7) translateY(50px);
+        }
+
+        70% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 480px) {
+        width: 100vw;
+        height: 100vh;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+    }
+}
+
+.chat-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+// Header chung
+.chat-header {
+    background: $primary-color;
+    color: white;
+    padding: 16px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+
+    button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+}
+
+// Trang chủ (actionPage 1)
+.chat-action {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .chat-options {
+        width: 300px;
+        height: 240px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto; // Thêm dòng này
+        overscroll-behavior: contain; // Ngăn "pull to refresh" khó chịu trên mobile
+
+        // Scrollbar đẹp (chỉ hiện trên desktop)
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    }
+
+    .chat-item {
+        background: #f8f9fa;
+        padding: 16px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: $transition;
+        font-weight: 500;
+        border: 1px solid #eee;
+
+        &:hover {
+            background: #e3f2ff;
+            border-color: $primary-color;
+            transform: translateY(-2px);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    .chat-login-prompt {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #666;
+        text-align: center;
+        padding: 0 30px;
+    }
+}
+
+// Phòng chat (actionPage 2)
+.chat-room {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .chat-messages {
+        width: 600px;
+        height: 200px;
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: #f5f7fa;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .message {
+            display: flex;
+            padding: 10px 14px;
+            border-radius: 18px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            align-self: flex-start;
+            background: #e9e9e9;
+            color: #333;
+
+            &.own {
+                align-self: flex-end;
+                background: $primary-color;
+                color: white;
+            }
+
+            strong {
+                display: block;
+                margin-bottom: 4px;
+                font-size: 0.85em;
+                opacity: 0.9;
+            }
+
+            small {
+                display: block;
+                padding-left: 10px;
+                margin-top: 6px;
+                font-size: 0.7em;
+                opacity: 0.7;
+                text-align: right;
+            }
+        }
+    }
+
+    .chat-input {
+        padding: 14px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+
+        input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 15px;
+
+            &:focus {
+                border-color: $primary-color;
+                box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+            }
+        }
+
+        button {
+            background: $primary-color;
+            color: white;
+            border: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: $transition;
+
+            &:hover {
+                background: $primary-dark;
+            }
+
+            &:active {
+                transform: scale(0.92);
+            }
+        }
+    }
+}
+
+// Lịch sử chat (actionPage 3)
+.chat-history-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .history-list {
+        width: 350px;
+        height: 300px;
+        overflow-y: auto; // QUAN TRỌNG: cho phép cuộn khi có nhiều phòng
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .history-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: $transition;
+
+            &:hover {
+                background: #f0f7ff;
+            }
+
+            .room-name {
+                font-weight: 600;
+                margin-bottom: 4px;
+                color: #333;
+            }
+
+            .last-msg {
+                font-size: 0.9em;
+                color: #666;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+}
+
+// Chọn người chat (actionPage 4)
+.chat-select-user {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .user-list {
+        width: 200px;
+        height: 300px;
+        overflow-y: auto; // QUAN TRỌNG: cuộn được khi có nhiều tài khoản
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .user-item {
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: $transition;
+            border-bottom: 1px solid #f0f0f0;
+
+            &:hover {
+                background: #f0f7ff;
+            }
+
+            &:active {
+                background: #e0efff;
+            }
+        }
+    }
+}
+
+// Toast override nhẹ (nếu cần đẹp hơn)
+.toastify {
+    .toast-info {
+        background: $primary-color !important;
+    }
+}

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
 
 import { searchOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
-
+import Chat from '../../components/Chat';
 import './ShowDoctor.scss'; //import scss
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
@@ -353,6 +353,7 @@ class ShowDoctor extends Component {
             </div>
           </div>
         )}
+        <Chat />
         <Footer />
       </div>
     );

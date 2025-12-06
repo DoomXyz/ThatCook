@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 import QRCode from 'qrcode';
-
+import Chat from '../../components/Chat';
 import { eyeOutline, eyeOffOutline, chevronBackOutline, pencil } from 'ionicons/icons';
 import { ethers } from 'ethers';
 
@@ -2428,6 +2428,7 @@ class User extends Component {
             <div className="user-form">{this.renderForm()}</div>
           </div>
         )}
+        <Chat />
         <Footer />
       </div>
     );

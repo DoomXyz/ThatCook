@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
-
+import Chat from '../../components/Chat';
 import { cogOutline, cartOutline, cardOutline } from 'ionicons/icons';
 
 import './Cart.scss';
@@ -693,6 +693,7 @@ class Cart extends Component {
             </div>
           </div>
         )}
+        <Chat />
         <Footer />
       </div>
     );

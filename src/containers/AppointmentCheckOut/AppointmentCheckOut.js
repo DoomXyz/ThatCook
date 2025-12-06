@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react'; //import thư viện icon
-
+import Chat from '../../components/Chat';
 import { closeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
 
 import './AppointmentCheckOut.scss'; //import scss
@@ -402,6 +402,7 @@ class AppointmentCheckOut extends Component {
             </div>
           </div>
         )}
+        <Chat />
       </div>
     );
   }

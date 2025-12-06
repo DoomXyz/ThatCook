@@ -14,7 +14,7 @@ import diagnosticImage from '../../assets/doctor-imgs/sieu-am-thu-cung.jpg';
 import parasitictreatment from '../../assets/doctor-imgs/dieu-tri-ky-sinh-trung.jpg';
 import dentalcare from '../../assets/doctor-imgs/cham-soc-rang-mieng.jpg';
 import xray from '../../assets/doctor-imgs/chup-x-quang-thu-cung-6.jpg';
-
+import Chat from '../../components/Chat';
 import iconImage from '../../assets/doctor-imgs/icon.jpeg';
 
 class ShowService extends Component {
@@ -392,6 +392,7 @@ class ShowService extends Component {
               </div>
               {this.renderServiceContent()}
             </div>
+            <Chat />
             <Footer />
           </>
         )}

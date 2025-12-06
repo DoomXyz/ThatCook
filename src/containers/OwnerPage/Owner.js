@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 import { Bar, Pie } from 'react-chartjs-2';
+import Chat from '../../components/Chat';
 
 import 'chart.js/auto';
 
@@ -24,7 +25,7 @@ import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductIn
 import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
 import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleLoadRevenueStatsApi, handleLoadTopProductsApi } from '../../services/invoiceServices';
 import { handleLoadCouponInfoApi, handleCreateCouponApi, handleChangeCouponInfoApi } from '../../services/couponServices';
-
+import { handleCreateRoomApi } from '../../services/chatServices';
 import { getAllCodes, checkLoginStatus, validateCouponInput } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
 
@@ -100,6 +101,7 @@ class Owner extends Component {
       },
     };
     this.debounceTimeout = null;
+    this.chatRef = React.createRef(); // Ref cho Chat component
   }
   async componentDidMount() {
     await this.handleIsLogin();
@@ -804,6 +806,15 @@ class Owner extends Component {
     }
     this.setState({ isLoading: false });
   };
+  //chat
+  handleChatUser = async (ReceiveID) => {
+    console.log('Handle chat with user:', ReceiveID);
+    if (this.chatRef.current) {
+      this.chatRef.current.openChatWithUser(ReceiveID); // Gọi method của Chat để mở chat với user
+    } else {
+      toast.error('Không thể mở chat. Vui lòng thử lại!');
+    }
+  };
   //toggle modal
   toggleCreateProductModal = () => {
     this.setState({
@@ -1463,8 +1474,10 @@ class Owner extends Component {
                                   </button>
                                 </div>
                               )}
+                              <button className="btn-chat" onClick={() => this.handleChatUser(item.AccountID)}> <IonIcon icon={refreshOutline}></IonIcon></button>
                             </div>
                           </td>
+
                         </tr>
                       ))
                     ) : (
@@ -1971,6 +1984,7 @@ class Owner extends Component {
             <div className="owner-mid-content f">{renderSection()}</div>
           </div>
         )}
+        <Chat ref={this.chatRef} />
       </div>
     );
   }

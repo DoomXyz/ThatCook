@@ -3,7 +3,7 @@ import { Slide, ToastContainer, toast } from 'react-toastify';
 import { connect } from 'react-redux';
 import { IonIcon } from '@ionic/react';
 import Select from 'react-select';
-
+import Chat from '../../components/Chat';
 import { pencil, addOutline, logOutOutline, lockClosed, lockOpenOutline, searchOutline, homeOutline } from 'ionicons/icons'; //chỉ import các icon cần dùng
 
 import './Admin.scss';
@@ -1497,6 +1497,7 @@ class Admin extends Component {
             </div>
           </div>
         )}
+        <Chat />
       </div>
     );
   }

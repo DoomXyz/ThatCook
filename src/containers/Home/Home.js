@@ -10,6 +10,7 @@ import Spinner from '../../components/Spinner';
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
 import HomeProductModal from './HomeProductModal';
+import Chat from '../../components/Chat';
 
 import { handleLogoutApi } from '../../services/accountServices';
 import { handleGetSaleBannerInfoApi } from '../../services/bannerServices';
@@ -515,6 +516,7 @@ class Home extends Component {
             </section>
           </div>
         )}
+        <Chat />
         <Footer />
       </div>
     );
