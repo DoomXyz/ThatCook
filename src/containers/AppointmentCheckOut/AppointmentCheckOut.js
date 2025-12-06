@@ -351,6 +351,21 @@ class AppointmentCheckOut extends Component {
                       </tr>
                     </tfoot>
                   </table>
+                  <div className="payment-methods">
+                    <p style={{ fontWeight: 'bold' }}>Phương thức thanh toán:</p>
+                    <div>
+                      <input type="radio" id="CASH" name="PaymentType" value="CASH" checked={PaymentType === 'CASH'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
+                      <label htmlFor="CASH">Thanh toán tiền mặt</label>
+                    </div>
+                    <div>
+                      <input type="radio" id="CARD" name="PaymentType" value="CARD" checked={PaymentType === 'CARD'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
+                      <label htmlFor="CARD">Thanh toán bằng thẻ (VNPay)</label>
+                    </div>
+                    <div>
+                      <input type="radio" id="QR" name="PaymentType" value="QR" checked={PaymentType === 'QR'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
+                      <label htmlFor="QR">Quét QR (VNPay)</label>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="appointment-check-out-content-right">
@@ -381,21 +396,6 @@ class AppointmentCheckOut extends Component {
               </div>
             </div>
             <div className="appointment-check-out-content-bottom">
-              <div className="payment-methods">
-                <p style={{ fontWeight: 'bold' }}>Phương thức thanh toán:</p>
-                <div>
-                  <input type="radio" id="CASH" name="PaymentType" value="CASH" checked={PaymentType === 'CASH'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
-                  <label htmlFor="CASH">Thanh toán tiền mặt</label>
-                </div>
-                <div>
-                  <input type="radio" id="CARD" name="PaymentType" value="CARD" checked={PaymentType === 'CARD'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
-                  <label htmlFor="CARD">Thanh toán bằng thẻ (VNPay)</label>
-                </div>
-                <div>
-                  <input type="radio" id="QR" name="PaymentType" value="QR" checked={PaymentType === 'QR'} onChange={(e) => this.handleOnChangeInput(e, 'PaymentType')} />
-                  <label htmlFor="QR">Quét QR (VNPay)</label>
-                </div>
-              </div>
               <button onClick={this.handleCreateAppointmentBill} disabled={isUploading}>
                 Xác nhận
               </button>

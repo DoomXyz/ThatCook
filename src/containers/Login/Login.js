@@ -132,7 +132,7 @@ const LoginForm = connect(
         <Spinner />
       ) : (
         <>
-          <div className="home-button">
+          <div className="home-button-login">
             <a href="/home">
               <IonIcon icon={home} />
             </a>
@@ -140,13 +140,13 @@ const LoginForm = connect(
           <img src={logo} alt="logo" className="logo-img" />
           <h1 className="text-login">ĐĂNG NHẬP</h1>
           <form onSubmit={handleLogin}>
-            <div className="inputbox">
+            <div className="inputbox-login">
               <IonIcon icon={personOutline} />
               <input type="text" placeholder="" value={AccountName} onChange={(event) => handleOnChangeInput(event, 'AccountName')} required />
               <label>Tên đăng nhập</label>
             </div>
-            <div className="inputbox">
-              <div className="toggle-password" onClick={handleTogglePassword}>
+            <div className="inputbox-login">
+              <div className="toggle-password-login" onClick={handleTogglePassword}>
                 <IonIcon icon={isTogglePassword ? eyeOutline : eyeOffOutline} />
               </div>
               <IonIcon icon={keyOutline} />
@@ -285,40 +285,40 @@ const RegisterForm = (props) => {
         <Spinner />
       ) : (
         <>
-          <div className="home-button">
+          <div className="home-button-login">
             <a href="/home">
               <IonIcon icon={home} />
             </a>
           </div>
           <h1 className="text-register">ĐĂNG KÝ</h1>
           <div className="single">
-            <div className="inputbox">
+            <div className="inputbox-login">
               <IonIcon icon={mailOutline} />
               <input type="email" placeholder="" value={Email} onChange={(event) => handleOnChangeInput(event, 'Email')} />
               <label>Email</label>
             </div>
           </div>
           <div className="R1">
-            <div className="inputbox">
+            <div className="inputbox-login">
               <IonIcon icon={person} />
               <input type="text" placeholder="" value={UserName} onChange={(event) => handleOnChangeInput(event, 'UserName')} />
               <label>Họ Tên</label>
             </div>
-            <div className="inputbox">
+            <div className="inputbox-login">
               <IonIcon icon={call} />
               <input type="tel" placeholder="" value={Phone} onChange={(event) => handleOnChangeInput(event, 'Phone')} />
               <label>Số điện thoại</label>
             </div>
           </div>
           <div className="R1">
-            <div className="inputbox">
+            <div className="inputbox-login">
               <IonIcon icon={personOutline} />
               <input type="text" placeholder="" value={AccountName} onChange={(event) => handleOnChangeInput(event, 'AccountName')} />
 
               <label>Tên tài khoản</label>
             </div>
-            <div className="inputbox">
-              <div className="toggle-password">
+            <div className="inputbox-login">
+              <div className="toggle-password-login">
                 <IonIcon icon={isTogglePassword1 ? eyeOutline : eyeOffOutline} onClick={() => handleTogglePassword(1)} />
               </div>
               <IonIcon icon={keyOutline} />
@@ -327,7 +327,7 @@ const RegisterForm = (props) => {
             </div>
           </div>
           <div className="R1">
-            <div className="selectbox">
+            <div className="selectbox-login">
               <select value={Gender} onChange={(event) => handleOnChangeInput(event, 'Gender')}>
                 {codeGender.length > 0 ? (
                   codeGender.map((item) => (
@@ -341,8 +341,8 @@ const RegisterForm = (props) => {
               </select>
               <IonIcon icon={maleFemaleOutline} />
             </div>
-            <div className="inputbox">
-              <div className="toggle-password">
+            <div className="inputbox-login">
+              <div className="toggle-password-login">
                 <IonIcon icon={isTogglePassword2 ? eyeOutline : eyeOffOutline} onClick={() => handleTogglePassword(2)} />
               </div>
               <IonIcon icon={keyOutline} />
@@ -351,7 +351,7 @@ const RegisterForm = (props) => {
             </div>
           </div>
           <div className="single">
-            <div className="inputbox">
+            <div className="inputbox-login">
               <IonIcon icon={location} />
               <input type="text" placeholder="" value={Address} onChange={(event) => handleOnChangeInput(event, 'Address')} />
               <label>Địa chỉ</label>
@@ -374,11 +374,11 @@ const Auth = (props) => {
     <div className="auth-background">
       <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
 
-      <div className={`container ${isSignUp ? 'right-panel-active' : ''}`}>
-        <div className="form-container sign-up-container">
+      <div className={`login-container ${isSignUp ? 'right-panel-active' : ''}`}>
+        <div className="login-form-container sign-up-container">
           <RegisterForm toggle={toggle} navigate={props.navigate} />
         </div>
-        <div className="form-container sign-in-container">
+        <div className="login-form-container sign-in-container">
           <LoginForm toggle={toggle} navigate={props.navigate} />
         </div>
 

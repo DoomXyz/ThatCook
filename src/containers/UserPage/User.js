@@ -19,7 +19,7 @@ import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleCh
 import { handleLoadAppointmentInfoApi, handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi, handleSendAppointmentBillEmailApi } from '../../services/appointmentServices';
 import { handleGetServiceInfoApi } from '../../services/serviceServices';
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi, handleGetPetInfoApi } from '../../services/petServices';
-import { uploadImageToCloudinaryApi } from '../../services/utilitiesServices'
+import { uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
 import { checkLoginStatus, getAllCodes, uploadImages, validatePetInput, generateInvoicePDF, generateAppointmentBillPDF } from '../../utils/pakage';
 import { userLogin, userLogout } from '../../store/actions';
 
@@ -248,7 +248,7 @@ class User extends Component {
   };
   handleLoadAccountInfo = async () => {
     try {
-      const { AccountID } = this.state
+      const { AccountID } = this.state;
       const response = await handleGetAccountInfoApi(AccountID);
       if (response && response.errCode === 0) {
         const accountInfo = response.data;
@@ -270,9 +270,9 @@ class User extends Component {
   handleLoadPetInfo = async () => {
     try {
       const { AccountID } = this.state;
-      console.log(AccountID)
+      console.log(AccountID);
       const response = await handleGetAccountPetInfoApi(AccountID);
-      console.log(response)
+      console.log(response);
       if (response && response.errCode === 0) {
         this.setState({
           loadedPetInfo: response.data || [],
@@ -395,7 +395,7 @@ class User extends Component {
     this.setState({
       editField: field,
       originalValue: this.state[field], // Lưu giá trị ban đầu của trường
-    })
+    });
   };
   handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
@@ -412,10 +412,10 @@ class User extends Component {
   };
   handleCancelChangeAccountInfo = async () => {
     this.setState({
-      editField: null
-    })
-    await this.handleLoadAccountInfo()
-  }
+      editField: null,
+    });
+    await this.handleLoadAccountInfo();
+  };
   handleChangeAccountInfo = async (e) => {
     e.preventDefault();
     const { imageInfo, isUploading, editField, originalValue, AccountID, AccountName, UserName, Phone, Address, Gender, Email } = this.state;
@@ -487,8 +487,8 @@ class User extends Component {
           toast.error(response.errMessage);
         }
       } catch (e) {
-        console.log('Lỗi khi cập nhật thông tin người dùng!', e)
-        toast.error('Lỗi khi cập nhật thông tin người dùng!')
+        console.log('Lỗi khi cập nhật thông tin người dùng!', e);
+        toast.error('Lỗi khi cập nhật thông tin người dùng!');
       } finally {
         await this.triggerLoadInformation();
         this.handleLoadAccountInfo();
@@ -611,7 +611,7 @@ class User extends Component {
                     PetGender: prevState.codePetGender[0]?.Code || '',
                     Age: '',
                     PetWeight: '',
-                    PetImage: ''
+                    PetImage: '',
                   },
                   ...prevState.loadedPetInfo,
                 ],
@@ -632,7 +632,7 @@ class User extends Component {
             PetGender: prevState.codePetGender[0]?.Code || '',
             Age: '',
             PetWeight: '',
-            PetImage: ''
+            PetImage: '',
           },
           ...prevState.loadedPetInfo,
         ],
@@ -706,7 +706,7 @@ class User extends Component {
       newPets[index] = { ...newPets[index], [field]: value };
       return { loadedPetInfo: newPets };
     });
-  }
+  };
   handleSavePet = async (index) => {
     const { AccountID, loadedPetInfo, isAddingPet } = this.state;
     const pet = loadedPetInfo[index];
@@ -716,7 +716,7 @@ class User extends Component {
       PetGender: pet.PetGender,
       PetWeight: parseFloat(pet.PetWeight),
       Age: parseInt(pet.Age),
-      PetImage: 'https://res.cloudinary.com/dcwpbdmvx/image/upload/v1748457706/z6649336972368_9714d5c9935f99b35708504f5a5eb8ab_jzvmnx.jpg'
+      PetImage: 'https://res.cloudinary.com/dcwpbdmvx/image/upload/v1748457706/z6649336972368_9714d5c9935f99b35708504f5a5eb8ab_jzvmnx.jpg',
     };
     const isValidatePetInput = await validatePetInput(newPetInfo);
     if (!isValidatePetInput.valid) {
@@ -729,12 +729,12 @@ class User extends Component {
       if (signer) {
         let response;
         if (isAddingPet) {
-          console.log('yes')
+          console.log('yes');
           response = await handleSavePetInfoApi(newPetInfo, signer);
         } else {
           response = await handleChangePetInfoApi(pet.PetID, newPetInfo, signer);
         }
-        console.log(response)
+        console.log(response);
         if (response && response.errCode === 0) {
           toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
           await this.handleLoadPetInfo(AccountID);
@@ -758,8 +758,24 @@ class User extends Component {
         toast(
           <div>
             <p>Bạn có chắc muốn xóa thú cưng này?</p>
-            <button className="toast-confirm-btn" onClick={() => { resolve(true); toast.dismiss(); }}>Có</button>
-            <button className="toast-cancel-btn" onClick={() => { resolve(false); toast.dismiss(); }}>Không</button>
+            <button
+              className="toast-confirm-btn"
+              onClick={() => {
+                resolve(true);
+                toast.dismiss();
+              }}
+            >
+              Có
+            </button>
+            <button
+              className="toast-cancel-btn"
+              onClick={() => {
+                resolve(false);
+                toast.dismiss();
+              }}
+            >
+              Không
+            </button>
           </div>,
           { autoClose: 2000, closeOnClick: false, onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }) }
         );
@@ -790,10 +806,10 @@ class User extends Component {
   printPetQRCode = async (PetID) => {
     try {
       const petResponse = await handleGetPetInfoApi(this.state.AccountID, PetID);
-      const accountResponse = await handleGetAccountInfoApi(this.state.AccountID)
+      const accountResponse = await handleGetAccountInfoApi(this.state.AccountID);
       if (petResponse && accountResponse && petResponse.errCode === 0 && accountResponse.errCode === 0) {
         const { Age, PetGender, PetImage, PetName, PetType, PetWeight } = petResponse.data;
-        const { UserName, Phone } = accountResponse.data
+        const { UserName, Phone } = accountResponse.data;
         const qrData = {
           UserName,
           Phone,
@@ -1441,13 +1457,16 @@ class User extends Component {
                     ))}
                   </div>
                 </div>
-                <div className='change-button'>
+                <div className="change-button">
                   {this.state.editField !== null && (
-                    <div className="change-info-button-c" >
-                      <button type='button' onClick={this.handleCancelChangeAccountInfo}> Hủy </button>
+                    <div className="change-info-button-c">
+                      <button type="button" onClick={this.handleCancelChangeAccountInfo}>
+                        {' '}
+                        Hủy{' '}
+                      </button>
                     </div>
                   )}
-                  <div className='emty'></div>
+                  <div className="emty"></div>
                   <div className="change-info-button" onSubmit={this.handleChangeAccountInfo}>
                     <button> Cập nhật </button>
                   </div>
@@ -1770,9 +1789,9 @@ class User extends Component {
                         <div className="value-item">
                           {item?.ItemPrice
                             ? item.ItemPrice.toLocaleString('vi-VN', {
-                              style: 'currency',
-                              currency: 'VND',
-                            })
+                                style: 'currency',
+                                currency: 'VND',
+                              })
                             : 'N/A'}
                         </div>
                       </div>
@@ -1823,9 +1842,9 @@ class User extends Component {
                     const shipping = codeShippingMethod?.find((method) => method.Code === loadedInvoiceDetail?.ShippingMethod);
                     return shipping
                       ? parseFloat(shipping.ExtraValue).toLocaleString('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                      })
+                          style: 'currency',
+                          currency: 'VND',
+                        })
                       : '0 ₫';
                   })()}
                 </div>
@@ -2408,11 +2427,11 @@ class User extends Component {
               <div className={`user-action-info ${actionPage === 1 ? 'active' : ''}`} onClick={this.handleFormHoSoNguoiDung}>
                 Hồ sơ người dùng
               </div>
-              {accountInfo?.AccountType !== 'V' && (
+              {/* {accountInfo?.AccountType !== 'V' && (
                 <div className={`user-action-pet ${actionPage === 7 ? 'active' : ''}  `} onClick={this.handleFormThuCung}>
                   Thông tin thú cưng
                 </div>
-              )}
+              )} */}
               <div className={`user-action-cart ${actionPage === 2 ? 'active' : ''}${actionPage === 4 ? 'active' : ''}`} onClick={this.handleFormLichSuDonHang}>
                 Lịch sử đơn hàng
               </div>
