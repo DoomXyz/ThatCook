@@ -125,18 +125,7 @@ let sendAppointmentBillEmail = async (AppointmentBillID, Email) => {
       include: [
         {
           model: db.Appointment,
-          attributes: [
-            'CustomerName',
-            'CustomerPhone',
-            'AppointmentDate',
-            'StartTime',
-            'EndTime',
-            'AppointmentStatus',
-            'ServiceID',
-            'PetID',
-            'VeterinarianID',
-            'AccountID'
-          ],
+          attributes: ['CustomerName', 'CustomerPhone', 'AppointmentDate', 'StartTime', 'EndTime', 'AppointmentStatus', 'ServiceID', 'PetID', 'VeterinarianID', 'AccountID'],
           include: [
             {
               model: db.Service,
@@ -634,7 +623,7 @@ let getAvailableTimes = (AppointmentDate, VeterinarianID, ServiceID) => {
         return;
       }
       const Duration = service.Duration;
-      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00', '22:59'];
+      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00', '21:59'];
       let availableTimes = [...fixedTimes];
 
       let vetIds = VeterinarianID && VeterinarianID !== 'ALL' ? [VeterinarianID] : (await db.VeterinarianInfo.findAll({ attributes: ['AccountID'], raw: true })).map((vet) => vet.AccountID);
@@ -1165,11 +1154,11 @@ let loadAppointmentDetails = (AppointmentID) => {
         VeterinarianID: appointment.VeterinarianID,
         Veterinarian: appointment.Veterinarian
           ? {
-            AccountID: appointment.VeterinarianID,
-            UserName: appointment.Veterinarian.UserName,
-            UserImage: appointment.Veterinarian.UserImage,
-            Specialization: appointment.Veterinarian.VeterinarianInfo?.Specialization || null,
-          }
+              AccountID: appointment.VeterinarianID,
+              UserName: appointment.Veterinarian.UserName,
+              UserImage: appointment.Veterinarian.UserImage,
+              Specialization: appointment.Veterinarian.VeterinarianInfo?.Specialization || null,
+            }
           : null,
       };
 
@@ -1635,13 +1624,7 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
         const CustomerID = customerinfo.AccountID;
         const AppointmentStatus = customerinfo.AppointmentStatus;
         if (AppointmentStatus === 'COMP' && CustomerID) {
-          await sendNotification(
-            VeterinarianID || 'SYSTEM',
-            CustomerID,
-            null,
-            'APM_COMPLETE',
-            AppointmentID
-          );
+          await sendNotification(VeterinarianID || 'SYSTEM', CustomerID, null, 'APM_COMPLETE', AppointmentID);
         }
       }
       let emailSent = true;

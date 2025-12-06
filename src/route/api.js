@@ -246,7 +246,8 @@ router.get('/api/vnpay_appointment_return', async (req, res) => {
       await transaction.rollback();
       console.log('Return URL Fail: Error updating status', e);
     }
-    res.redirect(`${process.env.URL_FRONTEND}/track?success=true&AppointmentBillID=${orderId}`);
+    // res.redirect(`${process.env.URL_FRONTEND}/track?success=true&AppointmentBillID=${orderId}`);
+    res.redirect(`${process.env.URL_FRONTEND}/home`);
   } else {
     res.redirect(`${process.env.URL_FRONTEND}/appointmentcheckout?error=Thanh toán thất bại&code=${rspCode}`);
   }
