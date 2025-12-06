@@ -8,9 +8,9 @@
   font-family: 'Roboto', sans-serif;
 }
 
-.container {
+.login-container {
   position: relative;
-  width: 800px; /* Tăng từ 800px để form lớn hơn, tạo không gian */
+  width: 1350px; /* Tăng từ 800px để form lớn hơn, tạo không gian */
   min-height: 500px;
   background: #ffffff;
   border-radius: 15px;
@@ -19,11 +19,11 @@
   transition: all 0.3s ease;
 }
 
-.container:hover {
+.login-container:hover {
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
 }
 
-.form-container {
+.login-form-container {
   position: absolute;
   top: 0;
   height: 100%;
@@ -48,13 +48,13 @@
   z-index: 1;
 }
 
-.container.right-panel-active .sign-in-container {
+.login-container.right-panel-active .sign-in-container {
   transform: translateX(100%);
   opacity: 0; /* Thêm để ẩn form đăng nhập khi toggle, tránh đè lên */
   z-index: 1; /* Giảm z-index để form đăng ký ở trên */
 }
 
-.container.right-panel-active .sign-up-container {
+.login-container.right-panel-active .sign-up-container {
   transform: translateX(100%);
   opacity: 1;
   z-index: 5;
@@ -71,7 +71,7 @@
   z-index: 100;
 }
 
-.container.right-panel-active .overlay-container {
+.login-container.right-panel-active .overlay-container {
   transform: translateX(-100%);
 }
 
@@ -86,7 +86,7 @@
   transition: transform 0.6s ease-in-out;
 }
 
-.container.right-panel-active .overlay {
+.login-container.right-panel-active .overlay {
   transform: translateX(50%) skew(-20deg);
 }
 
@@ -115,7 +115,7 @@
   }
 }
 
-.container.right-panel-active .overlay-left {
+.login-container.right-panel-active .overlay-left {
   transform: translateX(0) skew(20deg);
 }
 
@@ -130,7 +130,7 @@
   }
 }
 
-.container.right-panel-active .overlay-right {
+.login-container.right-panel-active .overlay-right {
   transform: translateX(20%) skew(20deg);
 }
 
@@ -181,12 +181,12 @@ h1 {
   text-align: center;
 }
 
-.inputbox {
+.inputbox-login {
   position: relative;
   margin-bottom: 15px; /* Giảm từ 20px để input nhỏ gọn hơn, nhưng vẫn có khoảng cách */
 }
 
-.inputbox input {
+.inputbox-login input {
   width: 100%;
   padding: 10px 35px; /* Giảm padding để input nhỏ hơn, tránh dính */
   border: 1px solid #dddddd;
@@ -195,12 +195,12 @@ h1 {
   transition: border-color 0.3s ease;
 }
 
-.inputbox input:focus {
+.inputbox-login input:focus {
   border-color: #706464;
   outline: none;
 }
 
-.inputbox label {
+.inputbox-login label {
   position: absolute;
   top: 50%;
   left: 35px; /* Điều chỉnh theo padding mới */
@@ -210,8 +210,8 @@ h1 {
   transition: all 0.3s ease;
 }
 
-.inputbox input:not(:placeholder-shown) + label,
-.inputbox input:focus + label {
+.inputbox-login input:not(:placeholder-shown) + label,
+.inputbox-login input:focus + label {
   top: -10px;
   left: 10px;
   font-size: 12px;
@@ -220,7 +220,7 @@ h1 {
   padding: 0 5px;
 }
 
-.inputbox ion-icon {
+.inputbox-login ion-icon {
   position: absolute;
   top: 50%;
   left: 10px;
@@ -229,7 +229,7 @@ h1 {
   font-size: 20px;
 }
 
-.toggle-password {
+.toggle-password-login {
   position: absolute;
   top: 50%;
   right: 2.3rem;
@@ -239,7 +239,7 @@ h1 {
   font-size: 20px;
 }
 
-.toggle-password:hover {
+.toggle-password-login:hover {
   color: #706464;
 }
 
@@ -302,12 +302,12 @@ h1 {
   width: 48%;
 }
 
-.selectbox {
+.selectbox-login {
   position: relative;
   margin-bottom: 15px; /* Giảm để khớp */
 }
 
-.selectbox select {
+.selectbox-login select {
   width: 100%;
   padding: 10px 35px; /* Giảm padding như input */
   border: 1px solid #dddddd;
@@ -317,12 +317,12 @@ h1 {
   transition: border-color 0.3s ease;
 }
 
-.selectbox select:focus {
+.selectbox-login select:focus {
   border-color: #706464;
   outline: none;
 }
 
-.selectbox ion-icon {
+.selectbox-login ion-icon {
   position: absolute;
   top: 50%;
   left: 10px;
@@ -332,7 +332,7 @@ h1 {
 }
 
 /* CHỈNH SỬA CHÍNH: Vị trí home-button đối xứng */
-.home-button {
+.home-button-login {
   position: absolute;
   top: 20px;
   font-size: 24px;
@@ -346,36 +346,36 @@ h1 {
 }
 
 /* Form đăng nhập: Nút ngôi nhà ở BÊN TRÁI trên cùng */
-.sign-in-container .home-button {
+.sign-in-container .home-button-login {
   left: 20px;
 }
 
 /* Form đăng ký: Nút ngôi nhà ở BÊN PHẢI trên cùng (đối xứng) */
-.sign-up-container .home-button {
+.sign-up-container .home-button-login {
   right: 20px;
 }
 
-.home-button:hover {
+.home-button-login:hover {
   color: #706464;
 }
 
 /* Thêm media query để responsive nếu form vẫn chật trên mobile */
-@media (max-width: 900px) {
-  .container {
-    width: 100%;
-    max-width: 700px;
-  }
-  .R1 {
-    flex-direction: column;
-    gap: 10px;
-  }
-  .R1 > div {
-    width: 100%;
-  }
+// @media (max-width: 900px) {
+//   .container {
+//     width: 100%;
+//     max-width: 700px;
+//   }
+//   .R1 {
+//     flex-direction: column;
+//     gap: 10px;
+//   }
+//   .R1 > div {
+//     width: 100%;
+//   }
 
-  /* Trên mobile, home-button luôn ở trái để dễ chạm */
-  .sign-up-container .home-button {
-    right: auto;
-    left: 20px;
-  }
-}
+//   /* Trên mobile, home-button luôn ở trái để dễ chạm */
+//   .sign-up-container .home-button {
+//     right: auto;
+//     left: 20px;
+//   }
+// }
