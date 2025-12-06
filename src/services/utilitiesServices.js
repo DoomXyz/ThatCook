@@ -71,6 +71,9 @@ const NotifiStatusChange = (notificationId, status) => {
     status
   });
 }
+const handleCreateRoomApi = (SendID, ReceiveID) => {
+  return axios.post('/api/create-room', { SendID, ReceiveID });
+};
 export {
   handleGetAllCodesApi,
   handleLoadAllCodesInfoApi,
@@ -79,4 +82,5 @@ export {
   uploadImageToCloudinaryApi,
   getUserNotifications,
   NotifiStatusChange,
+  handleCreateRoomApi,
 };
