@@ -84,6 +84,17 @@ let handleNotifiStatusChange = async (req, res) => {
     return res.status(500).json({ errCode: 3, errMessage: 'Lỗi server' });
   }
 };
+
+let handleCreateRoom = async (req, res) => {
+  try {
+    const { SendID, ReceiveID } = req.body;
+    let response = await utilitiesService.createRoom(SendID, ReceiveID);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log('Error handleCreateRoom:', e);
+    return res.status(500).json({ errCode: 3, errMessage: 'Lỗi server' });
+  }
+};
 module.exports = {
   handleGetAllCodes,
   handleLoadAllCodesInfo,
@@ -91,4 +102,5 @@ module.exports = {
   handleChangeCodeInfo,
   handleNotifiStatusChange,
   handleGetUserNotifications,
+  handleCreateRoom,
 };

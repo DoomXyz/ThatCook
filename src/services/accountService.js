@@ -1921,7 +1921,48 @@ let changeWorkingStatus = (VeterinarianID, WorkingStatus) => {
     }
   });
 };
-
+let loadRoleAccount = (AccountType) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!AccountType) {
+        resolve({
+          errCode: -1,
+          errMessage: 'Thiếu tham số!',
+          data: null,
+        });
+        return;
+      }
+      const isValidRole = await checkValidAllCode('AccountType', AccountType);
+      if (!isValidRole) {
+        resolve({
+          errCode: 1,
+          errMessage: 'Role không hợp lệ hoặc không tồn tại!',
+          data: null,
+        });
+        return;
+      }
+      const data = await db.Account.findAll({
+        where: {
+          AccountType,
+          AccountStatus: 'ACT'
+        },
+        attributes: ['AccountID', 'UserName'],
+        raw: true,
+      });
+      resolve({
+        errCode: 0,
+        errMessage: 'Lấy danh sách thành công!',
+        data,
+      });
+    } catch (e) {
+      resolve({
+        errCode: 3,
+        errMessage: 'Lỗi khi lấy thông tin: ' + e.message,
+        data: null,
+      });
+    }
+  });
+}
 module.exports = {
   userRegister,
   userLogin,
@@ -1937,4 +1978,5 @@ module.exports = {
   getVeterinarianInfo,
   loadVeterinarianInfo,
   changeWorkingStatus,
+  loadRoleAccount,
 };

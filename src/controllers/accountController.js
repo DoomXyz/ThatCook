@@ -155,6 +155,14 @@ let handleChangeWorkingStatus = async (req, res) => {
     return handleError(res, e);
   }
 };
+let handleLoadRoleAccount = async (req, res) => {
+  try {
+    let response = await accountService.loadRoleAccount(req.query.AccountType);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
 module.exports = {
   handleRegister,
   handleLogin,
@@ -170,4 +178,5 @@ module.exports = {
   handleGetVeterinarianInfo,
   handleLoadVeterinarianInfo,
   handleChangeWorkingStatus,
+  handleLoadRoleAccount,
 };

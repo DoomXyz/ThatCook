@@ -199,11 +199,11 @@ ALTER TABLE appointment DROP INDEX appointment_ibfk_3;
 DROP TABLE pet;
 --------------CHẠY TỪNG ĐOẠN 1 CHO CHẮC (LIỀU THÌ CHẠY HẾT)---------------------------
 CREATE TABLE Room (
-RoomID INT AUTO_INCREMENT PRIMARY KEY,
-RoomName VARCHAR(30) NOT NULL,
-LastMessage TEXT NOT NULL,
-LastMessageTime DATETIME NULL,
-CreatedAt DATETIME NOT NULL
+    RoomID          INT PRIMARY KEY,
+    RoomName        VARCHAR(30) NOT NULL,
+    LastMessage     TEXT NULL,
+    LastMessageTime DATETIME NULL,
+    CreatedAt       DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE Message (
@@ -251,3 +251,5 @@ Thêm cột appointmentbill STRING(20) với appointmentstatus STRING(20)
 -----------Install socket-------------------------------------
 npm install socket.io(chạy ở fe và be)
 npm install socket.io-client(chạy ở fe)
+--------------------------------------------------------------
+tắt A_I ở RoomID và bật null cho LastMessage Bảng Room

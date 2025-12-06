@@ -90,6 +90,7 @@ let initAPIRoutes = (app) => {
   router.post('/api/verify-forgot-token', accountController.handleVerifyForgotToken);
   router.get('/api/get-veterinarianinfo', accountController.handleGetVeterinarianInfo);
   router.get('/api/load-veterinarianinfo', accountController.handleLoadVeterinarianInfo);
+  router.get('/api/get-role-account', accountController.handleLoadRoleAccount);
 
   router.get('/api/get-sale-bannerinfo', bannerController.handleGetSaleBannerInfo);
 
@@ -136,6 +137,8 @@ let initAPIRoutes = (app) => {
   //notification
   router.get('/api/get-user-notifications', utilitiesController.handleGetUserNotifications);
   router.put('/api/change-notification-status', utilitiesController.handleNotifiStatusChange);
+  //chat
+  router.post('/api/create-room', utilitiesController.handleCreateRoom);
   //admin
   router.get('/api/load-accountinfo', accountController.handleLoadAccountInfo);
   router.put('/api/change-accountstatus', accountController.handleChangeAccountStatus);
