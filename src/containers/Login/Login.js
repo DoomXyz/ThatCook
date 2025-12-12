@@ -390,7 +390,7 @@ const Auth = (props) => {
               <button className="ghost" onClick={toggle}>
                 Đăng nhập
               </button>
-              <p className="p-address">Địa chỉ shop: 136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
+              <p className="p-address">Địa chỉ shop: 136 Huỳnh Văn Bánh, P.11, Q.Phú Nhuận, TP.HCM</p>
             </div>
             <div className="overlay-panel overlay-right">
               <h1>Shop Mincow xin chào!</h1>
@@ -398,7 +398,7 @@ const Auth = (props) => {
               <button className="ghost" onClick={toggle}>
                 Đăng ký
               </button>
-              <p className="p-address">Địa chỉ shop: 136 Huỳnh Văn Bánh, p. 11, quận Phú Nhuận, HCM</p>
+              <p className="p-address">Địa chỉ shop: 136 Huỳnh Văn Bánh, P.11, Q.Phú Nhuận, TP.HCM</p>
             </div>
           </div>
         </div>

@@ -513,6 +513,46 @@ class HomeHeader extends Component {
                   {cartItemsCount > 0 && <span className="cart-bubble">{cartItemsCount}</span>}
                 </a>
               </li>
+
+              {isLoggedIn ? (
+                <div className="notification-wrapper">
+                  <button type="button" className="notification-bell link-button" onClick={this.toggleNotifDropdown}>
+                    <IonIcon icon={notificationsOutline} />
+                    {notifCount > 0 && <span className="notif-badge">{notifCount > 99 ? '99+' : notifCount}</span>}
+                  </button>
+
+                  {isNotifOpen && (
+                    <div className="notification-dropdown">
+                      <div className="notif-header">
+                        <h4>Thông báo</h4>
+                        {notifCount > 0 && <span>{notifCount} chưa đọc</span>}
+                      </div>
+
+                      <div className="notif-body">
+                        {isLoadingNotif ? (
+                          <div className="notif-loading">Đang tải...</div>
+                        ) : notifications.length > 0 ? (
+                          notifications.map((item) => (
+                            <div key={item.NotifID} className={`notif-item ${item.NotifStatus === 'UNREAD' ? 'unread' : ''}`} onClick={() => this.handleNotificationClick(item)}>
+                              <p className="notif-desc" dangerouslySetInnerHTML={{ __html: item.NotifDescription }} />
+                              <span className="notif-time">{new Date(item.CreatedAt).toLocaleString('vi-VN')}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="notif-empty">Không có thông báo</div>
+                        )}
+                      </div>
+
+                      <div className="notif-footer">
+                        <button type="button" className="link-button" onClick={() => this.props.navigate('/notifications')}></button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="notifi"></div>
+              )}
+
               <li>
                 {isLoggedIn ? (
                   <div className="user f" id="user-icon">
@@ -560,46 +600,7 @@ class HomeHeader extends Component {
                   </div>
                 )}
               </li>
-              <li>
-                {isLoggedIn ? (
-                  <div className="notification-wrapper">
-                    <button type="button" className="notification-bell link-button" onClick={this.toggleNotifDropdown}>
-                      <IonIcon icon={notificationsOutline} />
-                      {notifCount > 0 && <span className="notif-badge">{notifCount > 99 ? '99+' : notifCount}</span>}
-                    </button>
 
-                    {isNotifOpen && (
-                      <div className="notification-dropdown">
-                        <div className="notif-header">
-                          <h4>Thông báo</h4>
-                          {notifCount > 0 && <span>{notifCount} chưa đọc</span>}
-                        </div>
-
-                        <div className="notif-body">
-                          {isLoadingNotif ? (
-                            <div className="notif-loading">Đang tải...</div>
-                          ) : notifications.length > 0 ? (
-                            notifications.map((item) => (
-                              <div key={item.NotifID} className={`notif-item ${item.NotifStatus === 'UNREAD' ? 'unread' : ''}`} onClick={() => this.handleNotificationClick(item)}>
-                                <p className="notif-desc" dangerouslySetInnerHTML={{ __html: item.NotifDescription }} />
-                                <span className="notif-time">{new Date(item.CreatedAt).toLocaleString('vi-VN')}</span>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="notif-empty">Không có thông báo</div>
-                          )}
-                        </div>
-
-                        <div className="notif-footer">
-                          <button type="button" className="link-button" onClick={() => this.props.navigate('/notifications')}></button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="notifi"></div>
-                )}
-              </li>
             </div>
           </div>
         </div>
