@@ -553,7 +553,7 @@ let sendNotification = (AccountID, ReceiveNotifID, RoleReceive, NotifType, Extra
           NotifDescription = `Lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> đã được bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> xác nhận.`;
           break;
         case 'APM_REFUSE':
-          NotifDescription = `Lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> đã bị bác sĩ <strong style="color:#e74c3c;">${account.UserName}</strong> từ chối.`;
+          NotifDescription = `Lịch khám <strong style="color:#e74c3c;">${ExtraValue}</strong> đã bị <strong style="color:#e74c3c;">${account.UserName}</strong> từ chối.`;
           break;
         case 'APM_COMPLETE':
           NotifDescription = `Lịch khám <strong style="color:#27ae60;">${ExtraValue}</strong> đã được hoàn thành.`;
