@@ -232,7 +232,7 @@ a {
           padding: 5px 0;
           padding-bottom: 15px;
 
-          margin-left: -40px;
+          margin-left: -71px;
 
           li {
             width: 245px;
@@ -273,7 +273,6 @@ a {
         }
 
         li:first-child {
-          border-right: 1px solid black;
           padding-right: 30px;
         }
 
@@ -344,8 +343,8 @@ a {
         }
 
         .notification-wrapper {
-          position: relative;
-          flex: 1;
+          padding-right: 30px;
+          border-right: black solid 1px;
 
           // giữ lại nếu đã có
           .notification-bell {
@@ -375,6 +374,11 @@ a {
               }
             }
           }
+        }
+
+        .notifi {
+          width: 0px;
+          height: 0px;
         }
 
         .notification-dropdown {

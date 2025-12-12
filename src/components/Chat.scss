@@ -27,6 +27,25 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transition: $transition;
     user-select: none;
 
+    .unread-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ff3b30;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        animation: pulse 2s infinite;
+    }
+
     &:hover {
         background: $primary-dark;
         transform: scale(1.1);
@@ -87,7 +106,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .chat-header {
     background: $primary-color;
     color: white;
-    padding: 16px 20px;
+    padding: 10px;
     font-size: 18px;
     font-weight: 600;
     display: flex;
@@ -165,7 +184,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .chat-login-prompt {
-        flex: 1;
+        width: 300px;
+        height: 100px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -183,8 +203,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-direction: column;
 
     .chat-messages {
-        width: 600px;
-        height: 200px;
+        width: 400px;
+        height: 300px;
         padding: 16px;
         overflow-y: auto;
         display: flex;

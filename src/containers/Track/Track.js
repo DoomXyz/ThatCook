@@ -10,6 +10,8 @@ import './Track.scss';
 import Spinner from '../../components/Spinner.js';
 import Header from '../../components/HomeHeader.js';
 
+import { handleLogoutApi } from '../../services/accountServices.js';
+import { checkLoginStatus } from '../../utils/pakage';
 import { handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices.js';
 import { handleLoadAppointmentDetailsApi, handleChangeAppointmentStatusApi, handleGetAppointmentBillDetailApi, handleSendAppointmentBillEmailApi } from '../../services/appointmentServices.js';
 
@@ -23,6 +25,8 @@ class Track extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      isLoggedIn: false,
+      accountInfo: null,
       isLoading: true,
       actionPage: 0, // 0: tìm kiếm, 1: Product, 2: Appointment, 3: Appointment Bill
       selectedTab: 1, // 1: Product, 2: Appointment, 3: Appointment Bill
@@ -52,6 +56,7 @@ class Track extends Component {
 
   async componentDidMount() {
     try {
+      await this.handleIsLogin();
       await this.handleLoadCode(['PaymentType', 'ShippingMethod', 'ShippingStatus', 'AppointmentType', 'AppointmentStatus', 'PetType', 'PetGender']);
       if (this.props.trackInfo) {
         const { BillID, BillType } = this.props.trackInfo;
@@ -78,6 +83,7 @@ class Track extends Component {
     }
   }
   async componentDidUpdate(prevProps) {
+    await this.handleIsLogin();
     if (prevProps.trackInfo !== this.props.trackInfo && this.props.trackInfo) {
       const { BillID, BillType } = this.props.trackInfo;
       console.log('[TRACK DEBUG] Nhận trackInfo mới từ Redux:', { BillID, BillType });
@@ -102,6 +108,30 @@ class Track extends Component {
       }
     }
   }
+  handleIsLogin = async () => {
+    try {
+      const { status, accountInfo } = await checkLoginStatus();
+      if (status && accountInfo) {
+        if (!this.props.userInfo) {
+          this.props.userLogin(accountInfo);
+        }
+        this.setState({
+          isLoggedIn: true,
+          accountInfo: accountInfo,
+        });
+      } else {
+        await handleLogoutApi();
+        this.props.userLogout();
+        this.setState({
+          isLoggedIn: false,
+          accountInfo: null,
+        });
+      }
+      console.log('Login status:', accountInfo);
+    } catch (e) {
+      console.log('Token not found!');
+    }
+  };
   handleLoadCode = async (codeTypeFilter) => {
     try {
       const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
@@ -468,7 +498,7 @@ class Track extends Component {
   };
 
   render() {
-    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, BillID, Email, disabledButtons } = this.state;
+    const { isLoading, actionPage, searchValue, selectedTab, loadedInvoiceDetails, loadedAppointmentDetails, loadedAppointmentBillDetails, codeAppointmentType, codePaymentType, codeShippingMethod, codeShippingStatus, codeAppointmentStatus, codePetType, codePetGender, isShowCancelInvoiceModal, selectedCancelInvoice, BillID, Email, disabledButtons, accountInfo } = this.state;
     return (
       <div className="view-invoice">
         <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
@@ -656,7 +686,8 @@ class Track extends Component {
                                   <button onClick={this.handleBackToSearch} className="back-btn">
                                     <IonIcon icon={chevronBackOutline}></IonIcon> Quay về
                                   </button>
-                                  {loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+
+                                  {accountInfo.AccountType === "C" && loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
                                     <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(BillID)} title="Hủy đơn hàng">
                                       <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
                                     </button>
@@ -814,7 +845,7 @@ class Track extends Component {
                                 </button>
 
                                 <div className="bill-actions-app">
-                                  {loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
+                                  {accountInfo.AccountType === "C" && loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
                                     <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn" disabled={disabledButtons.cancelAppointment}>
                                       <IonIcon icon={closeCircleOutline}></IonIcon> Hủy lịch hẹn
                                     </button>

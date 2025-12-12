@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import io from 'socket.io-client';
 import { IonIcon } from '@ionic/react';
-import { chatboxEllipses } from 'ionicons/icons';
+import { chatboxEllipses, send } from 'ionicons/icons';
 import { handleLoadRoleAccountApi } from '../services/accountServices';
 import {
     handleGetUserRooms,
@@ -49,10 +49,37 @@ class Chat extends Component {
 
         socket.on('new-message', (message) => {
             console.log('Received new-message:', message); // Log để debug
+            const isOwnMessage = String(message.AccountID) === String(this.state.accountInfo?.AccountID);
+            const shouldNotify = !isOwnMessage && (
+                !this.state.isOpen ||
+                !this.state.currentRoom ||
+                String(message.RoomID) !== String(this.state.currentRoom)
+            );
+            if (shouldNotify) {
+                // 1. Toast thông báo toast đẹp
+                toast.info(`Bạn đang có một tin nhắn mới : ${message.MessageText}`, {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    onClick: () => {
+                        this.setState({ isOpen: true });
+                        this.enterRoom(message.RoomID);
+                    }
+                });
+
+                // 3. Hiển thị badge số tin nhắn mới trên icon chat
+                this.updateUnreadBadge(message.RoomID);
+            }
             if (this.state.currentRoom && String(message.RoomID) === String(this.state.currentRoom)) {
                 this.setState(prev => ({
                     messages: [...prev.messages, message]
-                }));
+                }), () => {
+                    // Cuộn xuống ngay sau khi state cập nhật
+                    this.scrollToBottom(true);
+                });
             }
         });
 
@@ -83,7 +110,24 @@ class Chat extends Component {
             this.socket = null;
         }
     }
+    componentDidUpdate(prevProps, prevState) {
+        // Khi chuyển sang phòng chat (actionPage = 2)
+        if (this.state.actionPage === 2 && prevState.actionPage !== 2) {
+            setTimeout(() => this.scrollToBottom(), 100); // Đợi render xong
+        }
 
+        // Khi có tin nhắn mới thêm vào
+        if (this.state.messages.length > prevState.messages.length) {
+            // Nếu người dùng đang ở gần đáy → cuộn mượt, không thì để yên (tránh giật)
+            const isNearBottom =
+                this.messagesEndRef &&
+                this.messagesEndRef.scrollHeight - this.messagesEndRef.scrollTop - this.messagesEndRef.clientHeight < 150;
+
+            if (isNearBottom || prevState.messages.length === 0) {
+                setTimeout(() => this.scrollToBottom(true), 50);
+            }
+        }
+    }
     checkAuthAndInit = async () => {
         try {
             const { status, accountInfo } = await checkLoginStatus();
@@ -195,6 +239,8 @@ class Chat extends Component {
                     messages: res.data.data,
                     currentRoom: roomIdStr,
                     actionPage: 2,
+                }, () => {
+                    setTimeout(() => this.scrollToBottom(), 150); // Chắc chắn cuộn xuống
                 });
             }
         } catch (err) {
@@ -242,6 +288,24 @@ class Chat extends Component {
             toast.error('Lỗi khi mở chat');
         }
     };
+    // Quản lý badge số tin nhắn chưa đọc
+    updateUnreadBadge = (roomId) => {
+        this.setState(prev => {
+            const unreadCount = (prev.unreadCount || 0) + 1;
+            return { unreadCount };
+        });
+    };
+
+    // Reset badge khi mở chat
+    resetUnreadBadge = () => {
+        this.setState({ unreadCount: 0 });
+    };
+    scrollToBottom = (smooth = false) => {
+        if (this.scrollAnchor) {
+            this.scrollAnchor.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'nearest' });
+        }
+        else if (this.messagesEndRef) this.messagesEndRef.scrollTop = this.messagesEndRef.scrollHeight;
+    };
     renderForm() {
         const { isLoggedIn, actionPage, accountType, selectingTitle, userList, historyList, messages, newMessage, accountInfo } = this.state;
 
@@ -282,7 +346,7 @@ class Chat extends Component {
                             </div>
                         ) : (
                             <div className="chat-login-prompt">
-                                Vui lòng <strong>đăng nhập</strong> để chat
+                                Vui lòng đăng nhập để chat
                             </div>
                         )}
                     </div>
@@ -294,7 +358,7 @@ class Chat extends Component {
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 3 })}>
                             ← Phòng chat
                         </div>
-                        <div className="chat-messages">
+                        <div className="chat-messages" ref={el => this.messagesEndRef = el}>
                             {messages.map((msg, i) => (
                                 <div
                                     key={i}
@@ -304,7 +368,9 @@ class Chat extends Component {
                                     <small>{new Date(msg.SentAt).toLocaleTimeString()}</small>
                                 </div>
                             ))}
+                            <div ref={el => this.scrollAnchor = el} />
                         </div>
+
                         <div className="chat-input">
                             <input
                                 placeholder="Nhập tin nhắn..."
@@ -312,7 +378,9 @@ class Chat extends Component {
                                 onChange={e => this.setState({ newMessage: e.target.value })}
                                 onKeyPress={e => e.key === 'Enter' && this.sendMessage()}
                             />
-                            <button onClick={this.sendMessage}>Gửi</button>
+                            <button onClick={this.sendMessage}>
+                                <IonIcon icon={send}></IonIcon>
+                            </button>
                         </div>
                     </div>
                 );
@@ -321,7 +389,7 @@ class Chat extends Component {
                 return (
                     <div className="chat-history-view">
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 1 })}>
-                            ← Lịch sử
+                            Lịch sử
                         </div>
                         <div className="history-list">
                             {historyList.length === 0 ? (
@@ -348,7 +416,7 @@ class Chat extends Component {
                 return (
                     <div className="chat-select-user">
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 1 })}>
-                            ← Chọn người chat
+                            Chọn người chat
                         </div>
                         <div className="user-list">
                             {userList.length === 0 ? (
@@ -378,9 +446,17 @@ class Chat extends Component {
             <>
                 <div
                     className="chat-icon"
-                    onClick={() => this.setState(prev => ({ isOpen: !prev.isOpen }))}
+                    onClick={() => {
+                        this.setState(prev => ({ isOpen: !prev.isOpen }));
+                        if (this.state.isOpen === false) {
+                            this.resetUnreadBadge(); // Khi mở chat thì xóa badge
+                        }
+                    }}
                 >
                     <IonIcon icon={chatboxEllipses}></IonIcon>
+                    {this.state.unreadCount > 0 && (
+                        <span className="unread-badge">{this.state.unreadCount}</span>
+                    )}
                 </div>
 
                 {this.state.isOpen && (
