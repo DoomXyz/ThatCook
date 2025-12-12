@@ -1,12 +1,18 @@
 .f {
   display: flex;
 }
+.pet-page {
+  .header-container {
+    border-bottom: 1px solid black;
+  }
+}
 .pet-container {
   max-width: 87rem;
   margin: auto;
   .pet-header {
+    margin-top: 6rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: end;
     b {
       font-size: 1.8rem;
     }

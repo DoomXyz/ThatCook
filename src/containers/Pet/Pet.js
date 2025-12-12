@@ -7,6 +7,8 @@ import { buildOutline, trashBinOutline, closeCircleOutline, checkmarkCircleOutli
 import { ethers } from 'ethers';
 import './Pet.scss';
 import Spinner from '../../components/Spinner';
+import Header from '../../components/HomeHeader';
+import Footer from '../../components/HomeFooter';
 import { handleGetAccountInfoApi, handleLogoutApi } from '../../services/accountServices';
 import { handleGetAccountPetInfoApi, handleSavePetInfoApi, handleChangePetInfoApi, handleRemovePetApi, handleGetPetInfoApi } from '../../services/petServices';
 import { uploadImageToCloudinaryApi } from '../../services/utilitiesServices';
@@ -565,25 +567,18 @@ class Pet extends Component {
     }
   };
 
-  handleGoBack = () => {
-    this.props.navigate('/home');
-  };
-
   render() {
     const { isLoading, loadedPetInfo, codePetType, codePetGender, isEditingPet, limitPetCount, showAddForm, disabledButtons, petImages } = this.state;
 
     return (
       <div className="pet-page">
         <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         {isLoading ? (
           <Spinner />
         ) : (
           <div className="pet-container">
             <div className="pet-header">
-              <div onClick={this.handleGoBack}>
-                <IonIcon icon={arrowBackOutline}></IonIcon>
-                <b>Trở lại</b>
-              </div>
               {loadedPetInfo.length < limitPetCount && (
                 <button onClick={this.handleAddPet} disabled={disabledButtons.addPet}>
                   <b>+</b>

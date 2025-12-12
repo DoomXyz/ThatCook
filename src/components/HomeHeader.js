@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { IonIcon } from '@ionic/react';
 import io from 'socket.io-client';
-import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline, pawOutline, } from 'ionicons/icons';
+import { cart, person, informationCircleOutline, logOutOutline, menuOutline, cartOutline, newspaperOutline, pawOutline } from 'ionicons/icons';
 
 import './HomeHeader.scss';
 import '../styles/ToastifyOverride.scss';
@@ -81,7 +81,7 @@ class HomeHeader extends Component {
     this.socket.on('new-notification', (notif) => {
       console.log('[REAL-TIME] Nhận thông báo mới:', notif);
 
-      this.setState(prevState => ({
+      this.setState((prevState) => ({
         notifications: [notif, ...prevState.notifications],
         notifCount: prevState.notifCount + 1,
       }));
@@ -550,12 +550,12 @@ class HomeHeader extends Component {
                     <div className="f">
                       <IonIcon icon={person}></IonIcon>
                       <button type="button" className="link-button" onClick={() => this.props.navigate('/login')}>
-                        Đăng nhập
+                        Đăng nhập | Đăng ký
                       </button>
-                      <p> | </p>
+                      {/* <p> | </p>
                       <button type="button" className="link-button" onClick={() => this.props.navigate('/register')}>
                         Đăng ký
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 )}
