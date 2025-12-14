@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import io from 'socket.io-client';
 import { IonIcon } from '@ionic/react';
-import { chatboxEllipses, send } from 'ionicons/icons';
+import { chatboxEllipses, send, arrowBack, helpCircle, storefront, medical, time } from 'ionicons/icons';
 import { handleLoadRoleAccountApi } from '../services/accountServices';
 import {
     handleGetUserRooms,
@@ -327,21 +327,21 @@ class Chat extends Component {
                             <div className="chat-options">
                                 {showAdmin && (
                                     <div className="chat-item" onClick={() => this.openUserList('A')}>
-                                        Hỗ trợ hệ thống (Admin)
+                                        <IonIcon icon={helpCircle} /> Hỗ trợ hệ thống (Admin)
                                     </div>
                                 )}
                                 {showOwner && (
                                     <div className="chat-item" onClick={() => this.openUserList('O')}>
-                                        Hỗ trợ bán hàng (Chủ shop)
+                                        <IonIcon icon={storefront} /> Hỗ trợ bán hàng (Chủ shop)
                                     </div>
                                 )}
                                 {showDoctor && (
                                     <div className="chat-item" onClick={() => this.openUserList('V')}>
-                                        Tư vấn thú y (Bác sĩ)
+                                        <IonIcon icon={medical} />  Tư vấn thú y (Bác sĩ)
                                     </div>
                                 )}
                                 <div className="chat-item" onClick={this.loadHistory}>
-                                    Xem lịch sử chat
+                                    <IonIcon icon={time} />  Xem lịch sử chat
                                 </div>
                             </div>
                         ) : (
@@ -356,7 +356,7 @@ class Chat extends Component {
                 return (
                     <div className="chat-room">
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 3 })}>
-                            ← Phòng chat
+                            <IonIcon icon={arrowBack}></IonIcon> Phòng chat
                         </div>
                         <div className="chat-messages" ref={el => this.messagesEndRef = el}>
                             {messages.map((msg, i) => (
@@ -389,7 +389,7 @@ class Chat extends Component {
                 return (
                     <div className="chat-history-view">
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 1 })}>
-                            Lịch sử
+                            <IonIcon icon={arrowBack}></IonIcon> Lịch sử
                         </div>
                         <div className="history-list">
                             {historyList.length === 0 ? (
@@ -416,7 +416,7 @@ class Chat extends Component {
                 return (
                     <div className="chat-select-user">
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 1 })}>
-                            Chọn người chat
+                            <IonIcon icon={arrowBack}></IonIcon>  Chọn người chat
                         </div>
                         <div className="user-list">
                             {userList.length === 0 ? (
@@ -428,7 +428,8 @@ class Chat extends Component {
                                         className="user-item"
                                         onClick={() => this.createAndJoinRoom(this.state.accountInfo?.AccountID, user.AccountID)}
                                     >
-                                        {user.UserName}
+                                        <div className="avatar"><img src={user.UserImage} /></div>
+                                        <div className="name">{user.UserName}</div>
                                     </div>
                                 ))
                             )}

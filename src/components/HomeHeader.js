@@ -81,10 +81,7 @@ class HomeHeader extends Component {
     this.socket.on('new-notification', (notif) => {
       console.log('[REAL-TIME] Nhận thông báo mới:', notif);
 
-      this.setState((prevState) => ({
-        notifications: [notif, ...prevState.notifications],
-        notifCount: prevState.notifCount + 1,
-      }));
+      this.fetchNotifications();
     });
   }
 
@@ -350,30 +347,7 @@ class HomeHeader extends Component {
       });
       return;
     }
-    if (accountInfo?.AccountID) {
-      try {
-        console.log(`[FRONT DEBUG] Gọi API thông báo cho AccountID: ${accountInfo.AccountID}`);
 
-        const response = await getUserNotifications(accountInfo.AccountID);
-
-        console.log('[FRONT DEBUG] API trả về:', {
-          errCode: response.errCode,
-          soThongBao: response.data.length,
-          thongBaoDauTien: response.data[0] || 'Trống',
-        });
-
-        if (response.errCode === 0) {
-          this.setState({
-            notifications: response.data,
-            notifCount: response.data.filter((item) => item.NotifStatus === 'UNREAD').length,
-          });
-        } else {
-          console.log('[FRONT ERROR] API lỗi:', response.errMessage);
-        }
-      } catch (error) {
-        console.log('[FRONT ERROR] Lỗi gọi API:', error);
-      }
-    }
     this.setState({ isLoadingNotif: true });
 
     try {
