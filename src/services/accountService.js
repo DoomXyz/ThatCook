@@ -1946,7 +1946,7 @@ let loadRoleAccount = (AccountType) => {
           AccountType,
           AccountStatus: 'ACT'
         },
-        attributes: ['AccountID', 'UserName'],
+        attributes: ['AccountID', 'UserName', 'UserImage'],
         raw: true,
       });
       resolve({
