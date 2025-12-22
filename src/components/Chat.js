@@ -48,7 +48,7 @@ class Chat extends Component {
         });
 
         socket.on('new-message', (message) => {
-            console.log('Received new-message:', message); // Log để debug
+
             const isOwnMessage = String(message.AccountID) === String(this.state.accountInfo?.AccountID);
             const shouldNotify = !isOwnMessage && (
                 !this.state.isOpen ||
@@ -56,7 +56,6 @@ class Chat extends Component {
                 String(message.RoomID) !== String(this.state.currentRoom)
             );
             if (shouldNotify) {
-                // 1. Toast thông báo toast đẹp
                 toast.info(`Bạn đang có một tin nhắn mới : ${message.MessageText}`, {
                     position: "top-right",
                     autoClose: 5000,
@@ -69,22 +68,18 @@ class Chat extends Component {
                         this.enterRoom(message.RoomID);
                     }
                 });
-
-                // 3. Hiển thị badge số tin nhắn mới trên icon chat
                 this.updateUnreadBadge(message.RoomID);
             }
             if (this.state.currentRoom && String(message.RoomID) === String(this.state.currentRoom)) {
                 this.setState(prev => ({
                     messages: [...prev.messages, message]
                 }), () => {
-                    // Cuộn xuống ngay sau khi state cập nhật
                     this.scrollToBottom(true);
                 });
             }
         });
 
         socket.on('update-last-message', (data) => {
-            console.log('Received update-last-message:', data); // Log để debug
             this.setState(prev => ({
                 historyList: prev.historyList.map(room =>
                     String(room.RoomID) === String(data.RoomID)
@@ -94,11 +89,11 @@ class Chat extends Component {
             }));
         });
 
-        // NEW: Listener cho thông báo phòng mới (nếu backend emit)
+
         socket.on('new-room-notification', (data) => {
             console.log('Received new-room-notification:', data);
             toast.info('Có phòng chat mới: ' + data.message);
-            this.loadHistory(); // Tự động reload lịch sử để thấy phòng mới
+            this.loadHistory();
         });
 
         this.socket = socket;
@@ -111,14 +106,13 @@ class Chat extends Component {
         }
     }
     componentDidUpdate(prevProps, prevState) {
-        // Khi chuyển sang phòng chat (actionPage = 2)
+
         if (this.state.actionPage === 2 && prevState.actionPage !== 2) {
-            setTimeout(() => this.scrollToBottom(), 100); // Đợi render xong
+            setTimeout(() => this.scrollToBottom(), 100);
         }
 
-        // Khi có tin nhắn mới thêm vào
+
         if (this.state.messages.length > prevState.messages.length) {
-            // Nếu người dùng đang ở gần đáy → cuộn mượt, không thì để yên (tránh giật)
             const isNearBottom =
                 this.messagesEndRef &&
                 this.messagesEndRef.scrollHeight - this.messagesEndRef.scrollTop - this.messagesEndRef.clientHeight < 150;
@@ -156,14 +150,12 @@ class Chat extends Component {
             this.setState({ isLoggedIn: false, accountInfo: null, accountType: '' });
         }
     };
-
-    // Mở trang chọn người chat
     openUserList = async (role) => {
         try {
             const res = await handleLoadRoleAccountApi(role);
             if (res.errCode === 0) {
                 this.setState({
-                    actionPage: 4,           // chuyển sang trang chọn người
+                    actionPage: 4,
                     selectingRole: role,
                     userList: res.data,
                 });
@@ -188,7 +180,7 @@ class Chat extends Component {
     };
 
     createAndJoinRoom = async (SendID, ReceiveID) => {
-        // Fallback: nếu state chưa kịp cập nhật → lấy từ localStorage
+
         if (!SendID) {
             const saved = localStorage.getItem('userData');
             if (saved) {
@@ -229,7 +221,7 @@ class Chat extends Component {
         const roomIdStr = String(RoomID);
         if (this.socket) {
             this.socket.emit('join-chat-room', roomIdStr);
-            console.log('Joined room:', roomIdStr); // Log để debug
+            console.log('Joined room:', roomIdStr);
         }
 
         try {
@@ -240,7 +232,7 @@ class Chat extends Component {
                     currentRoom: roomIdStr,
                     actionPage: 2,
                 }, () => {
-                    setTimeout(() => this.scrollToBottom(), 150); // Chắc chắn cuộn xuống
+                    setTimeout(() => this.scrollToBottom(), 150);
                 });
             }
         } catch (err) {
@@ -276,7 +268,7 @@ class Chat extends Component {
                 const RoomID = res.data.data?.RoomID;
                 if (RoomID) {
                     this.setState({ isOpen: true }); // Mở cửa sổ chat
-                    await this.enterRoom(RoomID); // Vào phòng (chuyển sang actionPage = 2)
+                    await this.enterRoom(RoomID);
                 } else {
                     toast.error('Không nhận được RoomID từ server');
                 }
@@ -358,6 +350,7 @@ class Chat extends Component {
                         <div className="chat-header" onClick={() => this.setState({ actionPage: 3 })}>
                             <IonIcon icon={arrowBack}></IonIcon> Phòng chat
                         </div>
+
                         <div className="chat-messages" ref={el => this.messagesEndRef = el}>
                             {messages.map((msg, i) => (
                                 <div

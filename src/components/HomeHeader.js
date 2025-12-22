@@ -325,6 +325,7 @@ class HomeHeader extends Component {
           isLoggedIn: false,
           accountInfo: null,
         });
+        window.location.href = '/home';
         this.props.navigate('/home');
         toast.success('Đăng xuất thành công!');
       } catch (e) {

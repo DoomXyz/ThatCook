@@ -8,7 +8,7 @@ import Chat from '../../components/Chat';
 
 import 'chart.js/auto';
 
-import { pencil, searchOutline, add, homeOutline, cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline, logOutOutline } from 'ionicons/icons';
+import { pencil, searchOutline, add, homeOutline, cashOutline, banOutline, refreshOutline, closeCircleOutline, checkmarkCircleOutline, logOutOutline, chatboxEllipses } from 'ionicons/icons';
 
 import './Owner.scss';
 import Spinner from '../../components/Spinner';
@@ -1474,7 +1474,7 @@ class Owner extends Component {
                                   </button>
                                 </div>
                               )}
-                              <button className="btn-chat" onClick={() => this.handleChatUser(item.AccountID)}> <IonIcon icon={refreshOutline}></IonIcon></button>
+                              <button className="btn-chat" onClick={() => this.handleChatUser(item.AccountID)}> <IonIcon icon={chatboxEllipses}></IonIcon></button>
                             </div>
                           </td>
 
