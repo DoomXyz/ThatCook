@@ -623,7 +623,7 @@ let getAvailableTimes = (AppointmentDate, VeterinarianID, ServiceID) => {
         return;
       }
       const Duration = service.Duration;
-      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00', '21:59'];
+      const fixedTimes = ['07:00', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00', '23:59'];
       let availableTimes = [...fixedTimes];
 
       let vetIds = VeterinarianID && VeterinarianID !== 'ALL' ? [VeterinarianID] : (await db.VeterinarianInfo.findAll({ attributes: ['AccountID'], raw: true })).map((vet) => vet.AccountID);
@@ -810,7 +810,6 @@ let loadAppointmentInfo = (AccountID, page, limit, search, filter, sort, date1, 
             attributes: ['UserName'],
             required: false,
           },
-
         ],
         limit: parseInt(limit),
         offset,
@@ -844,6 +843,7 @@ let loadAppointmentInfo = (AccountID, page, limit, search, filter, sort, date1, 
         AppointmentStatus: row.AppointmentStatus,
         VeterinarianName: row.Veterinarian ? row.Veterinarian.UserName : 'Chưa phân bác sĩ',
       }));
+      console.log(data);
       resolve({
         errCode: 0,
         errMessage: 'Lấy danh sách lịch hẹn thành công!',

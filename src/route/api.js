@@ -11,7 +11,7 @@ import appointmentController from '../controllers/appointmentController';
 import scheduleController from '../controllers/scheduleController';
 import utilitiesController from '../controllers/utilitiesController';
 import chatController from '../controllers/chatController';
-import * as appointmentService from '../services/appointmentService'; // Sửa import: * as để named exports
+import * as appointmentService from '../services/appointmentService';
 import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 import querystring from 'qs'; // Import qs for querystring
 import crypto from 'crypto'; // Import crypto
