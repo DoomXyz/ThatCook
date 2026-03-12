@@ -218,7 +218,7 @@ class HomeHeader extends Component {
     try {
       const responseApi = await handleGetServiceInfoApi('ALL');
       const response = responseApi.data;
-      if (response.errCode !== 0 || !response.data || response.data.length === 0) {
+      if (response.errCode !== 0 || !response.data) {
         toast.error(response.errMessage || 'Không thể tải danh sách dịch vụ!');
         this.setState({ codeService: [] });
         return;

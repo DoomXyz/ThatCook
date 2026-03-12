@@ -549,10 +549,10 @@ class CheckOut extends Component {
                           <label>Thanh toán bằng tiền mặt</label>
                         </div>
                       )}
-                      <div className="pay-content-left-method-payment-item">
+                      {/* <div className="pay-content-left-method-payment-item">
                         <input type="radio" id="QR" name="PaymentType" value="QR" checked={PaymentType === 'QR'} onChange={(event) => this.handleOnChangeInput(event, 'PaymentType')} />
                         <label htmlFor="QR">Quét QR (VNPay)</label>
-                      </div>
+                      </div> */}
                       <div className="pay-content-left-method-payment-item-img">
                         <img src={visa} alt="Visa" />
                         <img src={mastercard} alt="MasterCard" />

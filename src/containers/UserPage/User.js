@@ -111,7 +111,7 @@ class User extends Component {
     await this.handleIsLogin();
     await this.handleLoadCode(['Gender', 'PaymentType', 'ShippingMethod', 'PaymentStatus', 'ShippingStatus', 'PetType', 'PetGender', 'AppointmentStatus', 'AppointmentType']);
     await this.handleGetServiceInfo();
-    await this.connectMetaMask();
+    // await this.connectMetaMask();
     setTimeout(() => {
       this.handleLoadAccountInfo();
       this.handleLoadInvoiceInfo();
@@ -217,7 +217,7 @@ class User extends Component {
       case 1:
         this.handleLoadInvoiceInfo();
         break;
-      case 2:
+      case 4:
         this.handleLoadAppointmentInfo();
         break;
       default:
@@ -548,366 +548,366 @@ class User extends Component {
     }
     this.setState({ isLoading: false });
   };
-  //PetInfo Management
-  handleEditPet = (index) => {
-    const { isAddingPet, isEditingPet } = this.state;
-    if (isAddingPet || isEditingPet !== null) {
-      toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
-      return;
-    }
-    this.setState({ isEditingPet: index, isAddingPet: false });
-  };
-  handleAddPet = () => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: true } });
-    if (this.state.isAddingPet || this.state.isEditingPet !== null) {
-      const confirmAddNew = () =>
-        new Promise((resolve) => {
-          toast(
-            <div>
-              <p>{this.state.isAddingPet ? 'Bạn đang thêm thú cưng chưa lưu. Lưu hoặc hủy trước khi thêm thú cưng mới?' : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi và thêm thú cưng mới?'}</p>
-              <button
-                className="toast-confirm-btn"
-                onClick={() => {
-                  resolve(true);
-                  toast.dismiss();
-                }}
-              >
-                Có
-              </button>
-              <button
-                className="toast-cancel-btn"
-                onClick={() => {
-                  resolve(false);
-                  toast.dismiss();
-                }}
-              >
-                Không
-              </button>
-            </div>,
-            {
-              autoClose: 2000,
-              closeOnClick: false,
-              onClose: () => {
-                this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } });
-              },
-            }
-          );
-        });
-      confirmAddNew().then((isConfirmed) => {
-        if (isConfirmed) {
-          this.setState(
-            {
-              isEditingPet: null,
-              isAddingPet: false,
-            },
-            async () => {
-              await this.handleLoadPetInfo(this.state.AccountID);
-              this.setState((prevState) => ({
-                loadedPetInfo: [
-                  {
-                    PetID: `temp_${Date.now()}`,
-                    PetName: '',
-                    PetType: prevState.codePetType[0]?.Code || '',
-                    PetGender: prevState.codePetGender[0]?.Code || '',
-                    Age: '',
-                    PetWeight: '',
-                    PetImage: '',
-                  },
-                  ...prevState.loadedPetInfo,
-                ],
-                isEditingPet: 0,
-                isAddingPet: true,
-              }));
-            }
-          );
-        }
-      });
-    } else {
-      this.setState((prevState) => ({
-        loadedPetInfo: [
-          {
-            PetID: `temp_${Date.now()}`,
-            PetName: '',
-            PetType: prevState.codePetType[0]?.Code || '',
-            PetGender: prevState.codePetGender[0]?.Code || '',
-            Age: '',
-            PetWeight: '',
-            PetImage: '',
-          },
-          ...prevState.loadedPetInfo,
-        ],
-        isEditingPet: 0,
-        isAddingPet: true,
-      }));
-    }
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } });
-  };
-  handleCancelPet = () => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: true } });
-    const confirmCancel = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>{this.state.isAddingPet ? 'Bạn đang thêm thú cưng chưa lưu. Hủy thú cưng này?' : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi?'}</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          {
-            autoClose: 2000,
-            closeOnClick: false,
-            onClose: () => {
-              this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: false } });
-            },
-          }
-        );
-      });
-    confirmCancel().then((isConfirmed) => {
-      if (isConfirmed) {
-        this.setState(
-          (prevState) => {
-            if (prevState.isAddingPet && prevState.isEditingPet === 0) {
-              return {
-                loadedPetInfo: prevState.loadedPetInfo.slice(1),
-                isEditingPet: null,
-                isAddingPet: false,
-              };
-            }
-            return {
-              isEditingPet: null,
-              isAddingPet: false,
-            };
-          },
-          async () => {
-            await this.handleLoadPetInfo(this.state.AccountID);
-          }
-        );
-      }
-    });
-  };
-  handlePetChange = (index, field, value) => {
-    this.setState((prevState) => {
-      const newPets = [...prevState.loadedPetInfo];
-      newPets[index] = { ...newPets[index], [field]: value };
-      return { loadedPetInfo: newPets };
-    });
-  };
-  handleSavePet = async (index) => {
-    const { AccountID, loadedPetInfo, isAddingPet } = this.state;
-    const pet = loadedPetInfo[index];
-    const newPetInfo = {
-      PetName: pet.PetName.trim(),
-      PetType: pet.PetType,
-      PetGender: pet.PetGender,
-      PetWeight: parseFloat(pet.PetWeight),
-      Age: parseInt(pet.Age),
-      PetImage: 'https://res.cloudinary.com/dcwpbdmvx/image/upload/v1748457706/z6649336972368_9714d5c9935f99b35708504f5a5eb8ab_jzvmnx.jpg',
-    };
-    const isValidatePetInput = await validatePetInput(newPetInfo);
-    if (!isValidatePetInput.valid) {
-      toast.error(`${isValidatePetInput.errMessage}`);
-      return;
-    }
-    this.setState({ isLoading: true });
-    try {
-      const signer = await this.connectMetaMask();
-      if (signer) {
-        let response;
-        if (isAddingPet) {
-          console.log('yes');
-          response = await handleSavePetInfoApi(newPetInfo, signer);
-        } else {
-          response = await handleChangePetInfoApi(pet.PetID, newPetInfo, signer);
-        }
-        console.log(response);
-        if (response && response.errCode === 0) {
-          toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
-          await this.handleLoadPetInfo(AccountID);
-          this.setState({ isEditingPet: null, isAddingPet: false });
-        } else {
-          toast.error(response.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
-        }
-      } else {
-        toast.error('Không thể kết nối MetaMask!');
-      }
-    } catch (e) {
-      console.error(isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
-      toast.error(`Lỗi khi ${isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
-    }
-    this.setState({ isLoading: false });
-  };
-  handleDeletePet = async (PetID) => {
-    this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: true } });
-    const confirmDelete = () =>
-      new Promise((resolve) => {
-        toast(
-          <div>
-            <p>Bạn có chắc muốn xóa thú cưng này?</p>
-            <button
-              className="toast-confirm-btn"
-              onClick={() => {
-                resolve(true);
-                toast.dismiss();
-              }}
-            >
-              Có
-            </button>
-            <button
-              className="toast-cancel-btn"
-              onClick={() => {
-                resolve(false);
-                toast.dismiss();
-              }}
-            >
-              Không
-            </button>
-          </div>,
-          { autoClose: 2000, closeOnClick: false, onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }) }
-        );
-      });
-    const isConfirmed = await confirmDelete();
-    if (isConfirmed) {
-      this.setState({ isLoading: true });
-      try {
-        const signer = await this.connectMetaMask();
-        if (signer) {
-          const response = await handleRemovePetApi(PetID, signer);
-          if (response && response.errCode === 0) {
-            toast.success('Xóa thú cưng thành công!');
-            await this.handleLoadPetInfo(this.state.AccountID);
-          } else {
-            toast.error(response.errMessage || 'Xóa thú cưng thất bại!');
-          }
-        } else {
-          toast.error('Không thể kết nối MetaMask!');
-        }
-      } catch (e) {
-        console.error('Delete Pet:', e);
-        toast.error('Lỗi khi xóa thú cưng, vui lòng thử lại!');
-      }
-    }
-    this.setState({ isLoading: false });
-  };
-  printPetQRCode = async (PetID) => {
-    try {
-      const petResponse = await handleGetPetInfoApi(this.state.AccountID, PetID);
-      const accountResponse = await handleGetAccountInfoApi(this.state.AccountID);
-      if (petResponse && accountResponse && petResponse.errCode === 0 && accountResponse.errCode === 0) {
-        const { Age, PetGender, PetImage, PetName, PetType, PetWeight } = petResponse.data;
-        const { UserName, Phone } = accountResponse.data;
-        const qrData = {
-          UserName,
-          Phone,
-          Age,
-          PetGender,
-          PetImage,
-          PetName,
-          PetType,
-          PetWeight,
-        };
-        // Hàm tạo hình ảnh bằng Canvas
-        const createPetInfoImage = async () => {
-          return new Promise((resolve) => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 550;
-            const ctx = canvas.getContext('2d');
-            // Vẽ nền trắng
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            // Vẽ viền
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(10, 10, 380, 630);
-            // Vẽ tên thú cưng (trên cùng, giữa)
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 24px Arial';
-            const petNameWidth = ctx.measureText(qrData.PetName).width;
-            ctx.fillText(qrData.PetName, (canvas.width - petNameWidth) / 2, 50);
-            // Tải ảnh thú cưng
-            const img = new Image();
-            img.crossOrigin = 'Anonymous';
-            img.src = qrData.PetImage;
-            img.onload = () => {
-              // Vẽ ảnh thú cưng (giữa)
-              ctx.drawImage(img, 50, 80, 300, 300);
-              // Vẽ thông tin chủ sở hữu và SĐT
-              ctx.font = '16px Arial';
-              ctx.fillText(`Chủ sở hữu: ${qrData.UserName}`, 50, 410);
-              ctx.fillText(`SĐT: ${qrData.Phone}`, 50, 430);
-              // Vẽ 4 trường còn lại, chia 2 cột
-              ctx.font = '14px Arial';
-              // Cột trái
-              ctx.fillText(`Giống: ${qrData.PetType}`, 50, 460);
-              ctx.fillText(`${qrData.Age} tháng tuổi`, 50, 480);
-              // Cột phải
-              const genderText = this.state.codePetGender.find((gender) => gender.Code === qrData.PetGender)?.CodeValueVI || qrData.PetGender;
-              ctx.fillText(`Giới tính: ${genderText}`, 220, 460);
-              ctx.fillText(`Cân nặng: ${qrData.PetWeight / 10} kg`, 220, 480);
-              // Chuyển canvas thành File
-              canvas.toBlob((blob) => {
-                const file = new File([blob], `pet_info_${PetID}.png`, { type: 'image/png' });
-                resolve(file);
-              }, 'image/png');
-            };
-            img.onerror = () => {
-              console.error('Lỗi tải ảnh thú cưng');
-              resolve(null);
-            };
-          });
-        };
-        // Tạo hình ảnh
-        const imageFile = await createPetInfoImage();
-        if (!imageFile) {
-          console.error('Không thể tạo hình ảnh');
-          return;
-        }
-        // Tải hình ảnh lên Cloudinary
-        try {
-          const uploadResult = await uploadImageToCloudinaryApi(imageFile);
-          if (uploadResult.errCode === 0) {
-            const imageUrl = uploadResult.data.secure_url; // URL hình ảnh từ Cloudinary
-            // Tạo mã QR chứa URL hình ảnh
-            const qrCodeDataUrl = await QRCode.toDataURL(imageUrl, {
-              width: 300,
-              margin: 2,
-              errorCorrectionLevel: 'H',
-            });
-            // Tạo link tải xuống mã QR
-            const downloadLink = document.createElement('a');
-            downloadLink.href = qrCodeDataUrl;
-            downloadLink.download = `PetQR_${PetID}.png`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-          } else {
-            console.error('Tải ảnh thất bại:', uploadResult.errMessage);
-          }
-        } catch (error) {
-          console.error('Lỗi tải ảnh lên Cloudinary:', error);
-        }
-      } else {
-        console.error('Lỗi lấy thông tin:', accountResponse ? accountResponse.errMessage : petResponse.errMessage);
-      }
-    } catch (error) {
-      console.error('Lỗi tạo QR code:', error);
-    }
-  };
+  // //PetInfo Management
+  // handleEditPet = (index) => {
+  //   const { isAddingPet, isEditingPet } = this.state;
+  //   if (isAddingPet || isEditingPet !== null) {
+  //     toast.error('Vui lòng lưu hoặc hủy hành động hiện tại trước khi chỉnh sửa thú cưng khác!');
+  //     return;
+  //   }
+  //   this.setState({ isEditingPet: index, isAddingPet: false });
+  // };
+  // handleAddPet = () => {
+  //   this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: true } });
+  //   if (this.state.isAddingPet || this.state.isEditingPet !== null) {
+  //     const confirmAddNew = () =>
+  //       new Promise((resolve) => {
+  //         toast(
+  //           <div>
+  //             <p>{this.state.isAddingPet ? 'Bạn đang thêm thú cưng chưa lưu. Lưu hoặc hủy trước khi thêm thú cưng mới?' : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi và thêm thú cưng mới?'}</p>
+  //             <button
+  //               className="toast-confirm-btn"
+  //               onClick={() => {
+  //                 resolve(true);
+  //                 toast.dismiss();
+  //               }}
+  //             >
+  //               Có
+  //             </button>
+  //             <button
+  //               className="toast-cancel-btn"
+  //               onClick={() => {
+  //                 resolve(false);
+  //                 toast.dismiss();
+  //               }}
+  //             >
+  //               Không
+  //             </button>
+  //           </div>,
+  //           {
+  //             autoClose: 2000,
+  //             closeOnClick: false,
+  //             onClose: () => {
+  //               this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } });
+  //             },
+  //           }
+  //         );
+  //       });
+  //     confirmAddNew().then((isConfirmed) => {
+  //       if (isConfirmed) {
+  //         this.setState(
+  //           {
+  //             isEditingPet: null,
+  //             isAddingPet: false,
+  //           },
+  //           async () => {
+  //             await this.handleLoadPetInfo(this.state.AccountID);
+  //             this.setState((prevState) => ({
+  //               loadedPetInfo: [
+  //                 {
+  //                   PetID: `temp_${Date.now()}`,
+  //                   PetName: '',
+  //                   PetType: prevState.codePetType[0]?.Code || '',
+  //                   PetGender: prevState.codePetGender[0]?.Code || '',
+  //                   Age: '',
+  //                   PetWeight: '',
+  //                   PetImage: '',
+  //                 },
+  //                 ...prevState.loadedPetInfo,
+  //               ],
+  //               isEditingPet: 0,
+  //               isAddingPet: true,
+  //             }));
+  //           }
+  //         );
+  //       }
+  //     });
+  //   } else {
+  //     this.setState((prevState) => ({
+  //       loadedPetInfo: [
+  //         {
+  //           PetID: `temp_${Date.now()}`,
+  //           PetName: '',
+  //           PetType: prevState.codePetType[0]?.Code || '',
+  //           PetGender: prevState.codePetGender[0]?.Code || '',
+  //           Age: '',
+  //           PetWeight: '',
+  //           PetImage: '',
+  //         },
+  //         ...prevState.loadedPetInfo,
+  //       ],
+  //       isEditingPet: 0,
+  //       isAddingPet: true,
+  //     }));
+  //   }
+  //   this.setState({ disabledButtons: { ...this.state.disabledButtons, addPet: false } });
+  // };
+  // handleCancelPet = () => {
+  //   this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: true } });
+  //   const confirmCancel = () =>
+  //     new Promise((resolve) => {
+  //       toast(
+  //         <div>
+  //           <p>{this.state.isAddingPet ? 'Bạn đang thêm thú cưng chưa lưu. Hủy thú cưng này?' : 'Bạn có thay đổi thú cưng chưa lưu. Hủy thay đổi?'}</p>
+  //           <button
+  //             className="toast-confirm-btn"
+  //             onClick={() => {
+  //               resolve(true);
+  //               toast.dismiss();
+  //             }}
+  //           >
+  //             Có
+  //           </button>
+  //           <button
+  //             className="toast-cancel-btn"
+  //             onClick={() => {
+  //               resolve(false);
+  //               toast.dismiss();
+  //             }}
+  //           >
+  //             Không
+  //           </button>
+  //         </div>,
+  //         {
+  //           autoClose: 2000,
+  //           closeOnClick: false,
+  //           onClose: () => {
+  //             this.setState({ disabledButtons: { ...this.state.disabledButtons, cancelPet: false } });
+  //           },
+  //         }
+  //       );
+  //     });
+  //   confirmCancel().then((isConfirmed) => {
+  //     if (isConfirmed) {
+  //       this.setState(
+  //         (prevState) => {
+  //           if (prevState.isAddingPet && prevState.isEditingPet === 0) {
+  //             return {
+  //               loadedPetInfo: prevState.loadedPetInfo.slice(1),
+  //               isEditingPet: null,
+  //               isAddingPet: false,
+  //             };
+  //           }
+  //           return {
+  //             isEditingPet: null,
+  //             isAddingPet: false,
+  //           };
+  //         },
+  //         async () => {
+  //           await this.handleLoadPetInfo(this.state.AccountID);
+  //         }
+  //       );
+  //     }
+  //   });
+  // };
+  // handlePetChange = (index, field, value) => {
+  //   this.setState((prevState) => {
+  //     const newPets = [...prevState.loadedPetInfo];
+  //     newPets[index] = { ...newPets[index], [field]: value };
+  //     return { loadedPetInfo: newPets };
+  //   });
+  // };
+  // handleSavePet = async (index) => {
+  //   const { AccountID, loadedPetInfo, isAddingPet } = this.state;
+  //   const pet = loadedPetInfo[index];
+  //   const newPetInfo = {
+  //     PetName: pet.PetName.trim(),
+  //     PetType: pet.PetType,
+  //     PetGender: pet.PetGender,
+  //     PetWeight: parseFloat(pet.PetWeight),
+  //     Age: parseInt(pet.Age),
+  //     PetImage: 'https://res.cloudinary.com/dcwpbdmvx/image/upload/v1748457706/z6649336972368_9714d5c9935f99b35708504f5a5eb8ab_jzvmnx.jpg',
+  //   };
+  //   const isValidatePetInput = await validatePetInput(newPetInfo);
+  //   if (!isValidatePetInput.valid) {
+  //     toast.error(`${isValidatePetInput.errMessage}`);
+  //     return;
+  //   }
+  //   this.setState({ isLoading: true });
+  //   try {
+  //     const signer = await this.connectMetaMask();
+  //     if (signer) {
+  //       let response;
+  //       if (isAddingPet) {
+  //         console.log('yes');
+  //         response = await handleSavePetInfoApi(newPetInfo, signer);
+  //       } else {
+  //         response = await handleChangePetInfoApi(pet.PetID, newPetInfo, signer);
+  //       }
+  //       console.log(response);
+  //       if (response && response.errCode === 0) {
+  //         toast.success(isAddingPet ? 'Tạo thú cưng thành công!' : 'Cập nhật thú cưng thành công!');
+  //         await this.handleLoadPetInfo(AccountID);
+  //         this.setState({ isEditingPet: null, isAddingPet: false });
+  //       } else {
+  //         toast.error(response.errMessage || (isAddingPet ? 'Tạo thú cưng thất bại!' : 'Cập nhật thú cưng thất bại!'));
+  //       }
+  //     } else {
+  //       toast.error('Không thể kết nối MetaMask!');
+  //     }
+  //   } catch (e) {
+  //     console.error(isAddingPet ? 'Create Pet:' : 'Edit Pet:', e);
+  //     toast.error(`Lỗi khi ${isAddingPet ? 'tạo' : 'cập nhật'} thú cưng, vui lòng thử lại!`);
+  //   }
+  //   this.setState({ isLoading: false });
+  // };
+  // handleDeletePet = async (PetID) => {
+  //   this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: true } });
+  //   const confirmDelete = () =>
+  //     new Promise((resolve) => {
+  //       toast(
+  //         <div>
+  //           <p>Bạn có chắc muốn xóa thú cưng này?</p>
+  //           <button
+  //             className="toast-confirm-btn"
+  //             onClick={() => {
+  //               resolve(true);
+  //               toast.dismiss();
+  //             }}
+  //           >
+  //             Có
+  //           </button>
+  //           <button
+  //             className="toast-cancel-btn"
+  //             onClick={() => {
+  //               resolve(false);
+  //               toast.dismiss();
+  //             }}
+  //           >
+  //             Không
+  //           </button>
+  //         </div>,
+  //         { autoClose: 2000, closeOnClick: false, onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, deletePet: false } }) }
+  //       );
+  //     });
+  //   const isConfirmed = await confirmDelete();
+  //   if (isConfirmed) {
+  //     this.setState({ isLoading: true });
+  //     try {
+  //       const signer = await this.connectMetaMask();
+  //       if (signer) {
+  //         const response = await handleRemovePetApi(PetID, signer);
+  //         if (response && response.errCode === 0) {
+  //           toast.success('Xóa thú cưng thành công!');
+  //           await this.handleLoadPetInfo(this.state.AccountID);
+  //         } else {
+  //           toast.error(response.errMessage || 'Xóa thú cưng thất bại!');
+  //         }
+  //       } else {
+  //         toast.error('Không thể kết nối MetaMask!');
+  //       }
+  //     } catch (e) {
+  //       console.error('Delete Pet:', e);
+  //       toast.error('Lỗi khi xóa thú cưng, vui lòng thử lại!');
+  //     }
+  //   }
+  //   this.setState({ isLoading: false });
+  // };
+  // printPetQRCode = async (PetID) => {
+  //   try {
+  //     const petResponse = await handleGetPetInfoApi(this.state.AccountID, PetID);
+  //     const accountResponse = await handleGetAccountInfoApi(this.state.AccountID);
+  //     if (petResponse && accountResponse && petResponse.errCode === 0 && accountResponse.errCode === 0) {
+  //       const { Age, PetGender, PetImage, PetName, PetType, PetWeight } = petResponse.data;
+  //       const { UserName, Phone } = accountResponse.data;
+  //       const qrData = {
+  //         UserName,
+  //         Phone,
+  //         Age,
+  //         PetGender,
+  //         PetImage,
+  //         PetName,
+  //         PetType,
+  //         PetWeight,
+  //       };
+  //       // Hàm tạo hình ảnh bằng Canvas
+  //       const createPetInfoImage = async () => {
+  //         return new Promise((resolve) => {
+  //           const canvas = document.createElement('canvas');
+  //           canvas.width = 400;
+  //           canvas.height = 550;
+  //           const ctx = canvas.getContext('2d');
+  //           // Vẽ nền trắng
+  //           ctx.fillStyle = '#ffffff';
+  //           ctx.fillRect(0, 0, canvas.width, canvas.height);
+  //           // Vẽ viền
+  //           ctx.strokeStyle = '#000000';
+  //           ctx.lineWidth = 2;
+  //           ctx.strokeRect(10, 10, 380, 630);
+  //           // Vẽ tên thú cưng (trên cùng, giữa)
+  //           ctx.fillStyle = '#000000';
+  //           ctx.font = 'bold 24px Arial';
+  //           const petNameWidth = ctx.measureText(qrData.PetName).width;
+  //           ctx.fillText(qrData.PetName, (canvas.width - petNameWidth) / 2, 50);
+  //           // Tải ảnh thú cưng
+  //           const img = new Image();
+  //           img.crossOrigin = 'Anonymous';
+  //           img.src = qrData.PetImage;
+  //           img.onload = () => {
+  //             // Vẽ ảnh thú cưng (giữa)
+  //             ctx.drawImage(img, 50, 80, 300, 300);
+  //             // Vẽ thông tin chủ sở hữu và SĐT
+  //             ctx.font = '16px Arial';
+  //             ctx.fillText(`Chủ sở hữu: ${qrData.UserName}`, 50, 410);
+  //             ctx.fillText(`SĐT: ${qrData.Phone}`, 50, 430);
+  //             // Vẽ 4 trường còn lại, chia 2 cột
+  //             ctx.font = '14px Arial';
+  //             // Cột trái
+  //             ctx.fillText(`Giống: ${qrData.PetType}`, 50, 460);
+  //             ctx.fillText(`${qrData.Age} tháng tuổi`, 50, 480);
+  //             // Cột phải
+  //             const genderText = this.state.codePetGender.find((gender) => gender.Code === qrData.PetGender)?.CodeValueVI || qrData.PetGender;
+  //             ctx.fillText(`Giới tính: ${genderText}`, 220, 460);
+  //             ctx.fillText(`Cân nặng: ${qrData.PetWeight / 10} kg`, 220, 480);
+  //             // Chuyển canvas thành File
+  //             canvas.toBlob((blob) => {
+  //               const file = new File([blob], `pet_info_${PetID}.png`, { type: 'image/png' });
+  //               resolve(file);
+  //             }, 'image/png');
+  //           };
+  //           img.onerror = () => {
+  //             console.error('Lỗi tải ảnh thú cưng');
+  //             resolve(null);
+  //           };
+  //         });
+  //       };
+  //       // Tạo hình ảnh
+  //       const imageFile = await createPetInfoImage();
+  //       if (!imageFile) {
+  //         console.error('Không thể tạo hình ảnh');
+  //         return;
+  //       }
+  //       // Tải hình ảnh lên Cloudinary
+  //       try {
+  //         const uploadResult = await uploadImageToCloudinaryApi(imageFile);
+  //         if (uploadResult.errCode === 0) {
+  //           const imageUrl = uploadResult.data.secure_url; // URL hình ảnh từ Cloudinary
+  //           // Tạo mã QR chứa URL hình ảnh
+  //           const qrCodeDataUrl = await QRCode.toDataURL(imageUrl, {
+  //             width: 300,
+  //             margin: 2,
+  //             errorCorrectionLevel: 'H',
+  //           });
+  //           // Tạo link tải xuống mã QR
+  //           const downloadLink = document.createElement('a');
+  //           downloadLink.href = qrCodeDataUrl;
+  //           downloadLink.download = `PetQR_${PetID}.png`;
+  //           document.body.appendChild(downloadLink);
+  //           downloadLink.click();
+  //           document.body.removeChild(downloadLink);
+  //         } else {
+  //           console.error('Tải ảnh thất bại:', uploadResult.errMessage);
+  //         }
+  //       } catch (error) {
+  //         console.error('Lỗi tải ảnh lên Cloudinary:', error);
+  //       }
+  //     } else {
+  //       console.error('Lỗi lấy thông tin:', accountResponse ? accountResponse.errMessage : petResponse.errMessage);
+  //     }
+  //   } catch (error) {
+  //     console.error('Lỗi tạo QR code:', error);
+  //   }
+  // };
   //search, filter, sort
   handleSearchChange = (event, type) => {
     const value = event.target.value;
@@ -2161,105 +2161,6 @@ class User extends Component {
                 <div className="notes">
                   <b>Ghi chú:</b> <p>{loadedAppointmentDetail.Notes || 'Không có ghi chú'}</p>
                 </div>
-              </div>
-            </div>
-          </form>
-        );
-      case 7:
-        return (
-          <form className="user-pet-form">
-            <div className="user-pet-form-top">
-              <h3>
-                <b>Thông tin thú cưng:</b>
-              </h3>
-              {loadedPetInfo.length < limitPetCount && (
-                <button type="button" onClick={this.handleAddPet} disabled={disabledButtons.addPet}>
-                  Thêm thú cưng
-                </button>
-              )}
-            </div>
-            <div className="user-pet-form-content">
-              <div className="user-pet-form-content-list">
-                {loadedPetInfo.length > 0 ? (
-                  loadedPetInfo.map((pet, index) => (
-                    <div key={pet.PetID} className="user-pet-form-content-list-item f sb">
-                      <div className="f">
-                        <div className="user-pet-form-content-list-item-top-1 ">
-                          {isEditingPet === index ? (
-                            <input className="petname" type="text" value={pet.PetName} onChange={(e) => this.handlePetChange(index, 'PetName', e.target.value)} placeholder="Tên thú cưng" />
-                          ) : (
-                            <div className="f">
-                              <b>Tên thú cưng: </b>
-                              {pet.PetName}
-                            </div>
-                          )}
-                        </div>
-                        <div className="petype f">
-                          <b>Giống:</b>
-                          {isEditingPet === index ? (
-                            <select value={pet.PetType} onChange={(e) => this.handlePetChange(index, 'PetType', e.target.value)}>
-                              {codePetType.map((type) => (
-                                <option key={type.Code} value={type.Code}>
-                                  {type.CodeValueVI}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <p>{codePetType.find((type) => type.Code === pet.PetType)?.CodeValueVI || pet.PetType}</p>
-                          )}
-                        </div>
-                        <div className="petweight f">
-                          <b>Cân nặng (kg):</b>
-                          {isEditingPet === index ? <input type="number" value={pet.PetWeight} onChange={(e) => this.handlePetChange(index, 'PetWeight', e.target.value)} placeholder="Cân nặng" /> : <p>{pet.PetWeight}</p>}
-                        </div>
-                        <div className="petold f">
-                          <b>Tuổi (Tháng):</b>
-                          {isEditingPet === index ? <input type="number" value={pet.Age} onChange={(e) => this.handlePetChange(index, 'Age', e.target.value)} placeholder="Tuổi" /> : <p>{pet.Age}</p>}
-                        </div>
-                        <div className="petgender f">
-                          <b>Giới tính:</b>
-                          {isEditingPet === index ? (
-                            <select value={pet.PetGender} onChange={(e) => this.handlePetChange(index, 'PetGender', e.target.value)}>
-                              {codePetGender.map((gender) => (
-                                <option key={gender.Code} value={gender.Code}>
-                                  {gender.CodeValueVI}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <p>{codePetGender.find((gender) => gender.Code === pet.PetGender)?.CodeValueVI || pet.PetGender}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="f">
-                        {isEditingPet === index ? (
-                          <>
-                            <button type="button" className="save-pet" onClick={() => this.handleSavePet(index)} disabled={this.state.disabledButtons.savePet}>
-                              Lưu
-                            </button>
-                            <button type="button" className="cancel-pet" onClick={this.handleCancelPet} disabled={disabledButtons.cancelPet}>
-                              Hủy
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button type="button" className="edit-pet" onClick={() => this.handleEditPet(index)} disabled={isEditingPet !== null || isAddingPet}>
-                              <IonIcon icon={pencil}></IonIcon>
-                            </button>
-                            <button type="button" className="delete-pet" onClick={() => this.handleDeletePet(pet.PetID)} disabled={this.state.disabledButtons.deletePet}>
-                              <b>X</b>
-                            </button>
-                            <button type="button" className="print-pet-qr" onClick={() => this.printPetQRCode(pet.PetID)}>
-                              <b>QR</b>
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p>Không có thú cưng nào.</p>
-                )}
               </div>
             </div>
           </form>

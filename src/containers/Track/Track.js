@@ -92,7 +92,7 @@ class Track extends Component {
         BillID,
         BillType,
         actionPage: BillType,
-        isLoading: true  // Bật loading khi load mới
+        isLoading: true, // Bật loading khi load mới
       });
 
       try {
@@ -561,13 +561,13 @@ class Track extends Component {
                                       Thời gian:{' '}
                                       {loadedInvoiceDetails.CreatedAt
                                         ? new Date(loadedInvoiceDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                          second: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
@@ -687,7 +687,7 @@ class Track extends Component {
                                     <IonIcon icon={chevronBackOutline}></IonIcon> Quay về
                                   </button>
 
-                                  {accountInfo.AccountType === "C" && loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
+                                  {accountInfo && accountInfo.AccountType === 'C' && loadedInvoiceDetails.PaymentStatus === 'PEND' && loadedInvoiceDetails.ShippingStatus === 'PEND' && (
                                     <button className="cancel-order-btn" onClick={() => this.handleSelectedCancelInvoice(BillID)} title="Hủy đơn hàng">
                                       <IonIcon icon={closeCircleOutline}></IonIcon> Hủy đơn hàng
                                     </button>
@@ -756,12 +756,12 @@ class Track extends Component {
                                       <b>Thời gian đặt lịch:</b>
                                       {loadedAppointmentDetails.CreatedAt
                                         ? new Date(loadedAppointmentDetails.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                     <p>
@@ -845,7 +845,7 @@ class Track extends Component {
                                 </button>
 
                                 <div className="bill-actions-app">
-                                  {accountInfo.AccountType === "C" && loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
+                                  {accountInfo && accountInfo.AccountType === 'C' && loadedAppointmentDetails.AppointmentStatus === 'PEND' && (
                                     <button className="cancel-order-btn-app" onClick={() => this.handleCancelAppointment(loadedAppointmentDetails.AppointmentID)} title="Hủy lịch hẹn" disabled={disabledButtons.cancelAppointment}>
                                       <IonIcon icon={closeCircleOutline}></IonIcon> Hủy lịch hẹn
                                     </button>
@@ -885,12 +885,12 @@ class Track extends Component {
                                       <b>Thời gian:</b>
                                       {loadedAppointmentBillDetails.AppointmentBill.CreatedAt
                                         ? new Date(loadedAppointmentBillDetails.AppointmentBill.CreatedAt).toLocaleString('vi-VN', {
-                                          day: '2-digit',
-                                          month: '2-digit',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
                                         : 'N/A'}
                                     </p>
                                   </div>
