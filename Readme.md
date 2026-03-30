@@ -64,22 +64,36 @@
 
 ```
 📦 ThatCook/
-├── 📁 src/
-│   ├── 📁 config/          # Cấu hình database & ứng dụng
-│   ├── 📁 controllers/     # Xử lý request/response
-│   ├── 📁 middleware/       # JWT Auth, validation
-│   ├── 📁 migrations/      # Database migrations (Sequelize)
-│   ├── 📁 models/           # Data models (Account, Product, Appointment...)
-│   ├── 📁 route/            # API endpoints
-│   ├── 📁 seeders/          # Dữ liệu mẫu
-│   ├── 📁 services/         # Business logic
-│   └── 📄 server.js         # Entry point
-├── 📁 truffle_project/
-│   ├── 📁 contracts/        # Smart contracts (PetRegistry.sol)
-│   └── 📁 migrations/       # Truffle migrations
-├── 📄 .env.example           # Biến môi trường mẫu
-├── 📄 package.json
-└── 📄 Readme.md
+├── 📁 be/                        # Backend (Node.js/Express)
+│   ├── 📁 src/
+│   │   ├── 📁 config/            # Cấu hình database & ứng dụng
+│   │   ├── 📁 controllers/       # Xử lý request/response
+│   │   ├── 📁 middleware/         # JWT Auth, validation
+│   │   ├── 📁 migrations/        # Database migrations (Sequelize)
+│   │   ├── 📁 models/             # Data models (Account, Product...)
+│   │   ├── 📁 route/              # API endpoints
+│   │   ├── 📁 seeders/            # Dữ liệu mẫu
+│   │   ├── 📁 services/           # Business logic
+│   │   └── 📄 server.js           # Entry point
+│   ├── 📁 truffle_project/
+│   │   ├── 📁 contracts/          # Smart contracts (PetRegistry.sol)
+│   │   └── 📁 migrations/         # Truffle migrations
+│   ├── 📄 .env
+│   └── 📄 package.json
+│
+└── 📁 fe/                        # Frontend (React)
+    ├── 📁 public/                 # Static assets & index.html
+    ├── 📁 src/
+    │   ├── 📁 components/         # React components
+    │   ├── 📁 containers/         # Page containers
+    │   ├── 📁 routes/             # Route definitions
+    │   ├── 📁 services/           # API service calls
+    │   ├── 📁 store/              # Redux store & reducers
+    │   ├── 📁 styles/             # SCSS stylesheets
+    │   ├── 📁 utils/              # Utility functions
+    │   └── 📄 axios.js            # Axios instance config
+    ├── 📄 .env
+    └── 📄 package.json
 ```
 
 ---
@@ -98,7 +112,7 @@
 > [!TIP]
 > Nếu bạn cần dùng nhiều version Node.js, hãy cài **nvm** (Node Version Manager):
 > ```bash
-> # Xóa Node.js cũ → Tải nvm → Cài đúng version
+> # (Nếu cần cài nvm) → Xóa Node.js cũ → Tải nvm → Cài version mới nhất
 > nvm install 22.14.0
 > nvm use 22.14.0
 > ```
@@ -110,23 +124,23 @@
 ### 1️⃣ Clone dự án
 
 ```bash
-# Clone branch Backend
-git clone -b be https://github.com/DoomXyz/ThatCook.git .
+# Tạo thư mục gốc
+mkdir ThatCook && cd ThatCook
 
-# Clone branch Frontend (ở folder riêng)
-git clone -b fe https://github.com/DoomXyz/ThatCook.git .
+# Clone Backend vào folder be/
+git clone https://github.com/KhangChinh/Pet-Shop-and-Services-with-simple-BlockChain-JavaScrippt_React_Node.git -b be
+
+# Clone Frontend vào folder fe/
+git clone https://github.com/KhangChinh/Pet-Shop-and-Services-with-simple-BlockChain-JavaScrippt_React_Node.git -b fe
 ```
 
 ### 2️⃣ Cấu hình môi trường
 
-```bash
-# Sao chép file env mẫu và điền thông tin
-cp .env.example .env
-```
+#### 🔙 Backend (`be/.env`)
 
-Mở file `.env` và điền các giá trị:
+Xóa đuôi `.example` của file `.env.example` trong thư mục `be/`:
 
-```env
+```env mẫu
 PORT=9999
 NODE_ENV=development
 URL_REACT=http://localhost:3000
@@ -137,12 +151,27 @@ EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
 ```
 
-> [!NOTE]
-> Liên hệ để biết thêm chi tiết về cấu hình: [Facebook](https://www.facebook.com/starofthestarsofthestars/)
+#### 🖥️ Frontend (`fe/.env`)
+
+Xóa đuôi `.example` của file `.env.example` trong thư mục `fe/`:
+
+```env mẫu
+REACT_APP_BACKEND_URL=http://localhost:9999
+REACT_APP_CONTRACT_ADDRESS=0x_your_contract_address
+REACT_APP_CLOUDINARY_CLOUD_NAME=your_cloud_name
+REACT_APP_CLOUDINARY_API_KEY=your_api_key
+REACT_APP_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
+```
 
 ### 3️⃣ Cài đặt thư viện
 
 ```bash
+# Cài đặt Backend
+cd be
+npm install
+
+# Cài đặt Frontend
+cd ../fe
 npm install
 ```
 
@@ -150,9 +179,11 @@ npm install
 
 1. Mở **phpMyAdmin** → Tạo database mới tên **`thatcookdb`**
    - Nếu đã có database cùng tên, xóa đi tạo lại
-2. Chạy migration & seed:
+2. Chạy migration & seed (trong thư mục `be/`):
 
 ```bash
+cd be
+
 # Tạo các bảng
 npx sequelize-cli db:migrate
 
@@ -170,9 +201,24 @@ npx sequelize-cli db:seed:all
 
 ### 5️⃣ Khởi chạy ứng dụng
 
+> [!IMPORTANT]
+> Cần mở **2 terminal riêng biệt** để chạy cả Backend và Frontend cùng lúc.
+
+**Terminal 1 — Backend** (port `9999`):
+
 ```bash
+cd be
 npm start
 ```
+
+**Terminal 2 — Frontend** (port `3000`):
+
+```bash
+cd fe
+npm start
+```
+
+✅ Truy cập ứng dụng tại: **http://localhost:3000**
 
 ---
 
@@ -199,17 +245,19 @@ truffle compile
 
 ### Bước 3 — Khởi động mạng Ganache
 
-> Mở **Terminal 1** (ở thư mục gốc Backend):
+> Mở **Terminal riêng** (ở thư mục `be/`):
 
 ```bash
+cd be
 ganache-cli --port 7545 --accounts 10 --account_keys_path keys.json --deterministic --db ./ganache-data
 ```
 
 ### Bước 4 — Deploy Smart Contract
 
-> Mở **Terminal 2** (ở thư mục `truffle_project`):
+> Mở **Terminal riêng** (ở thư mục `be/truffle_project`):
 
 ```bash
+cd be/truffle_project
 truffle migrate --network development
 ```
 
@@ -217,8 +265,8 @@ truffle migrate --network development
 
 | File | Biến môi trường |
 |---|---|
-| `.env` (Backend) | `CONTRACT_ADDRESS=0x...` |
-| `.env` (Frontend) | `REACT_APP_CONTRACT_ADDRESS=0x...` |
+| `be/.env` | `CONTRACT_ADDRESS=0x...` |
+| `fe/.env` | `REACT_APP_CONTRACT_ADDRESS=0x...` |
 
 ### Bước 5 — Cấu hình MetaMask
 
@@ -573,10 +621,8 @@ npm install socket.io-client
 Nếu có thắc mắc hoặc cần hỗ trợ, vui lòng liên hệ qua:
 
 [![Facebook](https://img.shields.io/badge/Facebook-Liên_hệ-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/starofthestarsofthestars/)
-[![GitHub](https://img.shields.io/badge/GitHub-DoomXyz-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/DoomXyz/ThatCook)
+[![GitHub](https://img.shields.io/badge/GitHub-KhangChinh-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/KhangChinh/Pet-Shop-and-Services-with-simple-BlockChain-JavaScrippt_React_Node)
 
 ---
-
-<sub>Made with ❤️ by ThatCook Team</sub>
 
 </div>
