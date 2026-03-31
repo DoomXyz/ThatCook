@@ -624,5 +624,4 @@ Nếu có thắc mắc hoặc cần hỗ trợ, vui lòng liên hệ qua:
 [![GitHub](https://img.shields.io/badge/GitHub-KhangChinh-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/KhangChinh/Pet-Shop-and-Services-with-simple-BlockChain-JavaScrippt_React_Node)
 
 ---
-
-</div>
+--THem
