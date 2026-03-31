@@ -13,6 +13,8 @@ import Spinner from '../../components/Spinner';
 import Header from '../../components/HomeHeader';
 import Footer from '../../components/HomeFooter';
 import CancelInvoiceModal from '../../components/CancelInvoiceModal';
+import ReviewModal from '../../components/ReviewModal';
+import { handleCheckUserCanReviewApi } from '../../services/reviewServices';
 
 import { handleGetAccountInfoApi, handleLogoutApi, handleChangeAccountInfoApi, handleChangePasswordApi } from '../../services/accountServices';
 import { handleGetAccountInvoiceInfoApi, handleGetInvoiceDetailInfoApi, handleChangeInvoiceStatusApi, handleSendInvoiceEmailApi } from '../../services/invoiceServices';
@@ -90,6 +92,9 @@ class User extends Component {
       selectedCancelInvoice: null,
       selectedInvoiceID: null,
       selectedAppointment: null,
+      // Review
+      isShowReviewModal: false,
+      selectedReviewProductID: null,
       // Pet Management
       isEditingPet: null,
       isAddingPet: false,
@@ -1355,6 +1360,34 @@ class User extends Component {
     }
   };
 
+  handleOpenReviewModal = async (ProductID) => {
+    const { AccountID } = this.state;
+    try {
+      const response = await handleCheckUserCanReviewApi(AccountID, ProductID);
+      if (response && response.errCode === 0) {
+        this.setState({
+          isShowReviewModal: true,
+          selectedReviewProductID: ProductID,
+        });
+      } else {
+        toast.error(response?.errMessage || 'Không thể đánh giá sản phẩm này!');
+      }
+    } catch (e) {
+      toast.error('Lỗi khi kiểm tra quyền đánh giá!');
+    }
+  };
+
+  toggleReviewModal = () => {
+    this.setState((prevState) => ({
+      isShowReviewModal: !prevState.isShowReviewModal,
+      selectedReviewProductID: prevState.isShowReviewModal ? null : prevState.selectedReviewProductID,
+    }));
+  };
+
+  handleReviewSuccess = () => {
+    this.handleLoadInvoiceInfo();
+  };
+
   renderForm() {
     const {
       UserImage,
@@ -1641,6 +1674,20 @@ class User extends Component {
                                 Tiếp tục đơn hàng
                               </button>
                             )}
+                          </div>
+                        )}
+                        {invoice.ShippingStatus === 'DELI' && (
+                          <div className="oder-list-object-price">
+                            <button
+                              type="button"
+                              className="btn-review"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                this.handleOpenReviewModal(invoice.InvoiceDetail?.[0]?.ProductID);
+                              }}
+                            >
+                              Đánh giá
+                            </button>
                           </div>
                         )}
                       </div>
@@ -2314,11 +2361,18 @@ class User extends Component {
     }
   }
   render() {
-    const { actionPage, isLoading, isShowCancelInvoiceModal, selectedCancelInvoice, accountInfo } = this.state;
+    const { actionPage, isLoading, isShowCancelInvoiceModal, selectedCancelInvoice, accountInfo, isShowReviewModal } = this.state;
     return (
       <div className="user-page">
         <Header navigate={this.props.navigate} userInfo={this.props.userInfo} triggerLoadInformation={this.state.triggerLoadInformation} />
         <CancelInvoiceModal isOpen={isShowCancelInvoiceModal} toggleFromModal={this.toggleCancelInvoiceModal} selectedCancelInvoiceID={selectedCancelInvoice} handleCancelInvoiceFromModal={this.handleCancelInvoiceFromModal} />
+        <ReviewModal
+          isOpen={this.state.isShowReviewModal}
+          toggleFromModal={this.toggleReviewModal}
+          AccountID={this.state.AccountID}
+          ProductID={this.state.selectedReviewProductID}
+          onReviewSuccess={this.handleReviewSuccess}
+        />
         <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
         {isLoading ? (
           <Spinner />

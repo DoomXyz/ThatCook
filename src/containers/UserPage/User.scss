@@ -1798,3 +1798,24 @@
     }
   }
 }
+
+.btn-review {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 5px;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #e68a00;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+}
