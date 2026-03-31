@@ -139,6 +139,7 @@ let initAPIRoutes = (app) => {
   // review
   router.get('/api/check-user-can-review', reviewController.handleCheckUserCanReview);
   router.post('/api/create-review', reviewController.handleCreateReview);
+  router.get('/api/get-reviews', reviewController.handleGetReviewsByProduct);
 
   //notification
   router.get('/api/get-user-notifications', utilitiesController.handleGetUserNotifications);
