@@ -1,9 +1,9 @@
 {
   "development": {
     "username": "root",
-    "password": null,
+    "password": "123456",
     "database": "thatcookdb",
-    "host": "127.0.0.1",
+    "host": "localhost",
     "dialect": "mysql",
     "logging": false,
     "query": {
