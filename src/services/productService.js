@@ -1,5 +1,5 @@
 import db from '../models/index';
-import { Op, literal } from 'sequelize';
+import { Op, literal, fn, col } from 'sequelize';
 import { checkValidAllCode, generateID } from './utilitiesService';
 
 let validateProductInput = async (productInfo) => {
@@ -178,7 +178,7 @@ let validateProductInput = async (productInfo) => {
     }
   }
   if (Image && Array.isArray(Image)) {
-    if (Image.some(img => !img.Image || !img.Image.trim() || img.Image.trim().length > 2048)) {
+    if (Image.some((img) => !img.Image || !img.Image.trim() || img.Image.trim().length > 2048)) {
       return {
         errCode: 1,
         errMessage: 'Danh sách ảnh phụ không hợp lệ hoặc vượt quá 2048 ký tự!',
@@ -227,10 +227,7 @@ let updateOutOfStock = (ProductID) => {
       }
 
       // Cập nhật DetailStatus thành 'OUT' cho các ProductDetail có Stock = 0
-      const updated = await db.ProductDetail.update(
-        { DetailStatus: 'OUT' },
-        { where, transaction }
-      )
+      const updated = await db.ProductDetail.update({ DetailStatus: 'OUT' }, { where, transaction });
       await transaction.commit();
       resolve({
         errCode: 0,
@@ -303,7 +300,7 @@ let getSaleProductInfo = (ProductID) => {
               ProductPrice: product.ProductPrice,
               ProductImage: product.ProductImage,
               ProductType: product.ProductType,
-              PetType: petType.map(pt => pt.PetType),
+              PetType: petType.map((pt) => pt.PetType),
               ProductDetail: detail,
               Image: image,
             };
@@ -348,7 +345,7 @@ let getSaleProductInfo = (ProductID) => {
           ProductPrice: product.ProductPrice,
           ProductImage: product.ProductImage,
           ProductType: product.ProductType,
-          PetType: petType.map(pt => pt.PetType),
+          PetType: petType.map((pt) => pt.PetType),
           ProductDetail: detail,
           Image: image,
         };
@@ -420,7 +417,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
             attributes: ['ProductID'],
             raw: true,
           });
-          const productIds = [...new Set(detail.map(d => d.ProductID))];
+          const productIds = [...new Set(detail.map((d) => d.ProductID))];
           if (productIds.length === 0) {
             resolve({
               errCode: 0,
@@ -459,7 +456,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
               attributes: ['ProductID'],
               raw: true,
             });
-            const productIds = products.map(p => p.ProductID);
+            const productIds = products.map((p) => p.ProductID);
             if (productIds.length === 0) {
               resolve({
                 errCode: 0,
@@ -519,7 +516,22 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
         return;
       }
 
-      const productIds = rows.map(p => p.ProductID);
+      const productIds = rows.map((p) => p.ProductID);
+      const avgRatings = await db.Review.findAll({
+        where: { ProductID: { [Op.in]: productIds } },
+        attributes: ['ProductID', [fn('AVG', col('Rating')), 'avgRating'], [fn('COUNT', col('ReviewID')), 'totalReviews']],
+        group: ['ProductID'],
+        raw: true,
+      });
+
+      const ratingMap = avgRatings.reduce((map, item) => {
+        map[item.ProductID] = {
+          avgRating: parseFloat(parseFloat(item.avgRating).toFixed(1)),
+          totalReviews: parseInt(item.totalReviews, 10) || 0,
+        };
+        return map;
+      }, {});
+
       const detail = await db.ProductDetail.findAll({
         where: {
           ProductID: { [Op.in]: productIds },
@@ -542,7 +554,7 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
       }, {});
 
       const data = rows
-        .map(item => {
+        .map((item) => {
           const detail = detailMap[item.ProductID]?.defaultDetail;
           if (!detail) {
             return null;
@@ -556,9 +568,11 @@ let loadSaleProductInfo = (page, limit, search, filter, sort) => {
             ProductDetailID: detail.ProductDetailID,
             DetailName: detail.DetailName,
             Promotion: detail.Promotion,
+            avgRating: ratingMap[item.ProductID]?.avgRating || 0,
+            totalReviews: ratingMap[item.ProductID]?.totalReviews || 0,
           };
         })
-        .filter(item => item !== null);
+        .filter((item) => item !== null);
 
       resolve({
         errCode: 0,
@@ -628,7 +642,7 @@ let getProductInfo = (ProductID) => {
               ProductPrice: product.ProductPrice,
               ProductImage: product.ProductImage,
               ProductType: product.ProductType,
-              PetType: petType.map(pt => pt.PetType),
+              PetType: petType.map((pt) => pt.PetType),
               ProductDetail: detail,
               Image: image,
             };
@@ -671,7 +685,7 @@ let getProductInfo = (ProductID) => {
           ProductPrice: product.ProductPrice,
           ProductImage: product.ProductImage,
           ProductType: product.ProductType,
-          PetType: petType.map(pt => pt.PetType),
+          PetType: petType.map((pt) => pt.PetType),
           ProductDetail: detail,
           Image: image,
         };
@@ -759,7 +773,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
             attributes: ['ProductID'],
             raw: true,
           });
-          const productIds = products.map(p => p.ProductID);
+          const productIds = products.map((p) => p.ProductID);
           if (productIds.length === 0) {
             resolve({
               errCode: 0,
@@ -786,7 +800,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
           attributes: ['ProductID'],
           raw: true,
         });
-        const productIds = [...new Set(detail.map(d => d.ProductID))];
+        const productIds = [...new Set(detail.map((d) => d.ProductID))];
         if (productIds.length === 0) {
           resolve({
             errCode: 0,
@@ -837,7 +851,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
         return;
       }
 
-      const productIds = rows.map(p => p.ProductID);
+      const productIds = rows.map((p) => p.ProductID);
       const stockData = await db.ProductDetail.findAll({
         where: { ProductID: { [Op.in]: productIds } },
         attributes: ['ProductID', [db.sequelize.fn('SUM', db.sequelize.col('Stock')), 'TotalStock']],
@@ -860,7 +874,7 @@ let loadProductInfo = (page, limit, search, filter, sort) => {
         return map;
       }, {});
 
-      const data = rows.map(item => ({
+      const data = rows.map((item) => ({
         ProductID: item.ProductID,
         ProductName: item.ProductName,
         ProductType: item.ProductType,
@@ -994,40 +1008,52 @@ let createProduct = (productInfo) => {
       const ProductID = productIdResult.data;
 
       const CreatedAt = new Date();
-      await db.Product.create({
-        ProductID,
-        ProductType: productInfo.ProductType,
-        ProductName: productInfo.ProductName.trim(),
-        ProductPrice: productInfo.ProductPrice,
-        ProductImage: productInfo.ProductImage || null,
-        ProductDescription: productInfo.ProductDescription ? productInfo.ProductDescription.trim().substring(0, 65535) : null,
-      }, { transaction });
+      await db.Product.create(
+        {
+          ProductID,
+          ProductType: productInfo.ProductType,
+          ProductName: productInfo.ProductName.trim(),
+          ProductPrice: productInfo.ProductPrice,
+          ProductImage: productInfo.ProductImage || null,
+          ProductDescription: productInfo.ProductDescription ? productInfo.ProductDescription.trim().substring(0, 65535) : null,
+        },
+        { transaction }
+      );
 
       for (const detail of productInfo.ProductDetail) {
-        await db.ProductDetail.create({
-          DetailName: detail.DetailName.trim(),
-          Stock: parseInt(detail.Stock),
-          SoldCount: parseInt(detail.SoldCount) || 0,
-          ExtraPrice: detail.ExtraPrice,
-          Promotion: detail.Promotion,
-          CreatedAt: CreatedAt,
-          DetailStatus: detail.DetailStatus,
-          ProductID,
-        }, { transaction });
+        await db.ProductDetail.create(
+          {
+            DetailName: detail.DetailName.trim(),
+            Stock: parseInt(detail.Stock),
+            SoldCount: parseInt(detail.SoldCount) || 0,
+            ExtraPrice: detail.ExtraPrice,
+            Promotion: detail.Promotion,
+            CreatedAt: CreatedAt,
+            DetailStatus: detail.DetailStatus,
+            ProductID,
+          },
+          { transaction }
+        );
       }
       for (const petType of productInfo.PetType) {
-        await db.ProductPetType.create({
-          ProductID,
-          PetType: petType,
-        }, { transaction });
+        await db.ProductPetType.create(
+          {
+            ProductID,
+            PetType: petType,
+          },
+          { transaction }
+        );
       }
       if (productInfo.Image && Array.isArray(productInfo.Image) && productInfo.Image.length > 0) {
         for (const image of productInfo.Image) {
-          await db.Image.create({
-            Image: image.Image.trim().substring(0, 2048),
-            ReferenceType: 'Product',
-            ReferenceID,
-          }, { transaction });
+          await db.Image.create(
+            {
+              Image: image.Image.trim().substring(0, 2048),
+              ReferenceType: 'Product',
+              ReferenceID,
+            },
+            { transaction }
+          );
         }
       }
       await transaction.commit();
@@ -1120,10 +1146,13 @@ let changeProductInfo = (productInfo) => {
           transaction,
         });
         for (const petType of productInfo.PetType) {
-          await db.ProductPetType.create({
-            ProductID: productInfo.ProductID,
-            PetType: petType,
-          }, { transaction });
+          await db.ProductPetType.create(
+            {
+              ProductID: productInfo.ProductID,
+              PetType: petType,
+            },
+            { transaction }
+          );
         }
         isUpdated = true;
       }
@@ -1149,16 +1178,19 @@ let changeProductInfo = (productInfo) => {
               );
               isUpdated = true;
             } else {
-              await db.ProductDetail.create({
-                DetailName: detail.DetailName.trim(),
-                Stock: parseInt(detail.Stock) || 0,
-                SoldCount: parseInt(detail.SoldCount) || 0,
-                ExtraPrice: detail.ExtraPrice,
-                Promotion: detail.Promotion,
-                CreatedAt: CreatedAt,
-                DetailStatus: detail.DetailStatus,
-                ProductID: productInfo.ProductID,
-              }, { transaction });
+              await db.ProductDetail.create(
+                {
+                  DetailName: detail.DetailName.trim(),
+                  Stock: parseInt(detail.Stock) || 0,
+                  SoldCount: parseInt(detail.SoldCount) || 0,
+                  ExtraPrice: detail.ExtraPrice,
+                  Promotion: detail.Promotion,
+                  CreatedAt: CreatedAt,
+                  DetailStatus: detail.DetailStatus,
+                  ProductID: productInfo.ProductID,
+                },
+                { transaction }
+              );
               isUpdated = true;
             }
           }
@@ -1171,11 +1203,14 @@ let changeProductInfo = (productInfo) => {
         });
         if (productInfo.Image && Array.isArray(productInfo.Image) && productInfo.Image.length > 0) {
           for (const image of productInfo.Image) {
-            await db.Image.create({
-              Image: image.Image.trim().substring(0, 2048),
-              ReferenceType: 'Product',
-              ReferenceID: productInfo.ProductID,
-            }, { transaction });
+            await db.Image.create(
+              {
+                Image: image.Image.trim().substring(0, 2048),
+                ReferenceType: 'Product',
+                ReferenceID: productInfo.ProductID,
+              },
+              { transaction }
+            );
           }
         }
         isUpdated = true;
@@ -1280,7 +1315,7 @@ let loadFilteredProductInfo = (filterProductType, filterPetType) => {
           attributes: ['ProductID'],
           raw: true,
         });
-        const productIds = [...new Set(products.map(p => p.ProductID))];
+        const productIds = [...new Set(products.map((p) => p.ProductID))];
         if (productIds.length === 0) {
           resolve({
             errCode: 0,
