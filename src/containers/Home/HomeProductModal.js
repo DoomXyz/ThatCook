@@ -10,6 +10,7 @@ import Modal from 'react-bootstrap/Modal';
 
 import { addToCart } from '../../store/actions';
 import { handleGetSaleProductInfoApi } from '../../services/productServices';
+import { handleGetReviewsByProductApi } from '../../services/reviewServices';
 
 class HomeProductModal extends Component {
   constructor(props) {
@@ -21,6 +22,11 @@ class HomeProductModal extends Component {
       loadedProductDetail: null,
       loadedProductImage: null,
       selectedProductDetail: null,
+      loadedReviews: [],
+      avgRating: 0,
+      totalReviews: 0,
+      reviewPage: 1,
+      reviewTotalPages: 1,
     };
   }
   async componentDidUpdate(prevProps, prevState) {
@@ -40,6 +46,11 @@ class HomeProductModal extends Component {
       loadedProductDetail: null,
       loadedProductImage: null,
       selectedProductDetail: null,
+      loadedReviews: [],
+      avgRating: 0,
+      totalReviews: 0,
+      reviewPage: 1,
+      reviewTotalPages: 1,
     });
   };
   loadProductDetails = async (ProductID) => {
@@ -63,6 +74,7 @@ class HomeProductModal extends Component {
           selectedProductDetail: loadedProductDetail[0] || null,
           selectedImage: loadedProductInfo.ProductImage || '',
         });
+        await this.loadReviews(ProductID);
       } else {
         this.resetState();
         toast.error('Tải sản phẩm thất bại!');
@@ -70,6 +82,28 @@ class HomeProductModal extends Component {
     } catch (e) {
       this.resetState();
       toast.error('Lỗi khi tải sản phẩm!');
+    }
+  };
+  loadReviews = async (ProductID, page = 1) => {
+    try {
+      const response = await handleGetReviewsByProductApi(ProductID, page, 5);
+      if (response && response.errCode === 0) {
+        this.setState({
+          loadedReviews: response.data.reviews,
+          avgRating: response.data.avgRating,
+          totalReviews: response.data.totalReviews,
+          reviewPage: response.data.currentPage,
+          reviewTotalPages: response.data.totalPages,
+        });
+      }
+    } catch (e) {
+      console.log('Error loading reviews:', e);
+    }
+  };
+  handleReviewPageChange = async (newPage) => {
+    const { loadedProductInfo } = this.state;
+    if (loadedProductInfo) {
+      await this.loadReviews(loadedProductInfo.ProductID, newPage);
     }
   };
   handleQuantityIncrease = () => {
@@ -128,7 +162,7 @@ class HomeProductModal extends Component {
   };
   render() {
     const { isOpen } = this.props;
-    const { selectedImage, Quantity, selectedProductDetail, loadedProductInfo, loadedProductDetail, loadedProductImage } = this.state;
+    const { selectedImage, Quantity, selectedProductDetail, loadedProductInfo, loadedProductDetail, loadedProductImage, loadedReviews, avgRating, totalReviews, reviewPage, reviewTotalPages } = this.state;
     if (!loadedProductInfo || !loadedProductDetail) {
       return (
         <Modal show={isOpen} onHide={this.toggle} className="HomeProductModal" centered backdrop="static">
@@ -171,6 +205,18 @@ class HomeProductModal extends Component {
             <div className="product-content-right">
               <div className="product-content-right-product-name">
                 <h1>{loadedProductInfo.ProductName}</h1>
+                <div className="product-avg-rating">
+                  <div className="stars-display">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span key={star} className={`star-icon ${star <= Math.round(avgRating) ? 'filled' : ''}`}>
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <span className="rating-info">
+                    {avgRating > 0 ? `${avgRating}/5` : 'Chưa có đánh giá'} ({totalReviews} đánh giá)
+                  </span>
+                </div>
               </div>
               <div className="product-content-right-price">
                 <p>
@@ -222,6 +268,56 @@ class HomeProductModal extends Component {
                 <div className="product-content-right-bottom-content">
                   <p>{loadedProductInfo.ProductDescription || ''}</p>
                 </div>
+              </div>
+              <div className="product-reviews-section">
+                <h2>
+                  <u>*Đánh giá từ khách hàng:</u>
+                </h2>
+                {loadedReviews.length > 0 ? (
+                  <>
+                    {loadedReviews.map((review) => (
+                      <div key={review.ReviewID} className="review-item">
+                        <div className="review-header">
+                          <img src={review.Account?.UserImage || 'https://via.placeholder.com/40'} alt="User" className="review-user-avatar" />
+                          <div className="review-user-info">
+                            <span className="review-username">{review.Account?.UserName || 'Ẩn danh'}</span>
+                            <div className="review-stars-small">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className={star <= review.Rating ? 'star-filled' : 'star-empty'}>
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <span className="review-date">{new Date(review.CreatedAt).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        {review.Comment && <p className="review-comment">{review.Comment}</p>}
+                        {review.ReviewImages && review.ReviewImages.length > 0 && (
+                          <div className="review-images-display">
+                            {review.ReviewImages.map((img, idx) => (
+                              <img key={idx} src={img} alt={`Review ${idx}`} className="review-img-thumb" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {reviewTotalPages > 1 && (
+                      <div className="review-pagination">
+                        <button disabled={reviewPage <= 1} onClick={() => this.handleReviewPageChange(reviewPage - 1)}>
+                          {'<'}
+                        </button>
+                        <span>
+                          {reviewPage} / {reviewTotalPages}
+                        </span>
+                        <button disabled={reviewPage >= reviewTotalPages} onClick={() => this.handleReviewPageChange(reviewPage + 1)}>
+                          {'>'}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="no-reviews">Chưa có đánh giá nào cho sản phẩm này.</p>
+                )}
               </div>
             </div>
           </div>

@@ -283,3 +283,143 @@
     }
   }
 }
+
+.product-avg-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0 10px;
+
+  .stars-display {
+    display: flex;
+
+    .star-icon {
+      font-size: 1.2rem;
+      color: #ddd;
+
+      &.filled {
+        color: #ffc107;
+      }
+    }
+  }
+
+  .rating-info {
+    font-size: 0.9rem;
+    color: #666;
+  }
+}
+
+.product-reviews-section {
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+
+  h2 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .review-item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 10px 0;
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .review-user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .review-user-info {
+        flex: 1;
+
+        .review-username {
+          font-weight: 600;
+          font-size: 0.9rem;
+          display: block;
+        }
+
+        .review-stars-small {
+          .star-filled {
+            color: #ffc107;
+            font-size: 0.8rem;
+          }
+
+          .star-empty {
+            color: #ddd;
+            font-size: 0.8rem;
+          }
+        }
+      }
+
+      .review-date {
+        font-size: 0.8rem;
+        color: #999;
+      }
+    }
+
+    .review-comment {
+      margin: 8px 0 5px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .review-images-display {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 5px;
+
+      .review-img-thumb {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #eee;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .review-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+
+    button {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &:hover:not(:disabled) {
+        background: #f0f0f0;
+      }
+    }
+
+    span {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  }
+
+  .no-reviews {
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+}
