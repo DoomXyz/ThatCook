@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       Product.hasMany(models.InvoiceDetail, { foreignKey: 'ProductID' });
       Product.hasMany(models.CartItem, { foreignKey: 'ProductID' });
       Product.hasMany(models.Image, { foreignKey: 'ReferenceID', constraints: false, scope: { ReferenceType: 'Product' } });
+      Product.hasMany(models.Review, { foreignKey: 'ProductID' });
     }
   }
 

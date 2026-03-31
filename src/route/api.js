@@ -10,6 +10,7 @@ import serviceController from '../controllers/serviceController';
 import appointmentController from '../controllers/appointmentController';
 import scheduleController from '../controllers/scheduleController';
 import utilitiesController from '../controllers/utilitiesController';
+import reviewController from '../controllers/reviewController';
 import chatController from '../controllers/chatController';
 import * as appointmentService from '../services/appointmentService';
 import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
@@ -134,6 +135,10 @@ let initAPIRoutes = (app) => {
   router.put('/api/change-appointmentstatus', appointmentController.handleChangeAppointmentStatus);
   router.post('/api/get-appointment-email', appointmentController.handleGetAppointmentEmail);
   router.post('/api/get-appointmentbill-email', appointmentController.handleGetAppointmentBillEmail);
+
+  // review
+  router.get('/api/check-user-can-review', reviewController.handleCheckUserCanReview);
+  router.post('/api/create-review', reviewController.handleCreateReview);
 
   //notification
   router.get('/api/get-user-notifications', utilitiesController.handleGetUserNotifications);
