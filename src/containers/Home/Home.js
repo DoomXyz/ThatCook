@@ -92,11 +92,11 @@ class Home extends Component {
         this.props.userLogout();
         this.setState({
           accountInfo: null,
-          isLoggedIn: false
+          isLoggedIn: false,
         });
       }
     } catch (e) {
-      this.props.navigate('/home')
+      this.props.navigate('/home');
     }
     this.setState({
       isLoading: false,
@@ -109,7 +109,7 @@ class Home extends Component {
   };
   handleLoadCode = async (codeTypeFilter) => {
     try {
-      const responses = await Promise.all(codeTypeFilter.map(type => getAllCodes(type)));
+      const responses = await Promise.all(codeTypeFilter.map((type) => getAllCodes(type)));
       const newState = { isLoading: false };
       codeTypeFilter.forEach((type, index) => {
         const response = responses[index];
@@ -188,7 +188,8 @@ class Home extends Component {
         isLoading: false,
         currentPage: newPage,
         tempCurrentPage: newPage.toString(),
-      }, () => {
+      },
+      () => {
         this.handleLoadProductInfo();
       }
     );
@@ -201,7 +202,8 @@ class Home extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleLoadProductInfo();
       }
     );
@@ -214,7 +216,8 @@ class Home extends Component {
           currentPage: newPage,
           tempCurrentPage: newPage.toString(),
         };
-      }, () => {
+      },
+      () => {
         this.handleLoadProductInfo();
       }
     );
@@ -310,7 +313,7 @@ class Home extends Component {
         }
       } else {
         toast.info('Vượt quá số lượng tồn kho!', {
-          onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, addToCart: false } })
+          onClose: () => this.setState({ disabledButtons: { ...this.state.disabledButtons, addToCart: false } }),
         });
       }
       this.triggerCountCartItem();
@@ -328,7 +331,8 @@ class Home extends Component {
         searchValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         if (this.debounceTimeout) {
           clearTimeout(this.debounceTimeout);
         }
@@ -344,7 +348,8 @@ class Home extends Component {
         filterValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         this.handleLoadProductInfo();
       }
     );
@@ -355,38 +360,19 @@ class Home extends Component {
         sortValue: value,
         currentPage: 1,
         tempCurrentPage: '1',
-      }, () => {
+      },
+      () => {
         this.handleLoadProductInfo();
       }
     );
   };
   render() {
-    const { isLoading, loadedBannerInfo, loadedProductInfo, codeProductType, codePetType, disabledButtons,
-      searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages, isShowHomeProductModal, selectedProduct, currentBannerIndex } = this.state;
+    const { isLoading, loadedBannerInfo, loadedProductInfo, codeProductType, codePetType, disabledButtons, searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages, isShowHomeProductModal, selectedProduct, currentBannerIndex } = this.state;
     return (
       <div className="home-body">
-        <ToastContainer
-          autoClose={500}
-          newestOnTop={true}
-          closeOnClick={false}
-          pauseOnFocusLoss={false}
-          draggable={true}
-          transition={Slide}
-          limit={1}
-        />
-        <HomeProductModal
-          isOpen={isShowHomeProductModal}
-          toggleFromModal={this.toggleHomeProductModal}
-          selectedProductID={selectedProduct}
-          handleBuyNowFromModal={this.handleBuyNowFromModal}
-          handleAddToCart={this.handleAddToCart}
-        />
-        <Header
-          navigate={this.props.navigate}
-          cartItems={this.props.cartItems}
-          userInfo={this.props.userInfo}
-          triggerCountCartItem={this.state.triggerCountCartItem}
-        />
+        <ToastContainer autoClose={500} newestOnTop={true} closeOnClick={false} pauseOnFocusLoss={false} draggable={true} transition={Slide} limit={1} />
+        <HomeProductModal isOpen={isShowHomeProductModal} toggleFromModal={this.toggleHomeProductModal} selectedProductID={selectedProduct} handleBuyNowFromModal={this.handleBuyNowFromModal} handleAddToCart={this.handleAddToCart} />
+        <Header navigate={this.props.navigate} cartItems={this.props.cartItems} userInfo={this.props.userInfo} triggerCountCartItem={this.state.triggerCountCartItem} />
         {isLoading ? (
           <Spinner />
         ) : (
@@ -394,8 +380,7 @@ class Home extends Component {
             <div className="home-banner">
               <div className="home-slide-show">
                 <div className="list-img" style={{ transform: `translateX(-${currentBannerIndex * 100}%)` }}>
-                  {loadedBannerInfo && loadedBannerInfo.length > 0 ? loadedBannerInfo.map((item, index) => <img key={index} alt="" src={item.BannerImage}
-                    onClick={() => item.ProductID ? this.handleSelectedProduct(item.ProductID) : null} />) : <img alt="" src={defBannerImage} />}
+                  {loadedBannerInfo && loadedBannerInfo.length > 0 ? loadedBannerInfo.map((item, index) => <img key={index} alt="" src={item.BannerImage} onClick={() => (item.ProductID ? this.handleSelectedProduct(item.ProductID) : null)} />) : <img alt="" src={defBannerImage} />}
                 </div>
                 <div className="btns">
                   <button className="btn-right" onClick={this.handleBannerRightClick}>
@@ -473,6 +458,18 @@ class Home extends Component {
                           <h1 style={{ color: 'rgb(91, 85, 85)', cursor: 'pointer' }} onClick={() => this.handleSelectedProduct(item.ProductID)}>
                             {item.ProductName}
                           </h1>
+                          {item.avgRating > 0 && (
+                            <div className="product-card-rating">
+                              <span className="stars-mini">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <span key={star} className={star <= Math.round(item.avgRating) ? 'star-on' : 'star-off'}>
+                                    ★
+                                  </span>
+                                ))}
+                              </span>
+                              <span className="rating-count">({item.totalReviews})</span>
+                            </div>
+                          )}
                           <p className="type">(Mặc định: {item.DetailName})</p>
                           <div className="f">
                             <p>{Number(item.ItemPrice).toLocaleString('vi-VN')}</p>

@@ -5,6 +5,32 @@
   font-family: 'Quicksand', sans-serif !important;
 }
 
+.product-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0;
+
+  .stars-mini {
+    display: inline-flex;
+
+    .star-on {
+      color: #ffc107;
+      font-size: 0.75rem;
+    }
+
+    .star-off {
+      color: #ddd;
+      font-size: 0.75rem;
+    }
+  }
+
+  .rating-count {
+    font-size: 0.7rem;
+    color: #888;
+  }
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;
