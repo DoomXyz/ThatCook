@@ -8,4 +8,8 @@ const handleCreateReviewApi = (reviewData) => {
   return axios.post('/api/create-review', reviewData);
 };
 
-export { handleCheckUserCanReviewApi, handleCreateReviewApi };
+const handleGetReviewsByProductApi = (ProductID, page, limit) => {
+  return axios.get(`/api/get-reviews?ProductID=${ProductID}&page=${page}&limit=${limit}`);
+};
+
+export { handleCheckUserCanReviewApi, handleCreateReviewApi, handleGetReviewsByProductApi };
