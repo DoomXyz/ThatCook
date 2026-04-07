@@ -249,7 +249,7 @@ truffle compile
 
 ```bash
 cd be
-ganache-cli --port 7545 --accounts 10 --account_keys_path keys.json --deterministic --db ./ganache-data
+  ganache-cli --port 7545 --accounts 10 --account_keys_path keys.json --deterministic --db ./ganache-data
 ```
 
 ### Bước 4 — Deploy Smart Contract
