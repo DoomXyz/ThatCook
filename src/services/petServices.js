@@ -125,6 +125,7 @@ const handleSavePetInfoApi = async (petInfo, signer) => {
       data: null
     };
   } catch (e) {
+    console.log(e)
     return {
       errCode: 3,
       errMessage: `Lỗi khi lưu thú cưng`,

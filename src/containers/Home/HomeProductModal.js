@@ -9,7 +9,7 @@ import './HomeProductModal.scss';
 import Modal from 'react-bootstrap/Modal';
 
 import { addToCart } from '../../store/actions';
-import { handleGetSaleProductInfoApi } from '../../services/productServices';
+import { handleGetSaleProductInfoApi, handleTrackProductClickApi } from '../../services/productServices';
 
 class HomeProductModal extends Component {
   constructor(props) {
@@ -29,6 +29,8 @@ class HomeProductModal extends Component {
       this.resetState();
       if (selectedProductID) {
         await this.loadProductDetails(selectedProductID);
+        // Track product click (fire-and-forget)
+        handleTrackProductClickApi(selectedProductID).catch(() => {});
       }
     }
   }

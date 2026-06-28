@@ -5,6 +5,7 @@ import { IonIcon } from '@ionic/react';
 import DatePicker from 'react-datepicker';
 import { Bar, Pie } from 'react-chartjs-2';
 import Chat from '../../components/Chat';
+import AiManager from './AiManager';
 
 import 'chart.js/auto';
 
@@ -21,7 +22,7 @@ import EditBannerModal from './EditBannerModal';
 import CreateCouponModal from './CreateCouponModal.js';
 
 import { handleLogoutApi } from '../../services/accountServices';
-import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi } from '../../services/productServices';
+import { handleLoadProductInfoApi, handleCreateProductApi, handleChangeProductInfoApi, handleLoadClickStatsApi } from '../../services/productServices';
 import { handleLoadBannerInfoApi, handleCreateBannerApi, handleChangeBannerInfoApi } from '../../services/bannerServices';
 import { handleLoadInvoiceInfoApi, handleChangeInvoiceStatusApi, handleLoadRevenueStatsApi, handleLoadTopProductsApi } from '../../services/invoiceServices';
 import { handleLoadCouponInfoApi, handleCreateCouponApi, handleChangeCouponInfoApi } from '../../services/couponServices';
@@ -90,6 +91,12 @@ class Owner extends Component {
       pieStatsType: 'daily',
       pieStartDate: '',
       pieEndDate: '',
+      // Click Stats
+      loadedClickStats: [],
+      currentClickTab: 'daily',
+      clickStatsType: 'daily',
+      clickStartDate: '',
+      clickEndDate: '',
       // DisableButton
       disabledButtons: {
         logout: false,
@@ -230,6 +237,7 @@ class Owner extends Component {
         break;
       case 5:
         this.handleLoadRevenueStats();
+        this.handleLoadClickStats();
         break;
       default:
         break;
@@ -415,6 +423,63 @@ class Owner extends Component {
       return acc;
     }, {});
     return Object.keys(yearlyData).map((year) => ({ period: year, revenue: yearlyData[year] }));
+  };
+
+  // ============ CLICK STATS ============
+  handleLoadClickStats = async () => {
+    const { clickStatsType, clickStartDate, clickEndDate } = this.state;
+    try {
+      const response = await handleLoadClickStatsApi(clickStatsType, clickStartDate, clickEndDate);
+      if (response && response.errCode === 0) {
+        this.setState({ loadedClickStats: response.data });
+      }
+    } catch (e) {
+      console.log('Error loading click stats:', e);
+    }
+  };
+
+  handleClickTabChange = (tab) => {
+    let newStartDate = '';
+    let newEndDate = '';
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const currentDay = new Date().getDate();
+    if (tab === 'daily') {
+      newStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+      newEndDate = newStartDate;
+    } else if (tab === 'monthly') {
+      newStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+      newEndDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`;
+    } else if (tab === 'yearly') {
+      newStartDate = `${currentYear}-01-01`;
+      newEndDate = `${currentYear}-12-31`;
+    }
+    this.setState({ currentClickTab: tab, clickStatsType: tab, clickStartDate: newStartDate, clickEndDate: newEndDate }, () => this.handleLoadClickStats());
+  };
+
+  getClickChartData = () => {
+    const data = this.state.loadedClickStats;
+    // Aggregate clicks by product (sum across periods)
+    const productMap = {};
+    data.forEach((item) => {
+      if (!productMap[item.ProductName]) {
+        productMap[item.ProductName] = 0;
+      }
+      productMap[item.ProductName] += parseInt(item.clicks);
+    });
+    const sorted = Object.entries(productMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    return {
+      labels: sorted.map((item) => item[0]),
+      datasets: [
+        {
+          label: 'Lượt xem',
+          data: sorted.map((item) => item[1]),
+          backgroundColor: 'rgba(102, 126, 234, 0.6)',
+          borderColor: 'rgba(102, 126, 234, 1)',
+          borderWidth: 1,
+        },
+      ],
+    };
   };
   handleStatsTypeChange = (value) => {
     this.setState({ statsType: value }, () => this.handleLoadRevenueStats());
@@ -1878,8 +1943,8 @@ class Owner extends Component {
           }
           return (
             <div className="doanhcen f">
-              <div>
-                <div className="f">
+              <div className="revenue-section">
+                <div className="f revenue-controls">
                   <div>
                     <p>Từ ngày:</p>
                     <DatePicker selected={this.state.statsStartDate ? new Date(this.state.statsStartDate + 'T00:00:00') : null} onChange={this.handleStatsStartDateChange} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
@@ -1888,25 +1953,26 @@ class Owner extends Component {
                     <p>Đến ngày:</p>
                     <DatePicker selected={this.state.statsEndDate ? new Date(this.state.statsEndDate + 'T00:00:00') : null} onChange={this.handleStatsEndDateChange} dateFormat="dd/MM/yyyy" placeholderText="dd/mm/yyyy" className="date-picker" isClearable />
                   </div>
+                </div>
+                <div className="owner-stats-tabs revenue-tabs">
+                  <button className={this.state.currentStatsTab === 'daily' ? 'active' : ''} onClick={() => this.handleStatsTabChange('daily')}>
+                    Ngày
+                  </button>
+                  <button className={this.state.currentStatsTab === 'monthly' ? 'active' : ''} onClick={() => this.handleStatsTabChange('monthly')}>
+                    Tháng
+                  </button>
+                  <button className={this.state.currentStatsTab === 'yearly' ? 'active' : ''} onClick={() => this.handleStatsTabChange('yearly')}>
+                    Năm
+                  </button>
                   <button className="doanhcen-reset" onClick={this.handleResetStatsFilter}>
                     Reset
                   </button>
-                  <div className="owner-stats-tabs">
-                    <button className={this.state.currentStatsTab === 'daily' ? 'active' : ''} onClick={() => this.handleStatsTabChange('daily')}>
-                      Ngày
-                    </button>
-                    <button className={this.state.currentStatsTab === 'monthly' ? 'active' : ''} onClick={() => this.handleStatsTabChange('monthly')}>
-                      Tháng
-                    </button>
-                    <button className={this.state.currentStatsTab === 'yearly' ? 'active' : ''} onClick={() => this.handleStatsTabChange('yearly')}>
-                      Năm
-                    </button>
-                  </div>
                 </div>
                 <div className="charts-section">{this.state.loadedRevenueStats.length > 0 ? <Bar data={this.getChartData(this.state.currentStatsTab)} options={chartOptions} /> : <p>Không có dữ liệu thống kê doanh thu.</p>}</div>
               </div>
               <div className="strage"></div>
               <div className="pie-section">
+                <h3 className="pie-section-title">🔥 Sản phẩm bán chạy</h3>
                 <div className="owner-pie-tabs">
                   <button className={this.state.currentPieTab === 'daily' ? 'active' : ''} onClick={() => this.handlePieTabChange('daily')}>
                     Ngày
@@ -1919,6 +1985,47 @@ class Owner extends Component {
                   </button>
                 </div>
                 {this.state.loadedTopProducts.length > 0 ? <Pie data={this.getPieData()} /> : <p>Không có sản phẩm bán chạy.</p>}
+              </div>
+              <div className="strage"></div>
+              <div className="click-section">
+                <h3 className="click-section-title">👆 Sản phẩm được xem nhiều nhất</h3>
+                <div className="owner-click-tabs">
+                  <button className={this.state.currentClickTab === 'daily' ? 'active' : ''} onClick={() => this.handleClickTabChange('daily')}>
+                    Ngày
+                  </button>
+                  <button className={this.state.currentClickTab === 'monthly' ? 'active' : ''} onClick={() => this.handleClickTabChange('monthly')}>
+                    Tháng
+                  </button>
+                  <button className={this.state.currentClickTab === 'yearly' ? 'active' : ''} onClick={() => this.handleClickTabChange('yearly')}>
+                    Năm
+                  </button>
+                </div>
+                {this.state.loadedClickStats.length > 0 ? (
+                  <Bar
+                    data={this.getClickChartData()}
+                    options={{
+                      indexAxis: 'y',
+                      plugins: {
+                        legend: { display: false },
+                      },
+                      layout: {
+                        padding: {
+                          left: 20,
+                        },
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          ticks: {
+                            stepSize: 1,
+                          },
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <p>Không có dữ liệu lượt xem.</p>
+                )}
               </div>
             </div>
           );
@@ -1985,6 +2092,7 @@ class Owner extends Component {
           </div>
         )}
         <Chat ref={this.chatRef} />
+        <AiManager />
       </div>
     );
   }

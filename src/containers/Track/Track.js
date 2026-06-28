@@ -909,10 +909,10 @@ class Track extends Component {
                                       <b>Tên thú cưng:</b> {loadedAppointmentBillDetails.Pet?.PetName || 'N/A'}
                                     </p>
                                     <p>
-                                      <b>Loại thú cưng:</b> {loadedAppointmentBillDetails.Pet?.PetType || 'N/A'}
+                                      <b>Loại thú cưng:</b> {codePetType.find((item) => item.Code === loadedAppointmentBillDetails.Pet?.PetType)?.CodeValueVI || loadedAppointmentBillDetails.Pet?.PetType || 'N/A'}
                                     </p>
                                     <p>
-                                      <b>Giới tính:</b> {loadedAppointmentBillDetails.Pet?.PetGender || 'N/A'}
+                                      <b>Giới tính:</b> {codePetGender.find((item) => item.Code === loadedAppointmentBillDetails.Pet?.PetGender)?.CodeValueVI || loadedAppointmentBillDetails.Pet?.PetGender || 'N/A'}
                                     </p>
                                   </div>
                                   <div className="view-invoice-modal-content-top-status-appointment">

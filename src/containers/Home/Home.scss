@@ -444,4 +444,73 @@ a {
       }
     }
   }
+
+  // --------- BROWSE HISTORY ---------
+  .browse-history-section {
+    max-width: 1500px;
+    margin: 20px auto 0;
+    padding: 0 70px;
+
+    .browse-history-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: rgb(91, 85, 85);
+      margin-bottom: 12px;
+    }
+
+    .browse-history-list {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+
+      &::-webkit-scrollbar {
+        height: 4px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(91, 85, 85, 0.3);
+        border-radius: 4px;
+      }
+    }
+
+    .browse-history-item {
+      flex: 0 0 150px;
+      cursor: pointer;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all 0.3s;
+      background: white;
+
+      &:hover {
+        border-color: rgb(91, 85, 85);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-bottom: 1px solid #eee;
+      }
+
+      .browse-history-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgb(91, 85, 85);
+        padding: 6px 8px 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .browse-history-price {
+        font-size: 13px;
+        font-weight: bold;
+        color: red;
+        padding: 0 8px 6px;
+      }
+    }
+  }
 }

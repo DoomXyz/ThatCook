@@ -1069,6 +1069,9 @@ input {
       }
 
       .doanhcen {
+        justify-content: center;
+        padding: 0 40px;
+
         p {
           margin: 0;
           margin-left: 1.1rem;
@@ -1094,36 +1097,70 @@ input {
           margin-top: 0.6rem;
         }
 
-        .owner-stats-tabs {
-          margin-bottom: 20px;
-        }
-        .owner-stats-tabs button {
-          margin: 0 10px;
-          padding: 10px 20px;
-          cursor: pointer;
-          margin-top: 0.6rem;
-        }
-        .owner-stats-tabs button.active {
-          background-color: #007bff;
-          color: white;
+        .revenue-section {
+          flex: 2;
+          min-width: 600px;
+          padding-right: 20px;
+
+          .revenue-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+          }
+
+          .owner-stats-tabs.revenue-tabs {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+            margin-left: 1.1rem;
+
+            button {
+              margin: 0 5px;
+              padding: 8px 15px;
+              margin-top: 0;
+
+              &.active {
+                background-color: #007bff;
+                color: white;
+              }
+            }
+
+            .doanhcen-reset {
+              margin-top: 0;
+              height: auto;
+              padding: 8px 15px;
+              margin-left: 20px;
+            }
+          }
         }
 
         .charts-section {
           width: 100%;
         }
+
         .strage {
-          background-color: black;
+          background-color: #ccc;
           width: 1px;
-          margin-top: 6.5rem;
-          height: 75%;
-          margin-right: -5rem;
-          margin-left: 5rem;
+          margin: 6.5rem 1rem 0;
+          height: 350px;
         }
+
         .pie-section {
+          flex: 1;
+          min-width: 300px;
           margin-top: 20px;
-          margin-left: 11rem;
-          width: 400px;
-          height: 400px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          
+          .pie-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgb(91, 85, 85);
+            margin-bottom: 10px;
+          }
 
           .owner-pie-tabs {
             display: flex;
@@ -1134,7 +1171,40 @@ input {
             margin: 0 10px;
             padding: 10px 20px;
             cursor: pointer;
-            margin-top: -0.6rem;
+            border-radius: 0.5rem;
+          }
+        }
+
+        .click-section {
+          flex: 1;
+          min-width: 350px;
+          margin-top: 20px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+          .click-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgb(91, 85, 85);
+            margin-bottom: 10px;
+          }
+
+          .owner-click-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+          }
+          .owner-click-tabs button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 0.5rem;
+          }
+          .owner-click-tabs button.active {
+            background-color: #667ee2;
+            color: white;
           }
         }
       }

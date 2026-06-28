@@ -32,4 +32,19 @@ const handleLoadFilteredProductInfoApi = (filterProductType, filterPetType, sear
   return axios.get(`/api/load-filtered-productinfo?filterProductType=${filterProductType}&filterPetType=${filterPetType}&search=${search}`);
 };
 
-export { handleLoadProductInfoApi, handleGetProductInfoApi, handleLoadSaleProductInfoApi, handleGetSaleProductInfoApi, handleGetProductDetailInfoApi, handleChangeProductInfoApi, handleCreateProductApi, handleLoadFilteredProductInfoApi };
+const handleTrackProductClickApi = (ProductID) => {
+  return axios.post('/api/track-product-click', { ProductID });
+};
+
+const handleLoadClickStatsApi = (Type, StartDate, EndDate) => {
+  let url = `/api/load-click-stats?Type=${Type}`;
+  if (StartDate) url += `&StartDate=${StartDate}`;
+  if (EndDate) url += `&EndDate=${EndDate}`;
+  return axios.get(url);
+};
+
+const handleGetBrowseHistoryApi = () => {
+  return axios.get('/api/get-browse-history');
+};
+
+export { handleLoadProductInfoApi, handleGetProductInfoApi, handleLoadSaleProductInfoApi, handleGetSaleProductInfoApi, handleGetProductDetailInfoApi, handleChangeProductInfoApi, handleCreateProductApi, handleLoadFilteredProductInfoApi, handleTrackProductClickApi, handleLoadClickStatsApi, handleGetBrowseHistoryApi };

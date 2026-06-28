@@ -15,7 +15,7 @@ import Chat from '../../components/Chat';
 import { handleLogoutApi } from '../../services/accountServices';
 import { handleGetSaleBannerInfoApi } from '../../services/bannerServices';
 import { handleAddToCartApi, handleGetCartApi } from '../../services/cartServices';
-import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi } from '../../services/productServices';
+import { handleLoadSaleProductInfoApi, handleGetProductDetailInfoApi, handleGetBrowseHistoryApi } from '../../services/productServices';
 
 import { checkLoginStatus, getAllCodes } from '../../utils/pakage';
 import { userLogin, userLogout, addToCart, clearCart, saveCartForCheckOut } from '../../store/actions';
@@ -50,6 +50,7 @@ class Home extends Component {
       disabledButtons: {
         addToCart: false,
       },
+      browseHistory: [],
     };
     this.debounceTimeout = null;
   }
@@ -58,6 +59,7 @@ class Home extends Component {
     await this.handleLoadProductInfo();
     await this.handleGetBannerInfo();
     await this.handleLoadCode(['ProductType', 'PetType']);
+    await this.handleLoadBrowseHistory();
     this.bannerInterval = setInterval(() => {
       this.setState((prevState) => {
         if (prevState.loadedBannerInfo.length === 0) return { currentBannerIndex: 0 };
@@ -360,9 +362,20 @@ class Home extends Component {
       }
     );
   };
+  handleLoadBrowseHistory = async () => {
+    try {
+      if (!this.state.isLoggedIn) return;
+      const response = await handleGetBrowseHistoryApi();
+      if (response && response.errCode === 0 && response.data) {
+        this.setState({ browseHistory: response.data });
+      }
+    } catch (e) {
+      // silently fail
+    }
+  };
   render() {
     const { isLoading, loadedBannerInfo, loadedProductInfo, codeProductType, codePetType, disabledButtons,
-      searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages, isShowHomeProductModal, selectedProduct, currentBannerIndex } = this.state;
+      searchValue, filterValue, sortValue, currentPage, tempCurrentPage, totalPages, isShowHomeProductModal, selectedProduct, currentBannerIndex, browseHistory } = this.state;
     return (
       <div className="home-body">
         <ToastContainer
@@ -407,6 +420,20 @@ class Home extends Component {
                 </div>
               </div>
             </div>
+            {browseHistory && browseHistory.length > 0 && (
+              <section className="browse-history-section">
+                <h2 className="browse-history-title">👁️ Đã xem gần đây</h2>
+                <div className="browse-history-list">
+                  {browseHistory.map((item) => (
+                    <div className="browse-history-item" key={item.ProductID} onClick={() => this.handleSelectedProduct(item.ProductID)}>
+                      <img src={item.ProductImage} alt={item.ProductName} />
+                      <p className="browse-history-name">{item.ProductName}</p>
+                      <p className="browse-history-price">{Number(item.ProductPrice).toLocaleString('vi-VN')}đ</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
             <section className="cartegory f">
               <div className="row">
                 <div className="cartegory-content">
