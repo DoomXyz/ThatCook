@@ -1234,15 +1234,15 @@ let generateVnpayUrl = (InvoiceID, TotalPayment, ipAddr, bankCode = '') => {
       let vnp_Params = {};
       vnp_Params['vnp_Version'] = '2.1.0';
       vnp_Params['vnp_Command'] = 'pay';
-      vnp_Params['vnp_TmnCode'] = process.env.VNP_TMNCODE;
+      vnp_Params['vnp_TmnCode'] = process.env.VNP_TMNCODE.trim();
       vnp_Params['vnp_Locale'] = locale;
       vnp_Params['vnp_CurrCode'] = currCode;
       vnp_Params['vnp_TxnRef'] = orderId;
       vnp_Params['vnp_OrderInfo'] = 'Thanh toan don hang ' + orderId;
       vnp_Params['vnp_OrderType'] = 'other';
       vnp_Params['vnp_Amount'] = amount;
-      vnp_Params['vnp_ReturnUrl'] = process.env.VNP_RETURNURL;
-      console.log('Generated vnp_ReturnUrl:', process.env.VNP_RETURNURL);
+      vnp_Params['vnp_ReturnUrl'] = process.env.VNP_RETURNURL.trim();
+      console.log('Generated vnp_ReturnUrl:', process.env.VNP_RETURNURL.trim());
       vnp_Params['vnp_IpAddr'] = ipAddr;
       vnp_Params['vnp_CreateDate'] = createDate;
       if (bankCode) {
@@ -1252,7 +1252,7 @@ let generateVnpayUrl = (InvoiceID, TotalPayment, ipAddr, bankCode = '') => {
       vnp_Params = sortObject(vnp_Params);
 
       let signData = querystring.stringify(vnp_Params, { encode: false });
-      let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+      let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET.trim());
       let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
       vnp_Params['vnp_SecureHash'] = signed;
       vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
@@ -1286,7 +1286,7 @@ let handleVnpayIpn = (query) => {
 
       vnp_Params = sortObject(vnp_Params);
       let signData = querystring.stringify(vnp_Params, { encode: false });
-      let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+      let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET.trim());
       let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
       if (secureHash === signed) {

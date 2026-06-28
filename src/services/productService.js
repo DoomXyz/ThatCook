@@ -1314,6 +1314,95 @@ let loadFilteredProductInfo = (filterProductType, filterPetType) => {
   });
 };
 
+// ============ PRODUCT CLICK TRACKING ============
+
+const trackProductClick = async (ProductID, AccountID) => {
+  try {
+    if (!ProductID) {
+      return { errCode: -1, errMessage: 'Thiếu tham số ProductID!' };
+    }
+    const product = await db.Product.findOne({ where: { ProductID }, attributes: ['ProductID'], raw: true });
+    if (!product) {
+      return { errCode: 2, errMessage: 'Sản phẩm không tồn tại!' };
+    }
+    await db.ProductClick.create({
+      ProductID,
+      AccountID: AccountID || null,
+      ClickedAt: new Date(),
+    });
+    return { errCode: 0, errMessage: 'Tracked!' };
+  } catch (e) {
+    console.log('Error in trackProductClick:', e);
+    return { errCode: 3, errMessage: `Lỗi: ${e.message}` };
+  }
+};
+
+const getClickStats = async (Type = 'monthly', StartDate, EndDate) => {
+  try {
+    let dateFormat;
+    switch (Type) {
+      case 'daily':
+        dateFormat = '%Y-%m-%d';
+        break;
+      case 'monthly':
+        dateFormat = '%Y-%m';
+        break;
+      case 'yearly':
+        dateFormat = '%Y';
+        break;
+      default:
+        return { errCode: 1, errMessage: 'Type phải là daily, monthly, hoặc yearly' };
+    }
+
+    let dateCondition = '';
+    if (StartDate) dateCondition += ` AND pc.ClickedAt >= '${StartDate}'`;
+    if (EndDate) dateCondition += ` AND pc.ClickedAt <= '${EndDate} 23:59:59'`;
+
+    // Top clicked products grouped by period
+    const [results] = await db.sequelize.query(
+      `SELECT 
+        DATE_FORMAT(pc.ClickedAt, '${dateFormat}') as period,
+        p.ProductName,
+        p.ProductID,
+        COUNT(*) as clicks
+       FROM ProductClick pc
+       JOIN Product p ON pc.ProductID = p.ProductID
+       WHERE 1=1 ${dateCondition}
+       GROUP BY period, p.ProductID, p.ProductName
+       ORDER BY period DESC, clicks DESC`
+    );
+
+    return { errCode: 0, data: results };
+  } catch (e) {
+    console.log('Error in getClickStats:', e);
+    return { errCode: 3, errMessage: `Lỗi: ${e.message}` };
+  }
+};
+
+const getBrowseHistory = async (AccountID) => {
+  try {
+    if (!AccountID) {
+      return { errCode: -1, errMessage: 'Thiếu AccountID!' };
+    }
+
+    const [results] = await db.sequelize.query(
+      `SELECT pc.ProductID, p.ProductName, p.ProductPrice, p.ProductImage, MAX(pc.ClickedAt) as LastViewed
+       FROM ProductClick pc
+       JOIN Product p ON pc.ProductID = p.ProductID
+       WHERE pc.AccountID = :accountId
+       GROUP BY pc.ProductID, p.ProductName, p.ProductPrice, p.ProductImage
+       ORDER BY LastViewed DESC
+       LIMIT 10`,
+      { replacements: { accountId: AccountID } }
+    );
+
+    return { errCode: 0, data: results };
+  } catch (e) {
+    console.log('Error in getBrowseHistory:', e);
+    return { errCode: 3, errMessage: `Lỗi: ${e.message}` };
+  }
+};
+
 module.exports = {
   getSaleProductInfo,
   loadSaleProductInfo,
@@ -1323,4 +1412,7 @@ module.exports = {
   createProduct,
   changeProductInfo,
   loadFilteredProductInfo,
+  trackProductClick,
+  getClickStats,
+  getBrowseHistory,
 };

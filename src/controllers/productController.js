@@ -1,4 +1,5 @@
 import productService from '../services/productService';
+import { verifyJWT } from '../middleware/jwtController';
 
 const handleError = (res, e) => {
   console.log(e);
@@ -94,6 +95,51 @@ let handleLoadFilteredProductInfo = async (req, res) => {
   }
 };
 
+let handleTrackProductClick = async (req, res) => {
+  try {
+    const { ProductID } = req.body;
+    // Try to get AccountID from JWT cookie (optional - guest clicks are also tracked)
+    let AccountID = null;
+    try {
+      const token = req.cookies?.Token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+      if (token) {
+        const decoded = verifyJWT(token);
+        if (decoded && decoded.AccountID) AccountID = decoded.AccountID;
+      }
+    } catch (e) { /* guest user, no token */ }
+    let response = await productService.trackProductClick(ProductID, AccountID);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+let handleLoadClickStats = async (req, res) => {
+  try {
+    const Type = req.query.Type || 'monthly';
+    const StartDate = req.query.StartDate || null;
+    const EndDate = req.query.EndDate || null;
+    let response = await productService.getClickStats(Type, StartDate, EndDate);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+let handleGetBrowseHistory = async (req, res) => {
+  try {
+    const token = req.cookies?.Token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    const decoded = verifyJWT(token);
+    if (!decoded || !decoded.AccountID) {
+      return res.status(401).json({ errCode: -1, errMessage: 'Unauthorized.' });
+    }
+    let response = await productService.getBrowseHistory(decoded.AccountID);
+    return res.status(200).json(response);
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 module.exports = {
   handleGetSaleProductInfo,
   handleLoadSaleProductInfo,
@@ -103,4 +149,7 @@ module.exports = {
   handleCreateProduct,
   handleChangeProductInfo,
   handleLoadFilteredProductInfo,
+  handleTrackProductClick,
+  handleLoadClickStats,
+  handleGetBrowseHistory,
 };

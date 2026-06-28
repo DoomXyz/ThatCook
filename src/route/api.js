@@ -11,6 +11,7 @@ import appointmentController from '../controllers/appointmentController';
 import scheduleController from '../controllers/scheduleController';
 import utilitiesController from '../controllers/utilitiesController';
 import chatController from '../controllers/chatController';
+import aiController from '../controllers/aiController';
 import * as appointmentService from '../services/appointmentService';
 import { checkAdminJWT, checkOwnerJWT, checkVeterinarianJWT } from '../middleware/jwtController';
 import querystring from 'qs'; // Import qs for querystring
@@ -59,6 +60,13 @@ const protectRoute = (req, res, next) => {
 
     '/api/load-revenue-stats', // Thêm dòng này nếu chưa có
     '/api/load-top-products',
+
+    '/api/ai-chat',
+    '/api/ai-save-key',
+    '/api/ai-get-key',
+    '/api/ai-delete-key',
+
+    '/api/load-click-stats',
   ];
 
   const veterinarianPaths = ['/api/change-workingstatus', '/api/load-appointments', '/api/create-appointmentbill', '/api/load-schedule', '/api/change-schedulestatus'];
@@ -176,6 +184,18 @@ let initAPIRoutes = (app) => {
 
   router.get('/api/load-revenue-stats', invoiceController.handleLoadRevenueStats);
   router.get('/api/load-top-products', invoiceController.handleLoadTopProducts);
+
+  //ai manager
+  router.post('/api/ai-chat', aiController.handleAiChat);
+  router.post('/api/ai-save-key', aiController.handleSaveApiKey);
+  router.get('/api/ai-get-key', aiController.handleGetApiKey);
+  router.delete('/api/ai-delete-key', aiController.handleDeleteApiKey);
+
+  //product click tracking
+  router.post('/api/track-product-click', productController.handleTrackProductClick);
+  router.get('/api/load-click-stats', productController.handleLoadClickStats);
+  router.get('/api/get-browse-history', productController.handleGetBrowseHistory);
+
   //veterinarian
   router.put('/api/change-workingstatus', accountController.handleChangeWorkingStatus);
 

@@ -43,8 +43,9 @@ npx sequelize-cli db:migrate:undo:all
 3 = Lỗi cơ sở dữ liệu, lỗi mã hóa JWT, lỗi xác minh token, ngoại lệ không xử lý được, khóa bí mật JWT không được cấu hình.
 
 ngrok http 9999
+npx ngrok http 9999  
 ----------------Set dữ liệu hình ảnh mẫu trong database mysql---------------------
-*Chạy hết đoạn dưới vào SQL là được
+_Chạy hết đoạn dưới vào SQL là được
 UPDATE Banner
 SET BannerImage = ELT(
 FLOOR(1 + RAND() \_ 3),
@@ -54,7 +55,7 @@ FLOOR(1 + RAND() \_ 3),
 );
 UPDATE Product
 SET ProductImage = ELT(
-FLOOR(1 + RAND() * 26),
+FLOOR(1 + RAND() _ 26),
 'https://product.hstatic.net/200000263355/product/z4422721407280_da218592cafe5883f0c038e017da4431_ecb032d14d3d41d48432d0ec0c4dcf17_master.jpg',
 'https://product.hstatic.net/200000263355/product/z5689297270878_c3804aeb70d00a6f0bac98f8b43fad2b_85326496dc1a4259a0039c90f496bd10_master.jpg',
 'https://product.hstatic.net/200000263355/product/z4423429265327_dc60f09543c7dedf8622b41f41523554_b2c72fd6aab54f72b416dfab3d12c78f_master.jpg',

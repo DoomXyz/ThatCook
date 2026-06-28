@@ -1196,7 +1196,7 @@ let getAppointmentBillDetail = (AppointmentBillID) => {
           {
             model: db.Appointment,
             as: 'Appointment',
-            attributes: ['CustomerName', 'CustomerEmail', 'CustomerPhone', 'AppointmentDate', 'StartTime', 'EndTime', 'AppointmentStatus', 'VeterinarianID', 'ServiceID'],
+            attributes: ['CustomerName', 'CustomerEmail', 'CustomerPhone', 'AppointmentDate', 'StartTime', 'EndTime', 'AppointmentStatus', 'VeterinarianID', 'ServiceID', 'AccountID', 'PetID'],
             include: [
               {
                 model: db.Service,
@@ -1527,10 +1527,10 @@ let createAppointmentBill = (VeterinarianID, AppointmentID, ServicePrice, Medica
       if (PaymentType === 'CARD' || PaymentType === 'QR') {
         console.log('BE: Bắt đầu generate VNPay cho PaymentType:', PaymentType);
         const ipAddr = '127.0.0.1';
-        const tmnCode = process.env.VNP_TMNCODE;
-        const secretKey = process.env.VNP_HASHSECRET;
-        let vnpUrl = process.env.VNP_URL;
-        const returnUrl = process.env.VNP_RETURNURL_APPOINTMENT;
+        const tmnCode = process.env.VNP_TMNCODE.trim();
+        const secretKey = process.env.VNP_HASHSECRET.trim();
+        let vnpUrl = process.env.VNP_URL.trim();
+        const returnUrl = process.env.VNP_RETURNURL_APPOINTMENT.trim();
         console.log('BE: Env vars:', { tmnCode, secretKey, vnpUrl, returnUrl });
         const date = new Date();
         const createDate = date.getFullYear() + '' + ('0' + (date.getMonth() + 1)).slice(-2) + '' + ('0' + date.getDate()).slice(-2) + '' + ('0' + date.getHours()).slice(-2) + '' + ('0' + date.getMinutes()).slice(-2) + '' + ('0' + date.getSeconds()).slice(-2);
@@ -1815,7 +1815,7 @@ let handleVnpayIpn = (params) => {
     delete params['vnp_SecureHashType'];
     params = sortObject(params);
     let signData = querystring.stringify(params, { encode: false });
-    let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET);
+    let hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET.trim());
     let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
     if (secureHash === signed) {
       const transaction = await db.sequelize.transaction();
